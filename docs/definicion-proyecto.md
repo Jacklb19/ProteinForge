@@ -42,7 +42,7 @@ Diseñar y construir una aplicación web progresiva que integre, en un único fl
 
 - Incorporar un asistente basado en un modelo de lenguaje que interprete los descriptores calculados, resuma la anotación funcional recuperada de UniProt y redacte un informe del análisis en lenguaje natural.
 
-- Desplegar el sistema sobre una arquitectura sin servidor en Amazon Web Services, con integración y despliegue continuos, y verificar el cumplimiento de los requisitos no funcionales mediante una batería de pruebas automatizadas.
+- Desplegar el sistema sobre plataformas con plan gratuito (Vercel y Supabase), manteniéndolo portable a Amazon Web Services, con integración y despliegue continuos, y verificar el cumplimiento de los requisitos no funcionales mediante una batería de pruebas automatizadas.
 
 # **Alcance y delimitación**
 
@@ -152,7 +152,7 @@ Los requisitos no funcionales se enuncian con una métrica y un valor objetivo. 
 | RNF-09 | Compatibilidad         | Funcionamiento verificado en las dos últimas versiones estables de Chrome, Firefox, Edge y Safari.                                      |
 | RNF-10 | Mantenibilidad         | Cobertura de pruebas unitarias igual o superior al 70 % en la lógica de cálculo; análisis estático sin errores.                         |
 | RNF-11 | Observabilidad         | Todo error de servidor queda registrado con identificador de correlación consultable.                                                   |
-| RNF-12 | Costo                  | El costo mensual de operación en condiciones académicas se mantiene por debajo de cinco dólares.                                        |
+| RNF-12 | Costo                  | El costo de operación es de cero dólares, usando solo planes gratuitos que no exigen tarjeta de crédito.                                |
 
 # **Arquitectura de la solución**
 
@@ -188,16 +188,16 @@ Las tres dependencias externas son servicios sobre los que el proyecto no tiene 
 
 *Responsabilidad de cada contenedor*
 
-| **Contenedor**             | **Responsabilidad**                                                                        | **Tecnología**                         |
-|----------------------------|--------------------------------------------------------------------------------------------|----------------------------------------|
-| Aplicación de página única | Presentar la interfaz, gestionar el estado y coordinar el trabajo de los hilos auxiliares. | React 19, TypeScript, Vite             |
-| Hilos de trabajo           | Ejecutar descriptores y alineamientos sin bloquear la interfaz.                            | Web Workers, WebAssembly (Rust)        |
-| Trabajador de servicio     | Interceptar peticiones, servir la aplicación sin conexión y administrar la caché.          | Workbox, Cache API, IndexedDB          |
-| Distribución estática      | Entregar los archivos de la aplicación desde el borde de la red.                           | Amazon S3 y CloudFront                 |
-| Interfaz de programación   | Intermediar con servicios externos, autorizar y persistir proyectos.                       | FastAPI sobre AWS Lambda y API Gateway |
-| Servicio de identidad      | Registrar y autenticar usuarios; emitir credenciales.                                      | Amazon Cognito                         |
-| Almacén de proyectos       | Guardar proyectos, secuencias y resultados por usuario.                                    | Amazon DynamoDB                        |
-| Almacén de objetos         | Conservar copias en caché de estructuras y los informes generados.                         | Amazon S3                              |
+| **Contenedor**             | **Responsabilidad**                                                                        | **Tecnología**                        |
+|----------------------------|--------------------------------------------------------------------------------------------|---------------------------------------|
+| Aplicación de página única | Presentar la interfaz, gestionar el estado y coordinar el trabajo de los hilos auxiliares. | React 19, TypeScript, Vite            |
+| Hilos de trabajo           | Ejecutar descriptores y alineamientos sin bloquear la interfaz.                            | Web Workers, WebAssembly (Rust)       |
+| Trabajador de servicio     | Interceptar peticiones, servir la aplicación sin conexión y administrar la caché.          | Workbox, Cache API, IndexedDB         |
+| Distribución estática      | Entregar los archivos de la aplicación desde el borde de la red.                           | Vercel                                |
+| Interfaz de programación   | Intermediar con servicios externos, autorizar y persistir proyectos.                       | FastAPI en funciones Python de Vercel |
+| Servicio de identidad      | Registrar y autenticar usuarios; emitir credenciales.                                      | Supabase Auth                         |
+| Almacén de proyectos       | Guardar proyectos, secuencias y resultados por usuario.                                    | Supabase PostgreSQL                   |
+| Almacén de archivos        | Conservar los informes generados en PDF.                                                   | Supabase Storage                      |
 
 ## **Organización interna del cliente**
 
@@ -242,14 +242,14 @@ Un registro de decisión de arquitectura documenta una elección estructural, la
 
 **Tabla 10**
 
-*ADR-04. Adoptar una arquitectura sin servidor en AWS*
+*ADR-04. Desplegar sobre plataformas gratuitas con portabilidad a AWS*
 
-| **Campo**     | **Contenido**                                                                                                                                                                                                                                   |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Contexto      | El proyecto es académico, con tráfico intermitente y presupuesto nulo.                                                                                                                                                                          |
-| Decisión      | Contenido estático en S3 y CloudFront; interfaz en Lambda tras API Gateway; datos en DynamoDB; identidad en Cognito.                                                                                                                            |
-| Alternativas  | Instancia EC2 con contenedores; contenedores administrados en ECS Fargate.                                                                                                                                                                      |
-| Consecuencias | El costo tiende a cero sin tráfico y no hay servidores que administrar. Como contrapartida, aparece la latencia de arranque en frío y se acepta cierta dependencia del proveedor, acotada manteniendo la aplicación como una interfaz estándar. |
+| **Campo**     | **Contenido**                                                                                                                                                                                                                                                               |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Contexto      | El proyecto es académico, con tráfico intermitente y sin presupuesto; no es posible registrar un medio de pago.                                                                                                                                                             |
+| Decisión      | Aplicación y API en Vercel; identidad, base de datos PostgreSQL y archivos en Supabase. El diseño se mantiene portable a AWS.                                                                                                                                               |
+| Alternativas  | Arquitectura sin servidor en AWS; servidor propio con contenedores.                                                                                                                                                                                                         |
+| Consecuencias | Costo cero y sin servidores que administrar. A cambio se aceptan los límites de los planes gratuitos —pausa por inactividad, tamaño de base de datos, cuerpo máximo de 4,5 MB— y el riesgo de que sus condiciones cambien, mitigado con la equivalencia documentada en AWS. |
 
 **Tabla 11**
 
@@ -327,27 +327,29 @@ El asistente recibe un contexto estrictamente acotado —los valores ya calculad
 
 Tres restricciones de diseño delimitan su participación. La primera es que el modelo **nunca calcula**: todos los números que aparecen en su respuesta provienen del contexto que se le suministra, lo que hace verificable cada cifra del informe. La segunda es que el modelo **nunca genera secuencias**, en coherencia con la delimitación de alcance establecida. La tercera es que toda salida generada se identifica visualmente como interpretación automática, de modo que el usuario pueda distinguir sin ambigüedad entre el dato calculado y su glosa.
 
-Desde el punto de vista técnico, la clave de acceso reside únicamente en el gestor de secretos de AWS y la llamada se realiza desde la función Lambda. La respuesta se transmite al cliente mediante eventos enviados por el servidor, lo que permite mostrar el texto conforme se genera en lugar de esperar a la respuesta completa: una elección que mejora la percepción de rapidez sin modificar el tiempo real de proceso.
+Desde el punto de vista técnico, la clave de acceso reside únicamente en una variable de entorno cifrada de Vercel y la llamada se realiza desde la API. La respuesta se transmite al cliente mediante eventos enviados por el servidor, lo que permite mostrar el texto conforme se genera en lugar de esperar a la respuesta completa: una elección que mejora la percepción de rapidez sin modificar el tiempo real de proceso.
 
 # **Modelo de datos y diseño de la interfaz de programación**
 
 ## **Modelo de datos**
 
-Se emplea DynamoDB con el patrón de tabla única, que consiste en almacenar entidades de distinta naturaleza en una misma tabla diferenciándolas por la composición de sus claves. Este patrón, característico de las bases de datos no relacionales orientadas a clave y valor, permite recuperar en una sola operación todas las entidades relacionadas con un usuario.
+Se emplea PostgreSQL, provisto por Supabase. Los datos del proyecto son naturalmente relacionales —un usuario tiene proyectos, un proyecto tiene análisis y alineamientos—, mientras que los resultados de cada análisis tienen una forma que varía según su tipo; por eso se combinan tablas relacionales para la estructura con columnas JSONB para los resultados, lo que da integridad referencial sin obligar a fijar de antemano cada campo de cada resultado.
 
 **Tabla 13**
 
-*Diseño de claves de la tabla única*
+*Tablas principales de la base de datos*
 
-| **Entidad**   | **Clave de partición** | **Clave de ordenación**  | **Atributos principales**                   |
-|---------------|------------------------|--------------------------|---------------------------------------------|
-| Usuario       | USER#\<id\>            | PROFILE                  | correo, fecha de alta, preferencias         |
-| Proyecto      | USER#\<id\>            | PROJ#\<ulid\>            | nombre, fecha, secuencia activa, estado     |
-| Análisis      | PROJ#\<ulid\>          | ANAL#\<marca de tiempo\> | tipo, parámetros, resultados, duración      |
-| Alineamiento  | PROJ#\<ulid\>          | ALIGN#\<ulid\>           | referencia, matriz, penalizaciones, puntaje |
-| Caché externa | CACHE#\<fuente\>       | \<identificador\>        | carga útil, vencimiento                     |
+| **Tabla**      | **Clave y relaciones**          | **Columnas principales**                                 |
+|----------------|---------------------------------|----------------------------------------------------------|
+| profiles       | id (= usuario de Supabase Auth) | nombre visible, preferencias (JSONB), fecha de alta      |
+| projects       | id; owner_id → profiles         | nombre, secuencia activa, estado, fecha de actualización |
+| analyses       | id; project_id → projects       | tipo, parámetros (JSONB), resultados (JSONB), duración   |
+| alignments     | id; project_id → projects       | referencia, matriz, penalizaciones, puntaje, identidad   |
+| external_cache | (fuente, identificador)         | carga útil (JSONB), vencimiento                          |
 
-*Nota.* El identificador ULID se prefiere frente al UUID por ser ordenable lexicográficamente en el tiempo, lo que simplifica las consultas por rango.
+*Nota.* Los identificadores son UUID versión 7, que se ordenan en el tiempo y simplifican las consultas por fecha. El borrado de un proyecto elimina en cascada sus análisis y alineamientos.
+
+Cada tabla con datos de usuario tiene activada la **seguridad a nivel de fila**: una política declara que una fila solo es visible y modificable cuando su propietario coincide con el usuario de la credencial. Esta garantía vive en la propia base de datos, de modo que se cumple aunque la API tuviera un error. La tabla de caché externa no es accesible para los usuarios; solo la API la lee y escribe.
 
 ## **Diseño de la interfaz de programación**
 
@@ -374,48 +376,77 @@ La especificación se genera automáticamente en formato OpenAPI a partir de los
 
 # **Infraestructura, despliegue e integración continua**
 
-## **Componentes de infraestructura**
+## **Plataforma de despliegue**
+
+El sistema se despliega sobre plataformas con **plan gratuito que no exigen tarjeta de crédito**: Vercel para la aplicación y la API, y Supabase para identidad, base de datos y archivos. La elección es viable precisamente por la arquitectura adoptada: como el cómputo intensivo ocurre en el navegador, al servidor solo le quedan tareas ligeras —autenticar, guardar datos y llamar al modelo de lenguaje— que caben holgadamente en los límites de esos planes.
 
 **Tabla 15**
 
-*Servicios de AWS empleados y su función*
+*Servicios empleados en la opción gratuita*
 
-| **Servicio**    | **Función en el sistema**                                                    | **Consideración de costo**                          |
-|-----------------|------------------------------------------------------------------------------|-----------------------------------------------------|
-| S3              | Alojar los archivos estáticos y los informes generados                       | Dentro de la capa gratuita para el volumen previsto |
-| CloudFront      | Distribuir el contenido, terminar TLS y aplicar las cabeceras de aislamiento | Capa gratuita de 1 TB mensual                       |
-| API Gateway     | Exponer la interfaz de programación y limitar la tasa de peticiones          | Facturación por millón de peticiones                |
-| Lambda          | Ejecutar la aplicación FastAPI mediante un adaptador                         | Un millón de invocaciones mensuales sin costo       |
-| DynamoDB        | Persistir proyectos y resultados                                             | Modo bajo demanda, capa gratuita                    |
-| Cognito         | Gestionar registro, autenticación y emisión de credenciales                  | Gratuito hasta 50.000 usuarios activos              |
-| Secrets Manager | Custodiar la clave del modelo de lenguaje                                    | Costo marginal                                      |
-| CloudWatch      | Registrar trazas, métricas y alarmas                                         | Capa gratuita                                       |
+| **Servicio**                      | **Función en el sistema**                                                                                                                 | **Límite del plan gratuito**                                                |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| Vercel (plan Hobby)               | Alojar la aplicación, distribuirla desde su red de entrega y aplicar las cabeceras de seguridad y de aislamiento definidas en vercel.json | Gratuito para uso no comercial                                              |
+| Funciones Python de Vercel        | Ejecutar la API FastAPI como funciones sin servidor                                                                                       | Incluidas en el plan gratuito; hasta 2 GB de memoria y 300 s por invocación |
+| Supabase Auth                     | Registro, inicio de sesión y emisión de credenciales JWT                                                                                  | Hasta 50.000 usuarios activos mensuales                                     |
+| Supabase PostgreSQL               | Persistir los datos con seguridad a nivel de fila                                                                                         | Hasta 500 MB de base de datos                                               |
+| Supabase Storage                  | Guardar archivos: informes y demás objetos binarios                                                                                       | Hasta 1 GB de almacenamiento                                                |
+| Variables de entorno de Vercel    | Custodiar la clave de Gemini y la clave de servicio de Supabase, cifradas y solo accesibles desde el servidor                             | Sin costo                                                                   |
+| GitHub Actions                    | Integración continua y tareas programadas de mantenimiento                                                                                | Gratuito en repositorios públicos; 2.000 minutos mensuales en privados      |
+| Registros de Vercel y Sentry      | Trazas, errores y alertas                                                                                                                 | Planes gratuitos                                                            |
+| Tabla external_cache (PostgreSQL) | Guardar en caché las respuestas de UniProt y del PDB para no repetir consultas                                                            | Incluida en los 500 MB                                                      |
+
+*Nota.* Límites vigentes a septiembre de 2026. Los planes gratuitos cambian con frecuencia, por lo que deben revisarse al iniciar la construcción.
+
+Tres restricciones de estos planes condicionan el diseño y conviene tenerlas presentes desde ahora. La primera es que el plan Hobby de Vercel admite solo uso no comercial, condición que un proyecto académico cumple. La segunda es que una función de Vercel no acepta cuerpos de petición mayores de 4,5 MB, de modo que los archivos voluminosos no pasan por la API: el cliente los sube directamente a Supabase Storage mediante una URL firmada que la API emite. La tercera es que Supabase **pausa los proyectos gratuitos tras una semana sin actividad**; para evitar que el sistema amanezca detenido el día de la sustentación, un flujo programado de GitHub Actions realiza una consulta ligera cada tres días.
 
 ## **Estrategia de despliegue**
 
-La infraestructura se declara como código mediante AWS SAM, de modo que el entorno completo pueda recrearse desde cero con un único comando. Se definen dos entornos: uno de preproducción, que recibe cada integración a la rama principal, y uno de producción, que se promueve manualmente. Esta separación permite verificar los cambios en condiciones reales sin exponer al usuario a regresiones.
+Vercel se integra directamente con el repositorio de GitHub. Cada propuesta de cambio genera automáticamente un **despliegue de vista previa** con su propia dirección, que cumple la función de entorno de preproducción, y cada integración a la rama principal se publica en producción. El esquema de la base de datos se versiona en el mismo repositorio como migraciones SQL gestionadas con la interfaz de línea de comandos de Supabase, y las cabeceras de seguridad se declaran en vercel.json. De este modo toda la configuración queda descrita en archivos versionados, que es el propósito de la infraestructura como código.
 
-El proceso de integración continua, implementado con GitHub Actions, ejecuta en cada propuesta de cambio la siguiente secuencia: verificación de tipos, análisis estático, pruebas unitarias del cliente y del servidor, compilación del módulo WebAssembly, construcción de la aplicación, pruebas de extremo a extremo sobre la construcción resultante y auditoría de rendimiento y accesibilidad. Una propuesta que no supere cualquiera de estas etapas no puede integrarse.
+El proceso de integración continua, implementado con GitHub Actions, ejecuta en cada propuesta de cambio la verificación de tipos, el análisis estático, las pruebas unitarias del cliente y del servidor, la construcción de la aplicación, las pruebas de extremo a extremo sobre el despliegue de vista previa y la auditoría de rendimiento y accesibilidad. Una propuesta que no supere todas las etapas no puede integrarse.
 
-Frente al arranque en frío de las funciones sin servidor se reduce el tamaño del paquete desplegado y, sobre todo, se diseña el cliente para que ninguna interacción crítica dependa de una respuesta inmediata del servidor: puesto que el cálculo ocurre en el navegador, un arranque en frío de un segundo solo afecta a operaciones que el usuario ya percibe como asíncronas, como guardar un proyecto.
+Frente al arranque en frío de las funciones sin servidor, el cliente se diseña para que ninguna interacción crítica dependa de una respuesta inmediata del servidor: puesto que el cálculo ocurre en el navegador, un arranque en frío solo afecta a operaciones que el usuario ya percibe como asíncronas, como guardar un proyecto.
+
+## **Alternativa de despliegue en AWS**
+
+El diseño se mantiene **portable a Amazon Web Services** sin reescribir la aplicación, gracias a tres decisiones. La API es una aplicación ASGI estándar, que se ejecuta igual en una función de Vercel que en AWS Lambda mediante un adaptador. La API valida las credenciales JWT contra el conjunto de claves públicas del proveedor de identidad, de modo que Supabase Auth y Cognito resultan intercambiables cambiando una variable de configuración. Y los datos viven en PostgreSQL en ambos casos, por lo que el esquema y las migraciones no cambian.
+
+**Tabla 16**
+
+*Equivalencia entre la opción gratuita y AWS*
+
+| **Función**                 | **Opción gratuita (principal)** | **Equivalente en AWS**                           |
+|-----------------------------|---------------------------------|--------------------------------------------------|
+| Aplicación y red de entrega | Vercel                          | S3 + CloudFront                                  |
+| API FastAPI                 | Funciones Python de Vercel      | Lambda + API Gateway, con el adaptador Mangum    |
+| Identidad                   | Supabase Auth                   | Amazon Cognito                                   |
+| Base de datos               | Supabase PostgreSQL             | Amazon RDS for PostgreSQL (mismo esquema)        |
+| Archivos                    | Supabase Storage                | Amazon S3                                        |
+| Secretos                    | Variables de entorno de Vercel  | AWS Secrets Manager                              |
+| Cabeceras de seguridad      | vercel.json                     | Política de cabeceras de respuesta de CloudFront |
+| Observabilidad              | Registros de Vercel y Sentry    | Amazon CloudWatch                                |
+
+La única pieza que requiere adaptación son las políticas de seguridad a nivel de fila, que en Supabase leen el usuario desde la credencial de la petición: en RDS se reescriben para leerlo de una variable de sesión que la API fija al abrir cada transacción. Cabe advertir, por último, que una cuenta de AWS exige registrar una tarjeta aunque se use su plan gratuito con créditos iniciales; por ello la opción de Vercel y Supabase se mantiene como la principal.
 
 # **Seguridad y privacidad**
 
 El diseño de seguridad parte de enumerar qué debe protegerse: las credenciales de acceso a servicios externos, los datos de los usuarios registrados y las secuencias que estos analizan, que pueden constituir trabajo no publicado.
 
-**Tabla 16**
+**Tabla 17**
 
 *Medidas de seguridad por categoría de amenaza*
 
-| **Amenaza**                                         | **Medida adoptada**                                                                                                                                        |
-|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Exposición de credenciales de servicios externos    | Las claves residen únicamente en Secrets Manager y se usan desde Lambda; el cliente jamás las recibe.                                                      |
-| Acceso no autorizado a proyectos ajenos             | Toda operación verifica que el identificador de la credencial coincida con el propietario del recurso, no solo que la credencial sea válida.               |
-| Inyección de contenido en la interfaz               | React escapa el contenido por omisión y se aplica una política de seguridad de contenido restrictiva.                                                      |
-| Manipulación de la entrada del usuario              | Validación en el cliente con Zod y revalidación en el servidor con Pydantic; nunca se confía en la validación del cliente.                                 |
-| Abuso de cuotas de servicios externos               | Limitación de tasa por usuario en API Gateway y caché de respuestas en S3.                                                                                 |
-| Inyección de instrucciones en el modelo de lenguaje | El contexto enviado al modelo se construye con plantillas y campos delimitados; la salida se trata siempre como texto y nunca como instrucción ejecutable. |
-| Interceptación del tráfico                          | TLS obligatorio con redirección forzada y política de transporte estricto.                                                                                 |
+| **Amenaza**                                         | **Medida adoptada**                                                                                                                                                                                                                 |
+|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Exposición de credenciales de servicios externos    | Las claves residen únicamente en variables de entorno cifradas de Vercel y se usan desde la API; el cliente jamás las recibe.                                                                                                       |
+| Acceso no autorizado a proyectos ajenos             | Doble barrera: la API verifica que el usuario de la credencial sea el propietario del recurso, y la seguridad a nivel de fila de PostgreSQL lo impone de nuevo en la base.                                                          |
+| Uso indebido de la clave pública de Supabase        | La clave anónima es pública por diseño y solo es segura con seguridad a nivel de fila activa en todas las tablas; se verifica con una prueba automatizada. La clave de servicio, que ignora esas políticas, nunca llega al cliente. |
+| Inyección de contenido en la interfaz               | React escapa el contenido por omisión y se aplica una política de seguridad de contenido restrictiva.                                                                                                                               |
+| Manipulación de la entrada del usuario              | Validación en el cliente con Zod y revalidación en el servidor con Pydantic; nunca se confía en la validación del cliente.                                                                                                          |
+| Abuso de cuotas de servicios externos               | Limitación de tasa por usuario en la API y caché de respuestas en PostgreSQL.                                                                                                                                                       |
+| Inyección de instrucciones en el modelo de lenguaje | El contexto enviado al modelo se construye con plantillas y campos delimitados; la salida se trata siempre como texto y nunca como instrucción ejecutable.                                                                          |
+| Interceptación del tráfico                          | TLS obligatorio con redirección forzada y política de transporte estricto.                                                                                                                                                          |
 
 En privacidad rige un principio explícito: la secuencia permanece en el navegador salvo que el usuario decida guardarla o consultar al asistente, ambas acciones deliberadas y advertidas en la interfaz. Es consecuencia directa de calcular en el cliente: un argumento de diseño, no un efecto secundario.
 
@@ -423,7 +454,7 @@ En privacidad rige un principio explícito: la secuencia permanece en el navegad
 
 La estrategia sigue la forma de pirámide propuesta por Cohn (2009): muchas pruebas unitarias rápidas en la base, un número menor de pruebas de integración y una capa reducida de pruebas de extremo a extremo. La proporción responde a una razón de costo: las pruebas de los niveles superiores son más lentas y más frágiles, de modo que conviene reservarlas para los recorridos verdaderamente críticos.
 
-**Tabla 17**
+**Tabla 18**
 
 *Niveles de prueba previstos*
 
@@ -441,38 +472,39 @@ La validación de los algoritmos científicos merece mención aparte: no basta c
 
 # **Riesgos y plan de mitigación**
 
-**Tabla 18**
+**Tabla 19**
 
 *Registro de riesgos del proyecto*
 
-| **Id** | **Riesgo**                                                               | **Prob.** | **Impacto** | **Mitigación**                                                                                        |
-|--------|--------------------------------------------------------------------------|-----------|-------------|-------------------------------------------------------------------------------------------------------|
-| R-01   | El rendimiento del alineamiento resulta insuficiente en equipos modestos | Media     | Alto        | Medir desde la primera semana; limitar la longitud máxima y ofrecer una variante de banda restringida |
-| R-02   | La compilación a WebAssembly consume más tiempo del previsto             | Media     | Medio       | Implementar primero una versión funcional en TypeScript y sustituirla después                         |
-| R-03   | Cambios o caídas en las interfaces externas                              | Baja      | Alto        | Caché en S3 y conjunto local de datos de demostración                                                 |
-| R-04   | Las cabeceras de aislamiento rompen la carga de recursos de terceros     | Media     | Medio       | Verificar la configuración en la semana 2 y alojar los recursos propios                               |
-| R-05   | El visor tridimensional presenta dificultades de integración             | Media     | Medio       | Encapsular el visor tras una interfaz propia que permita sustituirlo                                  |
-| R-06   | Agotamiento de la cuota gratuita del modelo de lenguaje                  | Baja      | Bajo        | Caché de interpretaciones y degradación a texto de plantilla                                          |
-| R-07   | El alcance de tres proyectos simultáneos supera el tiempo disponible     | Alta      | Alto        | Plantilla común reutilizable y funcionalidades de prioridad media declaradas como prescindibles       |
+| **Id** | **Riesgo**                                                                                     | **Prob.** | **Impacto** | **Mitigación**                                                                                                |
+|--------|------------------------------------------------------------------------------------------------|-----------|-------------|---------------------------------------------------------------------------------------------------------------|
+| R-01   | El rendimiento del alineamiento resulta insuficiente en equipos modestos                       | Media     | Alto        | Medir desde la primera semana; limitar la longitud máxima y ofrecer una variante de banda restringida         |
+| R-02   | La compilación a WebAssembly consume más tiempo del previsto                                   | Media     | Medio       | Implementar primero una versión funcional en TypeScript y sustituirla después                                 |
+| R-03   | Cambios o caídas en las interfaces externas                                                    | Baja      | Alto        | Caché en PostgreSQL y conjunto local de datos de demostración                                                 |
+| R-04   | Las cabeceras de aislamiento rompen la carga de recursos de terceros                           | Media     | Medio       | Verificar la configuración en la semana 2 y alojar los recursos propios                                       |
+| R-05   | El visor tridimensional presenta dificultades de integración                                   | Media     | Medio       | Encapsular el visor tras una interfaz propia que permita sustituirlo                                          |
+| R-06   | Agotamiento de la cuota gratuita del modelo de lenguaje                                        | Baja      | Bajo        | Caché de interpretaciones y degradación a texto de plantilla                                                  |
+| R-07   | El alcance de tres proyectos simultáneos supera el tiempo disponible                           | Alta      | Alto        | Plantilla común reutilizable y funcionalidades de prioridad media declaradas como prescindibles               |
+| R-08   | Cambian las condiciones de un plan gratuito o el proyecto de Supabase se pausa por inactividad | Media     | Medio       | Consulta programada cada tres días, respaldos del esquema en el repositorio y equivalencia en AWS documentada |
 
 # **Plan de trabajo**
 
 El plan cubre las ocho semanas entre el 26 de septiembre y el 19 de noviembre de 2026 en sprints semanales. El plazo se comparte con los otros dos proyectos, por lo que la primera semana produce una plantilla común de proyecto e infraestructura reutilizable en los tres desarrollos.
 
-**Tabla 19**
+**Tabla 20**
 
 *Cronograma por sprints*
 
-| **Sprint** | **Semana**     | **Entregable verificable**                                                                                             |
-|------------|----------------|------------------------------------------------------------------------------------------------------------------------|
-| S0         | 26 sep – 2 oct | Plantilla común: proyecto Vite, infraestructura como código, integración continua y despliegue de una página de prueba |
-| S1         | 3 – 9 oct      | Editor de secuencias con validación incremental y carga de FASTA en un hilo de trabajo                                 |
-| S2         | 10 – 16 oct    | Descriptores fisicoquímicos completos y gráfica de hidrofobicidad en OffscreenCanvas                                   |
-| S3         | 17 – 23 oct    | Alineamiento en TypeScript dentro del conjunto de hilos, con progreso y cancelación                                    |
-| S4         | 24 – 30 oct    | Sustitución del núcleo de alineamiento por el módulo WebAssembly y medición comparativa                                |
-| S5         | 31 oct – 6 nov | Integración con UniProt y el PDB; visor tridimensional sincronizado con el editor                                      |
-| S6         | 7 – 13 nov     | Autenticación, persistencia de proyectos, asistente de interpretación y exportación del informe                        |
-| S7         | 14 – 19 nov    | Modo sin conexión, pruebas de extremo a extremo, auditoría de rendimiento y accesibilidad, documentación final         |
+| **Sprint** | **Semana**     | **Entregable verificable**                                                                                                           |
+|------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| S0         | 26 sep – 2 oct | Plantilla común: proyecto Vite, cuentas de Vercel y Supabase, migraciones, integración continua y despliegue de una página de prueba |
+| S1         | 3 – 9 oct      | Editor de secuencias con validación incremental y carga de FASTA en un hilo de trabajo                                               |
+| S2         | 10 – 16 oct    | Descriptores fisicoquímicos completos y gráfica de hidrofobicidad en OffscreenCanvas                                                 |
+| S3         | 17 – 23 oct    | Alineamiento en TypeScript dentro del conjunto de hilos, con progreso y cancelación                                                  |
+| S4         | 24 – 30 oct    | Sustitución del núcleo de alineamiento por el módulo WebAssembly y medición comparativa                                              |
+| S5         | 31 oct – 6 nov | Integración con UniProt y el PDB; visor tridimensional sincronizado con el editor                                                    |
+| S6         | 7 – 13 nov     | Autenticación, persistencia de proyectos, asistente de interpretación y exportación del informe                                      |
+| S7         | 14 – 19 nov    | Modo sin conexión, pruebas de extremo a extremo, auditoría de rendimiento y accesibilidad, documentación final                       |
 
 # **Definición de terminado**
 
@@ -518,4 +550,10 @@ Sehnal, D., Bittrich, S., Deshpande, M., Svobodová, R., Berka, K., Bazgier, V.,
 
 Smith, T. F., y Waterman, M. S. (1981). Identification of common molecular subsequences. *Journal of Molecular Biology*, 147(1), 195–197. https://doi.org/10.1016/0022-2836(81)90087-5
 
+Supabase. (2026). *Row Level Security*. Supabase Docs. https://supabase.com/docs/guides/database/postgres/row-level-security
+
 The UniProt Consortium. (2025). UniProt: The Universal Protein Knowledgebase in 2025. *Nucleic Acids Research*, 53(D1), D609–D617. https://doi.org/10.1093/nar/gkae1010
+
+Vercel. (2026). *Deploy a FastAPI app on Vercel*. Vercel Docs. https://vercel.com/docs/frameworks/backend/fastapi
+
+Vercel. (2026). *Vercel Functions limits*. Vercel Docs. https://vercel.com/docs/functions/limitations

@@ -1,16 +1,17 @@
-# Plantilla Base para Aplicaciones Web SPA
+# Plantilla Base para Aplicaciones Web SPA (Vercel + Supabase)
 
-Plantilla genérica de inicio para aplicaciones web de página única (SPA) con arquitectura serverless en AWS, soporte de aislamiento de origen cruzado para cómputo intensivo en hilos de trabajo y batería completa de pruebas estáticas y dinámicas.
+Plantilla genérica de inicio para aplicaciones web de página única (SPA) con arquitectura sin costo sobre **Vercel** y **Supabase**, soporte de aislamiento de origen cruzado para cómputo intensivo en hilos de trabajo y batería completa de pruebas estáticas y de base de datos.
 
 ---
 
 ## 1. Características principales
 
 - **Pila tecnológica:** React 19, TypeScript (modo estricto sin `any`), Vite.
-- **Aislamiento de origen cruzado:** Cabeceras `Cross-Origin-Opener-Policy: same-origin` y `Cross-Origin-Embedder-Policy: require-corp` configuradas en el servidor de desarrollo, vista previa y en la política de cabeceras de CloudFront (`ResponseHeadersPolicy`), habilitando `SharedArrayBuffer` y Web Workers multi-hilo.
-- **Calidad de código y pruebas:** ESLint 9+ con configuración estricta, Vitest, React Testing Library, jsdom y reporte de cobertura con v8 (umbral mínimo del 70%).
-- **Infraestructura como Código (IaC):** Especificación en AWS SAM (`template.yaml`) para aprovisionar un bucket privado de Amazon S3, distribución Amazon CloudFront con Origin Access Control (OAC), soporte para enrutamiento SPA y cabeceras de seguridad estrictas (CSP, HSTS, X-Frame-Options, X-Content-Type-Options).
-- **Integración continua:** Flujo de trabajo en GitHub Actions (`.github/workflows/ci.yml`) que valida tipos, linting, cobertura de pruebas y compilación de producción.
+- **Alojamiento y borde (Vercel):** Servido con red de entrega global bajo el plan Hobby. Configuración centralizada en `vercel.json` con soporte para enrutamiento SPA.
+- **Aislamiento de origen cruzado y seguridad:** Cabeceras `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`, HSTS y CSP restrictiva (con `'wasm-unsafe-eval'` y `worker-src 'self' blob:`, y orígenes `https://*.supabase.co`), habilitando `SharedArrayBuffer` y Web Workers multi-hilo tanto en local como en Vercel.
+- **Base de datos y autenticación (Supabase):** PostgreSQL relacional con esquema versionado en `supabase/migrations/` (`profiles`, `projects`, `analyses`, `alignments`, `external_cache`).
+- **Seguridad en datos (RLS):** Row Level Security activo en todas las tablas con datos de usuario, con políticas restrictivas evaluadas mediante `(select auth.uid())` para usuarios autenticados y aislamiento estricto en caché externa.
+- **Calidad de código y pruebas:** ESLint 10 con configuración estricta, Vitest, React Testing Library, jsdom y prueba automatizada de cumplimiento de RLS en cada migración SQL.
 
 ---
 
@@ -18,7 +19,8 @@ Plantilla genérica de inicio para aplicaciones web de página única (SPA) con 
 
 - **Node.js:** Versión 24.x (ver `.nvmrc` o `engines` en `package.json`).
 - **npm:** Versión 11.x o superior.
-- **AWS CLI** y **AWS SAM CLI** (opcionales para el entorno local, necesarios únicamente para el despliegue manual).
+- **Cuenta en Vercel y Supabase** (planes gratuitos sin tarjeta).
+- **Supabase CLI** (opcional, para desarrollo local o aplicación de migraciones).
 
 ---
 
@@ -37,7 +39,7 @@ npm run typecheck
 # Análisis estático de código (ESLint)
 npm run lint
 
-# Ejecutar pruebas unitarias y de componentes con informe de cobertura
+# Ejecutar pruebas unitarias, de componentes y de migraciones con cobertura
 npm run test:coverage
 
 # Generar la versión de producción optimizada
@@ -49,51 +51,33 @@ npm run preview
 
 ---
 
-## 4. Procedimiento de despliegue en AWS (manual)
+## 4. Procedimiento de despliegue
 
-El despliegue de la infraestructura y de la aplicación estática lo realiza el operador responsable mediante su propia consola o terminal con credenciales de AWS activas. Antigravity/el agente no ejecuta comandos de despliegue ni interactúa directamente con la cuenta de AWS.
+El despliegue lo realiza el operador responsable mediante la integración Git de Vercel y la consola de Supabase. El agente no ejecuta despliegues ni interactúa con servicios remotos.
 
-### Paso 1: Compilar la plantilla de infraestructura con SAM
-```bash
-sam build
-```
+### Paso 1: Configurar el proyecto en Supabase
+1. Crear un nuevo proyecto en [Supabase](https://supabase.com) (plan Free).
+2. Obtener la **URL del proyecto** y la **clave anónima (`anon public`)** desde la sección *Project Settings > API*.
+3. Aplicar las migraciones del directorio `supabase/migrations/`:
+   - **Vía Supabase CLI (recomendado):**
+     ```bash
+     supabase link --project-ref <tu-project-ref>
+     supabase db push
+     ```
+   - **O vía SQL Editor:** Copiar y ejecutar el contenido de `supabase/migrations/20260928000000_initial_schema.sql` en el editor SQL del panel de Supabase.
 
-### Paso 2: Desplegar la infraestructura (creación de S3, CloudFront y políticas)
-Para el primer despliegue guiado:
-```bash
-sam deploy --guided
-```
-O si ya se dispone de `samconfig.toml` configurado (ver `samconfig.toml.example`):
-```bash
-sam deploy
-```
-
-Al finalizar el despliegue, la salida en consola mostrará los siguientes valores (`Outputs`):
-- `AppBucketName`: Nombre del bucket S3 generado.
-- `CloudFrontDistributionId`: Identificador de la distribución de CloudFront.
-- `AppUrl`: URL pública del sitio estático en CloudFront.
-
-### Paso 3: Compilar los artefactos de la aplicación web
-```bash
-npm run build
-```
-
-### Paso 4: Cargar los archivos estáticos al bucket S3
-```bash
-aws s3 sync dist/ s3://<AppBucketName> --delete
-```
-
-### Paso 5: Invalidar la caché de CloudFront
-Para asegurar que los visitantes reciban inmediatamente los nuevos archivos:
-```bash
-aws cloudfront create-invalidation --distribution-id <CloudFrontDistributionId> --paths "/*"
-```
+### Paso 2: Desplegar en Vercel
+1. Importar el repositorio Git en [Vercel](https://vercel.com) (plan Hobby).
+2. Framework Preset: **Vite** (detectado automáticamente).
+3. Configurar las variables de entorno en el panel de Vercel (*Settings > Environment Variables*):
+   - `VITE_SUPABASE_URL`: `https://<tu-id>.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY`: `<tu-clave-anon-publica>`
+4. Desplegar. Vercel aplicará automáticamente las cabeceras declaradas en `vercel.json` y el enrutamiento para la SPA.
 
 ---
 
-## 5. Limitaciones técnicas y consideraciones de seguridad
+## 5. Consideraciones de seguridad y arquitectura
 
-- **Restricción de versión mínima de TLS con el dominio por defecto:**
-  Al emplear el dominio predeterminado de CloudFront (`*.cloudfront.net`), AWS utiliza su certificado SSL compartido y no permite parametrizar `MinimumProtocolVersion` para forzar TLS 1.2 o superior en el visor. Si se requiere cumplimiento estricto de TLS 1.2+ (RNF-06), es indispensable configurar un nombre de dominio propio (CNAME alternativo) asociado a un certificado personalizado expedido en AWS Certificate Manager (ACM en la región `us-east-1`).
-- **Política de Seguridad de Contenido (CSP):**
-  La cabecera CSP configurada en CloudFront (`ResponseHeadersPolicy`) incluye `'wasm-unsafe-eval'` en la directiva `script-src` y `blob:` en `worker-src`, requeridos específicamente para la instanciación de WebAssembly y el arranque de Web Workers en navegadores modernos.
+- **Seguridad a nivel de fila (RLS):** La clave anónima (`anon`) llega al cliente de forma segura porque la base de datos PostgreSQL impone RLS en todas las tablas con datos de usuario. Toda consulta sin autenticar es rechazada.
+- **Acceso a caché externa:** La tabla `external_cache` revoca permisos tanto a `anon` como a `authenticated`. Solo la API del backend mediante el rol de servicio (`service_role`) puede acceder a ella.
+- **Política de Seguridad de Contenido (CSP):** Se restringe estrictamente a `'self'` y al subdominio `https://*.supabase.co`. Dominios de fuentes externas (PDB, UniProt) se declararán conforme se integren en sprints posteriores.
