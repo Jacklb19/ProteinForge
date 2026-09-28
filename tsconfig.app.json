@@ -30,7 +30,7 @@
     "noUncheckedIndexedAccess": true,
 
     /* Types */
-    "types": ["vite/client", "@testing-library/jest-dom/vitest"]
+    "types": ["vite/client", "@testing-library/jest-dom/vitest", "node"]
   },
   "include": ["src"]
 }
