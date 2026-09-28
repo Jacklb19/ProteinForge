@@ -13,7 +13,9 @@ pkg/
 # AWS SAM / CDK
 .aws-sam/
 cdk.out/
+samconfig.toml
 samconfig.toml.bak
+!samconfig.toml.example
 
 # Python (entrenamiento / scripts)
 __pycache__/
