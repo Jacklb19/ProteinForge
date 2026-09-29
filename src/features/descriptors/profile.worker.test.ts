@@ -7,6 +7,7 @@ interface MockWorkerContext {
 }
 
 const style: ChartStyle = {
+  locale: 'es',
   surface: 'white', text: 'black', curve: 'blue', reference: 'gray',
   font: '14px sans-serif', margin: 36, lineWidth: 2, referenceWidth: 1,
 };

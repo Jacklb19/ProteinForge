@@ -4,9 +4,10 @@ import { getChartStyle } from './chartStyle';
 import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import type { ProfilePoint, HydropathyWindow } from './profile';
 import type { ResiduePropensity } from './chouFasman';
+import { useTranslation } from '../../i18n';
 
 const ROWS_PER_PAGE = 50;
-const VALUE_FORMAT = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+const VALUE_FORMAT = { minimumFractionDigits: 3, maximumFractionDigits: 3 } as const;
 
 interface ReceivedProfile {
   sequence: string;
@@ -17,6 +18,7 @@ interface ReceivedProfile {
 
 /** Draws the profile off the main thread and presents its values in a table. */
 export function HydropathyProfile({ text }: { text: string }): React.JSX.Element {
+  const { t, formatNumber, locale } = useTranslation();
   const [windowSize, setWindowSize] = useState<HydropathyWindow>(9);
   const [profile, setProfile] = useState<ReceivedProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         setPage(0);
         setError(null);
       };
-      instance.onerror = () => { setError('El hilo de la gráfica dejó de responder.'); };
+      instance.onerror = () => { setError(t('profile.workerError')); };
 
       const canvas = document.createElement('canvas');
       canvas.className = 'hydropathy-chart';
@@ -61,12 +63,12 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         const message: ProfileRequest = {
           type: 'initialize',
           canvas: transferred,
-          style: getChartStyle(canvas),
+          style: getChartStyle(canvas, locale),
         };
         instance.postMessage(message, [transferred]);
       }
     } catch {
-      queueMicrotask(() => { setError('No se pudo iniciar el hilo del perfil.'); });
+      queueMicrotask(() => { setError(t('profile.startError')); });
     }
     return () => {
       worker.current?.terminate();
@@ -74,7 +76,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
       canvasRef.current?.remove();
       canvasRef.current = null;
     };
-  }, []);
+  }, [t, locale]);
 
   useEffect(() => {
     currentRequest.current += 1;
@@ -94,14 +96,14 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         width: Math.max(1, rectangle.width),
         height: Math.max(1, rectangle.height),
         scale: Math.max(1, window.devicePixelRatio || 1),
-        style: getChartStyle(canvas),
+        style: getChartStyle(canvas, locale),
       };
       worker.current.postMessage(request);
     };
     send();
     window.addEventListener('resize', send);
     return () => { window.removeEventListener('resize', send); };
-  }, [validation, windowSize]);
+  }, [validation, windowSize, locale]);
 
   const invalid = validation.invalidPositions.length > 0;
   const tooShort = !invalid && validation.sequence.length > 0 && validation.sequence.length < windowSize;
@@ -117,31 +119,30 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
 
   return (
     <section aria-labelledby="profile-title" className="profile-panel">
-      <h2 id="profile-title">Perfil de hidrofobicidad</h2>
-      <label htmlFor="hydropathy-window">Ventana de residuos</label>
+      <h2 id="profile-title">{t('profile.title')}</h2>
+      <label htmlFor="hydropathy-window">{t('profile.windowLabel')}</label>
       <select
         id="hydropathy-window"
         value={windowSize}
         onChange={(event) => { setWindowSize(Number(event.target.value) as HydropathyWindow); }}
       >
-        <option value="9">9 — regiones superficiales</option>
-        <option value="19">19 — segmentos transmembrana</option>
+        <option value="9">{t('profile.window9', { count: formatNumber(9) })}</option>
+        <option value="19">{t('profile.window19', { count: formatNumber(19) })}</option>
       </select>
-      <p>Escala Kyte–Doolittle; media de ventana completa, sin normalización. El valor corresponde al residuo central.</p>
+      <p>{t('profile.scaleNote')}</p>
       <p>
-        Propensiones de Chou–Fasman (1978): estimación clásica de baja precisión; no es una predicción de estructura.
-        Parámetros publicados por ProtScale para{' '}
-        <a href="https://web.expasy.org/protscale/pscale/alpha-helixFasman.html">hélice</a>,{' '}
-        <a href="https://web.expasy.org/protscale/pscale/beta-sheetFasman.html">lámina</a> y{' '}
-        <a href="https://web.expasy.org/protscale/pscale/beta-turnFasman.html">giro</a>.
+        {t('profile.chouFasmanNote')}{' '}
+        <a href="https://web.expasy.org/protscale/pscale/alpha-helixFasman.html">{t('profile.helixLink')}</a>,{' '}
+        <a href="https://web.expasy.org/protscale/pscale/beta-sheetFasman.html">{t('profile.sheetLink')}</a> {t('profile.and')}{' '}
+        <a href="https://web.expasy.org/protscale/pscale/beta-turnFasman.html">{t('profile.turnLink')}</a>.
       </p>
       <p id="profile-status" role="status" aria-live="polite">
-        {invalid && 'El perfil y las propensiones están desactualizados. Corrige las posiciones inválidas para recalcular.'}
-        {tooShort && `Se necesitan al menos ${String(windowSize)} residuos para mostrar la gráfica; las propensiones siguen disponibles.`}
-        {!invalid && !tooShort && validation.sequence.length === 0 && 'Escribe una secuencia válida para mostrar el perfil.'}
-        {!invalid && !tooShort && validation.sequence.length > 0 && !current && !error && 'Calculando perfil y propensiones…'}
-        {error && !invalid && error}
-        {chartUnavailable && current && !tooShort && 'Este navegador no permite transferir el lienzo; consulta los valores en la tabla.'}
+        {invalid && t('profile.invalid')}
+        {tooShort && t('profile.tooShort', { count: formatNumber(windowSize) })}
+        {!invalid && !tooShort && validation.sequence.length === 0 && t('profile.empty')}
+        {!invalid && !tooShort && validation.sequence.length > 0 && !current && !error && t('profile.calculating')}
+        {error && !invalid && t('profile.workerMessage', { message: error })}
+        {chartUnavailable && current && !tooShort && t('profile.unavailable')}
       </p>
       <div
         className={invalid ? 'stale-chart' : !current ? 'pending-chart' : undefined}
@@ -153,31 +154,31 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         <div className={invalid ? 'stale-table' : undefined}>
           <div className="profile-table-container">
             <table>
-              <caption>Hidropatía y propensiones por residuo, ventana de {displayedWindow} residuos</caption>
-              <thead><tr><th scope="col">Posición</th><th scope="col">Residuo</th><th scope="col">Hidropatía</th><th scope="col">Hélice</th><th scope="col">Lámina</th><th scope="col">Giro</th></tr></thead>
+              <caption>{t('profile.caption', { count: formatNumber(displayedWindow) })}</caption>
+              <thead><tr><th scope="col">{t('profile.position')}</th><th scope="col">{t('profile.residue')}</th><th scope="col">{t('profile.hydropathy')}</th><th scope="col">{t('profile.helix')}</th><th scope="col">{t('profile.sheet')}</th><th scope="col">{t('profile.turn')}</th></tr></thead>
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.position}>
-                    <th scope="row">{row.position}</th>
+                    <th scope="row">{formatNumber(row.position)}</th>
                     <td>{row.residue}</td>
                     <td>{hydropathyByResidue.has(row.position)
                       ? hydropathyByResidue.get(row.position) === null
-                        ? 'Sin dato'
-                        : VALUE_FORMAT.format(hydropathyByResidue.get(row.position) ?? 0)
-                      : <span aria-label="Sin ventana completa">—</span>}</td>
-                    <td>{row.helix === null ? 'Sin dato' : VALUE_FORMAT.format(row.helix)}</td>
-                    <td>{row.sheet === null ? 'Sin dato' : VALUE_FORMAT.format(row.sheet)}</td>
-                    <td>{row.turn === null ? 'Sin dato' : VALUE_FORMAT.format(row.turn)}</td>
+                        ? t('profile.missing')
+                        : formatNumber(hydropathyByResidue.get(row.position) ?? 0, VALUE_FORMAT)
+                      : <span aria-label={t('profile.noWindow')}>{t('profile.noValue')}</span>}</td>
+                    <td>{row.helix === null ? t('profile.missing') : formatNumber(row.helix, VALUE_FORMAT)}</td>
+                    <td>{row.sheet === null ? t('profile.missing') : formatNumber(row.sheet, VALUE_FORMAT)}</td>
+                    <td>{row.turn === null ? t('profile.missing') : formatNumber(row.turn, VALUE_FORMAT)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           {totalPages > 1 && (
-            <nav aria-label="Páginas de valores del perfil" className="profile-pages">
-              <button type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>Anterior</button>
-              <span aria-live="polite">Página {currentPage + 1} de {totalPages}</span>
-              <button type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>Siguiente</button>
+            <nav aria-label={t('profile.pagesLabel')} className="profile-pages">
+              <button type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>{t('profile.previous')}</button>
+              <span aria-live="polite">{t('profile.pageCount', { page: formatNumber(currentPage + 1), total: formatNumber(totalPages) })}</span>
+              <button type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>{t('profile.next')}</button>
             </nav>
           )}
         </div>

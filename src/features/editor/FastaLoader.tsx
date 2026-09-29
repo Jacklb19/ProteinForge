@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FastaEntry } from './fasta';
 import { resolveRowHeight } from './rowHeight';
+import { useTranslation } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 
 interface Props {
   onSelect: (entry: FastaEntry) => void;
@@ -13,8 +15,10 @@ type FastaMessage =
 
 /** Loads FASTA in a worker and virtualizes the available entries. */
 export function FastaLoader({ onSelect }: Props): React.JSX.Element {
+  const { t, formatNumber, formatUnit } = useTranslation();
   const [entries, setEntries] = useState<FastaEntry[]>([]);
-  const [status, setStatus] = useState('No hay archivo cargado.');
+  const [statusKey, setStatusKey] = useState<TranslationKey>('fasta.empty');
+  const [errorMessage, setErrorMessage] = useState('');
   const [selection, setSelection] = useState<number | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [dimensions, setDimensions] = useState({ row: 0, list: 0 });
@@ -67,7 +71,7 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
     setSelection(null);
     setScrollOffset(0);
     if (list.current) list.current.scrollTop = 0;
-    setStatus('Leyendo archivo FASTA…');
+    setStatusKey('fasta.reading');
 
     try {
       const newWorker = new Worker(new URL('./fasta.worker.ts', import.meta.url), { type: 'module' });
@@ -78,12 +82,13 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
         if (message.type === 'entries') {
           setEntries((current) => [...current, ...message.entries]);
         } else if (message.type === 'complete') {
-          setStatus('Archivo FASTA cargado. Elige una entrada para editarla.');
+          setStatusKey('fasta.loaded');
           newWorker.terminate();
           if (worker.current === newWorker) worker.current = null;
         } else {
           setEntries([]);
-          setStatus(`Error: ${message.message}`);
+          setErrorMessage(message.message);
+          setStatusKey('fasta.error');
           newWorker.terminate();
           if (worker.current === newWorker) worker.current = null;
         }
@@ -91,14 +96,14 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
       newWorker.onerror = () => {
         if (worker.current !== newWorker) return;
         setEntries([]);
-        setStatus('Error: no se pudo ejecutar el analizador FASTA.');
+        setStatusKey('fasta.workerError');
         newWorker.terminate();
         if (worker.current === newWorker) worker.current = null;
       };
       newWorker.postMessage(file);
     } catch {
       worker.current = null;
-      setStatus('Error: el navegador no pudo iniciar el analizador FASTA.');
+      setStatusKey('fasta.startError');
     }
   };
 
@@ -112,8 +117,8 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
 
   return (
     <section aria-labelledby="fasta-title">
-      <h2 id="fasta-title">Cargar FASTA</h2>
-      <label htmlFor="fasta-file">Archivo FASTA de hasta 5 MB</label>
+      <h2 id="fasta-title">{t('fasta.title')}</h2>
+      <label htmlFor="fasta-file">{t('fasta.fileLabel', { limit: formatUnit(5, 'megabyte') })}</label>
       <input
         id="fasta-file"
         type="file"
@@ -123,13 +128,13 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
           event.currentTarget.value = '';
         }}
       />
-      <p role="status" aria-live="polite">{status} {entries.length > 0 ? `${String(entries.length)} entradas encontradas.` : ''}</p>
+      <p role="status" aria-live="polite">{t(statusKey, { message: errorMessage })} {entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''}</p>
       {entries.length > 0 && (
         <div
           ref={list}
           className="fasta-list"
           role="listbox"
-          aria-label="Entradas FASTA"
+          aria-label={t('fasta.entriesLabel')}
           aria-activedescendant={selection !== null && selection >= start && selection < end
             ? `fasta-entry-${String(selection)}` : undefined}
           tabIndex={0}
@@ -161,7 +166,7 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
                   onClick={() => { selectEntry(index); }}
                 >
                   <span>{entry.header}</span>
-                  <span>{String(entry.sequence.length)} residuos</span>
+                  <span>{t(entry.sequence.length === 1 ? 'fasta.residueOne' : 'fasta.residues', { count: formatNumber(entry.sequence.length) })}</span>
                 </button>
               );
             })}

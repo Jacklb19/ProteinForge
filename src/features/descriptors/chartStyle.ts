@@ -6,11 +6,12 @@ function positiveMeasure(value: string): number {
 }
 
 /** Resolves CSS tokens on the main thread before passing them to the worker. */
-export function getChartStyle(canvas: HTMLCanvasElement): ChartStyle {
+export function getChartStyle(canvas: HTMLCanvasElement, locale: ChartStyle['locale'] = 'es'): ChartStyle {
   const root = getComputedStyle(document.documentElement);
   const chart = getComputedStyle(canvas);
   const token = (name: string): string => root.getPropertyValue(name).trim();
   return {
+    locale,
     surface: token('--color-surface') || root.backgroundColor,
     text: token('--color-text') || root.color,
     curve: token('--color-focus') || root.color,

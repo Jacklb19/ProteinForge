@@ -1,29 +1,31 @@
 import type { DescriptorState } from './useDescriptors';
+import { useTranslation } from '../../i18n';
 
-const TWO_DECIMALS = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-const THREE_DECIMALS = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 3, minimumFractionDigits: 3 });
+const TWO_DECIMALS = { maximumFractionDigits: 2, minimumFractionDigits: 2 } as const;
+const THREE_DECIMALS = { maximumFractionDigits: 3, minimumFractionDigits: 3 } as const;
 
 /** Displays five descriptors and marks stale results. */
 export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.Element {
+  const { t, formatNumber } = useTranslation();
   const { result, status, error, excluded } = data;
   const stale = result !== null && status !== 'current';
   return (
     <section aria-labelledby="descriptors-title" className="descriptor-panel">
-      <h2 id="descriptors-title">Descriptores fisicoquímicos</h2>
-      {excluded > 0 && <p role="note">{excluded} residuo{excluded === 1 ? '' : 's'} U, O, B, Z o X excluido{excluded === 1 ? '' : 's'} de los descriptores.</p>}
+      <h2 id="descriptors-title">{t('descriptors.title')}</h2>
+      {excluded > 0 && <p role="note">{t(excluded === 1 ? 'descriptors.excludedOne' : 'descriptors.excluded', { count: formatNumber(excluded) })}</p>}
       <p role="status" aria-live="polite">
-        {status === 'invalid' && 'Los resultados están desactualizados. Corrige las posiciones inválidas para recalcular.'}
-        {status === 'calculating' && 'Calculando descriptores…'}
-        {status === 'error' && (error ?? 'No se pudieron calcular los descriptores.')}
-        {status === 'empty' && (excluded > 0 ? 'No hay residuos estándar para calcular descriptores.' : 'Escribe una secuencia válida para iniciar el análisis.')}
+        {status === 'invalid' && t('descriptors.invalid')}
+        {status === 'calculating' && t('descriptors.calculating')}
+        {status === 'error' && (error ? t('descriptors.workerMessage', { message: error }) : t('descriptors.error'))}
+        {status === 'empty' && (excluded > 0 ? t('descriptors.noStandard') : t('descriptors.empty'))}
       </p>
       {result && (
         <dl className={stale ? 'stale-descriptors' : undefined}>
-          <div><dt>Masa molecular</dt><dd>{TWO_DECIMALS.format(result.massDa)} Da</dd></div>
-          <div><dt>Punto isoeléctrico</dt><dd>{TWO_DECIMALS.format(result.isoelectricPoint)}</dd></div>
-          <div><dt>Índice de inestabilidad</dt><dd>{TWO_DECIMALS.format(result.instabilityIndex)}</dd></div>
-          <div><dt>Índice alifático</dt><dd>{TWO_DECIMALS.format(result.aliphaticIndex)}</dd></div>
-          <div><dt>GRAVY</dt><dd>{THREE_DECIMALS.format(result.gravy)}</dd></div>
+          <div><dt>{t('descriptors.mass')}</dt><dd>{formatNumber(result.massDa, TWO_DECIMALS)} {t('units.dalton')}</dd></div>
+          <div><dt>{t('descriptors.isoelectricPoint')}</dt><dd>{formatNumber(result.isoelectricPoint, TWO_DECIMALS)}</dd></div>
+          <div><dt>{t('descriptors.instabilityIndex')}</dt><dd>{formatNumber(result.instabilityIndex, TWO_DECIMALS)}</dd></div>
+          <div><dt>{t('descriptors.aliphaticIndex')}</dt><dd>{formatNumber(result.aliphaticIndex, TWO_DECIMALS)}</dd></div>
+          <div><dt>{t('descriptors.gravy')}</dt><dd>{formatNumber(result.gravy, THREE_DECIMALS)}</dd></div>
         </dl>
       )}
     </section>

@@ -3,6 +3,7 @@ import type { ResiduePropensity } from './chouFasman';
 
 /** Visual values read from design tokens on the main thread. */
 export interface ChartStyle {
+  locale: 'es' | 'en';
   surface: string;
   text: string;
   curve: string;

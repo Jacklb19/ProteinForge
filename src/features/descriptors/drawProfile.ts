@@ -18,6 +18,7 @@ export function drawProfile(
 ): void {
   const context = canvas.getContext('2d');
   if (!context) throw new Error('No se pudo iniciar el contexto 2D de la gráfica.');
+  const numberFormat = new Intl.NumberFormat(style.locale === 'es' ? 'es-CO' : 'en-US');
   canvas.width = Math.max(1, Math.round(width * scale));
   canvas.height = Math.max(1, Math.round(height * scale));
   context.setTransform(scale, 0, 0, scale, 0, 0);
@@ -54,7 +55,7 @@ export function drawProfile(
     context.moveTo(style.margin, y);
     context.lineTo(width - style.margin, y);
     context.stroke();
-    context.fillText(reference === 0 ? '0' : '1,6', style.margin, y - style.referenceWidth);
+    context.fillText(numberFormat.format(reference), style.margin, y - style.referenceWidth);
   }
 
   context.strokeStyle = style.curve;
@@ -78,6 +79,6 @@ export function drawProfile(
     context.fill();
   }
   context.fillStyle = style.text;
-  context.fillText(String(first), style.margin, height - style.referenceWidth);
-  context.fillText(String(last), width - style.margin, height - style.referenceWidth);
+  context.fillText(numberFormat.format(first), style.margin, height - style.referenceWidth);
+  context.fillText(numberFormat.format(last), width - style.margin, height - style.referenceWidth);
 }

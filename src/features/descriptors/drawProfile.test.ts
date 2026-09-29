@@ -3,6 +3,7 @@ import { drawProfile, referencesForWindow } from './drawProfile';
 import type { ChartStyle } from './profileMessages';
 
 const style: ChartStyle = {
+  locale: 'es',
   surface: 'white', text: 'black', curve: 'blue', reference: 'gray',
   font: '14px sans-serif', margin: 36, lineWidth: 2, referenceWidth: 1,
 };
@@ -23,8 +24,11 @@ describe('profile drawing', () => {
     drawProfile(canvas, [{ position: 10, value: 0.3 }, { position: 11, value: 1.8 }], 19, 400, 200, 2, style);
     expect(canvas.width).toBe(800);
     expect(canvas.height).toBe(400);
-    expect(context.fillText.mock.calls.map((llamada) => llamada[0])).toContain('1,6');
-    expect(context.fillText.mock.calls.map((llamada) => llamada[0])).toContain('0');
+    expect(context.fillText.mock.calls.map((call) => call[0])).toContain('1,6');
+    expect(context.fillText.mock.calls.map((call) => call[0])).toContain('0');
+    context.fillText.mockClear();
+    drawProfile(canvas, [{ position: 10, value: 0.3 }], 19, 400, 200, 1, { ...style, locale: 'en' });
+    expect(context.fillText.mock.calls.map((call) => call[0])).toContain('1.6');
     expect(context.strokeStyle).toBe(style.curve);
     expect(context.font).toBe(style.font);
   });

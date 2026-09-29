@@ -83,7 +83,7 @@ describe('FastaLoader', () => {
       worker?.onmessage?.(new MessageEvent('message', { data: { type: 'entries', entries: entries } }));
     });
     expect(within(screen.getByRole('listbox', { name: /entradas FASTA/i })).getAllByRole('option').length).toBeLessThan(20);
-    expect(screen.getByText(/1000 entradas encontradas/i)).toBeInTheDocument();
+    expect(screen.getByText(/1\.000 entradas encontradas/i)).toBeInTheDocument();
   });
 
   it.each([
