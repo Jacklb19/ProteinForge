@@ -2,16 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { updateInvalidPositions, splitStandardResidues, validateSequence } from './sequence';
 import { FastaLoader } from './FastaLoader';
 import type { FastaEntry } from './fasta';
-import { PanelDescriptores } from '../descriptors/DescriptorPanel';
-import { useDescriptores } from '../descriptors/useDescriptors';
-import { PerfilHidrofobicidad } from '../descriptors/HydropathyProfile';
+import { DescriptorPanel } from '../descriptors/DescriptorPanel';
+import { useDescriptors } from '../descriptors/useDescriptors';
+import { HydropathyProfile } from '../descriptors/HydropathyProfile';
 
 const VALIDATION_DELAY_MS = 45;
 
 /** Sequence editor with incremental validation and accessible status. */
 export function EditorPage(): React.JSX.Element {
   const [text, setText] = useState('');
-  const descriptors = useDescriptores(text);
+  const descriptors = useDescriptors(text);
   const additional = splitStandardResidues(validateSequence(text).sequence).excluded;
   const [invalidPositions, setInvalidPositions] = useState<number[]>([]);
   const validatedText = useRef('');
@@ -88,8 +88,8 @@ export function EditorPage(): React.JSX.Element {
         setText(entry.sequence);
         setInvalidPositions(entry.invalidPositions);
       }} />
-      <PanelDescriptores datos={descriptors} />
-      <PerfilHidrofobicidad texto={text} />
+      <DescriptorPanel data={descriptors} />
+      <HydropathyProfile text={text} />
     </main>
   );
 }

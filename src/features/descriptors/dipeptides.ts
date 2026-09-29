@@ -1,5 +1,5 @@
-/** Pesos de dipeptidos de Guruprasad (1990); tabla contrastada con Biopython ProtParamData. */
-export const PESOS_DIPEPTIDOS: Record<string, Record<string, number>> = {"A": {"A": 1.0, "C": 44.94, "E": 1.0, "D": -7.49,
+/** Guruprasad (1990) dipeptide weights checked against Biopython ProtParamData. */
+export const DIPEPTIDE_WEIGHTS: Record<string, Record<string, number>> = {"A": {"A": 1.0, "C": 44.94, "E": 1.0, "D": -7.49,
               "G": 1.0, "F": 1.0, "I": 1.0, "H": -7.49,
               "K": 1.0, "M": 1.0, "L": 1.0, "N": 1.0,
               "Q": 1.0, "P": 20.26, "S": 1.0, "R": 1.0,

@@ -1,119 +1,119 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { validateSequence } from '../editor/sequence';
-import { obtenerEstiloGrafica } from './chartStyle';
-import type { RespuestaPerfil, SolicitudPerfil } from './profileMessages';
-import type { PuntoPerfil, VentanaHidropatia } from './profile';
-import type { PropensionResiduo } from './chouFasman';
+import { getChartStyle } from './chartStyle';
+import type { ProfileResponse, ProfileRequest } from './profileMessages';
+import type { ProfilePoint, HydropathyWindow } from './profile';
+import type { ResiduePropensity } from './chouFasman';
 
-const FILAS_POR_PAGINA = 50;
-const FORMATO_VALOR = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+const ROWS_PER_PAGE = 50;
+const VALUE_FORMAT = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-interface PerfilRecibido {
-  secuencia: string;
-  ventana: VentanaHidropatia;
-  puntos: PuntoPerfil[];
-  propensiones: PropensionResiduo[];
+interface ReceivedProfile {
+  sequence: string;
+  windowSize: HydropathyWindow;
+  points: ProfilePoint[];
+  propensities: ResiduePropensity[];
 }
 
-/** Perfil dibujado fuera del hilo principal y tabla navegable de sus valores. */
-export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.Element {
-  const [ventana, setVentana] = useState<VentanaHidropatia>(9);
-  const [perfil, setPerfil] = useState<PerfilRecibido | null>(null);
+/** Draws the profile off the main thread and presents its values in a table. */
+export function HydropathyProfile({ text }: { text: string }): React.JSX.Element {
+  const [windowSize, setWindowSize] = useState<HydropathyWindow>(9);
+  const [profile, setProfile] = useState<ReceivedProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pagina, setPagina] = useState(0);
-  const sinGrafica = typeof HTMLCanvasElement.prototype.transferControlToOffscreen !== 'function';
-  const validacion = useMemo(() => validateSequence(texto), [texto]);
-  const contenedor = useRef<HTMLDivElement>(null);
-  const lienzo = useRef<HTMLCanvasElement | null>(null);
-  const hilo = useRef<Worker | null>(null);
-  const peticionActual = useRef(0);
-  const secuenciaEnviada = useRef('');
-  const ventanaEnviada = useRef<VentanaHidropatia>(9);
+  const [page, setPage] = useState(0);
+  const chartUnavailable = typeof HTMLCanvasElement.prototype.transferControlToOffscreen !== 'function';
+  const validation = useMemo(() => validateSequence(text), [text]);
+  const container = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const worker = useRef<Worker | null>(null);
+  const currentRequest = useRef(0);
+  const sentSequence = useRef('');
+  const sentWindow = useRef<HydropathyWindow>(9);
 
   useEffect(() => {
     try {
-      const instancia = new Worker(new URL('./profile.worker.ts', import.meta.url), { type: 'module' });
-      hilo.current = instancia;
-      instancia.onmessage = (evento: MessageEvent<RespuestaPerfil>) => {
-        if (evento.data.id !== peticionActual.current) return;
-        if (evento.data.error) {
-          setError(evento.data.error);
+      const instance = new Worker(new URL('./profile.worker.ts', import.meta.url), { type: 'module' });
+      worker.current = instance;
+      instance.onmessage = (event: MessageEvent<ProfileResponse>) => {
+        if (event.data.id !== currentRequest.current) return;
+        if (event.data.error) {
+          setError(event.data.error);
           return;
         }
-        setPerfil({
-          secuencia: secuenciaEnviada.current,
-          ventana: ventanaEnviada.current,
-          puntos: evento.data.puntos ?? [],
-          propensiones: evento.data.propensiones ?? [],
+        setProfile({
+          sequence: sentSequence.current,
+          windowSize: sentWindow.current,
+          points: event.data.points ?? [],
+          propensities: event.data.propensities ?? [],
         });
-        setPagina(0);
+        setPage(0);
         setError(null);
       };
-      instancia.onerror = () => { setError('El hilo de la gráfica dejó de responder.'); };
+      instance.onerror = () => { setError('El hilo de la gráfica dejó de responder.'); };
 
       const canvas = document.createElement('canvas');
       canvas.className = 'grafica-hidrofobicidad';
       canvas.setAttribute('aria-hidden', 'true');
-      contenedor.current?.append(canvas);
-      lienzo.current = canvas;
+      container.current?.append(canvas);
+      canvasRef.current = canvas;
       if (typeof canvas.transferControlToOffscreen === 'function') {
-        const transferido = canvas.transferControlToOffscreen();
-        const mensaje: SolicitudPerfil = {
-          tipo: 'iniciar',
-          lienzo: transferido,
-          estilo: obtenerEstiloGrafica(canvas),
+        const transferred = canvas.transferControlToOffscreen();
+        const message: ProfileRequest = {
+          type: 'initialize',
+          canvas: transferred,
+          style: getChartStyle(canvas),
         };
-        instancia.postMessage(mensaje, [transferido]);
+        instance.postMessage(message, [transferred]);
       }
     } catch {
       queueMicrotask(() => { setError('No se pudo iniciar el hilo del perfil.'); });
     }
     return () => {
-      hilo.current?.terminate();
-      hilo.current = null;
-      lienzo.current?.remove();
-      lienzo.current = null;
+      worker.current?.terminate();
+      worker.current = null;
+      canvasRef.current?.remove();
+      canvasRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    peticionActual.current += 1;
-    if (validacion.invalidPositions.length > 0 || validacion.sequence.length === 0) return;
-    const enviar = () => {
-      const canvas = lienzo.current;
-      if (!canvas || !hilo.current) return;
-      const id = ++peticionActual.current;
-      secuenciaEnviada.current = validacion.sequence;
-      ventanaEnviada.current = ventana;
-      const rectangulo = canvas.getBoundingClientRect();
-      const solicitud: SolicitudPerfil = {
-        tipo: 'calcular',
+    currentRequest.current += 1;
+    if (validation.invalidPositions.length > 0 || validation.sequence.length === 0) return;
+    const send = () => {
+      const canvas = canvasRef.current;
+      if (!canvas || !worker.current) return;
+      const id = ++currentRequest.current;
+      sentSequence.current = validation.sequence;
+      sentWindow.current = windowSize;
+      const rectangle = canvas.getBoundingClientRect();
+      const request: ProfileRequest = {
+        type: 'calculate',
         id,
-        secuencia: validacion.sequence,
-        ventana,
-        ancho: Math.max(1, rectangulo.width),
-        alto: Math.max(1, rectangulo.height),
-        escala: Math.max(1, window.devicePixelRatio || 1),
-        estilo: obtenerEstiloGrafica(canvas),
+        sequence: validation.sequence,
+        windowSize,
+        width: Math.max(1, rectangle.width),
+        height: Math.max(1, rectangle.height),
+        scale: Math.max(1, window.devicePixelRatio || 1),
+        style: getChartStyle(canvas),
       };
-      hilo.current.postMessage(solicitud);
+      worker.current.postMessage(request);
     };
-    enviar();
-    window.addEventListener('resize', enviar);
-    return () => { window.removeEventListener('resize', enviar); };
-  }, [validacion, ventana]);
+    send();
+    window.addEventListener('resize', send);
+    return () => { window.removeEventListener('resize', send); };
+  }, [validation, windowSize]);
 
-  const invalido = validacion.invalidPositions.length > 0;
-  const corto = !invalido && validacion.sequence.length > 0 && validacion.sequence.length < ventana;
-  const vigente = !invalido && perfil?.secuencia === validacion.sequence
-    && perfil.ventana === ventana;
-  const puntos = invalido ? (perfil?.puntos ?? []) : vigente ? perfil.puntos : [];
-  const propensiones = invalido ? (perfil?.propensiones ?? []) : vigente ? perfil.propensiones : [];
-  const hidropatiaPorResiduo = new Map(puntos.map((punto) => [punto.posicion, punto.valor]));
-  const ventanaMostrada = invalido ? (perfil?.ventana ?? ventana) : ventana;
-  const totalPaginas = Math.ceil(propensiones.length / FILAS_POR_PAGINA);
-  const paginaActual = Math.min(pagina, Math.max(0, totalPaginas - 1));
-  const filas = propensiones.slice(paginaActual * FILAS_POR_PAGINA, (paginaActual + 1) * FILAS_POR_PAGINA);
+  const invalid = validation.invalidPositions.length > 0;
+  const tooShort = !invalid && validation.sequence.length > 0 && validation.sequence.length < windowSize;
+  const current = !invalid && profile?.sequence === validation.sequence
+    && profile.windowSize === windowSize;
+  const points = invalid ? (profile?.points ?? []) : current ? profile.points : [];
+  const propensities = invalid ? (profile?.propensities ?? []) : current ? profile.propensities : [];
+  const hydropathyByResidue = new Map(points.map((point) => [point.position, point.value]));
+  const displayedWindow = invalid ? (profile?.windowSize ?? windowSize) : windowSize;
+  const totalPages = Math.ceil(propensities.length / ROWS_PER_PAGE);
+  const currentPage = Math.min(page, Math.max(0, totalPages - 1));
+  const rows = propensities.slice(currentPage * ROWS_PER_PAGE, (currentPage + 1) * ROWS_PER_PAGE);
 
   return (
     <section aria-labelledby="titulo-perfil" className="panel-perfil">
@@ -121,8 +121,8 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
       <label htmlFor="ventana-hidropatia">Ventana de residuos</label>
       <select
         id="ventana-hidropatia"
-        value={ventana}
-        onChange={(evento) => { setVentana(Number(evento.target.value) as VentanaHidropatia); }}
+        value={windowSize}
+        onChange={(event) => { setWindowSize(Number(event.target.value) as HydropathyWindow); }}
       >
         <option value="9">9 — regiones superficiales</option>
         <option value="19">19 — segmentos transmembrana</option>
@@ -136,48 +136,48 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
         <a href="https://web.expasy.org/protscale/pscale/beta-turnFasman.html">giro</a>.
       </p>
       <p id="estado-perfil" role="status" aria-live="polite">
-        {invalido && 'El perfil y las propensiones están desactualizados. Corrige las posiciones inválidas para recalcular.'}
-        {corto && `Se necesitan al menos ${String(ventana)} residuos para mostrar la gráfica; las propensiones siguen disponibles.`}
-        {!invalido && !corto && validacion.sequence.length === 0 && 'Escribe una secuencia válida para mostrar el perfil.'}
-        {!invalido && !corto && validacion.sequence.length > 0 && !vigente && !error && 'Calculando perfil y propensiones…'}
-        {error && !invalido && error}
-        {sinGrafica && vigente && !corto && 'Este navegador no permite transferir el lienzo; consulta los valores en la tabla.'}
+        {invalid && 'El perfil y las propensiones están desactualizados. Corrige las posiciones inválidas para recalcular.'}
+        {tooShort && `Se necesitan al menos ${String(windowSize)} residuos para mostrar la gráfica; las propensiones siguen disponibles.`}
+        {!invalid && !tooShort && validation.sequence.length === 0 && 'Escribe una secuencia válida para mostrar el perfil.'}
+        {!invalid && !tooShort && validation.sequence.length > 0 && !current && !error && 'Calculando perfil y propensiones…'}
+        {error && !invalid && error}
+        {chartUnavailable && current && !tooShort && 'Este navegador no permite transferir el lienzo; consulta los valores en la tabla.'}
       </p>
       <div
-        className={invalido ? 'grafica-desactualizada' : !vigente ? 'grafica-esperando' : undefined}
-        hidden={corto || validacion.sequence.length === 0 || sinGrafica}
+        className={invalid ? 'grafica-desactualizada' : !current ? 'grafica-esperando' : undefined}
+        hidden={tooShort || validation.sequence.length === 0 || chartUnavailable}
       >
-        <div ref={contenedor} className="contenedor-grafica" />
+        <div ref={container} className="contenedor-grafica" />
       </div>
-      {propensiones.length > 0 && (
-        <div className={invalido ? 'tabla-desactualizada' : undefined}>
+      {propensities.length > 0 && (
+        <div className={invalid ? 'tabla-desactualizada' : undefined}>
           <div className="tabla-perfil-contenedor">
             <table>
-              <caption>Hidropatía y propensiones por residuo, ventana de {ventanaMostrada} residuos</caption>
+              <caption>Hidropatía y propensiones por residuo, ventana de {displayedWindow} residuos</caption>
               <thead><tr><th scope="col">Posición</th><th scope="col">Residuo</th><th scope="col">Hidropatía</th><th scope="col">Hélice</th><th scope="col">Lámina</th><th scope="col">Giro</th></tr></thead>
               <tbody>
-                {filas.map((fila) => (
-                  <tr key={fila.posicion}>
-                    <th scope="row">{fila.posicion}</th>
-                    <td>{fila.residuo}</td>
-                    <td>{hidropatiaPorResiduo.has(fila.posicion)
-                      ? hidropatiaPorResiduo.get(fila.posicion) === null
+                {rows.map((row) => (
+                  <tr key={row.position}>
+                    <th scope="row">{row.position}</th>
+                    <td>{row.residue}</td>
+                    <td>{hydropathyByResidue.has(row.position)
+                      ? hydropathyByResidue.get(row.position) === null
                         ? 'Sin dato'
-                        : FORMATO_VALOR.format(hidropatiaPorResiduo.get(fila.posicion) ?? 0)
+                        : VALUE_FORMAT.format(hydropathyByResidue.get(row.position) ?? 0)
                       : <span aria-label="Sin ventana completa">—</span>}</td>
-                    <td>{fila.helice === null ? 'Sin dato' : FORMATO_VALOR.format(fila.helice)}</td>
-                    <td>{fila.lamina === null ? 'Sin dato' : FORMATO_VALOR.format(fila.lamina)}</td>
-                    <td>{fila.giro === null ? 'Sin dato' : FORMATO_VALOR.format(fila.giro)}</td>
+                    <td>{row.helix === null ? 'Sin dato' : VALUE_FORMAT.format(row.helix)}</td>
+                    <td>{row.sheet === null ? 'Sin dato' : VALUE_FORMAT.format(row.sheet)}</td>
+                    <td>{row.turn === null ? 'Sin dato' : VALUE_FORMAT.format(row.turn)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {totalPaginas > 1 && (
+          {totalPages > 1 && (
             <nav aria-label="Páginas de valores del perfil" className="paginas-perfil">
-              <button type="button" disabled={paginaActual === 0} onClick={() => { setPagina(paginaActual - 1); }}>Anterior</button>
-              <span aria-live="polite">Página {paginaActual + 1} de {totalPaginas}</span>
-              <button type="button" disabled={paginaActual + 1 >= totalPaginas} onClick={() => { setPagina(paginaActual + 1); }}>Siguiente</button>
+              <button type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>Anterior</button>
+              <span aria-live="polite">Página {currentPage + 1} de {totalPages}</span>
+              <button type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>Siguiente</button>
             </nav>
           )}
         </div>

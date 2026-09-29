@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { calcularPropensiones } from './chouFasman';
+import { calculatePropensities } from './chouFasman';
 
-describe('parámetros Chou–Fasman de ProtScale', () => {
-  it('devuelve hélice, lámina y giro para cada residuo, incluidos los extremos', () => {
-    expect(calcularPropensiones('AVP')).toEqual([
-      { posicion: 1, residuo: 'A', helice: 1.42, lamina: 0.83, giro: 0.66 },
-      { posicion: 2, residuo: 'V', helice: 1.06, lamina: 1.70, giro: 0.50 },
-      { posicion: 3, residuo: 'P', helice: 0.57, lamina: 0.55, giro: 1.52 },
+describe('ProtScale Chou–Fasman parameters', () => {
+  it('returns helix, sheet, and turn for every residue including the ends', () => {
+    expect(calculatePropensities('AVP')).toEqual([
+      { position: 1, residue: 'A', helix: 1.42, sheet: 0.83, turn: 0.66 },
+      { position: 2, residue: 'V', helix: 1.06, sheet: 1.70, turn: 0.50 },
+      { position: 3, residue: 'P', helix: 0.57, sheet: 0.55, turn: 1.52 },
     ]);
   });
 
-  it('rechaza caracteres inválidos sin omitir posiciones', () => {
-    expect(calcularPropensiones('AXP')[1]).toEqual({ posicion: 2, residuo: 'X', helice: null, lamina: null, giro: null });
-    expect(() => calcularPropensiones('A-P')).toThrow(RangeError);
-    expect(() => calcularPropensiones('')).toThrow(RangeError);
+  it('rejects invalid characters without dropping positions', () => {
+    expect(calculatePropensities('AXP')[1]).toEqual({ position: 2, residue: 'X', helix: null, sheet: null, turn: null });
+    expect(() => calculatePropensities('A-P')).toThrow(RangeError);
+    expect(() => calculatePropensities('')).toThrow(RangeError);
   });
 });

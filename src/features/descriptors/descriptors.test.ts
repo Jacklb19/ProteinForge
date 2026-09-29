@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import referencias from './fixtures/protparam.json';
-import { calcularDescriptores } from './descriptors';
+import references from './fixtures/protparam.json';
+import { calculateDescriptors } from './descriptors';
 
-function leerSecuencia(accession: string): string {
+function readSequence(accession: string): string {
   return readFileSync(resolve('src/features/descriptors/fixtures', `${accession}.fasta`), 'utf8')
     .split(/\r?\n/)
     .slice(1)
@@ -12,22 +12,22 @@ function leerSecuencia(accession: string): string {
     .trim();
 }
 
-describe('descriptores fisicoquímicos frente a ProtParam', () => {
-  for (const referencia of referencias) {
-    it(`${referencia.accession}: cinco descriptores de ${String(referencia.longitud)} residuos`, () => {
-      const resultado = calcularDescriptores(leerSecuencia(referencia.accession));
-      expect(resultado.longitud).toBe(referencia.longitud);
-      expect(Math.abs(resultado.masaDa - referencia.masaDa)).toBeLessThanOrEqual(0.1);
-      expect(Math.abs(resultado.puntoIsoelectrico - referencia.puntoIsoelectrico)).toBeLessThanOrEqual(0.01);
-      expect(Math.abs(resultado.indiceInestabilidad - referencia.indiceInestabilidad)).toBeLessThanOrEqual(0.01);
-      expect(Math.abs(resultado.indiceAlifatico - referencia.indiceAlifatico)).toBeLessThanOrEqual(0.01);
-      expect(Math.abs(resultado.gravy - referencia.gravy)).toBeLessThanOrEqual(0.01);
+describe('physicochemical descriptors against ProtParam', () => {
+  for (const reference of references) {
+    it(`${reference.accession}: five descriptors for ${String(reference.length)} residues`, () => {
+      const result = calculateDescriptors(readSequence(reference.accession));
+      expect(result.length).toBe(reference.length);
+      expect(Math.abs(result.massDa - reference.massDa)).toBeLessThanOrEqual(0.1);
+      expect(Math.abs(result.isoelectricPoint - reference.isoelectricPoint)).toBeLessThanOrEqual(0.01);
+      expect(Math.abs(result.instabilityIndex - reference.instabilityIndex)).toBeLessThanOrEqual(0.01);
+      expect(Math.abs(result.aliphaticIndex - reference.aliphaticIndex)).toBeLessThanOrEqual(0.01);
+      expect(Math.abs(result.gravy - reference.gravy)).toBeLessThanOrEqual(0.01);
     });
   }
 
-  it('rechaza cadenas vacías y caracteres inválidos sin descartarlos', () => {
-    expect(() => calcularDescriptores('')).toThrow(RangeError);
-    expect(() => calcularDescriptores('ACXDE')).toThrow(RangeError);
-    expect(() => calcularDescriptores('acde')).toThrow(RangeError);
+  it('rejects empty strings and invalid characters without dropping them', () => {
+    expect(() => calculateDescriptors('')).toThrow(RangeError);
+    expect(() => calculateDescriptors('ACXDE')).toThrow(RangeError);
+    expect(() => calculateDescriptors('acde')).toThrow(RangeError);
   });
 });

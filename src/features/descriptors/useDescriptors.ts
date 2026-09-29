@@ -1,48 +1,48 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { splitStandardResidues, validateSequence } from '../editor/sequence';
-import type { Descriptores } from './descriptors';
-import type { RespuestaDescriptores, SolicitudDescriptores } from './messages';
+import type { Descriptors } from './descriptors';
+import type { DescriptorResponse, DescriptorRequest } from './messages';
 
-/** Estado visible del último cálculo y de la entrada que lo originó. */
-export interface EstadoDescriptores {
-  resultado: Descriptores | null;
-  estado: 'vacio' | 'calculando' | 'actual' | 'invalido' | 'error';
+/** Visible state of the latest calculation and its input. */
+export interface DescriptorState {
+  result: Descriptors | null;
+  status: 'empty' | 'calculating' | 'current' | 'invalid' | 'error';
   error: string | null;
-  excluidos: number;
+  excluded: number;
 }
 
-interface ResultadoRecibido { secuencia: string; datos: Descriptores }
-interface ErrorRecibido { secuencia: string; mensaje: string }
+interface ReceivedResult { sequence: string; data: Descriptors }
+interface ReceivedError { sequence: string; message: string }
 
-/** Mantiene un Worker y descarta resultados de versiones anteriores del editor. */
-export function useDescriptores(texto: string): EstadoDescriptores {
-  const validacion = useMemo(() => validateSequence(texto), [texto]);
-  const residuos = useMemo(() => splitStandardResidues(validacion.sequence), [validacion.sequence]);
-  const [ultimoResultado, setUltimoResultado] = useState<ResultadoRecibido | null>(null);
-  const [errorActual, setErrorActual] = useState<ErrorRecibido | null>(null);
-  const [errorHilo, setErrorHilo] = useState<string | null>(null);
+/** Keeps one worker and discards results from earlier editor revisions. */
+export function useDescriptors(text: string): DescriptorState {
+  const validation = useMemo(() => validateSequence(text), [text]);
+  const residues = useMemo(() => splitStandardResidues(validation.sequence), [validation.sequence]);
+  const [lastResult, setLastResult] = useState<ReceivedResult | null>(null);
+  const [currentError, setCurrentError] = useState<ReceivedError | null>(null);
+  const [workerError, setWorkerError] = useState<string | null>(null);
   const worker = useRef<Worker | null>(null);
-  const ultimaPeticion = useRef(0);
-  const secuenciaEnviada = useRef('');
+  const latestRequest = useRef(0);
+  const sentSequence = useRef('');
 
   useEffect(() => {
     try {
-      const instancia = new Worker(new URL('./descriptors.worker.ts', import.meta.url), { type: 'module' });
-      worker.current = instancia;
-      instancia.onmessage = (evento: MessageEvent<RespuestaDescriptores>) => {
-        const respuesta = evento.data;
-        if (respuesta.id !== ultimaPeticion.current) return;
-        if (respuesta.error) {
-          setErrorActual({ secuencia: secuenciaEnviada.current, mensaje: respuesta.error });
+      const instance = new Worker(new URL('./descriptors.worker.ts', import.meta.url), { type: 'module' });
+      worker.current = instance;
+      instance.onmessage = (event: MessageEvent<DescriptorResponse>) => {
+        const response = event.data;
+        if (response.id !== latestRequest.current) return;
+        if (response.error) {
+          setCurrentError({ sequence: sentSequence.current, message: response.error });
           return;
         }
-        if (respuesta.resultado) {
-          setUltimoResultado({ secuencia: secuenciaEnviada.current, datos: respuesta.resultado });
+        if (response.result) {
+          setLastResult({ sequence: sentSequence.current, data: response.result });
         }
       };
-      instancia.onerror = () => { setErrorHilo('El hilo de cálculo dejó de responder.'); };
+      instance.onerror = () => { setWorkerError('El hilo de cálculo dejó de responder.'); };
     } catch {
-      queueMicrotask(() => { setErrorHilo('Este navegador no pudo iniciar el hilo de cálculo.'); });
+      queueMicrotask(() => { setWorkerError('Este navegador no pudo iniciar el hilo de cálculo.'); });
     }
     return () => {
       worker.current?.terminate();
@@ -51,22 +51,22 @@ export function useDescriptores(texto: string): EstadoDescriptores {
   }, []);
 
   useEffect(() => {
-    const id = ++ultimaPeticion.current;
-    if (validacion.invalidPositions.length > 0 || residuos.standard.length === 0) return;
-    secuenciaEnviada.current = validacion.sequence;
-    const solicitud: SolicitudDescriptores = { id, secuencia: residuos.standard };
-    worker.current?.postMessage(solicitud);
-  }, [validacion, residuos]);
+    const id = ++latestRequest.current;
+    if (validation.invalidPositions.length > 0 || residues.standard.length === 0) return;
+    sentSequence.current = validation.sequence;
+    const request: DescriptorRequest = { id, sequence: residues.standard };
+    worker.current?.postMessage(request);
+  }, [validation, residues]);
 
-  const resultado = ultimoResultado?.datos ?? null;
-  if (validacion.invalidPositions.length > 0) return { resultado, estado: 'invalido', error: null, excluidos: residuos.excluded };
-  if (residuos.standard.length === 0) return { resultado: null, estado: 'vacio', error: null, excluidos: residuos.excluded };
-  if (errorHilo) return { resultado, estado: 'error', error: errorHilo, excluidos: residuos.excluded };
-  if (errorActual?.secuencia === validacion.sequence) {
-    return { resultado, estado: 'error', error: errorActual.mensaje, excluidos: residuos.excluded };
+  const result = lastResult?.data ?? null;
+  if (validation.invalidPositions.length > 0) return { result, status: 'invalid', error: null, excluded: residues.excluded };
+  if (residues.standard.length === 0) return { result: null, status: 'empty', error: null, excluded: residues.excluded };
+  if (workerError) return { result, status: 'error', error: workerError, excluded: residues.excluded };
+  if (currentError?.sequence === validation.sequence) {
+    return { result, status: 'error', error: currentError.message, excluded: residues.excluded };
   }
-  if (ultimoResultado?.secuencia === validacion.sequence) {
-    return { resultado, estado: 'actual', error: null, excluidos: residuos.excluded };
+  if (lastResult?.sequence === validation.sequence) {
+    return { result, status: 'current', error: null, excluded: residues.excluded };
   }
-  return { resultado, estado: 'calculando', error: null, excluidos: residuos.excluded };
+  return { result, status: 'calculating', error: null, excluded: residues.excluded };
 }

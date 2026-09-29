@@ -1,83 +1,83 @@
-import type { EstiloGrafica } from './profileMessages';
-import type { PuntoPerfil, VentanaHidropatia } from './profile';
+import type { ChartStyle } from './profileMessages';
+import type { ProfilePoint, HydropathyWindow } from './profile';
 
-/** Líneas de referencia científicas que acompañan la curva. */
-export function referenciasParaVentana(ventana: VentanaHidropatia): number[] {
-  return ventana === 19 ? [0, 1.6] : [0];
+/** Scientific reference lines accompanying the curve. */
+export function referencesForWindow(windowSize: HydropathyWindow): number[] {
+  return windowSize === 19 ? [0, 1.6] : [0];
 }
 
-/** Dibuja el perfil y las referencias en el lienzo transferido al Worker. */
-export function dibujarPerfil(
-  lienzo: OffscreenCanvas,
-  puntos: readonly PuntoPerfil[],
-  ventana: VentanaHidropatia,
-  ancho: number,
-  alto: number,
-  escala: number,
-  estilo: EstiloGrafica,
+/** Draws the profile and reference lines on the canvas transferred to the worker. */
+export function drawProfile(
+  canvas: OffscreenCanvas,
+  points: readonly ProfilePoint[],
+  windowSize: HydropathyWindow,
+  width: number,
+  height: number,
+  scale: number,
+  style: ChartStyle,
 ): void {
-  const contexto = lienzo.getContext('2d');
-  if (!contexto) throw new Error('No se pudo iniciar el contexto 2D de la gráfica.');
-  lienzo.width = Math.max(1, Math.round(ancho * escala));
-  lienzo.height = Math.max(1, Math.round(alto * escala));
-  contexto.setTransform(escala, 0, 0, escala, 0, 0);
-  contexto.fillStyle = estilo.superficie;
-  contexto.fillRect(0, 0, ancho, alto);
-  if (puntos.length === 0) return;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('No se pudo iniciar el contexto 2D de la gráfica.');
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  context.setTransform(scale, 0, 0, scale, 0, 0);
+  context.fillStyle = style.surface;
+  context.fillRect(0, 0, width, height);
+  if (points.length === 0) return;
 
-  const referencias = referenciasParaVentana(ventana);
-  let minimo = Math.min(...referencias, -0.5);
-  let maximo = Math.max(...referencias, 0.5);
-  for (const punto of puntos) {
-    if (punto.valor !== null) {
-      minimo = Math.min(minimo, punto.valor);
-      maximo = Math.max(maximo, punto.valor);
+  const references = referencesForWindow(windowSize);
+  let minimum = Math.min(...references, -0.5);
+  let maximum = Math.max(...references, 0.5);
+  for (const point of points) {
+    if (point.value !== null) {
+      minimum = Math.min(minimum, point.value);
+      maximum = Math.max(maximum, point.value);
     }
   }
-  const espacioX = Math.max(1, ancho - 2 * estilo.margen);
-  const espacioY = Math.max(1, alto - 2 * estilo.margen);
-  const primera = puntos[0]?.posicion ?? 0;
-  const ultima = puntos.at(-1)?.posicion ?? primera;
-  const xDe = (posicion: number): number => ultima === primera
-    ? ancho / 2
-    : estilo.margen + ((posicion - primera) / (ultima - primera)) * espacioX;
-  const yDe = (valor: number): number => alto - estilo.margen
-    - ((valor - minimo) / (maximo - minimo)) * espacioY;
+  const plotWidth = Math.max(1, width - 2 * style.margin);
+  const plotHeight = Math.max(1, height - 2 * style.margin);
+  const first = points[0]?.position ?? 0;
+  const last = points.at(-1)?.position ?? first;
+  const xFor = (position: number): number => last === first
+    ? width / 2
+    : style.margin + ((position - first) / (last - first)) * plotWidth;
+  const yFor = (value: number): number => height - style.margin
+    - ((value - minimum) / (maximum - minimum)) * plotHeight;
 
-  contexto.font = estilo.fuente;
-  contexto.fillStyle = estilo.texto;
-  contexto.strokeStyle = estilo.referencia;
-  contexto.lineWidth = estilo.trazoReferencia;
-  for (const referencia of referencias) {
-    const y = yDe(referencia);
-    contexto.beginPath();
-    contexto.moveTo(estilo.margen, y);
-    contexto.lineTo(ancho - estilo.margen, y);
-    contexto.stroke();
-    contexto.fillText(referencia === 0 ? '0' : '1,6', estilo.margen, y - estilo.trazoReferencia);
+  context.font = style.font;
+  context.fillStyle = style.text;
+  context.strokeStyle = style.reference;
+  context.lineWidth = style.referenceWidth;
+  for (const reference of references) {
+    const y = yFor(reference);
+    context.beginPath();
+    context.moveTo(style.margin, y);
+    context.lineTo(width - style.margin, y);
+    context.stroke();
+    context.fillText(reference === 0 ? '0' : '1,6', style.margin, y - style.referenceWidth);
   }
 
-  contexto.strokeStyle = estilo.curva;
-  contexto.lineWidth = estilo.trazo;
-  contexto.beginPath();
-  let trazoAbierto = false;
-  for (const punto of puntos) {
-    if (punto.valor === null) {
-      trazoAbierto = false;
+  context.strokeStyle = style.curve;
+  context.lineWidth = style.lineWidth;
+  context.beginPath();
+  let strokeOpen = false;
+  for (const point of points) {
+    if (point.value === null) {
+      strokeOpen = false;
       continue;
     }
-    if (!trazoAbierto) contexto.moveTo(xDe(punto.posicion), yDe(punto.valor));
-    else contexto.lineTo(xDe(punto.posicion), yDe(punto.valor));
-    trazoAbierto = true;
+    if (!strokeOpen) context.moveTo(xFor(point.position), yFor(point.value));
+    else context.lineTo(xFor(point.position), yFor(point.value));
+    strokeOpen = true;
   }
-  contexto.stroke();
-  if (puntos.length === 1 && puntos[0]?.valor !== null) {
-    contexto.beginPath();
-    contexto.arc(xDe(primera), yDe(puntos[0]?.valor ?? 0), estilo.trazo * 2, 0, Math.PI * 2);
-    contexto.fillStyle = estilo.curva;
-    contexto.fill();
+  context.stroke();
+  if (points.length === 1 && points[0]?.value !== null) {
+    context.beginPath();
+    context.arc(xFor(first), yFor(points[0]?.value ?? 0), style.lineWidth * 2, 0, Math.PI * 2);
+    context.fillStyle = style.curve;
+    context.fill();
   }
-  contexto.fillStyle = estilo.texto;
-  contexto.fillText(String(primera), estilo.margen, alto - estilo.trazoReferencia);
-  contexto.fillText(String(ultima), ancho - estilo.margen, alto - estilo.trazoReferencia);
+  context.fillStyle = style.text;
+  context.fillText(String(first), style.margin, height - style.referenceWidth);
+  context.fillText(String(last), width - style.margin, height - style.referenceWidth);
 }

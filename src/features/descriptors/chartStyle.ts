@@ -1,23 +1,23 @@
-import type { EstiloGrafica } from './profileMessages';
+import type { ChartStyle } from './profileMessages';
 
-function medidaPositiva(valor: string): number {
-  const numero = Number.parseFloat(valor);
-  return Number.isFinite(numero) && numero > 0 ? numero : 1;
+function positiveMeasure(value: string): number {
+  const number = Number.parseFloat(value);
+  return Number.isFinite(number) && number > 0 ? number : 1;
 }
 
-/** Resuelve los tokens CSS en el hilo principal antes de transferirlos al Worker. */
-export function obtenerEstiloGrafica(lienzo: HTMLCanvasElement): EstiloGrafica {
-  const raiz = getComputedStyle(document.documentElement);
-  const grafica = getComputedStyle(lienzo);
-  const token = (nombre: string): string => raiz.getPropertyValue(nombre).trim();
+/** Resolves CSS tokens on the main thread before passing them to the worker. */
+export function getChartStyle(canvas: HTMLCanvasElement): ChartStyle {
+  const root = getComputedStyle(document.documentElement);
+  const chart = getComputedStyle(canvas);
+  const token = (name: string): string => root.getPropertyValue(name).trim();
   return {
-    superficie: token('--color-surface') || raiz.backgroundColor,
-    texto: token('--color-text') || raiz.color,
-    curva: token('--color-focus') || raiz.color,
-    referencia: token('--color-border') || raiz.color,
-    fuente: `${grafica.fontWeight} ${grafica.fontSize} ${grafica.fontFamily}`,
-    margen: medidaPositiva(token('--space-chart-inner')),
-    trazo: medidaPositiva(token('--border-width-chart-line')),
-    trazoReferencia: medidaPositiva(token('--border-width-chart-reference')),
+    surface: token('--color-surface') || root.backgroundColor,
+    text: token('--color-text') || root.color,
+    curve: token('--color-focus') || root.color,
+    reference: token('--color-border') || root.color,
+    font: `${chart.fontWeight} ${chart.fontSize} ${chart.fontFamily}`,
+    margin: positiveMeasure(token('--space-chart-inner')),
+    lineWidth: positiveMeasure(token('--border-width-chart-line')),
+    referenceWidth: positiveMeasure(token('--border-width-chart-reference')),
   };
 }

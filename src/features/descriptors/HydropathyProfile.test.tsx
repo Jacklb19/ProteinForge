@@ -1,32 +1,32 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RespuestaPerfil, SolicitudPerfil } from './profileMessages';
-import { PerfilHidrofobicidad } from './HydropathyProfile';
-import { calcularPerfil } from './profile';
-import { calcularPropensiones } from './chouFasman';
+import type { ProfileResponse, ProfileRequest } from './profileMessages';
+import { HydropathyProfile } from './HydropathyProfile';
+import { calculateProfile } from './profile';
+import { calculatePropensities } from './chouFasman';
 
-class WorkerSimulado {
-  static instancia: WorkerSimulado | null = null;
-  onmessage: ((evento: MessageEvent<RespuestaPerfil>) => void) | null = null;
+class MockWorker {
+  static instance: MockWorker | null = null;
+  onmessage: ((event: MessageEvent<ProfileResponse>) => void) | null = null;
   onerror: (() => void) | null = null;
-  postMessage = vi.fn<(mensaje: SolicitudPerfil, transferibles?: Transferable[]) => void>();
+  postMessage = vi.fn<(message: ProfileRequest, transferables?: Transferable[]) => void>();
   terminate = vi.fn();
-  constructor() { WorkerSimulado.instancia = this; }
+  constructor() { MockWorker.instance = this; }
 }
 
-function hiloPerfil(): WorkerSimulado {
-  if (!WorkerSimulado.instancia) throw new Error('No se creó el Worker del perfil.');
-  return WorkerSimulado.instancia;
+function profileWorker(): MockWorker {
+  if (!MockWorker.instance) throw new Error('No se creó el Worker del perfil.');
+  return MockWorker.instance;
 }
 
-function ultimaSolicitud(hilo: WorkerSimulado): Extract<SolicitudPerfil, { tipo: 'calcular' }> {
-  const mensaje = hilo.postMessage.mock.calls.at(-1)?.[0];
-  if (!mensaje || mensaje.tipo !== 'calcular') throw new Error('No se envió el cálculo esperado.');
-  return mensaje;
+function lastRequest(worker: MockWorker): Extract<ProfileRequest, { type: 'calculate' }> {
+  const message = worker.postMessage.mock.calls.at(-1)?.[0];
+  if (!message || message.type !== 'calculate') throw new Error('Expected calculation request was not sent.');
+  return message;
 }
 
 beforeEach(() => {
-  vi.stubGlobal('Worker', WorkerSimulado);
+  vi.stubGlobal('Worker', MockWorker);
   Object.defineProperty(HTMLCanvasElement.prototype, 'transferControlToOffscreen', {
     configurable: true,
     value: vi.fn(() => ({ width: 0, height: 0 })),
@@ -36,27 +36,27 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   Reflect.deleteProperty(HTMLCanvasElement.prototype, 'transferControlToOffscreen');
-  WorkerSimulado.instancia = null;
+  MockWorker.instance = null;
 });
 
-describe('perfil de hidrofobicidad accesible', () => {
-  it('transfiere el lienzo y los tokens, y avisa si faltan residuos', () => {
-    const { rerender } = render(<PerfilHidrofobicidad texto="ACDE" />);
-    const hilo = hiloPerfil();
-    expect(hilo.postMessage).toHaveBeenCalledTimes(2);
-    const [inicio, transferibles] = hilo.postMessage.mock.calls[0] ?? [];
-    expect(inicio?.tipo).toBe('iniciar');
-    expect(transferibles).toHaveLength(1);
-    expect(inicio && 'estilo' in inicio && inicio.estilo.fuente).toBeTruthy();
+describe('accessible hydropathy profile', () => {
+  it('transfers the canvas and tokens and warns when residues are missing', () => {
+    const { rerender } = render(<HydropathyProfile text="ACDE" />);
+    const worker = profileWorker();
+    expect(worker.postMessage).toHaveBeenCalledTimes(2);
+    const [start, transferables] = worker.postMessage.mock.calls[0] ?? [];
+    expect(start?.type).toBe('initialize');
+    expect(transferables).toHaveLength(1);
+    expect(start && 'style' in start && start.style.font).toBeTruthy();
     expect(screen.getByText(/al menos 9 residuos/i)).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
-    const solicitudCorta = ultimaSolicitud(hilo);
+    const shortRequest = lastRequest(worker);
     act(() => {
-      hilo.onmessage?.(new MessageEvent('message', {
+      worker.onmessage?.(new MessageEvent('message', {
         data: {
-          id: solicitudCorta.id,
-          puntos: [],
-          propensiones: calcularPropensiones(solicitudCorta.secuencia),
+          id: shortRequest.id,
+          points: [],
+          propensities: calculatePropensities(shortRequest.sequence),
         },
       }));
     });
@@ -64,18 +64,18 @@ describe('perfil de hidrofobicidad accesible', () => {
     expect(screen.getAllByRole('row')).toHaveLength(5);
     expect(document.querySelector('canvas.grafica-hidrofobicidad')?.parentElement?.parentElement).toHaveAttribute('hidden');
 
-    rerender(<PerfilHidrofobicidad texto="ACDEFGHIKLMNPQRSTVWY" />);
-    const contenedorGrafica = document.querySelector('canvas.grafica-hidrofobicidad')?.parentElement?.parentElement;
-    expect(contenedorGrafica).not.toHaveAttribute('hidden');
-    expect(contenedorGrafica).toHaveClass('grafica-esperando');
-    const solicitud = ultimaSolicitud(hilo);
-    expect(solicitud.ventana).toBe(9);
+    rerender(<HydropathyProfile text="ACDEFGHIKLMNPQRSTVWY" />);
+    const chartContainer = document.querySelector('canvas.grafica-hidrofobicidad')?.parentElement?.parentElement;
+    expect(chartContainer).not.toHaveAttribute('hidden');
+    expect(chartContainer).toHaveClass('grafica-esperando');
+    const request = lastRequest(worker);
+    expect(request.windowSize).toBe(9);
     act(() => {
-      hilo.onmessage?.(new MessageEvent('message', {
+      worker.onmessage?.(new MessageEvent('message', {
         data: {
-          id: solicitud.id,
-          puntos: calcularPerfil(solicitud.secuencia, 9),
-          propensiones: calcularPropensiones(solicitud.secuencia),
+          id: request.id,
+          points: calculateProfile(request.sequence, 9),
+          propensities: calculatePropensities(request.sequence),
         },
       }));
     });
@@ -85,43 +85,43 @@ describe('perfil de hidrofobicidad accesible', () => {
     expect(screen.getByRole('columnheader', { name: 'Giro' })).toBeInTheDocument();
   });
 
-  it('permite 19 residuos, pagina todos los valores y conserva el perfil ante entradas inválidas', () => {
-    const secuencia = 'ACDEFGHIKLMNPQRSTVWY'.repeat(6);
-    const { rerender } = render(<PerfilHidrofobicidad texto={secuencia} />);
-    const hilo = hiloPerfil();
+  it('supports window 19, paginates values, and retains the profile for invalid input', () => {
+    const sequence = 'ACDEFGHIKLMNPQRSTVWY'.repeat(6);
+    const { rerender } = render(<HydropathyProfile text={sequence} />);
+    const worker = profileWorker();
     fireEvent.change(screen.getByRole('combobox', { name: /ventana de residuos/i }), { target: { value: '19' } });
-    const solicitud = ultimaSolicitud(hilo);
-    expect(solicitud.ventana).toBe(19);
+    const request = lastRequest(worker);
+    expect(request.windowSize).toBe(19);
     act(() => {
-      hilo.onmessage?.(new MessageEvent('message', {
-        data: { id: solicitud.id, puntos: calcularPerfil(secuencia, 19), propensiones: calcularPropensiones(secuencia) },
+      worker.onmessage?.(new MessageEvent('message', {
+        data: { id: request.id, points: calculateProfile(sequence, 19), propensities: calculatePropensities(sequence) },
       }));
     });
-    const tabla = screen.getByRole('table');
-    expect(within(tabla).getAllByRole('row')).toHaveLength(51);
+    const table = screen.getByRole('table');
+    expect(within(table).getAllByRole('row')).toHaveLength(51);
     expect(screen.getByText(/Página 1 de 3/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     expect(screen.getByText(/Página 2 de 3/i)).toBeInTheDocument();
-    const mensajesAntes = hilo.postMessage.mock.calls.length;
+    const messagesBefore = worker.postMessage.mock.calls.length;
 
-    rerender(<PerfilHidrofobicidad texto={`${secuencia}-`} />);
-    expect(hilo.postMessage).toHaveBeenCalledTimes(mensajesAntes);
+    rerender(<HydropathyProfile text={`${sequence}-`} />);
+    expect(worker.postMessage).toHaveBeenCalledTimes(messagesBefore);
     expect(screen.getByText(/perfil y las propensiones están desactualizados/i)).toBeInTheDocument();
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByRole('table').parentElement?.parentElement).toHaveClass('tabla-desactualizada');
   });
 
-  it('mantiene la tabla accesible si no está disponible la transferencia del lienzo', () => {
+  it('keeps the accessible table when canvas transfer is unavailable', () => {
     Reflect.deleteProperty(HTMLCanvasElement.prototype, 'transferControlToOffscreen');
-    render(<PerfilHidrofobicidad texto="ACDEFGHIKLMNPQRSTVWY" />);
-    const hilo = hiloPerfil();
-    const solicitud = ultimaSolicitud(hilo);
+    render(<HydropathyProfile text="ACDEFGHIKLMNPQRSTVWY" />);
+    const worker = profileWorker();
+    const request = lastRequest(worker);
     act(() => {
-      hilo.onmessage?.(new MessageEvent('message', {
+      worker.onmessage?.(new MessageEvent('message', {
         data: {
-          id: solicitud.id,
-          puntos: calcularPerfil(solicitud.secuencia, 9),
-          propensiones: calcularPropensiones(solicitud.secuencia),
+          id: request.id,
+          points: calculateProfile(request.sequence, 9),
+          propensities: calculatePropensities(request.sequence),
         },
       }));
     });

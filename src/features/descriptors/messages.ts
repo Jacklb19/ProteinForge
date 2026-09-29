@@ -1,12 +1,12 @@
-import type { Descriptores } from './descriptors';
+import type { Descriptors } from './descriptors';
 
-/** Petición de cálculo enviada al Worker persistente. */
-export interface SolicitudDescriptores {
+/** Calculation request sent to the persistent worker. */
+export interface DescriptorRequest {
   id: number;
-  secuencia: string;
+  sequence: string;
 }
 
-/** Respuesta identificada para descartar cálculos de una edición anterior. */
-export type RespuestaDescriptores =
-  | { id: number; resultado: Descriptores; error?: never }
-  | { id: number; error: string; resultado?: never };
+/** Tagged response so calculations from earlier edits can be discarded. */
+export type DescriptorResponse =
+  | { id: number; result: Descriptors; error?: never }
+  | { id: number; error: string; result?: never };

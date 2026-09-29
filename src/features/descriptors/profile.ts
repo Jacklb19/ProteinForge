@@ -1,40 +1,40 @@
-import { HIDROPATIA } from './descriptors';
+import { HYDROPATHY } from './descriptors';
 
-/** Ventanas aprobadas para el perfil Kyte–Doolittle sin puntos incompletos. */
-export type VentanaHidropatia = 9 | 19;
+/** Supported Kyte–Doolittle windows, excluding incomplete edge windows. */
+export type HydropathyWindow = 9 | 19;
 
-/** Valor de hidropatía asignado al residuo central (posición de base uno). */
-export interface PuntoPerfil {
-  posicion: number;
-  valor: number | null;
+/** Hydropathy value assigned to the center residue at a one-based position. */
+export interface ProfilePoint {
+  position: number;
+  value: number | null;
 }
 
-/** Calcula medias de ventanas completas con pesos uniformes, como ProtScale. */
-export function calcularPerfil(secuencia: string, ventana: VentanaHidropatia): PuntoPerfil[] {
-  if (secuencia.length === 0 || /[^ACDEFGHIKLMNPQRSTVWYUOBZX]/.test(secuencia)) {
+/** Calculates equally weighted complete-window means as ProtScale does. */
+export function calculateProfile(sequence: string, windowSize: HydropathyWindow): ProfilePoint[] {
+  if (sequence.length === 0 || /[^ACDEFGHIKLMNPQRSTVWYUOBZX]/.test(sequence)) {
     throw new RangeError('La secuencia contiene caracteres no admitidos.');
   }
-  if (![9, 19].includes(ventana)) {
+  if (![9, 19].includes(windowSize)) {
     throw new RangeError('La ventana debe ser 9 o 19.');
   }
-  if (secuencia.length < ventana) return [];
+  if (sequence.length < windowSize) return [];
 
-  let suma = 0;
-  let sinDato = 0;
-  for (let indice = 0; indice < ventana; indice += 1) {
-    const valor = HIDROPATIA[secuencia[indice] ?? ''];
-    if (valor === undefined) sinDato += 1;
-    else suma += valor;
+  let sum = 0;
+  let missingCount = 0;
+  for (let index = 0; index < windowSize; index += 1) {
+    const value = HYDROPATHY[sequence[index] ?? ''];
+    if (value === undefined) missingCount += 1;
+    else sum += value;
   }
-  const puntos: PuntoPerfil[] = [{ posicion: (ventana + 1) / 2, valor: sinDato > 0 ? null : suma / ventana }];
-  for (let inicio = 1; inicio + ventana <= secuencia.length; inicio += 1) {
-    const sale = HIDROPATIA[secuencia[inicio - 1] ?? ''];
-    const entra = HIDROPATIA[secuencia[inicio + ventana - 1] ?? ''];
-    if (sale === undefined) sinDato -= 1;
-    else suma -= sale;
-    if (entra === undefined) sinDato += 1;
-    else suma += entra;
-    puntos.push({ posicion: inicio + (ventana + 1) / 2, valor: sinDato > 0 ? null : suma / ventana });
+  const points: ProfilePoint[] = [{ position: (windowSize + 1) / 2, value: missingCount > 0 ? null : sum / windowSize }];
+  for (let start = 1; start + windowSize <= sequence.length; start += 1) {
+    const leaving = HYDROPATHY[sequence[start - 1] ?? ''];
+    const entering = HYDROPATHY[sequence[start + windowSize - 1] ?? ''];
+    if (leaving === undefined) missingCount -= 1;
+    else sum -= leaving;
+    if (entering === undefined) missingCount += 1;
+    else sum += entering;
+    points.push({ position: start + (windowSize + 1) / 2, value: missingCount > 0 ? null : sum / windowSize });
   }
-  return puntos;
+  return points;
 }

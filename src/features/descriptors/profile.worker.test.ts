@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { EstiloGrafica, RespuestaPerfil, SolicitudPerfil } from './profileMessages';
+import type { ChartStyle, ProfileResponse, ProfileRequest } from './profileMessages';
 
-interface ContextoSimulado {
-  onmessage: ((evento: MessageEvent<SolicitudPerfil>) => void) | null;
+interface MockWorkerContext {
+  onmessage: ((event: MessageEvent<ProfileRequest>) => void) | null;
   postMessage: ReturnType<typeof vi.fn>;
 }
 
-const estilo: EstiloGrafica = {
-  superficie: 'white', texto: 'black', curva: 'blue', referencia: 'gray',
-  fuente: '14px sans-serif', margen: 36, trazo: 2, trazoReferencia: 1,
+const style: ChartStyle = {
+  surface: 'white', text: 'black', curve: 'blue', reference: 'gray',
+  font: '14px sans-serif', margin: 36, lineWidth: 2, referenceWidth: 1,
 };
 
 afterEach(() => {
@@ -16,29 +16,29 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('Worker del perfil', () => {
-  it('recibe el lienzo y devuelve los puntos completos', async () => {
-    const contexto: ContextoSimulado = { onmessage: null, postMessage: vi.fn() };
-    vi.stubGlobal('self', contexto);
+describe('profile worker', () => {
+  it('receives the canvas and returns complete profile points', async () => {
+    const context: MockWorkerContext = { onmessage: null, postMessage: vi.fn() };
+    vi.stubGlobal('self', context);
     await import('./profile.worker');
-    const dibujo = {
+    const drawing = {
       setTransform: vi.fn(), fillRect: vi.fn(), beginPath: vi.fn(),
       moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), fillText: vi.fn(),
       arc: vi.fn(), fill: vi.fn(), fillStyle: '', strokeStyle: '', lineWidth: 0, font: '',
     };
-    const lienzo = { width: 0, height: 0, getContext: vi.fn(() => dibujo) } as unknown as OffscreenCanvas;
-    contexto.onmessage?.(new MessageEvent('message', { data: { tipo: 'iniciar', lienzo, estilo } }));
-    contexto.onmessage?.(new MessageEvent('message', {
+    const canvas = { width: 0, height: 0, getContext: vi.fn(() => drawing) } as unknown as OffscreenCanvas;
+    context.onmessage?.(new MessageEvent('message', { data: { type: 'initialize', canvas, style } }));
+    context.onmessage?.(new MessageEvent('message', {
       data: {
-        tipo: 'calcular', id: 7, secuencia: 'ACDEFGHIK', ventana: 9,
-        ancho: 400, alto: 200, escala: 1, estilo,
+        type: 'calculate', id: 7, sequence: 'ACDEFGHIK', windowSize: 9,
+        width: 400, height: 200, scale: 1, style,
       },
     }));
-    const respuesta = contexto.postMessage.mock.calls[0]?.[0] as RespuestaPerfil;
-    expect(respuesta.id).toBe(7);
-    expect(respuesta.puntos).toHaveLength(1);
-    expect(respuesta.propensiones).toHaveLength(9);
-    expect(respuesta.puntos?.[0]?.posicion).toBe(5);
-    expect(dibujo.strokeStyle).toBe('blue');
+    const response = context.postMessage.mock.calls[0]?.[0] as ProfileResponse;
+    expect(response.id).toBe(7);
+    expect(response.points).toHaveLength(1);
+    expect(response.propensities).toHaveLength(9);
+    expect(response.points?.[0]?.position).toBe(5);
+    expect(drawing.strokeStyle).toBe('blue');
   });
 });

@@ -1,43 +1,43 @@
 /// <reference lib="webworker" />
 
-import { dibujarPerfil } from './drawProfile';
-import type { RespuestaPerfil, SolicitudPerfil } from './profileMessages';
-import { calcularPerfil } from './profile';
-import { calcularPropensiones } from './chouFasman';
+import { drawProfile } from './drawProfile';
+import type { ProfileResponse, ProfileRequest } from './profileMessages';
+import { calculateProfile } from './profile';
+import { calculatePropensities } from './chouFasman';
 
-const contexto = self as DedicatedWorkerGlobalScope;
-let lienzo: OffscreenCanvas | null = null;
-let estiloGrafica: SolicitudPerfil['estilo'] | null = null;
+const context = self as DedicatedWorkerGlobalScope;
+let canvas: OffscreenCanvas | null = null;
+let chartStyle: ProfileRequest['style'] | null = null;
 
-contexto.onmessage = (evento: MessageEvent<SolicitudPerfil>) => {
-  const solicitud = evento.data;
-  if (solicitud.tipo === 'iniciar') {
-    lienzo = solicitud.lienzo;
-    estiloGrafica = solicitud.estilo;
+context.onmessage = (event: MessageEvent<ProfileRequest>) => {
+  const request = event.data;
+  if (request.type === 'initialize') {
+    canvas = request.canvas;
+    chartStyle = request.style;
     return;
   }
   try {
-    estiloGrafica = solicitud.estilo;
-    const puntos = calcularPerfil(solicitud.secuencia, solicitud.ventana);
-    const propensiones = calcularPropensiones(solicitud.secuencia);
-    if (lienzo) {
-      dibujarPerfil(
-        lienzo,
-        puntos,
-        solicitud.ventana,
-        solicitud.ancho,
-        solicitud.alto,
-        solicitud.escala,
-        estiloGrafica,
+    chartStyle = request.style;
+    const points = calculateProfile(request.sequence, request.windowSize);
+    const propensities = calculatePropensities(request.sequence);
+    if (canvas) {
+      drawProfile(
+        canvas,
+        points,
+        request.windowSize,
+        request.width,
+        request.height,
+        request.scale,
+        chartStyle,
       );
     }
-    const respuesta: RespuestaPerfil = { id: solicitud.id, puntos, propensiones };
-    contexto.postMessage(respuesta);
+    const response: ProfileResponse = { id: request.id, points, propensities };
+    context.postMessage(response);
   } catch (error) {
-    const respuesta: RespuestaPerfil = {
-      id: solicitud.id,
+    const response: ProfileResponse = {
+      id: request.id,
       error: error instanceof Error ? error.message : 'No se pudo generar el perfil.',
     };
-    contexto.postMessage(respuesta);
+    context.postMessage(response);
   }
 };

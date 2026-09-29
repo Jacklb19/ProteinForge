@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { RespuestaDescriptores, SolicitudDescriptores } from './messages';
+import type { DescriptorResponse, DescriptorRequest } from './messages';
 
-interface ContextoSimulado {
-  onmessage: ((evento: MessageEvent<SolicitudDescriptores>) => void) | null;
+interface MockWorkerContext {
+  onmessage: ((event: MessageEvent<DescriptorRequest>) => void) | null;
   postMessage: ReturnType<typeof vi.fn>;
 }
 
@@ -11,17 +11,17 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('Worker de descriptores', () => {
-  it('devuelve el cálculo y rechaza entradas inválidas en la frontera', async () => {
-    const contexto: ContextoSimulado = { onmessage: null, postMessage: vi.fn() };
-    vi.stubGlobal('self', contexto);
+describe('descriptor worker', () => {
+  it('returns the calculation and rejects invalid input at the boundary', async () => {
+    const context: MockWorkerContext = { onmessage: null, postMessage: vi.fn() };
+    vi.stubGlobal('self', context);
     await import('./descriptors.worker');
-    contexto.onmessage?.(new MessageEvent('message', { data: { id: 1, secuencia: 'ACDE' } }));
-    contexto.onmessage?.(new MessageEvent('message', { data: { id: 2, secuencia: 'ACXDE' } }));
-    const primera = contexto.postMessage.mock.calls[0]?.[0] as RespuestaDescriptores;
-    const segunda = contexto.postMessage.mock.calls[1]?.[0] as RespuestaDescriptores;
-    expect(primera.id).toBe(1);
-    expect(primera.resultado?.longitud).toBe(4);
+    context.onmessage?.(new MessageEvent('message', { data: { id: 1, sequence: 'ACDE' } }));
+    context.onmessage?.(new MessageEvent('message', { data: { id: 2, sequence: 'ACXDE' } }));
+    const first = context.postMessage.mock.calls[0]?.[0] as DescriptorResponse;
+    const segunda = context.postMessage.mock.calls[1]?.[0] as DescriptorResponse;
+    expect(first.id).toBe(1);
+    expect(first.result?.length).toBe(4);
     expect(segunda.id).toBe(2);
     expect(segunda.error).toMatch(/aminoácidos estándar/i);
   });

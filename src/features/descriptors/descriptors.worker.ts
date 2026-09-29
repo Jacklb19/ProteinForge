@@ -1,20 +1,20 @@
 /// <reference lib="webworker" />
 
-import { calcularDescriptores } from './descriptors';
-import type { RespuestaDescriptores, SolicitudDescriptores } from './messages';
+import { calculateDescriptors } from './descriptors';
+import type { DescriptorResponse, DescriptorRequest } from './messages';
 
-const contexto = self as DedicatedWorkerGlobalScope;
+const context = self as DedicatedWorkerGlobalScope;
 
-contexto.onmessage = (evento: MessageEvent<SolicitudDescriptores>) => {
-  const { id, secuencia } = evento.data;
+context.onmessage = (event: MessageEvent<DescriptorRequest>) => {
+  const { id, sequence } = event.data;
   try {
-    const respuesta: RespuestaDescriptores = { id, resultado: calcularDescriptores(secuencia) };
-    contexto.postMessage(respuesta);
+    const response: DescriptorResponse = { id, result: calculateDescriptors(sequence) };
+    context.postMessage(response);
   } catch (error) {
-    const respuesta: RespuestaDescriptores = {
+    const response: DescriptorResponse = {
       id,
       error: error instanceof Error ? error.message : 'No se pudieron calcular los descriptores.',
     };
-    contexto.postMessage(respuesta);
+    context.postMessage(response);
   }
 };
