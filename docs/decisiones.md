@@ -2,6 +2,10 @@
 
 Decisiones aprobadas el 29 de septiembre de 2026. La descripción de cada una indica el comportamiento previsto; no implica que esté implementado. `docs/definicion-proyecto.md` conserva la versión original.
 
+## Convención de idioma del código
+
+Desde el S3, los identificadores, nombres de archivos y carpetas, rutas URL, variables y clases CSS, nombres de pruebas, comentarios y mensajes de commit se escriben en inglés. Los documentos de `docs/` y los textos visibles al usuario permanecen en español. Los textos de la interfaz se reúnen en `src/i18n/es.ts`. El cambio de nombres no debe alterar el comportamiento de la aplicación.
+
 | Área y sprint | Decisión técnica | Desviación de la definición |
 |---|---|---|
 | Estructuras, S5 | Descargar BinaryCIF directamente de `https://models.rcsb.org` mediante CORS y conservarlo en la caché del service worker. | ADR-03 deja de exigir que la API intermedie esta descarga pública. `GET /v1/pdb/{id}/structure` deja de ser la ruta de descarga del visor. La CSP debe permitir ese origen. |
