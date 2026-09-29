@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
-import { cargarFasta } from './cargarFasta';
-import { esquemaArchivoFasta } from './archivoFasta';
+import { cargarFasta } from './loadFasta';
+import { esquemaArchivoFasta } from './fastaFile';
 
 self.onmessage = async (evento: MessageEvent<unknown>): Promise<void> => {
   const resultado = esquemaArchivoFasta.safeParse(evento.data);

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { actualizarPosicionesInvalidas, separarResiduosEstandar, validarSecuencia } from './secuencia';
-import { CargadorFasta } from './CargadorFasta';
+import { actualizarPosicionesInvalidas, separarResiduosEstandar, validarSecuencia } from './sequence';
+import { CargadorFasta } from './FastaLoader';
 import type { EntradaFasta } from './fasta';
-import { PanelDescriptores } from '../descriptores/PanelDescriptores';
-import { useDescriptores } from '../descriptores/useDescriptores';
-import { PerfilHidrofobicidad } from '../descriptores/PerfilHidrofobicidad';
+import { PanelDescriptores } from '../descriptors/DescriptorPanel';
+import { useDescriptores } from '../descriptors/useDescriptors';
+import { PerfilHidrofobicidad } from '../descriptors/HydropathyProfile';
 
 const RETRASO_VALIDACION_MS = 45;
 

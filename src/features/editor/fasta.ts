@@ -1,4 +1,4 @@
-import { validarSecuencia } from './secuencia';
+import { validarSecuencia } from './sequence';
 
 export interface EntradaFasta {
   numero: number;
