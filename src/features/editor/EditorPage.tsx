@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { actualizarPosicionesInvalidas } from './secuencia';
+import { CargadorFasta } from './CargadorFasta';
+import type { EntradaFasta } from './fasta';
 
 const RETRASO_VALIDACION_MS = 45;
 
@@ -12,6 +14,7 @@ export function EditorPage(): React.JSX.Element {
   const resaltado = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
+    if (texto === textoValidado.current) return;
     const temporizador = window.setTimeout(() => {
       const siguientes = actualizarPosicionesInvalidas(
         textoValidado.current,
@@ -73,6 +76,12 @@ export function EditorPage(): React.JSX.Element {
         <p id="ayuda-secuencia">Las minúsculas se aceptan; los saltos de línea separan bloques de secuencia.</p>
         <p id="estado-secuencia" role="status" aria-live="polite">{descripcion}</p>
       </section>
+      <CargadorFasta alSeleccionar={(entrada: EntradaFasta) => {
+        textoValidado.current = entrada.secuencia;
+        posicionesValidadas.current = entrada.posicionesInvalidas;
+        setTexto(entrada.secuencia);
+        setPosicionesInvalidas(entrada.posicionesInvalidas);
+      }} />
     </main>
   );
 }
