@@ -1,0 +1,61 @@
+{
+  "version": "1.87",
+  "fechaConsulta": "2026-09-29",
+  "casos": [
+    {
+      "nombre": "hueco_interno",
+      "primera": "ACDEFGHIK",
+      "segunda": "ACDFGHIK",
+      "modo": "global",
+      "matriz": "BLOSUM62",
+      "extremosLibres": true,
+      "puntuacion": 38.0,
+      "primeraAlineada": "ACDEFGHIK",
+      "segundaAlineada": "ACD-FGHIK"
+    },
+    {
+      "nombre": "extremos_libres",
+      "primera": "GGACDEFGHKK",
+      "segunda": "ACDEFGH",
+      "modo": "global",
+      "matriz": "BLOSUM62",
+      "extremosLibres": true,
+      "puntuacion": 44.0,
+      "primeraAlineada": "GGACDEFGHKK",
+      "segundaAlineada": "--ACDEFGH--"
+    },
+    {
+      "nombre": "local",
+      "primera": "PPACDEFGHKK",
+      "segunda": "GGACDEFGHTT",
+      "modo": "local",
+      "matriz": "BLOSUM45",
+      "extremosLibres": false,
+      "puntuacion": 55.0,
+      "primeraAlineada": "ACDEFGH",
+      "segundaAlineada": "ACDEFGH"
+    },
+    {
+      "nombre": "ambiguos",
+      "primera": "ACBZXDE",
+      "segunda": "ACBZXDE",
+      "modo": "global",
+      "matriz": "BLOSUM80",
+      "extremosLibres": true,
+      "puntuacion": 48.0,
+      "primeraAlineada": "ACBZXDE",
+      "segundaAlineada": "ACBZXDE"
+    },
+    {
+      "nombre": "extremos_libres",
+      "primera": "GGACDEFGHKK",
+      "segunda": "ACDEFGH",
+      "modo": "global",
+      "matriz": "BLOSUM62",
+      "extremosLibres": false,
+      "puntuacion": 23.0,
+      "primeraAlineada": "GGACDEFGHKK",
+      "segundaAlineada": "--ACDEFGH--"
+    }
+  ]
+}
