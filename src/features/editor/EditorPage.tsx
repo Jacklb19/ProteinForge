@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { actualizarPosicionesInvalidas } from './secuencia';
 import { CargadorFasta } from './CargadorFasta';
 import type { EntradaFasta } from './fasta';
+import { PanelDescriptores } from '../descriptores/PanelDescriptores';
+import { useDescriptores } from '../descriptores/useDescriptores';
 
 const RETRASO_VALIDACION_MS = 45;
 
 /** Editor de secuencias con validación local incremental y aviso accesible. */
 export function EditorPage(): React.JSX.Element {
   const [texto, setTexto] = useState('');
+  const descriptores = useDescriptores(texto);
   const [posicionesInvalidas, setPosicionesInvalidas] = useState<number[]>([]);
   const textoValidado = useRef('');
   const posicionesValidadas = useRef<number[]>([]);
@@ -82,6 +85,7 @@ export function EditorPage(): React.JSX.Element {
         setTexto(entrada.secuencia);
         setPosicionesInvalidas(entrada.posicionesInvalidas);
       }} />
+      <PanelDescriptores datos={descriptores} />
     </main>
   );
 }

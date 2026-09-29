@@ -94,6 +94,11 @@ p { margin-top: var(--space-copy); }
 .entrada-fasta span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .entrada-fasta[aria-selected='true'] { background: var(--color-selected-surface); }
 
+.panel-descriptores dl { display: grid; gap: var(--space-small); }
+.panel-descriptores dl > div { display: flex; gap: var(--space-medium); }
+.panel-descriptores dt { font-weight: var(--font-weight-label); }
+.descriptores-desactualizados { color: var(--color-muted-text); }
+
 textarea:focus-visible,
 button:focus-visible,
 input:focus-visible {
