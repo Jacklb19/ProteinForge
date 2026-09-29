@@ -1,0 +1,41 @@
+:root {
+  --color-text: #111827;
+  --color-surface: #ffffff;
+  --color-border: #6b7280;
+  --color-border-subtle: #d1d5db;
+  --color-focus: #2563eb;
+  --color-selection: #bfdbfe;
+  --color-invalid-text: #991b1b;
+  --color-invalid-surface: #fee2e2;
+  --color-selected-surface: #dbeafe;
+
+  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-sequence: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --font-size-base: 1rem;
+  --font-size-title: 2rem;
+  --font-size-section: 1.3rem;
+  --font-weight-regular: 400;
+  --font-weight-label: 700;
+  --line-height-base: 1.5;
+  --letter-spacing-sequence: 0;
+  --tab-size-sequence: 4;
+
+  --space-none: 0;
+  --space-copy: 0.6rem;
+  --space-small: 0.75rem;
+  --space-control: 0.9rem;
+  --space-medium: 1rem;
+  --space-large: 2rem;
+  --space-page-bottom: 4rem;
+  --border-width-control: 2px;
+  --border-width-divider: 1px;
+  --border-radius-control: 0.4rem;
+  --outline-width-focus: 3px;
+  --outline-offset-focus: 2px;
+
+  --width-page-max: 1000px;
+  --height-editor: 18rem;
+  --height-fasta-list: 16.5rem;
+  --height-fasta-row-default: 44px;
+  --height-fasta-row: var(--height-fasta-row-default);
+}
