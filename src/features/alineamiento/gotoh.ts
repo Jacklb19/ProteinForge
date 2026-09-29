@@ -71,6 +71,65 @@ function marcasDe(primera: string, segunda: string, matriz: number[][]): string 
   return marcas;
 }
 
+/** Reconstruye las columnas y métricas a partir del traceback compacto. */
+export function construirResultado(
+  a: string,
+  b: string,
+  matriz: Matriz,
+  modo: Modo,
+  traza: Uint8Array,
+  mejor: { puntuacion: number; i: number; j: number; estado: number },
+): ResultadoAlineamiento {
+  const ancho = b.length + 1;
+  const alineadaA: string[] = [];
+  const alineadaB: string[] = [];
+  if (modo === 'global') {
+    for (let i = a.length; i > mejor.i; i -= 1) { alineadaA.push(a[i - 1] ?? ''); alineadaB.push('-'); }
+    for (let j = b.length; j > mejor.j; j -= 1) { alineadaA.push('-'); alineadaB.push(b[j - 1] ?? ''); }
+  }
+  let i = mejor.i;
+  let j = mejor.j;
+  let estado = mejor.estado;
+  while (i > 0 && j > 0) {
+    const codigo = traza[i * ancho + j] ?? 0;
+    if (estado === M) {
+      if (modo === 'local' && (codigo & 3) === PARADA) break;
+      alineadaA.push(a[i - 1] ?? '');
+      alineadaB.push(b[j - 1] ?? '');
+      i -= 1;
+      j -= 1;
+      estado = codigo & 3;
+    } else if (estado === X) {
+      alineadaA.push(a[i - 1] ?? '');
+      alineadaB.push('-');
+      i -= 1;
+      estado = codigo & 4 ? X : M;
+    } else {
+      alineadaA.push('-');
+      alineadaB.push(b[j - 1] ?? '');
+      j -= 1;
+      estado = codigo & 8 ? Y : M;
+    }
+  }
+  if (modo === 'global') {
+    while (i > 0) { alineadaA.push(a[--i] ?? ''); alineadaB.push('-'); }
+    while (j > 0) { alineadaA.push('-'); alineadaB.push(b[--j] ?? ''); }
+  }
+  const primeraAlineada = alineadaA.reverse().join('');
+  const segundaAlineada = alineadaB.reverse().join('');
+  const marcas = marcasDe(primeraAlineada, segundaAlineada, blosum.valores[matriz]);
+  return {
+    primeraAlineada,
+    segundaAlineada,
+    marcas,
+    puntuacion: mejor.puntuacion,
+    identidades: Array.from(marcas).filter((marca) => marca === '|').length,
+    similitudes: Array.from(marcas).filter((marca) => marca === '|' || marca === ':').length,
+    columnas: marcas.length,
+    parametros: { matriz, modo, apertura: 10, extension: 0.5, extremos: modo === 'global' ? 'libres' : 'no-aplica' },
+  };
+}
+
 /** Ejecuta Gotoh con filas reutilizadas y un byte de traceback por celda. */
 export async function alinearSecuencias(
   primera: string,
@@ -150,51 +209,10 @@ export async function alinearSecuencias(
     }
   }
 
-  const alineadaA: string[] = [];
-  const alineadaB: string[] = [];
-  if (modo === 'global') {
-    for (let i = a.length; i > mejorI; i -= 1) { alineadaA.push(a[i - 1] ?? ''); alineadaB.push('-'); }
-    for (let j = b.length; j > mejorJ; j -= 1) { alineadaA.push('-'); alineadaB.push(b[j - 1] ?? ''); }
-  }
-  let i = mejorI;
-  let j = mejorJ;
-  let estado = mejorEstado;
-  while (i > 0 && j > 0) {
-    const codigo = traza[i * ancho + j] ?? 0;
-    if (estado === M) {
-      if (modo === 'local' && (codigo & 3) === PARADA) break;
-      alineadaA.push(a[i - 1] ?? '');
-      alineadaB.push(b[j - 1] ?? '');
-      i -= 1;
-      j -= 1;
-      estado = codigo & 3;
-    } else if (estado === X) {
-      alineadaA.push(a[i - 1] ?? '');
-      alineadaB.push('-');
-      i -= 1;
-      estado = codigo & 4 ? X : M;
-    } else {
-      alineadaA.push('-');
-      alineadaB.push(b[j - 1] ?? '');
-      j -= 1;
-      estado = codigo & 8 ? Y : M;
-    }
-  }
-  if (modo === 'global') {
-    while (i > 0) { alineadaA.push(a[--i] ?? ''); alineadaB.push('-'); }
-    while (j > 0) { alineadaA.push('-'); alineadaB.push(b[--j] ?? ''); }
-  }
-  const primeraAlineada = alineadaA.reverse().join('');
-  const segundaAlineada = alineadaB.reverse().join('');
-  const marcas = marcasDe(primeraAlineada, segundaAlineada, valores);
-  return {
-    primeraAlineada,
-    segundaAlineada,
-    marcas,
+  return construirResultado(a, b, matriz, modo, traza, {
     puntuacion: mejor,
-    identidades: Array.from(marcas).filter((marca) => marca === '|').length,
-    similitudes: Array.from(marcas).filter((marca) => marca === '|' || marca === ':').length,
-    columnas: marcas.length,
-    parametros: { matriz, modo, apertura: 10, extension: 0.5, extremos: modo === 'global' ? 'libres' : 'no-aplica' },
-  };
+    i: mejorI,
+    j: mejorJ,
+    estado: mejorEstado,
+  });
 }
