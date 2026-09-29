@@ -1,66 +1,66 @@
-import { bordeInicial, calcularBloque } from './tile';
-import type { ResultadoBloque, SolicitudBloque } from './tile';
-import { construirResultado, normalizarParaAlineamiento } from './gotoh';
-import type { Matriz, Modo, ResultadoAlineamiento } from './gotoh';
+import { initialBoundary, calculateTile } from './tile';
+import type { TileResult, TileRequest } from './tile';
+import { buildResult, normalizeForAlignment } from './gotoh';
+import type { MatrixName, AlignmentMode, AlignmentResult } from './gotoh';
 
-export const LADO_BLOQUE = 256;
-export const MAX_RESIDUOS_ALINEAMIENTO = 5000;
+export const TILE_SIZE = 256;
+export const MAX_ALIGNMENT_RESIDUES = 5000;
 
-export interface OpcionesFrenteOnda {
-  matriz: Matriz;
-  modo: Modo;
-  progreso?: (fraccion: number) => void;
-  cancelado?: () => boolean;
-  ejecutarLote?: (solicitudes: SolicitudBloque[]) => Promise<ResultadoBloque[]>;
-  memoriaCompartida?: boolean;
+export interface WavefrontOptions {
+  matrix: MatrixName;
+  mode: AlignmentMode;
+  onProgress?: (fraction: number) => void;
+  isCancelled?: () => boolean;
+  executeBatch?: (requests: TileRequest[]) => Promise<TileResult[]>;
+  sharedMemory?: boolean;
 }
 
-/** Recorre teselas por antidiagonales y deja el traceback en un byte por celda. */
-export async function alinearPorBloques(
-  primera: string,
-  segunda: string,
-  opciones: OpcionesFrenteOnda,
-): Promise<ResultadoAlineamiento> {
-  const a = normalizarParaAlineamiento(primera).secuencia;
-  const b = normalizarParaAlineamiento(segunda).secuencia;
-  if (a.length > MAX_RESIDUOS_ALINEAMIENTO || b.length > MAX_RESIDUOS_ALINEAMIENTO) {
-    throw new RangeError(`Cada secuencia admite como máximo ${String(MAX_RESIDUOS_ALINEAMIENTO)} residuos.`);
+/** Traverses tile antidiagonals and stores one traceback byte per cell. */
+export async function alignInTiles(
+  first: string,
+  second: string,
+  options: WavefrontOptions,
+): Promise<AlignmentResult> {
+  const a = normalizeForAlignment(first).sequence;
+  const b = normalizeForAlignment(second).sequence;
+  if (a.length > MAX_ALIGNMENT_RESIDUES || b.length > MAX_ALIGNMENT_RESIDUES) {
+    throw new RangeError(`Cada secuencia admite como máximo ${String(MAX_ALIGNMENT_RESIDUES)} residuos.`);
   }
-  const filas = Math.ceil(a.length / LADO_BLOQUE);
-  const columnas = Math.ceil(b.length / LADO_BLOQUE);
-  const resultados: (ResultadoBloque | undefined)[][] = Array.from({ length: filas }, () => Array<ResultadoBloque | undefined>(columnas));
-  const longitudTraza = (a.length + 1) * (b.length + 1);
-  const buffer = opciones.memoriaCompartida ? new SharedArrayBuffer(longitudTraza) : new ArrayBuffer(longitudTraza);
-  const ejecutar = opciones.ejecutarLote ?? ((solicitudes: SolicitudBloque[]) => Promise.resolve(solicitudes.map(calcularBloque)));
-  let mejor = { puntuacion: 0, i: 0, j: opciones.modo === 'global' ? b.length : 0, estado: 0 };
-  let procesadas = 0;
-  opciones.progreso?.(0);
+  const rows = Math.ceil(a.length / TILE_SIZE);
+  const columns = Math.ceil(b.length / TILE_SIZE);
+  const results: (TileResult | undefined)[][] = Array.from({ length: rows }, () => Array<TileResult | undefined>(columns));
+  const traceLength = (a.length + 1) * (b.length + 1);
+  const buffer = options.sharedMemory ? new SharedArrayBuffer(traceLength) : new ArrayBuffer(traceLength);
+  const execute = options.executeBatch ?? ((requests: TileRequest[]) => Promise.resolve(requests.map(calculateTile)));
+  let best = { score: 0, i: 0, j: options.mode === 'global' ? b.length : 0, state: 0 };
+  let processed = 0;
+  options.onProgress?.(0);
 
-  for (let diagonal = 0; diagonal < filas + columnas - 1; diagonal += 1) {
-    const lote: SolicitudBloque[] = [];
-    for (let indiceFila = Math.max(0, diagonal - columnas + 1); indiceFila <= Math.min(filas - 1, diagonal); indiceFila += 1) {
-      const indiceColumna = diagonal - indiceFila;
-      const fila = indiceFila * LADO_BLOQUE;
-      const columna = indiceColumna * LADO_BLOQUE;
-      const alto = Math.min(LADO_BLOQUE, a.length - fila);
-      const ancho = Math.min(LADO_BLOQUE, b.length - columna);
-      const superior = indiceFila === 0 ? bordeInicial(ancho) : resultados[indiceFila - 1]?.[indiceColumna]?.inferior;
-      const izquierdo = indiceColumna === 0 ? bordeInicial(alto) : resultados[indiceFila]?.[indiceColumna - 1]?.derecho;
-      if (!superior || !izquierdo) throw new Error('Falta una frontera del frente de onda.');
-      lote.push({ fila, columna, alto, ancho, primera: a, segunda: b, matriz: opciones.matriz,
-        modo: opciones.modo, superior, izquierdo, traza: buffer });
+  for (let diagonal = 0; diagonal < rows + columns - 1; diagonal += 1) {
+    const batch: TileRequest[] = [];
+    for (let rowIndex = Math.max(0, diagonal - columns + 1); rowIndex <= Math.min(rows - 1, diagonal); rowIndex += 1) {
+      const columnIndex = diagonal - rowIndex;
+      const row = rowIndex * TILE_SIZE;
+      const column = columnIndex * TILE_SIZE;
+      const height = Math.min(TILE_SIZE, a.length - row);
+      const width = Math.min(TILE_SIZE, b.length - column);
+      const top = rowIndex === 0 ? initialBoundary(width) : results[rowIndex - 1]?.[columnIndex]?.bottom;
+      const left = columnIndex === 0 ? initialBoundary(height) : results[rowIndex]?.[columnIndex - 1]?.right;
+      if (!top || !left) throw new Error('Falta una frontera del frente de onda.');
+      batch.push({ row, column, height, width, first: a, second: b, matrix: options.matrix,
+        mode: options.mode, top, left, trace: buffer });
     }
-    for (const resultado of await ejecutar(lote)) {
-      const indiceFila = Math.floor(resultado.fila / LADO_BLOQUE);
-      const indiceColumna = Math.floor(resultado.columna / LADO_BLOQUE);
-      if (!resultados[indiceFila]) throw new Error('Índice de bloque fuera de rango.');
-      resultados[indiceFila][indiceColumna] = resultado;
-      if (resultado.mejor.puntuacion > mejor.puntuacion) mejor = resultado.mejor;
-      procesadas += Math.min(LADO_BLOQUE, a.length - resultado.fila) * Math.min(LADO_BLOQUE, b.length - resultado.columna);
+    for (const result of await execute(batch)) {
+      const rowIndex = Math.floor(result.row / TILE_SIZE);
+      const columnIndex = Math.floor(result.column / TILE_SIZE);
+      if (!results[rowIndex]) throw new Error('Índice de bloque fuera de rango.');
+      results[rowIndex][columnIndex] = result;
+      if (result.best.score > best.score) best = result.best;
+      processed += Math.min(TILE_SIZE, a.length - result.row) * Math.min(TILE_SIZE, b.length - result.column);
     }
-    opciones.progreso?.(procesadas / (a.length * b.length));
-    await new Promise<void>((resolver) => { setTimeout(resolver, 0); });
-    if (opciones.cancelado?.()) throw new Error('Alineamiento cancelado.');
+    options.onProgress?.(processed / (a.length * b.length));
+    await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+    if (options.isCancelled?.()) throw new Error('Alineamiento cancelado.');
   }
-  return construirResultado(a, b, opciones.matriz, opciones.modo, new Uint8Array(buffer), mejor);
+  return buildResult(a, b, options.matrix, options.mode, new Uint8Array(buffer), best);
 }

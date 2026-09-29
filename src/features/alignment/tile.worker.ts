@@ -1,23 +1,23 @@
 /// <reference lib="webworker" />
 
-import { calcularBloque } from './tile';
-import type { SolicitudTesela, RespuestaTesela } from './messages';
+import { calculateTile } from './tile';
+import type { TileRequestMessage, TileResponseMessage } from './messages';
 
-const contexto = self as DedicatedWorkerGlobalScope;
+const context = self as DedicatedWorkerGlobalScope;
 
-contexto.onmessage = (evento: MessageEvent<SolicitudTesela>) => {
+context.onmessage = (event: MessageEvent<TileRequestMessage>) => {
   try {
-    const bloque = calcularBloque(evento.data.bloque);
-    const respuesta: RespuestaTesela = { id: evento.data.id, bloque };
-    contexto.postMessage(respuesta, [
-      bloque.inferior.m.buffer, bloque.inferior.x.buffer, bloque.inferior.y.buffer,
-      bloque.derecho.m.buffer, bloque.derecho.x.buffer, bloque.derecho.y.buffer,
+    const tile = calculateTile(event.data.tile);
+    const response: TileResponseMessage = { id: event.data.id, tile };
+    context.postMessage(response, [
+      tile.bottom.m.buffer, tile.bottom.x.buffer, tile.bottom.y.buffer,
+      tile.right.m.buffer, tile.right.x.buffer, tile.right.y.buffer,
     ]);
   } catch (error) {
-    const respuesta: RespuestaTesela = {
-      id: evento.data.id,
+    const response: TileResponseMessage = {
+      id: event.data.id,
       error: error instanceof Error ? error.message : 'Falló una tesela del alineamiento.',
     };
-    contexto.postMessage(respuesta);
+    context.postMessage(response);
   }
 };

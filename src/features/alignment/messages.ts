@@ -1,17 +1,17 @@
-import type { SolicitudBloque, ResultadoBloque } from './tile';
-import type { Matriz, Modo, ResultadoAlineamiento } from './gotoh';
+import type { TileRequest, TileResult } from './tile';
+import type { MatrixName, AlignmentMode, AlignmentResult } from './gotoh';
 
-/** Protocolo entre la interfaz y el Worker coordinador. */
-export type SolicitudAlineamiento =
-  | { tipo: 'iniciar'; id: number; primera: string; segunda: string; matriz: Matriz; modo: Modo }
-  | { tipo: 'cancelar'; id: number };
+/** Protocol between the UI and the coordinating worker. */
+export type AlignmentRequest =
+  | { type: 'start'; id: number; first: string; second: string; matrix: MatrixName; mode: AlignmentMode }
+  | { type: 'cancel'; id: number };
 
-export type RespuestaAlineamiento =
-  | { tipo: 'progreso'; id: number; fraccion: number }
-  | { tipo: 'resultado'; id: number; resultado: ResultadoAlineamiento }
-  | { tipo: 'cancelado'; id: number }
-  | { tipo: 'error'; id: number; mensaje: string };
+export type AlignmentResponse =
+  | { type: 'progress'; id: number; fraction: number }
+  | { type: 'result'; id: number; result: AlignmentResult }
+  | { type: 'cancelled'; id: number }
+  | { type: 'error'; id: number; message: string };
 
-/** Protocolo interno para las teselas paralelas. */
-export interface SolicitudTesela { id: number; bloque: SolicitudBloque }
-export type RespuestaTesela = { id: number; bloque: ResultadoBloque } | { id: number; error: string };
+/** Internal protocol for parallel tiles. */
+export interface TileRequestMessage { id: number; tile: TileRequest }
+export type TileResponseMessage = { id: number; tile: TileResult } | { id: number; error: string };

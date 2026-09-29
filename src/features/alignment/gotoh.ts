@@ -1,218 +1,218 @@
 import blosum from './fixtures/blosum.json';
 
-/** Matrices de sustitución disponibles para alineamiento proteico. */
-export type Matriz = 'BLOSUM45' | 'BLOSUM62' | 'BLOSUM80';
-export type Modo = 'global' | 'local';
+/** Available substitution matrices for protein alignment. */
+export type MatrixName = 'BLOSUM45' | 'BLOSUM62' | 'BLOSUM80';
+export type AlignmentMode = 'global' | 'local';
 
-/** Parámetros completos que acompañan cada resultado reproducible. */
-export interface ParametrosAlineamiento {
-  matriz: Matriz;
-  modo: Modo;
-  apertura: 10;
-  extension: 0.5;
-  extremos: 'libres' | 'no-aplica';
+/** Complete parameters stored with each reproducible result. */
+export interface AlignmentParameters {
+  matrix: MatrixName;
+  mode: AlignmentMode;
+  gapOpen: 10;
+  gapExtend: 0.5;
+  terminalGaps: 'free' | 'not-applicable';
 }
 
-/** Secuencias alineadas y métricas expresadas también como valores numéricos. */
-export interface ResultadoAlineamiento {
-  primeraAlineada: string;
-  segundaAlineada: string;
-  marcas: string;
-  puntuacion: number;
-  identidades: number;
-  similitudes: number;
-  columnas: number;
-  parametros: ParametrosAlineamiento;
+/** Aligned sequences and numeric metrics. */
+export interface AlignmentResult {
+  alignedFirst: string;
+  alignedSecond: string;
+  marks: string;
+  score: number;
+  identities: number;
+  similarities: number;
+  columns: number;
+  parameters: AlignmentParameters;
 }
 
-export interface OpcionesAlineamiento {
-  matriz?: Matriz;
-  modo?: Modo;
-  progreso?: (fraccion: number) => void;
-  cancelado?: () => boolean;
+export interface AlignmentOptions {
+  matrix?: MatrixName;
+  mode?: AlignmentMode;
+  onProgress?: (fraction: number) => void;
+  isCancelled?: () => boolean;
 }
 
-const ALFABETO = blosum.alfabeto;
-const APERTURA = 10;
-const EXTENSION = 0.5;
+const ALPHABET = blosum.alphabet;
+const GAP_OPEN = 10;
+const GAP_EXTEND = 0.5;
 const M = 0;
 const X = 1;
 const Y = 2;
-const PARADA = 3;
+const STOP = 3;
 
-/** Reemplaza selenocisteína y pirrolisina solo para puntuar el alineamiento. */
-export function normalizarParaAlineamiento(secuencia: string): { secuencia: string; avisos: string[] } {
-  const avisos: string[] = [];
-  if (secuencia.includes('U')) avisos.push('U se puntúa como C.');
-  if (secuencia.includes('O')) avisos.push('O se puntúa como K.');
-  const normalizada = secuencia.replaceAll('U', 'C').replaceAll('O', 'K');
-  if (Array.from(normalizada).some((residuo) => !ALFABETO.includes(residuo))) {
+/** Maps selenocysteine and pyrrolysine only for alignment scoring. */
+export function normalizeForAlignment(sequence: string): { sequence: string; warnings: string[] } {
+  const warnings: string[] = [];
+  if (sequence.includes('U')) warnings.push('U se puntúa como C.');
+  if (sequence.includes('O')) warnings.push('O se puntúa como K.');
+  const normalized = sequence.replaceAll('U', 'C').replaceAll('O', 'K');
+  if (Array.from(normalized).some((residue) => !ALPHABET.includes(residue))) {
     throw new RangeError('La secuencia de alineamiento contiene caracteres no admitidos.');
   }
-  if (normalizada.length === 0) throw new RangeError('Las dos secuencias deben contener residuos.');
-  return { secuencia: normalizada, avisos };
+  if (normalized.length === 0) throw new RangeError('Las dos secuencias deben contener residuos.');
+  return { sequence: normalized, warnings };
 }
 
-/** Bytes de traceback y seis filas de puntuaciones Float32 para dos longitudes. */
-export function memoriaCaminoVuelta(longitudPrimera: number, longitudSegunda: number): number {
-  const ancho = longitudSegunda + 1;
-  return (longitudPrimera + 1) * ancho + 6 * ancho * Float32Array.BYTES_PER_ELEMENT;
+/** Traceback bytes plus six Float32 score rows for two sequence lengths. */
+export function tracebackMemoryBytes(firstLength: number, secondLength: number): number {
+  const width = secondLength + 1;
+  return (firstLength + 1) * width + 6 * width * Float32Array.BYTES_PER_ELEMENT;
 }
 
-function marcasDe(primera: string, segunda: string, matriz: number[][]): string {
-  let marcas = '';
-  for (let indice = 0; indice < primera.length; indice += 1) {
-    const a = primera[indice] ?? '-';
-    const b = segunda[indice] ?? '-';
-    if (a === '-' || b === '-') marcas += ' ';
-    else if (a === b) marcas += '|';
-    else marcas += (matriz[ALFABETO.indexOf(a)]?.[ALFABETO.indexOf(b)] ?? 0) > 0 ? ':' : ' ';
+function marksFor(first: string, second: string, matrix: number[][]): string {
+  let marks = '';
+  for (let index = 0; index < first.length; index += 1) {
+    const a = first[index] ?? '-';
+    const b = second[index] ?? '-';
+    if (a === '-' || b === '-') marks += ' ';
+    else if (a === b) marks += '|';
+    else marks += (matrix[ALPHABET.indexOf(a)]?.[ALPHABET.indexOf(b)] ?? 0) > 0 ? ':' : ' ';
   }
-  return marcas;
+  return marks;
 }
 
-/** Reconstruye las columnas y métricas a partir del traceback compacto. */
-export function construirResultado(
+/** Reconstructs columns and metrics from compact traceback storage. */
+export function buildResult(
   a: string,
   b: string,
-  matriz: Matriz,
-  modo: Modo,
-  traza: Uint8Array,
-  mejor: { puntuacion: number; i: number; j: number; estado: number },
-): ResultadoAlineamiento {
-  const ancho = b.length + 1;
-  const alineadaA: string[] = [];
-  const alineadaB: string[] = [];
-  if (modo === 'global') {
-    for (let i = a.length; i > mejor.i; i -= 1) { alineadaA.push(a[i - 1] ?? ''); alineadaB.push('-'); }
-    for (let j = b.length; j > mejor.j; j -= 1) { alineadaA.push('-'); alineadaB.push(b[j - 1] ?? ''); }
+  matrix: MatrixName,
+  mode: AlignmentMode,
+  trace: Uint8Array,
+  best: { score: number; i: number; j: number; state: number },
+): AlignmentResult {
+  const width = b.length + 1;
+  const alignedA: string[] = [];
+  const alignedB: string[] = [];
+  if (mode === 'global') {
+    for (let i = a.length; i > best.i; i -= 1) { alignedA.push(a[i - 1] ?? ''); alignedB.push('-'); }
+    for (let j = b.length; j > best.j; j -= 1) { alignedA.push('-'); alignedB.push(b[j - 1] ?? ''); }
   }
-  let i = mejor.i;
-  let j = mejor.j;
-  let estado = mejor.estado;
+  let i = best.i;
+  let j = best.j;
+  let state = best.state;
   while (i > 0 && j > 0) {
-    const codigo = traza[i * ancho + j] ?? 0;
-    if (estado === M) {
-      if (modo === 'local' && (codigo & 3) === PARADA) break;
-      alineadaA.push(a[i - 1] ?? '');
-      alineadaB.push(b[j - 1] ?? '');
+    const code = trace[i * width + j] ?? 0;
+    if (state === M) {
+      if (mode === 'local' && (code & 3) === STOP) break;
+      alignedA.push(a[i - 1] ?? '');
+      alignedB.push(b[j - 1] ?? '');
       i -= 1;
       j -= 1;
-      estado = codigo & 3;
-    } else if (estado === X) {
-      alineadaA.push(a[i - 1] ?? '');
-      alineadaB.push('-');
+      state = code & 3;
+    } else if (state === X) {
+      alignedA.push(a[i - 1] ?? '');
+      alignedB.push('-');
       i -= 1;
-      estado = codigo & 4 ? X : M;
+      state = code & 4 ? X : M;
     } else {
-      alineadaA.push('-');
-      alineadaB.push(b[j - 1] ?? '');
+      alignedA.push('-');
+      alignedB.push(b[j - 1] ?? '');
       j -= 1;
-      estado = codigo & 8 ? Y : M;
+      state = code & 8 ? Y : M;
     }
   }
-  if (modo === 'global') {
-    while (i > 0) { alineadaA.push(a[--i] ?? ''); alineadaB.push('-'); }
-    while (j > 0) { alineadaA.push('-'); alineadaB.push(b[--j] ?? ''); }
+  if (mode === 'global') {
+    while (i > 0) { alignedA.push(a[--i] ?? ''); alignedB.push('-'); }
+    while (j > 0) { alignedA.push('-'); alignedB.push(b[--j] ?? ''); }
   }
-  const primeraAlineada = alineadaA.reverse().join('');
-  const segundaAlineada = alineadaB.reverse().join('');
-  const marcas = marcasDe(primeraAlineada, segundaAlineada, blosum.valores[matriz]);
+  const alignedFirst = alignedA.reverse().join('');
+  const alignedSecond = alignedB.reverse().join('');
+  const marks = marksFor(alignedFirst, alignedSecond, blosum.values[matrix]);
   return {
-    primeraAlineada,
-    segundaAlineada,
-    marcas,
-    puntuacion: mejor.puntuacion,
-    identidades: Array.from(marcas).filter((marca) => marca === '|').length,
-    similitudes: Array.from(marcas).filter((marca) => marca === '|' || marca === ':').length,
-    columnas: marcas.length,
-    parametros: { matriz, modo, apertura: 10, extension: 0.5, extremos: modo === 'global' ? 'libres' : 'no-aplica' },
+    alignedFirst,
+    alignedSecond,
+    marks,
+    score: best.score,
+    identities: Array.from(marks).filter((mark) => mark === '|').length,
+    similarities: Array.from(marks).filter((mark) => mark === '|' || mark === ':').length,
+    columns: marks.length,
+    parameters: { matrix, mode, gapOpen: 10, gapExtend: 0.5, terminalGaps: mode === 'global' ? 'free' : 'not-applicable' },
   };
 }
 
-/** Ejecuta Gotoh con filas reutilizadas y un byte de traceback por celda. */
-export async function alinearSecuencias(
-  primera: string,
-  segunda: string,
-  opciones: OpcionesAlineamiento = {},
-): Promise<ResultadoAlineamiento> {
-  const matriz = opciones.matriz ?? 'BLOSUM62';
-  const modo = opciones.modo ?? 'global';
-  if (!['BLOSUM45', 'BLOSUM62', 'BLOSUM80'].includes(matriz) || !['global', 'local'].includes(modo)) {
+/** Runs Gotoh with reused score rows and one traceback byte per cell. */
+export async function alignSequences(
+  first: string,
+  second: string,
+  options: AlignmentOptions = {},
+): Promise<AlignmentResult> {
+  const matrix = options.matrix ?? 'BLOSUM62';
+  const mode = options.mode ?? 'global';
+  if (!['BLOSUM45', 'BLOSUM62', 'BLOSUM80'].includes(matrix) || !['global', 'local'].includes(mode)) {
     throw new RangeError('Los parámetros de alineamiento no están admitidos.');
   }
-  const a = normalizarParaAlineamiento(primera).secuencia;
-  const b = normalizarParaAlineamiento(segunda).secuencia;
-  const ancho = b.length + 1;
-  const traza = new Uint8Array((a.length + 1) * ancho);
-  let previoM = new Float32Array(ancho);
-  let previoX = new Float32Array(ancho).fill(Number.NEGATIVE_INFINITY);
-  let previoY = new Float32Array(ancho).fill(Number.NEGATIVE_INFINITY);
-  let actualM = new Float32Array(ancho);
-  let actualX = new Float32Array(ancho);
-  let actualY = new Float32Array(ancho);
-  const valores = blosum.valores[matriz];
-  let mejor = 0;
-  let mejorI = 0;
-  let mejorJ = modo === 'global' ? b.length : 0;
-  let mejorEstado = M;
+  const a = normalizeForAlignment(first).sequence;
+  const b = normalizeForAlignment(second).sequence;
+  const width = b.length + 1;
+  const trace = new Uint8Array((a.length + 1) * width);
+  let previousM = new Float32Array(width);
+  let previousX = new Float32Array(width).fill(Number.NEGATIVE_INFINITY);
+  let previousY = new Float32Array(width).fill(Number.NEGATIVE_INFINITY);
+  let currentM = new Float32Array(width);
+  let currentX = new Float32Array(width);
+  let currentY = new Float32Array(width);
+  const values = blosum.values[matrix];
+  let best = 0;
+  let bestI = 0;
+  let bestJ = mode === 'global' ? b.length : 0;
+  let bestState = M;
 
   for (let i = 1; i <= a.length; i += 1) {
-    actualM[0] = 0;
-    actualX[0] = Number.NEGATIVE_INFINITY;
-    actualY[0] = Number.NEGATIVE_INFINITY;
-    const fila = valores[ALFABETO.indexOf(a[i - 1] ?? '')] ?? [];
+    currentM[0] = 0;
+    currentX[0] = Number.NEGATIVE_INFINITY;
+    currentY[0] = Number.NEGATIVE_INFINITY;
+    const row = values[ALPHABET.indexOf(a[i - 1] ?? '')] ?? [];
     for (let j = 1; j <= b.length; j += 1) {
-      const indice = i * ancho + j;
-      let diagonal = previoM[j - 1] ?? 0;
-      let origenM = M;
-      if ((previoX[j - 1] ?? -Infinity) > diagonal) {
-        diagonal = previoX[j - 1] ?? -Infinity;
-        origenM = X;
+      const index = i * width + j;
+      let diagonal = previousM[j - 1] ?? 0;
+      let originM = M;
+      if ((previousX[j - 1] ?? -Infinity) > diagonal) {
+        diagonal = previousX[j - 1] ?? -Infinity;
+        originM = X;
       }
-      if ((previoY[j - 1] ?? -Infinity) > diagonal) {
-        diagonal = previoY[j - 1] ?? -Infinity;
-        origenM = Y;
+      if ((previousY[j - 1] ?? -Infinity) > diagonal) {
+        diagonal = previousY[j - 1] ?? -Infinity;
+        originM = Y;
       }
-      let valorM = diagonal + (fila[ALFABETO.indexOf(b[j - 1] ?? '')] ?? -Infinity);
-      if (modo === 'local' && valorM <= 0) {
+      let valorM = diagonal + (row[ALPHABET.indexOf(b[j - 1] ?? '')] ?? -Infinity);
+      if (mode === 'local' && valorM <= 0) {
         valorM = 0;
-        origenM = PARADA;
+        originM = STOP;
       }
-      const abreX = (previoM[j] ?? -Infinity) - APERTURA;
-      const extiendeX = (previoX[j] ?? -Infinity) - EXTENSION;
-      const abreY = (actualM[j - 1] ?? -Infinity) - APERTURA;
-      const extiendeY = (actualY[j - 1] ?? -Infinity) - EXTENSION;
-      actualM[j] = valorM;
-      actualX[j] = Math.max(abreX, extiendeX);
-      actualY[j] = Math.max(abreY, extiendeY);
-      traza[indice] = origenM | (extiendeX > abreX ? 4 : 0) | (extiendeY > abreY ? 8 : 0);
-      if (modo === 'local' || i === a.length || j === b.length) {
-        const candidatos: [number, number][] = [[M, valorM], [X, actualX[j] ?? -Infinity], [Y, actualY[j] ?? -Infinity]];
-        for (const [estado, valor] of candidatos) {
-          if (valor > mejor) {
-            mejor = valor;
-            mejorI = i;
-            mejorJ = j;
-            mejorEstado = estado;
+      const openX = (previousM[j] ?? -Infinity) - GAP_OPEN;
+      const extendX = (previousX[j] ?? -Infinity) - GAP_EXTEND;
+      const openY = (currentM[j - 1] ?? -Infinity) - GAP_OPEN;
+      const extendY = (currentY[j - 1] ?? -Infinity) - GAP_EXTEND;
+      currentM[j] = valorM;
+      currentX[j] = Math.max(openX, extendX);
+      currentY[j] = Math.max(openY, extendY);
+      trace[index] = originM | (extendX > openX ? 4 : 0) | (extendY > openY ? 8 : 0);
+      if (mode === 'local' || i === a.length || j === b.length) {
+        const candidates: [number, number][] = [[M, valorM], [X, currentX[j] ?? -Infinity], [Y, currentY[j] ?? -Infinity]];
+        for (const [state, valor] of candidates) {
+          if (valor > best) {
+            best = valor;
+            bestI = i;
+            bestJ = j;
+            bestState = state;
           }
         }
       }
     }
-    [previoM, actualM] = [actualM, previoM];
-    [previoX, actualX] = [actualX, previoX];
-    [previoY, actualY] = [actualY, previoY];
+    [previousM, currentM] = [currentM, previousM];
+    [previousX, currentX] = [currentX, previousX];
+    [previousY, currentY] = [currentY, previousY];
     if (i % 64 === 0 || i === a.length) {
-      opciones.progreso?.(i / a.length);
-      await new Promise<void>((resolver) => { setTimeout(resolver, 0); });
-      if (opciones.cancelado?.()) throw new Error('Alineamiento cancelado.');
+      options.onProgress?.(i / a.length);
+      await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+      if (options.isCancelled?.()) throw new Error('Alineamiento cancelado.');
     }
   }
 
-  return construirResultado(a, b, matriz, modo, traza, {
-    puntuacion: mejor,
-    i: mejorI,
-    j: mejorJ,
-    estado: mejorEstado,
+  return buildResult(a, b, matrix, mode, trace, {
+    score: best,
+    i: bestI,
+    j: bestJ,
+    state: bestState,
   });
 }

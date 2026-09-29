@@ -1,46 +1,46 @@
 import { describe, expect, it } from 'vitest';
-import referencia from './fixtures/biopython.json';
-import { alinearPorBloques, MAX_RESIDUOS_ALINEAMIENTO } from './wavefront';
-import { alinearSecuencias } from './gotoh';
+import reference from './fixtures/biopython.json';
+import { alignInTiles, MAX_ALIGNMENT_RESIDUES } from './wavefront';
+import { alignSequences } from './gotoh';
 
-describe('frente de onda por bloques', () => {
-  it.each(referencia.casos.filter((caso) => caso.extremosLibres || caso.modo === 'local'))(
-    'reproduce el oráculo $nombre', async (caso) => {
-      const resultado = await alinearPorBloques(caso.primera, caso.segunda, {
-        matriz: caso.matriz as 'BLOSUM45' | 'BLOSUM62' | 'BLOSUM80',
-        modo: caso.modo as 'global' | 'local',
+describe('tiled wavefront', () => {
+  it.each(reference.cases.filter((testCase) => testCase.freeEnds || testCase.mode === 'local'))(
+    'matches the $name reference', async (testCase) => {
+      const result = await alignInTiles(testCase.first, testCase.second, {
+        matrix: testCase.matrix as 'BLOSUM45' | 'BLOSUM62' | 'BLOSUM80',
+        mode: testCase.mode as 'global' | 'local',
       });
-      expect(resultado.puntuacion).toBe(caso.puntuacion);
-      expect(resultado.primeraAlineada).toBe(caso.primeraAlineada);
-      expect(resultado.segundaAlineada).toBe(caso.segundaAlineada);
+      expect(result.score).toBe(testCase.score);
+      expect(result.alignedFirst).toBe(testCase.alignedFirst);
+      expect(result.alignedSecond).toBe(testCase.alignedSecond);
     },
   );
 
-  it('coincide entre bloques en las tres matrices y ambos modos', async () => {
-    const primera = 'ACDEFGHIKLMNPQRSTVWY'.repeat(16);
-    const segunda = `${'ACDEFGHIKLMNPQRSTVWY'.repeat(8)}X${'ACDEFGHIKLMNPQRSTVWY'.repeat(8)}`;
-    for (const matriz of ['BLOSUM45', 'BLOSUM62', 'BLOSUM80'] as const) {
-      for (const modo of ['global', 'local'] as const) {
-        const fila = await alinearSecuencias(primera, segunda, { matriz, modo });
-        const bloques = await alinearPorBloques(primera, segunda, { matriz, modo });
-        expect(bloques.puntuacion).toBe(fila.puntuacion);
+  it('matches row scoring for all three matrices and both modes', async () => {
+    const first = 'ACDEFGHIKLMNPQRSTVWY'.repeat(16);
+    const second = `${'ACDEFGHIKLMNPQRSTVWY'.repeat(8)}X${'ACDEFGHIKLMNPQRSTVWY'.repeat(8)}`;
+    for (const matrix of ['BLOSUM45', 'BLOSUM62', 'BLOSUM80'] as const) {
+      for (const mode of ['global', 'local'] as const) {
+        const row = await alignSequences(first, second, { matrix, mode });
+        const tiles = await alignInTiles(first, second, { matrix, mode });
+        expect(tiles.score).toBe(row.score);
       }
     }
   });
 
-  it('informa avance y permite cancelar entre antidiagonales', async () => {
-    let avance = 0;
-    await expect(alinearPorBloques('A'.repeat(600), 'A'.repeat(600), {
-      matriz: 'BLOSUM62', modo: 'global',
-      progreso: (fraccion) => { avance = fraccion; },
-      cancelado: () => avance > 0,
+  it('reports progress and cancels between antidiagonals', async () => {
+    let progress = 0;
+    await expect(alignInTiles('A'.repeat(600), 'A'.repeat(600), {
+      matrix: 'BLOSUM62', mode: 'global',
+      onProgress: (fraction) => { progress = fraction; },
+      isCancelled: () => progress > 0,
     })).rejects.toThrow(/cancelado/);
-    expect(avance).toBeGreaterThan(0);
+    expect(progress).toBeGreaterThan(0);
   });
 
-  it('rechaza entradas que superan el límite antes de reservar la matriz', async () => {
-    await expect(alinearPorBloques('A'.repeat(MAX_RESIDUOS_ALINEAMIENTO + 1), 'A', {
-      matriz: 'BLOSUM62', modo: 'global',
+  it('rejects overlong input before allocating the matrix', async () => {
+    await expect(alignInTiles('A'.repeat(MAX_ALIGNMENT_RESIDUES + 1), 'A', {
+      matrix: 'BLOSUM62', mode: 'global',
     })).rejects.toThrow(/máximo/);
   });
 });

@@ -1,8 +1,8 @@
 {
-  "fuente": "Biopython Bio.Align.substitution_matrices",
+  "source": "Biopython Bio.Align.substitution_matrices",
   "version": "1.87",
-  "alfabeto": "ACDEFGHIKLMNPQRSTVWYBZX",
-  "valores": {
+  "alphabet": "ACDEFGHIKLMNPQRSTVWYBZX",
+  "values": {
     "BLOSUM45": [
       [
         5,

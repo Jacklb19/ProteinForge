@@ -1,4 +1,4 @@
-"""Regenera matrices y casos de referencia con Biopython fijado en requirements-reference.txt."""
+"""Regenerate matrix and alignment fixtures with pinned Biopython."""
 
 import json
 from pathlib import Path
@@ -9,58 +9,58 @@ from Bio.Align import substitution_matrices
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DESTINO = ROOT / "src" / "features" / "alignment" / "fixtures"
-ALFABETO = "ACDEFGHIKLMNPQRSTVWYBZX"
+DESTINATION = ROOT / "src" / "features" / "alignment" / "fixtures"
+ALPHABET = "ACDEFGHIKLMNPQRSTVWYBZX"
 MATRICES = ("BLOSUM45", "BLOSUM62", "BLOSUM80")
-CASOS = (
-    ("hueco_interno", "ACDEFGHIK", "ACDFGHIK", "global", "BLOSUM62"),
-    ("extremos_libres", "GGACDEFGHKK", "ACDEFGH", "global", "BLOSUM62"),
+CASES = (
+    ("internal_gap", "ACDEFGHIK", "ACDFGHIK", "global", "BLOSUM62"),
+    ("free_ends", "GGACDEFGHKK", "ACDEFGH", "global", "BLOSUM62"),
     ("local", "PPACDEFGHKK", "GGACDEFGHTT", "local", "BLOSUM45"),
-    ("ambiguos", "ACBZXDE", "ACBZXDE", "global", "BLOSUM80"),
+    ("ambiguous", "ACBZXDE", "ACBZXDE", "global", "BLOSUM80"),
 )
 
 
-def alinear(nombre, primera, segunda, modo, matriz, extremos_libres=True):
-    alineador = Align.PairwiseAligner()
-    alineador.mode = modo
-    alineador.substitution_matrix = substitution_matrices.load(matriz)
-    alineador.open_gap_score = -10
-    alineador.extend_gap_score = -0.5
-    if modo == "global" and extremos_libres:
-        # Los aliases solicitados siguen disponibles en Biopython 1.87.
-        alineador.end_open_gap_score = 0
-        alineador.end_extend_gap_score = 0
-    alineamiento = alineador.align(primera, segunda)[0]
+def align(name, first, second, mode, matrix, free_ends=True):
+    aligner = Align.PairwiseAligner()
+    aligner.mode = mode
+    aligner.substitution_matrix = substitution_matrices.load(matrix)
+    aligner.open_gap_score = -10
+    aligner.extend_gap_score = -0.5
+    if mode == "global" and free_ends:
+        # Biopython 1.87 supports these terminal-gap aliases.
+        aligner.end_open_gap_score = 0
+        aligner.end_extend_gap_score = 0
+    alignment = aligner.align(first, second)[0]
     return {
-        "nombre": nombre,
-        "primera": primera,
-        "segunda": segunda,
-        "modo": modo,
-        "matriz": matriz,
-        "extremosLibres": extremos_libres if modo == "global" else False,
-        "puntuacion": alineamiento.score,
-        "primeraAlineada": alineamiento[0],
-        "segundaAlineada": alineamiento[1],
+        "name": name,
+        "first": first,
+        "second": second,
+        "mode": mode,
+        "matrix": matrix,
+        "freeEnds": free_ends if mode == "global" else False,
+        "score": alignment.score,
+        "alignedFirst": alignment[0],
+        "alignedSecond": alignment[1],
     }
 
 
 def main():
-    DESTINO.mkdir(parents=True, exist_ok=True)
+    DESTINATION.mkdir(parents=True, exist_ok=True)
     matrices = {
-        "fuente": "Biopython Bio.Align.substitution_matrices",
+        "source": "Biopython Bio.Align.substitution_matrices",
         "version": Bio.__version__,
-        "alfabeto": ALFABETO,
-        "valores": {
-            nombre: [[int(substitution_matrices.load(nombre)[a, b]) for b in ALFABETO] for a in ALFABETO]
-            for nombre in MATRICES
+        "alphabet": ALPHABET,
+        "values": {
+            name: [[int(substitution_matrices.load(name)[a, b]) for b in ALPHABET] for a in ALPHABET]
+            for name in MATRICES
         },
     }
-    (DESTINO / "blosum.json").write_text(json.dumps(matrices, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    casos = [alinear(*caso) for caso in CASOS]
-    caso_extremos = next(caso for caso in CASOS if caso[0] == "extremos_libres")
-    casos.append(alinear(*caso_extremos, extremos_libres=False))
-    (DESTINO / "biopython.json").write_text(
-        json.dumps({"version": Bio.__version__, "fechaConsulta": "2026-09-29", "casos": casos}, ensure_ascii=False, indent=2) + "\n",
+    (DESTINATION / "blosum.json").write_text(json.dumps(matrices, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    cases = [align(*case) for case in CASES]
+    free_ends_case = next(case for case in CASES if case[0] == "free_ends")
+    cases.append(align(*free_ends_case, free_ends=False))
+    (DESTINATION / "biopython.json").write_text(
+        json.dumps({"version": Bio.__version__, "consultedAt": "2026-09-29", "cases": cases}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
