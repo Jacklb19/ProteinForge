@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorPage } from './EditorPage';
 import type { EntradaFasta } from './fasta';
@@ -82,7 +82,7 @@ describe('CargadorFasta', () => {
     act(() => {
       hilo?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas } }));
     });
-    expect(screen.getAllByRole('option').length).toBeLessThan(20);
+    expect(within(screen.getByRole('listbox', { name: /entradas FASTA/i })).getAllByRole('option').length).toBeLessThan(20);
     expect(screen.getByText(/1000 entradas encontradas/i)).toBeInTheDocument();
   });
 
@@ -110,7 +110,7 @@ describe('CargadorFasta', () => {
     });
     const lista = screen.getByRole('listbox', { name: /entradas FASTA/i });
     expect(lista.style.getPropertyValue('--height-fasta-row-effective')).toBe(esperado);
-    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(10);
+    expect(within(lista).getAllByRole('option').length).toBeLessThanOrEqual(10);
   });
 
   it('muestra explícitamente los errores del Worker', () => {

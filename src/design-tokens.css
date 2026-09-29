@@ -15,6 +15,7 @@
   --font-size-base: 1rem;
   --font-size-title: 2rem;
   --font-size-section: 1.3rem;
+  --font-size-chart: 0.875rem;
   --font-weight-regular: 400;
   --font-weight-label: 700;
   --line-height-base: 1.5;
@@ -30,13 +31,19 @@
   --space-page-bottom: 4rem;
   --border-width-control: 2px;
   --border-width-divider: 1px;
+  --border-width-chart-line: 2px;
+  --border-width-chart-reference: 1px;
   --border-radius-control: 0.4rem;
   --outline-width-focus: 3px;
   --outline-offset-focus: 2px;
 
   --width-page-max: 1000px;
+  --width-full: 100%;
   --height-editor: 18rem;
   --height-fasta-list: 16.5rem;
   --height-fasta-row-default: 44px;
   --height-fasta-row: var(--height-fasta-row-default);
+  --height-hydropathy-chart: 18rem;
+  --space-chart-inner: 36px;
+  --filter-stale-chart: grayscale(1);
 }

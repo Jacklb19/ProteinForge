@@ -4,6 +4,7 @@ import { CargadorFasta } from './CargadorFasta';
 import type { EntradaFasta } from './fasta';
 import { PanelDescriptores } from '../descriptores/PanelDescriptores';
 import { useDescriptores } from '../descriptores/useDescriptores';
+import { PerfilHidrofobicidad } from '../descriptores/PerfilHidrofobicidad';
 
 const RETRASO_VALIDACION_MS = 45;
 
@@ -86,6 +87,7 @@ export function EditorPage(): React.JSX.Element {
         setPosicionesInvalidas(entrada.posicionesInvalidas);
       }} />
       <PanelDescriptores datos={descriptores} />
+      <PerfilHidrofobicidad texto={texto} />
     </main>
   );
 }
