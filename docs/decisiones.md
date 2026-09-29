@@ -1,0 +1,15 @@
+# Decisiones técnicas y desviaciones de la definición
+
+Decisiones aprobadas el 29 de septiembre de 2026. La descripción de cada una indica el comportamiento previsto; no implica que esté implementado. `docs/definicion-proyecto.md` conserva la versión original.
+
+| Área y sprint | Decisión técnica | Desviación de la definición |
+|---|---|---|
+| Estructuras, S5 | Descargar BinaryCIF directamente de `https://models.rcsb.org` mediante CORS y conservarlo en la caché del service worker. | ADR-03 deja de exigir que la API intermedie esta descarga pública. `GET /v1/pdb/{id}/structure` deja de ser la ruta de descarga del visor. La CSP debe permitir ese origen. |
+| Informe, S6 | Generar el PDF en el navegador, subirlo a Supabase Storage con URL firmada y usar `POST /v1/reports` solo para registrar el informe. | La tabla de API atribuye a ese `POST` la generación del PDF. |
+| Modelo de lenguaje, S6 | Usar Groq con `openai/gpt-oss-120b`, clave propia del proyecto `proteinforge`, retención cero, caché, límites de uso y de tokens, y reintentos que respeten la espera indicada por el servicio. Solicitar consentimiento antes de cada envío; enviar solo descriptores, anotación y parámetros, nunca la secuencia completa. | Sustituye Gemini. El modelo solo interpreta resultados calculados; si falla la cuota, se usa una respuesta de plantilla. |
+| Alineamiento, S3–S4 | Usar Gotoh con huecos afines; ofrecer BLOSUM45, BLOSUM62 y BLOSUM80, con BLOSUM62 predeterminada; apertura 10 y extensión 0,5. Contrastar resultados con Biopython `PairwiseAligner`. | Concreta la matriz y las penalizaciones que la definición deja abiertas. |
+| Alfabeto, S3 | Aceptar `U`, `O`, `B`, `Z` y `X` con aviso, indicar cuántos residuos se excluyen de los descriptores y quitar un `*` terminal. | Amplía el alfabeto de veinte residuos de HU-01 y de la validación actual. |
+| Catálogo, S5 | Servir un JSON estático público con 30–50 dominios y péptidos, identificador de InterPro, Pfam o UniProt, secuencia y rango. Conservar el origen de cada fragmento al guardar un proyecto. | Sustituye `GET /v1/catalog/domains` por un archivo estático; HU-04 se realiza en S5. |
+| Sincronización, S6 | Usar concurrencia optimista: `PUT` incluye la fecha de actualización conocida; ante un cambio concurrente la API responde `409` y el usuario elige la resolución. | Precisa la política de conflicto que la definición no especifica. |
+| Identificadores, S6 | Generar UUIDv7 en la API con Python 3.14 (`uuid.uuid7()`) para las entidades creadas por ella. `profiles.id` sigue el identificador emitido por Supabase Auth. | Sustituye el valor predeterminado provisional `public.uuid_generate_v7()` de la migración para proyectos, análisis y alineamientos. |
+| Segundo factor, S6 | Ofrecer TOTP de forma opcional, hasta en dos dispositivos. Tras activarlo, exigir `aal2` en la API y las políticas RLS para las operaciones protegidas; FastAPI valida el JWT y el nivel de autenticación. | Añade una condición de autorización ausente en la migración y en la definición de acceso. |
