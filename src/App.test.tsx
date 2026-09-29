@@ -3,13 +3,13 @@ import { describe, it, expect } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('renderiza la página de diagnóstico correctamente', () => {
+  it('renderiza el editor de secuencias', () => {
     render(<App />);
 
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: /diagnóstico de plataforma web/i,
+        name: /editor de secuencias/i,
       }),
     ).toBeInTheDocument();
   });

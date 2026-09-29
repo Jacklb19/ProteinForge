@@ -1,7 +1,7 @@
-import { DiagnosticoPage } from './features/diagnostico/DiagnosticoPage';
+import { EditorPage } from './features/editor/EditorPage';
 
 export function App(): React.JSX.Element {
-  return <DiagnosticoPage />;
+  return <EditorPage />;
 }
 
 export default App;
