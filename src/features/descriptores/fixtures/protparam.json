@@ -1,0 +1,38 @@
+[
+  {
+    "accession": "P01308",
+    "nombre": "Preproinsulina humana",
+    "longitud": 110,
+    "fechaConsulta": "2026-09-29",
+    "fuente": "https://web.expasy.org/cgi-bin/protparam/protparam_bis.cgi?P01308@noft@",
+    "masaDa": 11980.91,
+    "puntoIsoelectrico": 5.22,
+    "indiceInestabilidad": 40.33,
+    "indiceAlifatico": 102.91,
+    "gravy": 0.193
+  },
+  {
+    "accession": "P00698",
+    "nombre": "Precursor de lisozima C de gallina",
+    "longitud": 147,
+    "fechaConsulta": "2026-09-29",
+    "fuente": "https://web.expasy.org/cgi-bin/protparam/protparam_bis.cgi?P00698@noft@",
+    "masaDa": 16238.65,
+    "puntoIsoelectrico": 9.36,
+    "indiceInestabilidad": 19.86,
+    "indiceAlifatico": 81.70,
+    "gravy": -0.150
+  },
+  {
+    "accession": "P13569",
+    "nombre": "CFTR humano",
+    "longitud": 1480,
+    "fechaConsulta": "2026-09-29",
+    "fuente": "https://web.expasy.org/cgi-bin/protparam/protparam_bis.cgi?P13569@1-1480@",
+    "masaDa": 168141.57,
+    "puntoIsoelectrico": 8.91,
+    "indiceInestabilidad": 43.80,
+    "indiceAlifatico": 102.82,
+    "gravy": 0.024
+  }
+]
