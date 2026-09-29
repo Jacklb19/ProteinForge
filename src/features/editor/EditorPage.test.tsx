@@ -6,7 +6,7 @@ describe('EditorPage', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('acepta escritura y marca los caracteres inválidos antes de 100 ms', () => {
+  it('accepts typing and marks invalid characters within 100 ms', () => {
     render(<EditorPage />);
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'AC-' } });
@@ -17,7 +17,7 @@ describe('EditorPage', () => {
     expect(document.querySelectorAll('mark.residuo-invalido')).toHaveLength(1);
   });
 
-  it('actualiza las posiciones después de pegar y corregir la secuencia', () => {
+  it('updates positions after pasting and correcting the sequence', () => {
     render(<EditorPage />);
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'AC\n--' } });
@@ -28,7 +28,7 @@ describe('EditorPage', () => {
     expect(editor).toHaveAttribute('aria-invalid', 'false');
   });
 
-  it('quita un asterisco terminal al introducirlo', () => {
+  it('removes a terminal asterisk when entered', () => {
     render(<EditorPage />);
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'ACX*' } });

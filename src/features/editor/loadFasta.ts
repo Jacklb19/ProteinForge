@@ -1,29 +1,29 @@
-import { AnalizadorFasta, type EntradaFasta } from './fasta';
+import { FastaParser, type FastaEntry } from './fasta';
 
-/** Decodifica y analiza un flujo FASTA sin acumular el archivo completo. */
-export async function cargarFasta(
-  flujo: ReadableStream<Uint8Array>,
-  publicar: (entradas: EntradaFasta[]) => void,
+/** Decodes and parses a FASTA stream without buffering the full file. */
+export async function loadFasta(
+  stream: ReadableStream<Uint8Array>,
+  publish: (entries: FastaEntry[]) => void,
 ): Promise<void> {
-  const lector = flujo.getReader();
-  const decodificador = new TextDecoder('utf-8', { fatal: true });
-  const analizador = new AnalizadorFasta();
+  const reader = stream.getReader();
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  const parser = new FastaParser();
 
   try {
     for (;;) {
-      const bloque = await lector.read();
-      if (bloque.done) break;
-      const entradas = analizador.agregar(decodificador.decode(bloque.value, { stream: true }));
-      if (entradas.length > 0) publicar(entradas);
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      const entries = parser.addChunk(decoder.decode(chunk.value, { stream: true }));
+      if (entries.length > 0) publish(entries);
     }
-    const resto = decodificador.decode();
-    if (resto) {
-      const entradas = analizador.agregar(resto);
-      if (entradas.length > 0) publicar(entradas);
+    const remaining = decoder.decode();
+    if (remaining) {
+      const entries = parser.addChunk(remaining);
+      if (entries.length > 0) publish(entries);
     }
-    const ultimas = analizador.finalizar();
-    if (ultimas.length > 0) publicar(ultimas);
+    const lastEntries = parser.finish();
+    if (lastEntries.length > 0) publish(lastEntries);
   } finally {
-    lector.releaseLock();
+    reader.releaseLock();
   }
 }

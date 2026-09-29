@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { separarResiduosEstandar, validarSecuencia } from '../editor/sequence';
+import { splitStandardResidues, validateSequence } from '../editor/sequence';
 import type { Descriptores } from './descriptors';
 import type { RespuestaDescriptores, SolicitudDescriptores } from './messages';
 
@@ -16,8 +16,8 @@ interface ErrorRecibido { secuencia: string; mensaje: string }
 
 /** Mantiene un Worker y descarta resultados de versiones anteriores del editor. */
 export function useDescriptores(texto: string): EstadoDescriptores {
-  const validacion = useMemo(() => validarSecuencia(texto), [texto]);
-  const residuos = useMemo(() => separarResiduosEstandar(validacion.secuencia), [validacion.secuencia]);
+  const validacion = useMemo(() => validateSequence(texto), [texto]);
+  const residuos = useMemo(() => splitStandardResidues(validacion.sequence), [validacion.sequence]);
   const [ultimoResultado, setUltimoResultado] = useState<ResultadoRecibido | null>(null);
   const [errorActual, setErrorActual] = useState<ErrorRecibido | null>(null);
   const [errorHilo, setErrorHilo] = useState<string | null>(null);
@@ -52,21 +52,21 @@ export function useDescriptores(texto: string): EstadoDescriptores {
 
   useEffect(() => {
     const id = ++ultimaPeticion.current;
-    if (validacion.posicionesInvalidas.length > 0 || residuos.estandar.length === 0) return;
-    secuenciaEnviada.current = validacion.secuencia;
-    const solicitud: SolicitudDescriptores = { id, secuencia: residuos.estandar };
+    if (validacion.invalidPositions.length > 0 || residuos.standard.length === 0) return;
+    secuenciaEnviada.current = validacion.sequence;
+    const solicitud: SolicitudDescriptores = { id, secuencia: residuos.standard };
     worker.current?.postMessage(solicitud);
   }, [validacion, residuos]);
 
   const resultado = ultimoResultado?.datos ?? null;
-  if (validacion.posicionesInvalidas.length > 0) return { resultado, estado: 'invalido', error: null, excluidos: residuos.excluidos };
-  if (residuos.estandar.length === 0) return { resultado: null, estado: 'vacio', error: null, excluidos: residuos.excluidos };
-  if (errorHilo) return { resultado, estado: 'error', error: errorHilo, excluidos: residuos.excluidos };
-  if (errorActual?.secuencia === validacion.secuencia) {
-    return { resultado, estado: 'error', error: errorActual.mensaje, excluidos: residuos.excluidos };
+  if (validacion.invalidPositions.length > 0) return { resultado, estado: 'invalido', error: null, excluidos: residuos.excluded };
+  if (residuos.standard.length === 0) return { resultado: null, estado: 'vacio', error: null, excluidos: residuos.excluded };
+  if (errorHilo) return { resultado, estado: 'error', error: errorHilo, excluidos: residuos.excluded };
+  if (errorActual?.secuencia === validacion.sequence) {
+    return { resultado, estado: 'error', error: errorActual.mensaje, excluidos: residuos.excluded };
   }
-  if (ultimoResultado?.secuencia === validacion.secuencia) {
-    return { resultado, estado: 'actual', error: null, excluidos: residuos.excluidos };
+  if (ultimoResultado?.secuencia === validacion.sequence) {
+    return { resultado, estado: 'actual', error: null, excluidos: residuos.excluded };
   }
-  return { resultado, estado: 'calculando', error: null, excluidos: residuos.excluidos };
+  return { resultado, estado: 'calculando', error: null, excluidos: residuos.excluded };
 }

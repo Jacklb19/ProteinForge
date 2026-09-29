@@ -1,20 +1,20 @@
-export interface AlturaFila {
-  pixeles: number;
-  respaldoDeEmergencia: boolean;
+export interface RowHeight {
+  pixels: number;
+  emergencyFallback: boolean;
 }
 
-function leerPixeles(valor: string): number | null {
-  const texto = valor.trim();
-  if (!/^\d+(?:\.\d+)?px$/.test(texto)) return null;
-  const pixeles = Number.parseFloat(texto);
-  return Number.isFinite(pixeles) && pixeles > 0 ? pixeles : null;
+function parsePixels(value: string): number | null {
+  const text = value.trim();
+  if (!/^\d+(?:\.\d+)?px$/.test(text)) return null;
+  const pixels = Number.parseFloat(text);
+  return Number.isFinite(pixels) && pixels > 0 ? pixels : null;
 }
 
-/** Usa el valor CSS válido, su token de respaldo o una altura mínima segura. */
-export function resolverAlturaFila(valorCss: string, respaldoCss: string): AlturaFila {
-  const principal = leerPixeles(valorCss);
-  if (principal !== null) return { pixeles: principal, respaldoDeEmergencia: false };
-  const respaldo = leerPixeles(respaldoCss);
-  if (respaldo !== null) return { pixeles: respaldo, respaldoDeEmergencia: false };
-  return { pixeles: 1, respaldoDeEmergencia: true };
+/** Uses a valid CSS value, its fallback token, or a safe minimum height. */
+export function resolveRowHeight(cssValue: string, fallbackCss: string): RowHeight {
+  const primary = parsePixels(cssValue);
+  if (primary !== null) return { pixels: primary, emergencyFallback: false };
+  const fallback = parsePixels(fallbackCss);
+  if (fallback !== null) return { pixels: fallback, emergencyFallback: false };
+  return { pixels: 1, emergencyFallback: true };
 }

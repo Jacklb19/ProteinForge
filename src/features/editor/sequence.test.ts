@@ -1,32 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { actualizarPosicionesInvalidas, validarSecuencia } from './sequence';
+import { updateInvalidPositions, validateSequence } from './sequence';
 
-describe('validarSecuencia', () => {
-  it('acepta los veinte aminoácidos y convierte minúsculas', () => {
-    expect(validarSecuencia('acdefghiklmnpqrstvwy')).toEqual({
-      posicionesInvalidas: [],
-      secuencia: 'ACDEFGHIKLMNPQRSTVWY',
+describe('validateSequence', () => {
+  it('accepts the twenty amino acids and uppercases lowercase letters', () => {
+    expect(validateSequence('acdefghiklmnpqrstvwy')).toEqual({
+      invalidPositions: [],
+      sequence: 'ACDEFGHIKLMNPQRSTVWY',
     });
   });
 
-  it('señala posiciones originales e ignora saltos de línea', () => {
-    expect(validarSecuencia('AC\nBX-Z')).toEqual({
-      posicionesInvalidas: [5],
-      secuencia: 'ACBXZ',
+  it('reports original positions and ignores line breaks', () => {
+    expect(validateSequence('AC\nBX-Z')).toEqual({
+      invalidPositions: [5],
+      sequence: 'ACBXZ',
     });
   });
 
-  it('rechaza letras Unicode que se convierten en residuos ASCII al pasar a mayúsculas', () => {
-    expect(validarSecuencia('AıC').posicionesInvalidas).toEqual([1]);
+  it('rejects Unicode letters whose uppercase form is an ASCII residue', () => {
+    expect(validateSequence('AıC').invalidPositions).toEqual([1]);
   });
 
-  it('revalida una edición local y desplaza errores posteriores', () => {
-    expect(actualizarPosicionesInvalidas('A-Z', 'AC-Z', [1])).toEqual([2]);
-    expect(actualizarPosicionesInvalidas('AC-Z', 'ACZ', [2])).toEqual([]);
+  it('revalidates a local edit and shifts later errors', () => {
+    expect(updateInvalidPositions('A-Z', 'AC-Z', [1])).toEqual([2]);
+    expect(updateInvalidPositions('AC-Z', 'ACZ', [2])).toEqual([]);
   });
 
-  it('conserva U, O, B, Z y X, y retira únicamente un asterisco terminal', () => {
-    expect(validarSecuencia('aubzx*\n')).toEqual({ posicionesInvalidas: [], secuencia: 'AUBZX' });
-    expect(validarSecuencia('AC*DE').posicionesInvalidas).toEqual([2]);
+  it('retains U, O, B, Z, and X while removing only a terminal asterisk', () => {
+    expect(validateSequence('aubzx*\n')).toEqual({ invalidPositions: [], sequence: 'AUBZX' });
+    expect(validateSequence('AC*DE').invalidPositions).toEqual([2]);
   });
 });

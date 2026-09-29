@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { resolverAlturaFila } from './rowHeight';
+import { resolveRowHeight } from './rowHeight';
 
-describe('resolverAlturaFila', () => {
-  it.each(['0px', 'NaN', ''])('usa el token de respaldo si la altura CSS es %s', (valor) => {
-    expect(resolverAlturaFila(valor, '44px')).toEqual({
-      pixeles: 44,
-      respaldoDeEmergencia: false,
+describe('resolveRowHeight', () => {
+  it.each(['0px', 'NaN', ''])('uses the fallback token when CSS height is %s', (value) => {
+    expect(resolveRowHeight(value, '44px')).toEqual({
+      pixels: 44,
+      emergencyFallback: false,
     });
   });
 
-  it('mantiene una altura positiva si tampoco existe el token de respaldo', () => {
-    expect(resolverAlturaFila('', '')).toEqual({
-      pixeles: 1,
-      respaldoDeEmergencia: true,
+  it('keeps a positive height when the fallback token is also missing', () => {
+    expect(resolveRowHeight('', '')).toEqual({
+      pixels: 1,
+      emergencyFallback: true,
     });
   });
 });

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-export const TAMANO_MAXIMO_FASTA = 5_000_000;
+export const MAX_FASTA_BYTES = 5_000_000;
 
-/** Comprueba la frontera de carga antes de leer un archivo en el Worker. */
-export const esquemaArchivoFasta = z.instanceof(File).refine(
-  (archivo) => archivo.size <= TAMANO_MAXIMO_FASTA,
+/** Validates file input before the worker reads it. */
+export const fastaFileSchema = z.instanceof(File).refine(
+  (file) => file.size <= MAX_FASTA_BYTES,
   'El archivo supera el límite de 5 MB.',
 );

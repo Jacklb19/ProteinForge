@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { esquemaArchivoFasta, TAMANO_MAXIMO_FASTA } from './fastaFile';
+import { fastaFileSchema, MAX_FASTA_BYTES } from './fastaFile';
 
-describe('esquemaArchivoFasta', () => {
-  it('admite un archivo de exactamente 5 MB', () => {
-    const archivo = new File([new Uint8Array(TAMANO_MAXIMO_FASTA)], 'limite.fa');
-    expect(esquemaArchivoFasta.safeParse(archivo).success).toBe(true);
+describe('fastaFileSchema', () => {
+  it('accepts a file of exactly 5 MB', () => {
+    const file = new File([new Uint8Array(MAX_FASTA_BYTES)], 'limite.fa');
+    expect(fastaFileSchema.safeParse(file).success).toBe(true);
   });
 
-  it('rechaza un archivo mayor y una entrada que no sea File', () => {
-    const archivo = new File([new Uint8Array(TAMANO_MAXIMO_FASTA + 1)], 'grande.fa');
-    expect(esquemaArchivoFasta.safeParse(archivo).success).toBe(false);
-    expect(esquemaArchivoFasta.safeParse({ size: 10 }).success).toBe(false);
+  it('rejects a larger file and a value that is not a File', () => {
+    const file = new File([new Uint8Array(MAX_FASTA_BYTES + 1)], 'grande.fa');
+    expect(fastaFileSchema.safeParse(file).success).toBe(false);
+    expect(fastaFileSchema.safeParse({ size: 10 }).success).toBe(false);
   });
 });

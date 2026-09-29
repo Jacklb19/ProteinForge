@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { validarSecuencia } from '../editor/sequence';
+import { validateSequence } from '../editor/sequence';
 import { obtenerEstiloGrafica } from './chartStyle';
 import type { RespuestaPerfil, SolicitudPerfil } from './profileMessages';
 import type { PuntoPerfil, VentanaHidropatia } from './profile';
@@ -22,7 +22,7 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
   const [error, setError] = useState<string | null>(null);
   const [pagina, setPagina] = useState(0);
   const sinGrafica = typeof HTMLCanvasElement.prototype.transferControlToOffscreen !== 'function';
-  const validacion = useMemo(() => validarSecuencia(texto), [texto]);
+  const validacion = useMemo(() => validateSequence(texto), [texto]);
   const contenedor = useRef<HTMLDivElement>(null);
   const lienzo = useRef<HTMLCanvasElement | null>(null);
   const hilo = useRef<Worker | null>(null);
@@ -78,18 +78,18 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
 
   useEffect(() => {
     peticionActual.current += 1;
-    if (validacion.posicionesInvalidas.length > 0 || validacion.secuencia.length === 0) return;
+    if (validacion.invalidPositions.length > 0 || validacion.sequence.length === 0) return;
     const enviar = () => {
       const canvas = lienzo.current;
       if (!canvas || !hilo.current) return;
       const id = ++peticionActual.current;
-      secuenciaEnviada.current = validacion.secuencia;
+      secuenciaEnviada.current = validacion.sequence;
       ventanaEnviada.current = ventana;
       const rectangulo = canvas.getBoundingClientRect();
       const solicitud: SolicitudPerfil = {
         tipo: 'calcular',
         id,
-        secuencia: validacion.secuencia,
+        secuencia: validacion.sequence,
         ventana,
         ancho: Math.max(1, rectangulo.width),
         alto: Math.max(1, rectangulo.height),
@@ -103,9 +103,9 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
     return () => { window.removeEventListener('resize', enviar); };
   }, [validacion, ventana]);
 
-  const invalido = validacion.posicionesInvalidas.length > 0;
-  const corto = !invalido && validacion.secuencia.length > 0 && validacion.secuencia.length < ventana;
-  const vigente = !invalido && perfil?.secuencia === validacion.secuencia
+  const invalido = validacion.invalidPositions.length > 0;
+  const corto = !invalido && validacion.sequence.length > 0 && validacion.sequence.length < ventana;
+  const vigente = !invalido && perfil?.secuencia === validacion.sequence
     && perfil.ventana === ventana;
   const puntos = invalido ? (perfil?.puntos ?? []) : vigente ? perfil.puntos : [];
   const propensiones = invalido ? (perfil?.propensiones ?? []) : vigente ? perfil.propensiones : [];
@@ -138,14 +138,14 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
       <p id="estado-perfil" role="status" aria-live="polite">
         {invalido && 'El perfil y las propensiones están desactualizados. Corrige las posiciones inválidas para recalcular.'}
         {corto && `Se necesitan al menos ${String(ventana)} residuos para mostrar la gráfica; las propensiones siguen disponibles.`}
-        {!invalido && !corto && validacion.secuencia.length === 0 && 'Escribe una secuencia válida para mostrar el perfil.'}
-        {!invalido && !corto && validacion.secuencia.length > 0 && !vigente && !error && 'Calculando perfil y propensiones…'}
+        {!invalido && !corto && validacion.sequence.length === 0 && 'Escribe una secuencia válida para mostrar el perfil.'}
+        {!invalido && !corto && validacion.sequence.length > 0 && !vigente && !error && 'Calculando perfil y propensiones…'}
         {error && !invalido && error}
         {sinGrafica && vigente && !corto && 'Este navegador no permite transferir el lienzo; consulta los valores en la tabla.'}
       </p>
       <div
         className={invalido ? 'grafica-desactualizada' : !vigente ? 'grafica-esperando' : undefined}
-        hidden={corto || validacion.secuencia.length === 0 || sinGrafica}
+        hidden={corto || validacion.sequence.length === 0 || sinGrafica}
       >
         <div ref={contenedor} className="contenedor-grafica" />
       </div>

@@ -1,39 +1,39 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorPage } from './EditorPage';
-import type { EntradaFasta } from './fasta';
+import type { FastaEntry } from './fasta';
 
-type Mensaje =
-  | { tipo: 'entradas'; entradas: EntradaFasta[] }
-  | { tipo: 'completo' }
-  | { tipo: 'error'; mensaje: string };
+type WorkerMessage =
+  | { type: 'entries'; entries: FastaEntry[] }
+  | { type: 'complete' }
+  | { type: 'error'; message: string };
 
-function prepararHilo(): Array<{
-  ruta: string;
-  onmessage: ((evento: MessageEvent<Mensaje>) => void) | null;
+function setupWorker(): Array<{
+  path: string;
+  onmessage: ((event: MessageEvent<WorkerMessage>) => void) | null;
   postMessage: ReturnType<typeof vi.fn>;
   terminate: ReturnType<typeof vi.fn>;
 }> {
-  const instancias: Array<{
-    ruta: string;
-    onmessage: ((evento: MessageEvent<Mensaje>) => void) | null;
+  const instances: Array<{
+    path: string;
+    onmessage: ((event: MessageEvent<WorkerMessage>) => void) | null;
     postMessage: ReturnType<typeof vi.fn>;
     terminate: ReturnType<typeof vi.fn>;
   }> = [];
-  class WorkerSimulado {
-    ruta: string;
-    onmessage: ((evento: MessageEvent<Mensaje>) => void) | null = null;
+  class MockWorker {
+    path: string;
+    onmessage: ((event: MessageEvent<WorkerMessage>) => void) | null = null;
     onerror: (() => void) | null = null;
     postMessage = vi.fn();
     terminate = vi.fn();
-    constructor(ruta: URL | string) { this.ruta = String(ruta); instancias.push(this); }
+    constructor(path: URL | string) { this.path = String(path); instances.push(this); }
   }
-  vi.stubGlobal('Worker', WorkerSimulado);
-  return instancias;
+  vi.stubGlobal('Worker', MockWorker);
+  return instances;
 }
 
-function hiloFasta(instancias: ReturnType<typeof prepararHilo>) {
-  return instancias.find((instancia) => instancia.ruta.includes('fasta.worker'));
+function fastaWorker(instances: ReturnType<typeof setupWorker>) {
+  return instances.find((instance) => instance.path.includes('fasta.worker'));
 }
 
 afterEach(() => {
@@ -42,45 +42,45 @@ afterEach(() => {
   document.documentElement.style.removeProperty('--height-fasta-row-default');
 });
 
-describe('CargadorFasta', () => {
-  it('recibe entradas del Worker y permite elegir una con teclado', () => {
-    const instancias = prepararHilo();
+describe('FastaLoader', () => {
+  it('receives worker entries and supports keyboard selection', () => {
+    const instances = setupWorker();
     render(<EditorPage />);
-    const archivo = new File(['>uno\nAC\n>dos\nDE'], 'prueba.fa');
-    fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), { target: { files: [archivo] } });
-    const hilo = hiloFasta(instancias);
-    expect(hilo).toBeDefined();
-    expect(hilo?.postMessage).toHaveBeenCalledWith(archivo);
+    const file = new File(['>uno\nAC\n>dos\nDE'], 'prueba.fa');
+    fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), { target: { files: [file] } });
+    const worker = fastaWorker(instances);
+    expect(worker).toBeDefined();
+    expect(worker?.postMessage).toHaveBeenCalledWith(file);
     act(() => {
-      hilo?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas: [
-        { numero: 1, encabezado: 'uno', secuencia: 'AC', posicionesInvalidas: [] },
-        { numero: 2, encabezado: 'dos', secuencia: 'DE', posicionesInvalidas: [] },
+      worker?.onmessage?.(new MessageEvent('message', { data: { type: 'entries', entries: [
+        { number: 1, header: 'uno', sequence: 'AC', invalidPositions: [] },
+        { number: 2, header: 'dos', sequence: 'DE', invalidPositions: [] },
       ] } }));
-      hilo?.onmessage?.(new MessageEvent('message', { data: { tipo: 'completo' } }));
+      worker?.onmessage?.(new MessageEvent('message', { data: { type: 'complete' } }));
     });
-    const lista = screen.getByRole('listbox', { name: /entradas FASTA/i });
-    fireEvent.keyDown(lista, { key: 'ArrowDown' });
-    fireEvent.keyDown(lista, { key: 'ArrowDown' });
+    const list = screen.getByRole('listbox', { name: /entradas FASTA/i });
+    fireEvent.keyDown(list, { key: 'ArrowDown' });
+    fireEvent.keyDown(list, { key: 'ArrowDown' });
     expect(screen.getByRole('textbox', { name: /secuencia de aminoácidos/i })).toHaveValue('DE');
     expect(screen.getByRole('option', { name: /dos/i })).toHaveAttribute('aria-selected', 'true');
-    expect(hilo?.terminate).toHaveBeenCalled();
+    expect(worker?.terminate).toHaveBeenCalled();
   });
 
-  it('mantiene acotado el número de opciones renderizadas', () => {
-    const instancias = prepararHilo();
+  it('bounds the number of rendered options', () => {
+    const instances = setupWorker();
     render(<EditorPage />);
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['>uno\nAC'], 'muchas.fa')] },
     });
-    const hilo = hiloFasta(instancias);
-    const entradas = Array.from({ length: 1000 }, (_, indice) => ({
-      numero: indice + 1,
-      encabezado: `entrada ${String(indice + 1)}`,
-      secuencia: 'AC',
-      posicionesInvalidas: [],
+    const worker = fastaWorker(instances);
+    const entries = Array.from({ length: 1000 }, (_, index) => ({
+      number: index + 1,
+      header: `entrada ${String(index + 1)}`,
+      sequence: 'AC',
+      invalidPositions: [],
     }));
     act(() => {
-      hilo?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas } }));
+      worker?.onmessage?.(new MessageEvent('message', { data: { type: 'entries', entries: entries } }));
     });
     expect(within(screen.getByRole('listbox', { name: /entradas FASTA/i })).getAllByRole('option').length).toBeLessThan(20);
     expect(screen.getByText(/1000 entradas encontradas/i)).toBeInTheDocument();
@@ -91,37 +91,37 @@ describe('CargadorFasta', () => {
     ['NaN', '44px', '44px'],
     ['', '44px', '44px'],
     ['', '', '1px'],
-  ])('limita las opciones con altura CSS %s y respaldo %s', (valor, respaldo, esperado) => {
-    document.documentElement.style.setProperty('--height-fasta-row', valor);
-    document.documentElement.style.setProperty('--height-fasta-row-default', respaldo);
-    const instancias = prepararHilo();
+  ])('bounds options with CSS height %s and fallback %s', (value, fallback, expected) => {
+    document.documentElement.style.setProperty('--height-fasta-row', value);
+    document.documentElement.style.setProperty('--height-fasta-row-default', fallback);
+    const instances = setupWorker();
     render(<EditorPage />);
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['>uno\nAC'], 'altura.fa')] },
     });
-    const entradas = Array.from({ length: 1000 }, (_, indice) => ({
-      numero: indice + 1,
-      encabezado: `entrada ${String(indice + 1)}`,
-      secuencia: 'AC',
-      posicionesInvalidas: [],
+    const entries = Array.from({ length: 1000 }, (_, index) => ({
+      number: index + 1,
+      header: `entrada ${String(index + 1)}`,
+      sequence: 'AC',
+      invalidPositions: [],
     }));
     act(() => {
-      hiloFasta(instancias)?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas } }));
+      fastaWorker(instances)?.onmessage?.(new MessageEvent('message', { data: { type: 'entries', entries: entries } }));
     });
-    const lista = screen.getByRole('listbox', { name: /entradas FASTA/i });
-    expect(lista.style.getPropertyValue('--height-fasta-row-effective')).toBe(esperado);
-    expect(within(lista).getAllByRole('option').length).toBeLessThanOrEqual(10);
+    const list = screen.getByRole('listbox', { name: /entradas FASTA/i });
+    expect(list.style.getPropertyValue('--height-fasta-row-effective')).toBe(expected);
+    expect(within(list).getAllByRole('option').length).toBeLessThanOrEqual(10);
   });
 
-  it('muestra explícitamente los errores del Worker', () => {
-    const instancias = prepararHilo();
+  it('reports worker errors explicitly', () => {
+    const instances = setupWorker();
     render(<EditorPage />);
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['texto'], 'mal.fa')] },
     });
-    const hilo = hiloFasta(instancias);
+    const worker = fastaWorker(instances);
     act(() => {
-      hilo?.onmessage?.(new MessageEvent('message', { data: { tipo: 'error', mensaje: 'Formato inválido.' } }));
+      worker?.onmessage?.(new MessageEvent('message', { data: { type: 'error', message: 'Formato inválido.' } }));
     });
     expect(screen.getByText(/Error: Formato inválido/i)).toBeInTheDocument();
   });

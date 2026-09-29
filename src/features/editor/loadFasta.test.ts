@@ -1,46 +1,46 @@
 import { describe, expect, it } from 'vitest';
-import { cargarFasta } from './loadFasta';
-import type { EntradaFasta } from './fasta';
+import { loadFasta } from './loadFasta';
+import type { FastaEntry } from './fasta';
 
-function flujoDe(bloques: Uint8Array[]): ReadableStream<Uint8Array> {
+function streamOf(chunks: Uint8Array[]): ReadableStream<Uint8Array> {
   return new ReadableStream({
-    start(controlador) {
-      for (const bloque of bloques) controlador.enqueue(bloque);
-      controlador.close();
+    start(controller) {
+      for (const chunk of chunks) controller.enqueue(chunk);
+      controller.close();
     },
   });
 }
 
-describe('cargarFasta', () => {
-  it('publica entradas conforme llegan sin esperar el archivo completo', async () => {
-    const codificador = new TextEncoder();
-    const publicadas: EntradaFasta[][] = [];
-    await cargarFasta(flujoDe([
-      codificador.encode('>uno\nAC\n>dos\n'),
-      codificador.encode('DE'),
-    ]), (entradas) => { publicadas.push(entradas); });
-    expect(publicadas).toHaveLength(2);
-    expect(publicadas[0]?.[0]?.secuencia).toBe('AC');
-    expect(publicadas[1]?.[0]?.secuencia).toBe('DE');
+describe('loadFasta', () => {
+  it('publishes entries as they arrive without waiting for the full file', async () => {
+    const encoder = new TextEncoder();
+    const published: FastaEntry[][] = [];
+    await loadFasta(streamOf([
+      encoder.encode('>uno\nAC\n>dos\n'),
+      encoder.encode('DE'),
+    ]), (entries) => { published.push(entries); });
+    expect(published).toHaveLength(2);
+    expect(published[0]?.[0]?.sequence).toBe('AC');
+    expect(published[1]?.[0]?.sequence).toBe('DE');
   });
 
-  it('rechaza bytes que no sean UTF-8 válido', async () => {
-    await expect(cargarFasta(flujoDe([new Uint8Array([0xff])]), () => {})).rejects.toThrow();
+  it('rejects invalid UTF-8 bytes', async () => {
+    await expect(loadFasta(streamOf([new Uint8Array([0xff])]), () => {})).rejects.toThrow();
   });
 
-  it('analiza por bloques un FASTA de 5 MB con múltiples entradas', async () => {
-    const base = Array.from({ length: 1000 }, (_, indice) =>
-      `>entrada ${String(indice + 1)}\n${'ACDE'.repeat(1240)}\n`).join('');
-    const cabeceraFinal = '>ultima\n';
-    const contenido = base + cabeceraFinal + 'A'.repeat(5_000_000 - base.length - cabeceraFinal.length);
-    const bytes = new TextEncoder().encode(contenido);
-    const bloques: Uint8Array[] = [];
-    for (let indice = 0; indice < bytes.length; indice += 65_536) {
-      bloques.push(bytes.slice(indice, indice + 65_536));
+  it('parses a 5 MB FASTA with multiple entries in chunks', async () => {
+    const base = Array.from({ length: 1000 }, (_, index) =>
+      `>entrada ${String(index + 1)}\n${'ACDE'.repeat(1240)}\n`).join('');
+    const lastHeader = '>ultima\n';
+    const content = base + lastHeader + 'A'.repeat(5_000_000 - base.length - lastHeader.length);
+    const bytes = new TextEncoder().encode(content);
+    const chunks: Uint8Array[] = [];
+    for (let index = 0; index < bytes.length; index += 65_536) {
+      chunks.push(bytes.slice(index, index + 65_536));
     }
-    let cantidad = 0;
-    await cargarFasta(flujoDe(bloques), (entradas) => { cantidad += entradas.length; });
+    let count = 0;
+    await loadFasta(streamOf(chunks), (entries) => { count += entries.length; });
     expect(bytes.length).toBe(5_000_000);
-    expect(cantidad).toBe(1001);
+    expect(count).toBe(1001);
   });
 });
