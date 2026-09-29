@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { actualizarPosicionesInvalidas } from './secuencia';
+import { actualizarPosicionesInvalidas, separarResiduosEstandar, validarSecuencia } from './secuencia';
 import { CargadorFasta } from './CargadorFasta';
 import type { EntradaFasta } from './fasta';
 import { PanelDescriptores } from '../descriptores/PanelDescriptores';
@@ -12,6 +12,7 @@ const RETRASO_VALIDACION_MS = 45;
 export function EditorPage(): React.JSX.Element {
   const [texto, setTexto] = useState('');
   const descriptores = useDescriptores(texto);
+  const adicionales = separarResiduosEstandar(validarSecuencia(texto).secuencia).excluidos;
   const [posicionesInvalidas, setPosicionesInvalidas] = useState<number[]>([]);
   const textoValidado = useRef('');
   const posicionesValidadas = useRef<number[]>([]);
@@ -54,7 +55,7 @@ export function EditorPage(): React.JSX.Element {
     <main className="editor-page">
       <header>
         <h1>Editor de secuencias</h1>
-        <p>Escribe o pega una secuencia de aminoácidos. Se aceptan los veinte residuos estándar.</p>
+        <p>Escribe o pega una secuencia de aminoácidos. Se aceptan los veinte residuos estándar y U, O, B, Z o X con aviso; se quita un * final.</p>
       </header>
       <section aria-labelledby="titulo-secuencia">
         <h2 id="titulo-secuencia">Secuencia activa</h2>
@@ -68,7 +69,7 @@ export function EditorPage(): React.JSX.Element {
             autoCapitalize="characters"
             spellCheck={false}
             value={texto}
-            onChange={(evento) => { setTexto(evento.target.value); }}
+            onChange={(evento) => { setTexto(evento.target.value.replace(/\*([\r\n]*)$/, '$1')); }}
             onScroll={(evento) => {
               if (resaltado.current) {
                 resaltado.current.scrollTop = evento.currentTarget.scrollTop;
@@ -79,6 +80,7 @@ export function EditorPage(): React.JSX.Element {
         </div>
         <p id="ayuda-secuencia">Las minúsculas se aceptan; los saltos de línea separan bloques de secuencia.</p>
         <p id="estado-secuencia" role="status" aria-live="polite">{descripcion}</p>
+        {adicionales > 0 && <p role="note">La secuencia contiene {adicionales} residuo{adicionales === 1 ? '' : 's'} U, O, B, Z o X. Los descriptores los excluyen y las ventanas del perfil que los contienen muestran «sin dato».</p>}
       </section>
       <CargadorFasta alSeleccionar={(entrada: EntradaFasta) => {
         textoValidado.current = entrada.secuencia;

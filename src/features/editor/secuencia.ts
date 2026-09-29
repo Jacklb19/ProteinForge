@@ -1,5 +1,7 @@
-/** Los veinte residuos estándar; los separadores de línea solo dan formato. */
-const AMINOACIDOS = new Set('ACDEFGHIKLMNPQRSTVWY');
+/** Residuos admitidos en el editor; los ambiguos conservan su posición original. */
+export const AMINOACIDOS_ESTANDAR = 'ACDEFGHIKLMNPQRSTVWY';
+export const AMINOACIDOS_ADICIONALES = 'UOBZX';
+const AMINOACIDOS = new Set(AMINOACIDOS_ESTANDAR + AMINOACIDOS_ADICIONALES);
 
 export interface ResultadoValidacion {
   posicionesInvalidas: number[];
@@ -10,10 +12,11 @@ export interface ResultadoValidacion {
 export function validarSecuencia(texto: string): ResultadoValidacion {
   const posicionesInvalidas: number[] = [];
   const residuos: string[] = [];
+  const ultimoResiduo = texto.search(/\*?[\r\n]*$/);
 
   for (let indice = 0; indice < texto.length; indice += 1) {
     const caracter = texto[indice];
-    if (caracter === '\n' || caracter === '\r') continue;
+    if (caracter === '\n' || caracter === '\r' || (caracter === '*' && indice === ultimoResiduo)) continue;
     const codigo = caracter?.charCodeAt(0) ?? -1;
     const mayuscula = codigo >= 97 && codigo <= 122
       ? String.fromCharCode(codigo - 32)
@@ -26,6 +29,17 @@ export function validarSecuencia(texto: string): ResultadoValidacion {
   }
 
   return { posicionesInvalidas, secuencia: residuos.join('') };
+}
+
+/** Extrae los residuos con parámetros fisicoquímicos definidos y cuenta los excluidos. */
+export function separarResiduosEstandar(secuencia: string): { estandar: string; excluidos: number } {
+  let estandar = '';
+  let excluidos = 0;
+  for (const residuo of secuencia) {
+    if (AMINOACIDOS_ESTANDAR.includes(residuo)) estandar += residuo;
+    else excluidos += 1;
+  }
+  return { estandar, excluidos };
 }
 
 /** Revalida solo el tramo modificado y desplaza las posiciones posteriores. */

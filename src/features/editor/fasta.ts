@@ -65,7 +65,7 @@ export class AnalizadorFasta {
   }
 
   private cerrarEntrada(): EntradaFasta {
-    const secuencia = this.partes.join('').replace(/[a-z]/g, (caracter) => caracter.toUpperCase());
+    const secuencia = this.partes.join('').replace(/[a-z]/g, (caracter) => caracter.toUpperCase()).replace(/\*$/, '');
     if (!secuencia) {
       throw new Error(`La entrada «${String(this.encabezado)}» no contiene secuencia.`);
     }

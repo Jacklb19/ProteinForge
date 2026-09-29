@@ -2,9 +2,9 @@
 export interface PropensionResiduo {
   posicion: number;
   residuo: string;
-  helice: number;
-  lamina: number;
-  giro: number;
+  helice: number | null;
+  lamina: number | null;
+  giro: number | null;
 }
 
 // Parámetros de Chou y Fasman, Adv. Enzymol. 47:45–148 (1978), publicados por ExPASy ProtScale.
@@ -20,18 +20,17 @@ const PARAMETROS: Readonly<Record<string, readonly [number, number, number]>> = 
 
 /** Devuelve las tres propensiones para todos los residuos de una secuencia válida. */
 export function calcularPropensiones(secuencia: string): PropensionResiduo[] {
-  if (secuencia.length === 0 || /[^ACDEFGHIKLMNPQRSTVWY]/.test(secuencia)) {
-    throw new RangeError('La secuencia debe contener solo aminoácidos estándar en mayúsculas.');
+  if (secuencia.length === 0 || /[^ACDEFGHIKLMNPQRSTVWYUOBZX]/.test(secuencia)) {
+    throw new RangeError('La secuencia contiene caracteres no admitidos.');
   }
   return Array.from(secuencia, (residuo, indice) => {
     const parametros = PARAMETROS[residuo];
-    if (!parametros) throw new RangeError(`Residuo no admitido: ${residuo}.`);
     return {
       posicion: indice + 1,
       residuo,
-      helice: parametros[0],
-      lamina: parametros[1],
-      giro: parametros[2],
+      helice: parametros?.[0] ?? null,
+      lamina: parametros?.[1] ?? null,
+      giro: parametros?.[2] ?? null,
     };
   });
 }

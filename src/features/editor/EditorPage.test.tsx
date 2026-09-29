@@ -9,8 +9,8 @@ describe('EditorPage', () => {
   it('acepta escritura y marca los caracteres inválidos antes de 100 ms', () => {
     render(<EditorPage />);
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
-    fireEvent.change(editor, { target: { value: 'ACX' } });
-    expect(editor).toHaveValue('ACX');
+    fireEvent.change(editor, { target: { value: 'AC-' } });
+    expect(editor).toHaveValue('AC-');
     act(() => { vi.advanceTimersByTime(50); });
     expect(editor).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByText('Posiciones inválidas: 3.')).toBeInTheDocument();
@@ -20,10 +20,19 @@ describe('EditorPage', () => {
   it('actualiza las posiciones después de pegar y corregir la secuencia', () => {
     render(<EditorPage />);
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
-    fireEvent.change(editor, { target: { value: 'AC\nBX' } });
+    fireEvent.change(editor, { target: { value: 'AC\n--' } });
     act(() => { vi.advanceTimersByTime(50); });
     expect(screen.getByText('Posiciones inválidas: 4, 5.')).toBeInTheDocument();
     fireEvent.change(editor, { target: { value: 'AC\nDE' } });
+    act(() => { vi.advanceTimersByTime(50); });
+    expect(editor).toHaveAttribute('aria-invalid', 'false');
+  });
+
+  it('quita un asterisco terminal al introducirlo', () => {
+    render(<EditorPage />);
+    const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
+    fireEvent.change(editor, { target: { value: 'ACX*' } });
+    expect(editor).toHaveValue('ACX');
     act(() => { vi.advanceTimersByTime(50); });
     expect(editor).toHaveAttribute('aria-invalid', 'false');
   });

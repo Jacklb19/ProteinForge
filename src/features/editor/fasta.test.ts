@@ -9,7 +9,7 @@ describe('AnalizadorFasta', () => {
       { numero: 1, encabezado: 'primera', secuencia: 'ACDE', posicionesInvalidas: [] },
     ]);
     expect(analizador.finalizar()).toEqual([
-      { numero: 2, encabezado: 'segunda anotación', secuencia: 'WXY', posicionesInvalidas: [1] },
+      { numero: 2, encabezado: 'segunda anotación', secuencia: 'WXY', posicionesInvalidas: [] },
     ]);
   });
 
@@ -39,5 +39,11 @@ describe('AnalizadorFasta', () => {
       secuencia: 'AıC',
       posicionesInvalidas: [1],
     });
+  });
+
+  it('quita el asterisco terminal de la entrada', () => {
+    const analizador = new AnalizadorFasta();
+    analizador.agregar('>uno\nACX*\n');
+    expect(analizador.finalizar()[0]).toMatchObject({ secuencia: 'ACX', posicionesInvalidas: [] });
   });
 });

@@ -104,7 +104,7 @@ describe('perfil de hidrofobicidad accesible', () => {
     expect(screen.getByText(/Página 2 de 3/i)).toBeInTheDocument();
     const mensajesAntes = hilo.postMessage.mock.calls.length;
 
-    rerender(<PerfilHidrofobicidad texto={`${secuencia}X`} />);
+    rerender(<PerfilHidrofobicidad texto={`${secuencia}-`} />);
     expect(hilo.postMessage).toHaveBeenCalledTimes(mensajesAntes);
     expect(screen.getByText(/perfil y las propensiones están desactualizados/i)).toBeInTheDocument();
     expect(screen.getByRole('table')).toBeInTheDocument();

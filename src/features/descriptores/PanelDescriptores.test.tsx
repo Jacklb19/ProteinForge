@@ -54,11 +54,19 @@ describe('descriptores en el editor', () => {
     expect(within(panel).getByText('Masa molecular')).toBeInTheDocument();
     const masaAnterior = within(panel).getByText(/Da$/).textContent;
 
-    fireEvent.change(editor, { target: { value: 'ACXDE' } });
+    fireEvent.change(editor, { target: { value: 'AC-DE' } });
     expect(hilo.postMessage).toHaveBeenCalledTimes(1);
     expect(within(panel).getByText(/resultados están desactualizados/i)).toBeInTheDocument();
     expect(within(panel).getByText(/Da$/).textContent).toBe(masaAnterior);
     expect(panel.querySelector('dl')).toHaveClass('descriptores-desactualizados');
+  });
+
+  it('excluye letras adicionales del cálculo y muestra su cantidad', () => {
+    vi.stubGlobal('Worker', WorkerSimulado);
+    render(<EditorPage />);
+    fireEvent.change(screen.getByRole('textbox', { name: /secuencia de aminoácidos/i }), { target: { value: 'ACXDO' } });
+    expect(solicitudEn(hiloDescriptores(), 0).secuencia).toBe('ACD');
+    expect(screen.getByText(/2 residuos U, O, B, Z o X excluidos/i)).toBeInTheDocument();
   });
 
   it('ignora una respuesta anterior al último cambio válido', () => {

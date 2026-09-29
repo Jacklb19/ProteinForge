@@ -5,16 +5,17 @@ const TRES_DECIMALES = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 3
 
 /** Presenta los cinco descriptores y señala resultados desactualizados. */
 export function PanelDescriptores({ datos }: { datos: EstadoDescriptores }): React.JSX.Element {
-  const { resultado, estado, error } = datos;
+  const { resultado, estado, error, excluidos } = datos;
   const desactualizado = resultado !== null && estado !== 'actual';
   return (
     <section aria-labelledby="titulo-descriptores" className="panel-descriptores">
       <h2 id="titulo-descriptores">Descriptores fisicoquímicos</h2>
+      {excluidos > 0 && <p role="note">{excluidos} residuo{excluidos === 1 ? '' : 's'} U, O, B, Z o X excluido{excluidos === 1 ? '' : 's'} de los descriptores.</p>}
       <p role="status" aria-live="polite">
         {estado === 'invalido' && 'Los resultados están desactualizados. Corrige las posiciones inválidas para recalcular.'}
         {estado === 'calculando' && 'Calculando descriptores…'}
         {estado === 'error' && (error ?? 'No se pudieron calcular los descriptores.')}
-        {estado === 'vacio' && 'Escribe una secuencia válida para iniciar el análisis.'}
+        {estado === 'vacio' && (excluidos > 0 ? 'No hay residuos estándar para calcular descriptores.' : 'Escribe una secuencia válida para iniciar el análisis.')}
       </p>
       {resultado && (
         <dl className={desactualizado ? 'descriptores-desactualizados' : undefined}>

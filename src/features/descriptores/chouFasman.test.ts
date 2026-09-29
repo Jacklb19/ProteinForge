@@ -11,7 +11,8 @@ describe('parámetros Chou–Fasman de ProtScale', () => {
   });
 
   it('rechaza caracteres inválidos sin omitir posiciones', () => {
-    expect(() => calcularPropensiones('AXP')).toThrow(RangeError);
+    expect(calcularPropensiones('AXP')[1]).toEqual({ posicion: 2, residuo: 'X', helice: null, lamina: null, giro: null });
+    expect(() => calcularPropensiones('A-P')).toThrow(RangeError);
     expect(() => calcularPropensiones('')).toThrow(RangeError);
   });
 });

@@ -29,8 +29,10 @@ export function dibujarPerfil(
   let minimo = Math.min(...referencias, -0.5);
   let maximo = Math.max(...referencias, 0.5);
   for (const punto of puntos) {
-    minimo = Math.min(minimo, punto.valor);
-    maximo = Math.max(maximo, punto.valor);
+    if (punto.valor !== null) {
+      minimo = Math.min(minimo, punto.valor);
+      maximo = Math.max(maximo, punto.valor);
+    }
   }
   const espacioX = Math.max(1, ancho - 2 * estilo.margen);
   const espacioY = Math.max(1, alto - 2 * estilo.margen);
@@ -58,12 +60,18 @@ export function dibujarPerfil(
   contexto.strokeStyle = estilo.curva;
   contexto.lineWidth = estilo.trazo;
   contexto.beginPath();
-  for (const [indice, punto] of puntos.entries()) {
-    if (indice === 0) contexto.moveTo(xDe(punto.posicion), yDe(punto.valor));
+  let trazoAbierto = false;
+  for (const punto of puntos) {
+    if (punto.valor === null) {
+      trazoAbierto = false;
+      continue;
+    }
+    if (!trazoAbierto) contexto.moveTo(xDe(punto.posicion), yDe(punto.valor));
     else contexto.lineTo(xDe(punto.posicion), yDe(punto.valor));
+    trazoAbierto = true;
   }
   contexto.stroke();
-  if (puntos.length === 1) {
+  if (puntos.length === 1 && puntos[0]?.valor !== null) {
     contexto.beginPath();
     contexto.arc(xDe(primera), yDe(puntos[0]?.valor ?? 0), estilo.trazo * 2, 0, Math.PI * 2);
     contexto.fillStyle = estilo.curva;

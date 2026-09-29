@@ -161,11 +161,13 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
                     <th scope="row">{fila.posicion}</th>
                     <td>{fila.residuo}</td>
                     <td>{hidropatiaPorResiduo.has(fila.posicion)
-                      ? FORMATO_VALOR.format(hidropatiaPorResiduo.get(fila.posicion) ?? 0)
+                      ? hidropatiaPorResiduo.get(fila.posicion) === null
+                        ? 'Sin dato'
+                        : FORMATO_VALOR.format(hidropatiaPorResiduo.get(fila.posicion) ?? 0)
                       : <span aria-label="Sin ventana completa">—</span>}</td>
-                    <td>{FORMATO_VALOR.format(fila.helice)}</td>
-                    <td>{FORMATO_VALOR.format(fila.lamina)}</td>
-                    <td>{FORMATO_VALOR.format(fila.giro)}</td>
+                    <td>{fila.helice === null ? 'Sin dato' : FORMATO_VALOR.format(fila.helice)}</td>
+                    <td>{fila.lamina === null ? 'Sin dato' : FORMATO_VALOR.format(fila.lamina)}</td>
+                    <td>{fila.giro === null ? 'Sin dato' : FORMATO_VALOR.format(fila.giro)}</td>
                   </tr>
                 ))}
               </tbody>

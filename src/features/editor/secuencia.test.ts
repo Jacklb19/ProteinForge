@@ -11,8 +11,8 @@ describe('validarSecuencia', () => {
 
   it('señala posiciones originales e ignora saltos de línea', () => {
     expect(validarSecuencia('AC\nBX-Z')).toEqual({
-      posicionesInvalidas: [3, 4, 5, 6],
-      secuencia: 'AC',
+      posicionesInvalidas: [5],
+      secuencia: 'ACBXZ',
     });
   });
 
@@ -21,7 +21,12 @@ describe('validarSecuencia', () => {
   });
 
   it('revalida una edición local y desplaza errores posteriores', () => {
-    expect(actualizarPosicionesInvalidas('AXZ', 'AC-Z', [1, 2])).toEqual([2, 3]);
-    expect(actualizarPosicionesInvalidas('AC-Z', 'ACZ', [2, 3])).toEqual([2]);
+    expect(actualizarPosicionesInvalidas('A-Z', 'AC-Z', [1])).toEqual([2]);
+    expect(actualizarPosicionesInvalidas('AC-Z', 'ACZ', [2])).toEqual([]);
+  });
+
+  it('conserva U, O, B, Z y X, y retira únicamente un asterisco terminal', () => {
+    expect(validarSecuencia('aubzx*\n')).toEqual({ posicionesInvalidas: [], secuencia: 'AUBZX' });
+    expect(validarSecuencia('AC*DE').posicionesInvalidas).toEqual([2]);
   });
 });
