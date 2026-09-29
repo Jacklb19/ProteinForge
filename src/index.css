@@ -94,9 +94,29 @@ p { margin-top: var(--space-copy); }
 .entrada-fasta span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .entrada-fasta[aria-selected='true'] { background: var(--color-selected-surface); }
 
+.panel-descriptores dl { display: grid; gap: var(--space-small); }
+.panel-descriptores dl > div { display: flex; gap: var(--space-medium); }
+.panel-descriptores dt { font-weight: var(--font-weight-label); }
+.descriptores-desactualizados { color: var(--color-muted-text); }
+
+.panel-perfil { display: grid; gap: var(--space-small); }
+.panel-perfil select { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
+.contenedor-grafica { width: var(--width-full); }
+.grafica-hidrofobicidad { display: block; width: var(--width-full); height: var(--height-hydropathy-chart); font-family: var(--font-ui); font-size: var(--font-size-chart); font-weight: var(--font-weight-regular); }
+.grafica-desactualizada, .tabla-desactualizada { color: var(--color-muted-text); }
+.grafica-desactualizada { filter: var(--filter-stale-chart); }
+.grafica-esperando { visibility: hidden; }
+.tabla-perfil-contenedor { overflow-x: auto; }
+.tabla-perfil-contenedor table { width: var(--width-full); border-collapse: collapse; }
+.tabla-perfil-contenedor th, .tabla-perfil-contenedor td { padding: var(--space-small); border-bottom: var(--border-width-divider) solid var(--color-border-subtle); text-align: left; }
+.paginas-perfil { display: flex; align-items: center; gap: var(--space-medium); }
+.paginas-perfil button { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
+.paginas-perfil button:disabled { color: var(--color-muted-text); }
+
 textarea:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: var(--outline-width-focus) solid var(--color-focus);
   outline-offset: var(--outline-offset-focus);
 }

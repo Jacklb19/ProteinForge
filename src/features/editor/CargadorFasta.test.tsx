@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorPage } from './EditorPage';
 import type { EntradaFasta } from './fasta';
@@ -9,24 +9,31 @@ type Mensaje =
   | { tipo: 'error'; mensaje: string };
 
 function prepararHilo(): Array<{
+  ruta: string;
   onmessage: ((evento: MessageEvent<Mensaje>) => void) | null;
   postMessage: ReturnType<typeof vi.fn>;
   terminate: ReturnType<typeof vi.fn>;
 }> {
   const instancias: Array<{
+    ruta: string;
     onmessage: ((evento: MessageEvent<Mensaje>) => void) | null;
     postMessage: ReturnType<typeof vi.fn>;
     terminate: ReturnType<typeof vi.fn>;
   }> = [];
   class WorkerSimulado {
+    ruta: string;
     onmessage: ((evento: MessageEvent<Mensaje>) => void) | null = null;
     onerror: (() => void) | null = null;
     postMessage = vi.fn();
     terminate = vi.fn();
-    constructor() { instancias.push(this); }
+    constructor(ruta: URL | string) { this.ruta = String(ruta); instancias.push(this); }
   }
   vi.stubGlobal('Worker', WorkerSimulado);
   return instancias;
+}
+
+function hiloFasta(instancias: ReturnType<typeof prepararHilo>) {
+  return instancias.find((instancia) => instancia.ruta.includes('fasta.worker'));
 }
 
 afterEach(() => {
@@ -41,7 +48,7 @@ describe('CargadorFasta', () => {
     render(<EditorPage />);
     const archivo = new File(['>uno\nAC\n>dos\nDE'], 'prueba.fa');
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), { target: { files: [archivo] } });
-    const hilo = instancias[0];
+    const hilo = hiloFasta(instancias);
     expect(hilo).toBeDefined();
     expect(hilo?.postMessage).toHaveBeenCalledWith(archivo);
     act(() => {
@@ -65,7 +72,7 @@ describe('CargadorFasta', () => {
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['>uno\nAC'], 'muchas.fa')] },
     });
-    const hilo = instancias[0];
+    const hilo = hiloFasta(instancias);
     const entradas = Array.from({ length: 1000 }, (_, indice) => ({
       numero: indice + 1,
       encabezado: `entrada ${String(indice + 1)}`,
@@ -75,7 +82,7 @@ describe('CargadorFasta', () => {
     act(() => {
       hilo?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas } }));
     });
-    expect(screen.getAllByRole('option').length).toBeLessThan(20);
+    expect(within(screen.getByRole('listbox', { name: /entradas FASTA/i })).getAllByRole('option').length).toBeLessThan(20);
     expect(screen.getByText(/1000 entradas encontradas/i)).toBeInTheDocument();
   });
 
@@ -99,11 +106,11 @@ describe('CargadorFasta', () => {
       posicionesInvalidas: [],
     }));
     act(() => {
-      instancias[0]?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas } }));
+      hiloFasta(instancias)?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas } }));
     });
     const lista = screen.getByRole('listbox', { name: /entradas FASTA/i });
     expect(lista.style.getPropertyValue('--height-fasta-row-effective')).toBe(esperado);
-    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(10);
+    expect(within(lista).getAllByRole('option').length).toBeLessThanOrEqual(10);
   });
 
   it('muestra explícitamente los errores del Worker', () => {
@@ -112,7 +119,7 @@ describe('CargadorFasta', () => {
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['texto'], 'mal.fa')] },
     });
-    const hilo = instancias[0];
+    const hilo = hiloFasta(instancias);
     act(() => {
       hilo?.onmessage?.(new MessageEvent('message', { data: { tipo: 'error', mensaje: 'Formato inválido.' } }));
     });
