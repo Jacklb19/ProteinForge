@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { EntradaFasta } from './fasta';
 
 interface Props {
@@ -10,31 +10,40 @@ type MensajeFasta =
   | { tipo: 'completo' }
   | { tipo: 'error'; mensaje: string };
 
-const ALTURA_FILA = 44;
-const ALTURA_LISTA = 264;
-
 /** Carga FASTA en un Worker y virtualiza la lista de entradas disponibles. */
 export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
   const [entradas, setEntradas] = useState<EntradaFasta[]>([]);
   const [estado, setEstado] = useState('No hay archivo cargado.');
   const [seleccion, setSeleccion] = useState<number | null>(null);
   const [desplazamiento, setDesplazamiento] = useState(0);
+  const [dimensiones, setDimensiones] = useState({ fila: 0, lista: 0 });
   const hilo = useRef<Worker | null>(null);
   const lista = useRef<HTMLDivElement>(null);
 
   useEffect(() => () => { hilo.current?.terminate(); }, []);
+  useLayoutEffect(() => {
+    const contenedor = lista.current;
+    const fila = contenedor?.querySelector<HTMLElement>('.entrada-fasta');
+    if (!contenedor || !fila) return;
+    const medidas = {
+      fila: fila.getBoundingClientRect().height,
+      lista: contenedor.getBoundingClientRect().height,
+    };
+    setDimensiones((actuales) =>
+      actuales.fila === medidas.fila && actuales.lista === medidas.lista ? actuales : medidas);
+  }, [entradas.length]);
 
   const elegir = (indice: number): void => {
     const entrada = entradas[indice];
     if (!entrada) return;
     setSeleccion(indice);
     alSeleccionar(entrada);
-    if (lista.current) {
-      const arriba = indice * ALTURA_FILA;
-      const abajo = arriba + ALTURA_FILA;
+    if (lista.current && dimensiones.fila > 0) {
+      const arriba = indice * dimensiones.fila;
+      const abajo = arriba + dimensiones.fila;
       if (arriba < lista.current.scrollTop) lista.current.scrollTop = arriba;
-      if (abajo > lista.current.scrollTop + ALTURA_LISTA) {
-        lista.current.scrollTop = abajo - ALTURA_LISTA;
+      if (abajo > lista.current.scrollTop + dimensiones.lista) {
+        lista.current.scrollTop = abajo - dimensiones.lista;
       }
     }
   };
@@ -81,8 +90,12 @@ export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
     }
   };
 
-  const inicio = Math.max(0, Math.floor(desplazamiento / ALTURA_FILA) - 2);
-  const fin = Math.min(entradas.length, inicio + Math.ceil(ALTURA_LISTA / ALTURA_FILA) + 4);
+  const inicio = dimensiones.fila > 0
+    ? Math.max(0, Math.floor(desplazamiento / dimensiones.fila) - 2)
+    : 0;
+  const fin = Math.min(entradas.length, inicio + (
+    dimensiones.fila > 0 ? Math.ceil(dimensiones.lista / dimensiones.fila) + 4 : 10
+  ));
 
   return (
     <section aria-labelledby="titulo-fasta">
@@ -116,7 +129,7 @@ export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
             }
           }}
         >
-          <div className="lista-fasta-contenido" style={{ height: entradas.length * ALTURA_FILA }}>
+          <div className="lista-fasta-contenido" style={{ height: `calc(var(--height-fasta-row) * ${String(entradas.length)})` }}>
             {entradas.slice(inicio, fin).map((entrada, desplazamientoLocal) => {
               const indice = inicio + desplazamientoLocal;
               return (
@@ -130,7 +143,7 @@ export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
                   aria-setsize={entradas.length}
                   aria-posinset={indice + 1}
                   tabIndex={-1}
-                  style={{ top: indice * ALTURA_FILA }}
+                  style={{ top: `calc(var(--height-fasta-row) * ${String(indice)})` }}
                   onClick={() => { elegir(indice); }}
                 >
                   <span>{entrada.encabezado}</span>

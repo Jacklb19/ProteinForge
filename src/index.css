@@ -1,14 +1,14 @@
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  line-height: 1.5;
-  color: #111827;
-  background-color: #ffffff;
+  font-family: var(--font-ui);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background-color: var(--color-surface);
 }
 
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  margin: var(--space-none);
+  padding: var(--space-none);
 }
 
 body {
@@ -17,40 +17,43 @@ body {
 
 #root {
   width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem 1rem 4rem;
+  max-width: var(--width-page-max);
+  margin: var(--space-none) auto;
+  padding: var(--space-large) var(--space-medium) var(--space-page-bottom);
 }
 
-h1 { font-size: 2rem; }
-h2 { font-size: 1.3rem; }
-p { margin-top: 0.6rem; }
+h1 { font-size: var(--font-size-title); }
+h2 { font-size: var(--font-size-section); }
+p { margin-top: var(--space-copy); }
 
-.editor-page { display: grid; gap: 2rem; }
-.editor-page section { display: grid; gap: 0.75rem; }
-.editor-page label { font-weight: 700; }
-.editor-capa { position: relative; min-height: 18rem; }
+.editor-page { display: grid; gap: var(--space-large); }
+.editor-page section { display: grid; gap: var(--space-small); }
+.editor-page label { font-weight: var(--font-weight-label); }
+.editor-capa { position: relative; min-height: var(--height-editor); }
 .editor-capa textarea,
 .editor-resaltado {
   width: 100%;
-  height: 18rem;
-  margin: 0;
-  padding: 0.9rem;
-  border: 2px solid #6b7280;
-  border-radius: 0.4rem;
-  font: 1rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
-  letter-spacing: 0;
+  height: var(--height-editor);
+  margin: var(--space-none);
+  padding: var(--space-control);
+  border: var(--border-width-control) solid var(--color-border);
+  border-radius: var(--border-radius-control);
+  font-family: var(--font-sequence);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-base);
+  letter-spacing: var(--letter-spacing-sequence);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   overflow: auto;
-  tab-size: 4;
+  tab-size: var(--tab-size-sequence);
 }
 .editor-resaltado {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  color: #111827;
+  color: var(--color-text);
   scrollbar-width: none;
 }
 .editor-capa textarea {
@@ -59,41 +62,41 @@ p { margin-top: 0.6rem; }
   display: block;
   resize: vertical;
   color: transparent;
-  caret-color: #111827;
+  caret-color: var(--color-text);
   background: transparent;
 }
-.editor-capa textarea::selection { background: #bfdbfe; }
-.residuo-invalido { color: #991b1b; background: #fee2e2; text-decoration: underline; }
+.editor-capa textarea::selection { background: var(--color-selection); }
+.residuo-invalido { color: var(--color-invalid-text); background: var(--color-invalid-surface); text-decoration: underline; }
 .lista-fasta {
-  height: 16.5rem;
+  height: var(--height-fasta-list);
   overflow-y: auto;
-  border: 2px solid #6b7280;
-  border-radius: 0.4rem;
+  border: var(--border-width-control) solid var(--color-border);
+  border-radius: var(--border-radius-control);
 }
 .lista-fasta-contenido { position: relative; }
 .entrada-fasta {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 44px;
+  height: var(--height-fasta-row);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0 0.75rem;
+  gap: var(--space-medium);
+  padding: var(--space-none) var(--space-small);
   border: 0;
-  border-bottom: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #111827;
+  border-bottom: var(--border-width-divider) solid var(--color-border-subtle);
+  background: var(--color-surface);
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
 }
 .entrada-fasta span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.entrada-fasta[aria-selected='true'] { background: #dbeafe; }
+.entrada-fasta[aria-selected='true'] { background: var(--color-selected-surface); }
 
 textarea:focus-visible,
 button:focus-visible,
 input:focus-visible {
-  outline: 3px solid #2563eb;
-  outline-offset: 2px;
+  outline: var(--outline-width-focus) solid var(--color-focus);
+  outline-offset: var(--outline-offset-focus);
 }
