@@ -52,6 +52,7 @@ export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
       const nuevoHilo = new Worker(new URL('./fasta.worker.ts', import.meta.url), { type: 'module' });
       hilo.current = nuevoHilo;
       nuevoHilo.onmessage = (evento: MessageEvent<MensajeFasta>) => {
+        if (hilo.current !== nuevoHilo) return;
         const mensaje = evento.data;
         if (mensaje.tipo === 'entradas') {
           setEntradas((actuales) => [...actuales, ...mensaje.entradas]);
@@ -60,18 +61,22 @@ export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
           nuevoHilo.terminate();
           if (hilo.current === nuevoHilo) hilo.current = null;
         } else {
+          setEntradas([]);
           setEstado(`Error: ${mensaje.mensaje}`);
           nuevoHilo.terminate();
           if (hilo.current === nuevoHilo) hilo.current = null;
         }
       };
       nuevoHilo.onerror = () => {
+        if (hilo.current !== nuevoHilo) return;
+        setEntradas([]);
         setEstado('Error: no se pudo ejecutar el analizador FASTA.');
         nuevoHilo.terminate();
         if (hilo.current === nuevoHilo) hilo.current = null;
       };
       nuevoHilo.postMessage(archivo);
     } catch {
+      hilo.current = null;
       setEstado('Error: el navegador no pudo iniciar el analizador FASTA.');
     }
   };
@@ -99,6 +104,8 @@ export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
           className="lista-fasta"
           role="listbox"
           aria-label="Entradas FASTA"
+          aria-activedescendant={seleccion !== null && seleccion >= inicio && seleccion < fin
+            ? `entrada-fasta-${String(seleccion)}` : undefined}
           tabIndex={0}
           onScroll={(evento) => { setDesplazamiento(evento.currentTarget.scrollTop); }}
           onKeyDown={(evento) => {
@@ -115,6 +122,7 @@ export function CargadorFasta({ alSeleccionar }: Props): React.JSX.Element {
               return (
                 <button
                   className="entrada-fasta"
+                  id={`entrada-fasta-${String(indice)}`}
                   key={entrada.numero}
                   type="button"
                   role="option"

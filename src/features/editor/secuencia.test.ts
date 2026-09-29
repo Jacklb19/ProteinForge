@@ -16,6 +16,10 @@ describe('validarSecuencia', () => {
     });
   });
 
+  it('rechaza letras Unicode que se convierten en residuos ASCII al pasar a mayúsculas', () => {
+    expect(validarSecuencia('AıC').posicionesInvalidas).toEqual([1]);
+  });
+
   it('revalida una edición local y desplaza errores posteriores', () => {
     expect(actualizarPosicionesInvalidas('AXZ', 'AC-Z', [1, 2])).toEqual([2, 3]);
     expect(actualizarPosicionesInvalidas('AC-Z', 'ACZ', [2, 3])).toEqual([2]);

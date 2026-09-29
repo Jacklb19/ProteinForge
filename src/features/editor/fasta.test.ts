@@ -31,4 +31,13 @@ describe('AnalizadorFasta', () => {
     analizador.agregar('\n');
     expect(analizador.finalizar()[0]?.secuencia).toBe('AC');
   });
+
+  it('conserva y señala residuos Unicode inválidos', () => {
+    const analizador = new AnalizadorFasta();
+    analizador.agregar('>uno\naıC\n');
+    expect(analizador.finalizar()[0]).toMatchObject({
+      secuencia: 'AıC',
+      posicionesInvalidas: [1],
+    });
+  });
 });

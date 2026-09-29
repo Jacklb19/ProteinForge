@@ -14,7 +14,10 @@ export function validarSecuencia(texto: string): ResultadoValidacion {
   for (let indice = 0; indice < texto.length; indice += 1) {
     const caracter = texto[indice];
     if (caracter === '\n' || caracter === '\r') continue;
-    const mayuscula = caracter?.toUpperCase() ?? '';
+    const codigo = caracter?.charCodeAt(0) ?? -1;
+    const mayuscula = codigo >= 97 && codigo <= 122
+      ? String.fromCharCode(codigo - 32)
+      : caracter ?? '';
     if (AMINOACIDOS.has(mayuscula)) {
       residuos.push(mayuscula);
     } else {
