@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RespuestaPerfil, SolicitudPerfil } from './mensajesPerfil';
 import { PerfilHidrofobicidad } from './PerfilHidrofobicidad';
 import { calcularPerfil } from './perfil';
+import { calcularPropensiones } from './chouFasman';
 
 class WorkerSimulado {
   static instancia: WorkerSimulado | null = null;
@@ -42,13 +43,26 @@ describe('perfil de hidrofobicidad accesible', () => {
   it('transfiere el lienzo y los tokens, y avisa si faltan residuos', () => {
     const { rerender } = render(<PerfilHidrofobicidad texto="ACDE" />);
     const hilo = hiloPerfil();
-    expect(hilo.postMessage).toHaveBeenCalledTimes(1);
+    expect(hilo.postMessage).toHaveBeenCalledTimes(2);
     const [inicio, transferibles] = hilo.postMessage.mock.calls[0] ?? [];
     expect(inicio?.tipo).toBe('iniciar');
     expect(transferibles).toHaveLength(1);
     expect(inicio && 'estilo' in inicio && inicio.estilo.fuente).toBeTruthy();
     expect(screen.getByText(/al menos 9 residuos/i)).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    const solicitudCorta = ultimaSolicitud(hilo);
+    act(() => {
+      hilo.onmessage?.(new MessageEvent('message', {
+        data: {
+          id: solicitudCorta.id,
+          puntos: [],
+          propensiones: calcularPropensiones(solicitudCorta.secuencia),
+        },
+      }));
+    });
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(5);
+    expect(document.querySelector('canvas.grafica-hidrofobicidad')?.parentElement?.parentElement).toHaveAttribute('hidden');
 
     rerender(<PerfilHidrofobicidad texto="ACDEFGHIKLMNPQRSTVWY" />);
     const contenedorGrafica = document.querySelector('canvas.grafica-hidrofobicidad')?.parentElement?.parentElement;
@@ -58,12 +72,17 @@ describe('perfil de hidrofobicidad accesible', () => {
     expect(solicitud.ventana).toBe(9);
     act(() => {
       hilo.onmessage?.(new MessageEvent('message', {
-        data: { id: solicitud.id, puntos: calcularPerfil(solicitud.secuencia, 9) },
+        data: {
+          id: solicitud.id,
+          puntos: calcularPerfil(solicitud.secuencia, 9),
+          propensiones: calcularPropensiones(solicitud.secuencia),
+        },
       }));
     });
     expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getAllByRole('row')).toHaveLength(13);
-    expect(screen.getByRole('columnheader', { name: 'Residuo central' })).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(21);
+    expect(screen.getByRole('columnheader', { name: 'Posición' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Giro' })).toBeInTheDocument();
   });
 
   it('permite 19 residuos, pagina todos los valores y conserva el perfil ante entradas inválidas', () => {
@@ -75,7 +94,7 @@ describe('perfil de hidrofobicidad accesible', () => {
     expect(solicitud.ventana).toBe(19);
     act(() => {
       hilo.onmessage?.(new MessageEvent('message', {
-        data: { id: solicitud.id, puntos: calcularPerfil(secuencia, 19) },
+        data: { id: solicitud.id, puntos: calcularPerfil(secuencia, 19), propensiones: calcularPropensiones(secuencia) },
       }));
     });
     const tabla = screen.getByRole('table');
@@ -87,7 +106,7 @@ describe('perfil de hidrofobicidad accesible', () => {
 
     rerender(<PerfilHidrofobicidad texto={`${secuencia}X`} />);
     expect(hilo.postMessage).toHaveBeenCalledTimes(mensajesAntes);
-    expect(screen.getByText(/perfil está desactualizado/i)).toBeInTheDocument();
+    expect(screen.getByText(/perfil y las propensiones están desactualizados/i)).toBeInTheDocument();
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByRole('table').parentElement?.parentElement).toHaveClass('tabla-desactualizada');
   });
@@ -99,7 +118,11 @@ describe('perfil de hidrofobicidad accesible', () => {
     const solicitud = ultimaSolicitud(hilo);
     act(() => {
       hilo.onmessage?.(new MessageEvent('message', {
-        data: { id: solicitud.id, puntos: calcularPerfil(solicitud.secuencia, 9) },
+        data: {
+          id: solicitud.id,
+          puntos: calcularPerfil(solicitud.secuencia, 9),
+          propensiones: calcularPropensiones(solicitud.secuencia),
+        },
       }));
     });
     expect(screen.getByRole('table')).toBeInTheDocument();

@@ -1,4 +1,5 @@
 import type { PuntoPerfil, VentanaHidropatia } from './perfil';
+import type { PropensionResiduo } from './chouFasman';
 
 /** Valores visuales calculados en el hilo principal desde design-tokens.css. */
 export interface EstiloGrafica {
@@ -28,5 +29,5 @@ export type SolicitudPerfil =
 
 /** El perfil completo vuelve al hilo principal para la tabla accesible. */
 export type RespuestaPerfil =
-  | { id: number; puntos: PuntoPerfil[]; error?: never }
-  | { id: number; error: string; puntos?: never };
+  | { id: number; puntos: PuntoPerfil[]; propensiones: PropensionResiduo[]; error?: never }
+  | { id: number; error: string; puntos?: never; propensiones?: never };

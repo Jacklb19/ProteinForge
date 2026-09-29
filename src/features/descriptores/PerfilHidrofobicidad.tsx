@@ -3,6 +3,7 @@ import { validarSecuencia } from '../editor/secuencia';
 import { obtenerEstiloGrafica } from './estiloGrafica';
 import type { RespuestaPerfil, SolicitudPerfil } from './mensajesPerfil';
 import type { PuntoPerfil, VentanaHidropatia } from './perfil';
+import type { PropensionResiduo } from './chouFasman';
 
 const FILAS_POR_PAGINA = 50;
 const FORMATO_VALOR = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
@@ -11,6 +12,7 @@ interface PerfilRecibido {
   secuencia: string;
   ventana: VentanaHidropatia;
   puntos: PuntoPerfil[];
+  propensiones: PropensionResiduo[];
 }
 
 /** Perfil dibujado fuera del hilo principal y tabla navegable de sus valores. */
@@ -42,6 +44,7 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
           secuencia: secuenciaEnviada.current,
           ventana: ventanaEnviada.current,
           puntos: evento.data.puntos ?? [],
+          propensiones: evento.data.propensiones ?? [],
         });
         setPagina(0);
         setError(null);
@@ -75,7 +78,7 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
 
   useEffect(() => {
     peticionActual.current += 1;
-    if (validacion.posicionesInvalidas.length > 0 || validacion.secuencia.length < ventana) return;
+    if (validacion.posicionesInvalidas.length > 0 || validacion.secuencia.length === 0) return;
     const enviar = () => {
       const canvas = lienzo.current;
       if (!canvas || !hilo.current) return;
@@ -102,13 +105,15 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
 
   const invalido = validacion.posicionesInvalidas.length > 0;
   const corto = !invalido && validacion.secuencia.length > 0 && validacion.secuencia.length < ventana;
-  const vigente = !invalido && !corto && perfil?.secuencia === validacion.secuencia
+  const vigente = !invalido && perfil?.secuencia === validacion.secuencia
     && perfil.ventana === ventana;
   const puntos = invalido ? (perfil?.puntos ?? []) : vigente ? perfil.puntos : [];
+  const propensiones = invalido ? (perfil?.propensiones ?? []) : vigente ? perfil.propensiones : [];
+  const hidropatiaPorResiduo = new Map(puntos.map((punto) => [punto.posicion, punto.valor]));
   const ventanaMostrada = invalido ? (perfil?.ventana ?? ventana) : ventana;
-  const totalPaginas = Math.ceil(puntos.length / FILAS_POR_PAGINA);
+  const totalPaginas = Math.ceil(propensiones.length / FILAS_POR_PAGINA);
   const paginaActual = Math.min(pagina, Math.max(0, totalPaginas - 1));
-  const filas = puntos.slice(paginaActual * FILAS_POR_PAGINA, (paginaActual + 1) * FILAS_POR_PAGINA);
+  const filas = propensiones.slice(paginaActual * FILAS_POR_PAGINA, (paginaActual + 1) * FILAS_POR_PAGINA);
 
   return (
     <section aria-labelledby="titulo-perfil" className="panel-perfil">
@@ -123,13 +128,20 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
         <option value="19">19 — segmentos transmembrana</option>
       </select>
       <p>Escala Kyte–Doolittle; media de ventana completa, sin normalización. El valor corresponde al residuo central.</p>
+      <p>
+        Propensiones de Chou–Fasman (1978): estimación clásica de baja precisión; no es una predicción de estructura.
+        Parámetros publicados por ProtScale para{' '}
+        <a href="https://web.expasy.org/protscale/pscale/alpha-helixFasman.html">hélice</a>,{' '}
+        <a href="https://web.expasy.org/protscale/pscale/beta-sheetFasman.html">lámina</a> y{' '}
+        <a href="https://web.expasy.org/protscale/pscale/beta-turnFasman.html">giro</a>.
+      </p>
       <p id="estado-perfil" role="status" aria-live="polite">
-        {invalido && 'El perfil está desactualizado. Corrige las posiciones inválidas para recalcular.'}
-        {corto && `Se necesitan al menos ${String(ventana)} residuos para mostrar el perfil.`}
+        {invalido && 'El perfil y las propensiones están desactualizados. Corrige las posiciones inválidas para recalcular.'}
+        {corto && `Se necesitan al menos ${String(ventana)} residuos para mostrar la gráfica; las propensiones siguen disponibles.`}
         {!invalido && !corto && validacion.secuencia.length === 0 && 'Escribe una secuencia válida para mostrar el perfil.'}
-        {!invalido && !corto && validacion.secuencia.length >= ventana && !vigente && !error && 'Calculando perfil…'}
-        {error && !invalido && !corto && error}
-        {sinGrafica && vigente && 'Este navegador no permite transferir el lienzo; consulta los valores en la tabla.'}
+        {!invalido && !corto && validacion.secuencia.length > 0 && !vigente && !error && 'Calculando perfil y propensiones…'}
+        {error && !invalido && error}
+        {sinGrafica && vigente && !corto && 'Este navegador no permite transferir el lienzo; consulta los valores en la tabla.'}
       </p>
       <div
         className={invalido ? 'grafica-desactualizada' : !vigente ? 'grafica-esperando' : undefined}
@@ -137,17 +149,23 @@ export function PerfilHidrofobicidad({ texto }: { texto: string }): React.JSX.El
       >
         <div ref={contenedor} className="contenedor-grafica" />
       </div>
-      {puntos.length > 0 && (
+      {propensiones.length > 0 && (
         <div className={invalido ? 'tabla-desactualizada' : undefined}>
           <div className="tabla-perfil-contenedor">
             <table>
-              <caption>Valores del perfil de hidrofobicidad, ventana de {ventanaMostrada} residuos</caption>
-              <thead><tr><th scope="col">Residuo central</th><th scope="col">Hidropatía</th></tr></thead>
+              <caption>Hidropatía y propensiones por residuo, ventana de {ventanaMostrada} residuos</caption>
+              <thead><tr><th scope="col">Posición</th><th scope="col">Residuo</th><th scope="col">Hidropatía</th><th scope="col">Hélice</th><th scope="col">Lámina</th><th scope="col">Giro</th></tr></thead>
               <tbody>
-                {filas.map((punto) => (
-                  <tr key={punto.posicion}>
-                    <th scope="row">{punto.posicion}</th>
-                    <td>{FORMATO_VALOR.format(punto.valor)}</td>
+                {filas.map((fila) => (
+                  <tr key={fila.posicion}>
+                    <th scope="row">{fila.posicion}</th>
+                    <td>{fila.residuo}</td>
+                    <td>{hidropatiaPorResiduo.has(fila.posicion)
+                      ? FORMATO_VALOR.format(hidropatiaPorResiduo.get(fila.posicion) ?? 0)
+                      : <span aria-label="Sin ventana completa">—</span>}</td>
+                    <td>{FORMATO_VALOR.format(fila.helice)}</td>
+                    <td>{FORMATO_VALOR.format(fila.lamina)}</td>
+                    <td>{FORMATO_VALOR.format(fila.giro)}</td>
                   </tr>
                 ))}
               </tbody>

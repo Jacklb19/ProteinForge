@@ -3,6 +3,7 @@
 import { dibujarPerfil } from './dibujarPerfil';
 import type { RespuestaPerfil, SolicitudPerfil } from './mensajesPerfil';
 import { calcularPerfil } from './perfil';
+import { calcularPropensiones } from './chouFasman';
 
 const contexto = self as DedicatedWorkerGlobalScope;
 let lienzo: OffscreenCanvas | null = null;
@@ -18,6 +19,7 @@ contexto.onmessage = (evento: MessageEvent<SolicitudPerfil>) => {
   try {
     estiloGrafica = solicitud.estilo;
     const puntos = calcularPerfil(solicitud.secuencia, solicitud.ventana);
+    const propensiones = calcularPropensiones(solicitud.secuencia);
     if (lienzo) {
       dibujarPerfil(
         lienzo,
@@ -29,7 +31,7 @@ contexto.onmessage = (evento: MessageEvent<SolicitudPerfil>) => {
         estiloGrafica,
       );
     }
-    const respuesta: RespuestaPerfil = { id: solicitud.id, puntos };
+    const respuesta: RespuestaPerfil = { id: solicitud.id, puntos, propensiones };
     contexto.postMessage(respuesta);
   } catch (error) {
     const respuesta: RespuestaPerfil = {

@@ -37,6 +37,7 @@ describe('Worker del perfil', () => {
     const respuesta = contexto.postMessage.mock.calls[0]?.[0] as RespuestaPerfil;
     expect(respuesta.id).toBe(7);
     expect(respuesta.puntos).toHaveLength(1);
+    expect(respuesta.propensiones).toHaveLength(9);
     expect(respuesta.puntos?.[0]?.posicion).toBe(5);
     expect(dibujo.strokeStyle).toBe('blue');
   });
