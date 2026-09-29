@@ -78,7 +78,7 @@ p { margin-top: var(--space-copy); }
   position: absolute;
   left: 0;
   width: 100%;
-  height: var(--height-fasta-row);
+  height: var(--height-fasta-row-effective, var(--height-fasta-row-default));
   display: flex;
   justify-content: space-between;
   align-items: center;

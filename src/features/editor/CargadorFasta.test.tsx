@@ -29,7 +29,11 @@ function prepararHilo(): Array<{
   return instancias;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  document.documentElement.style.removeProperty('--height-fasta-row');
+  document.documentElement.style.removeProperty('--height-fasta-row-default');
+});
 
 describe('CargadorFasta', () => {
   it('recibe entradas del Worker y permite elegir una con teclado', () => {
@@ -73,6 +77,33 @@ describe('CargadorFasta', () => {
     });
     expect(screen.getAllByRole('option').length).toBeLessThan(20);
     expect(screen.getByText(/1000 entradas encontradas/i)).toBeInTheDocument();
+  });
+
+  it.each([
+    ['0px', '44px', '44px'],
+    ['NaN', '44px', '44px'],
+    ['', '44px', '44px'],
+    ['', '', '1px'],
+  ])('limita las opciones con altura CSS %s y respaldo %s', (valor, respaldo, esperado) => {
+    document.documentElement.style.setProperty('--height-fasta-row', valor);
+    document.documentElement.style.setProperty('--height-fasta-row-default', respaldo);
+    const instancias = prepararHilo();
+    render(<EditorPage />);
+    fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
+      target: { files: [new File(['>uno\nAC'], 'altura.fa')] },
+    });
+    const entradas = Array.from({ length: 1000 }, (_, indice) => ({
+      numero: indice + 1,
+      encabezado: `entrada ${String(indice + 1)}`,
+      secuencia: 'AC',
+      posicionesInvalidas: [],
+    }));
+    act(() => {
+      instancias[0]?.onmessage?.(new MessageEvent('message', { data: { tipo: 'entradas', entradas } }));
+    });
+    const lista = screen.getByRole('listbox', { name: /entradas FASTA/i });
+    expect(lista.style.getPropertyValue('--height-fasta-row-effective')).toBe(esperado);
+    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(10);
   });
 
   it('muestra explícitamente los errores del Worker', () => {

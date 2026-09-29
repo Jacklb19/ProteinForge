@@ -36,5 +36,6 @@
   --width-page-max: 1000px;
   --height-editor: 18rem;
   --height-fasta-list: 16.5rem;
-  --height-fasta-row: 44px;
+  --height-fasta-row-default: 44px;
+  --height-fasta-row: var(--height-fasta-row-default);
 }
