@@ -33,7 +33,7 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
   useEffect(() => () => { worker.current?.terminate(); }, []);
   useLayoutEffect(() => {
     const container = list.current;
-    const row = container?.querySelector<HTMLElement>('.entrada-fasta');
+    const row = container?.querySelector<HTMLElement>('.fasta-entry');
     if (!container || !row) return;
     const measuredRowHeight = row.getBoundingClientRect().height;
     const measuredListHeight = container.getBoundingClientRect().height;
@@ -111,11 +111,11 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
   const end = Math.min(entries.length, start + count);
 
   return (
-    <section aria-labelledby="titulo-fasta">
-      <h2 id="titulo-fasta">Cargar FASTA</h2>
-      <label htmlFor="archivo-fasta">Archivo FASTA de hasta 5 MB</label>
+    <section aria-labelledby="fasta-title">
+      <h2 id="fasta-title">Cargar FASTA</h2>
+      <label htmlFor="fasta-file">Archivo FASTA de hasta 5 MB</label>
       <input
-        id="archivo-fasta"
+        id="fasta-file"
         type="file"
         accept=".fa,.faa,.fasta,.fsa,text/plain"
         onChange={(event) => {
@@ -127,11 +127,11 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
       {entries.length > 0 && (
         <div
           ref={list}
-          className="lista-fasta"
+          className="fasta-list"
           role="listbox"
           aria-label="Entradas FASTA"
           aria-activedescendant={selection !== null && selection >= start && selection < end
-            ? `entrada-fasta-${String(selection)}` : undefined}
+            ? `fasta-entry-${String(selection)}` : undefined}
           tabIndex={0}
           style={{ '--height-fasta-row-effective': `${String(tokenHeight.pixels)}px` } as React.CSSProperties}
           onScroll={(event) => { setScrollOffset(event.currentTarget.scrollTop); }}
@@ -143,13 +143,13 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
             }
           }}
         >
-          <div className="lista-fasta-contenido" style={{ height: `calc(var(--height-fasta-row-effective) * ${String(entries.length)})` }}>
+          <div className="fasta-list-content" style={{ height: `calc(var(--height-fasta-row-effective) * ${String(entries.length)})` }}>
             {entries.slice(start, end).map((entry, localOffset) => {
               const index = start + localOffset;
               return (
                 <button
-                  className="entrada-fasta"
-                  id={`entrada-fasta-${String(index)}`}
+                  className="fasta-entry"
+                  id={`fasta-entry-${String(index)}`}
                   key={entry.number}
                   type="button"
                   role="option"

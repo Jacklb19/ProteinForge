@@ -62,12 +62,12 @@ describe('accessible hydropathy profile', () => {
     });
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(5);
-    expect(document.querySelector('canvas.grafica-hidrofobicidad')?.parentElement?.parentElement).toHaveAttribute('hidden');
+    expect(document.querySelector('canvas.hydropathy-chart')?.parentElement?.parentElement).toHaveAttribute('hidden');
 
     rerender(<HydropathyProfile text="ACDEFGHIKLMNPQRSTVWY" />);
-    const chartContainer = document.querySelector('canvas.grafica-hidrofobicidad')?.parentElement?.parentElement;
+    const chartContainer = document.querySelector('canvas.hydropathy-chart')?.parentElement?.parentElement;
     expect(chartContainer).not.toHaveAttribute('hidden');
-    expect(chartContainer).toHaveClass('grafica-esperando');
+    expect(chartContainer).toHaveClass('pending-chart');
     const request = lastRequest(worker);
     expect(request.windowSize).toBe(9);
     act(() => {
@@ -108,7 +108,7 @@ describe('accessible hydropathy profile', () => {
     expect(worker.postMessage).toHaveBeenCalledTimes(messagesBefore);
     expect(screen.getByText(/perfil y las propensiones están desactualizados/i)).toBeInTheDocument();
     expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getByRole('table').parentElement?.parentElement).toHaveClass('tabla-desactualizada');
+    expect(screen.getByRole('table').parentElement?.parentElement).toHaveClass('stale-table');
   });
 
   it('keeps the accessible table when canvas transfer is unavailable', () => {

@@ -58,7 +58,7 @@ describe('descriptors in the editor', () => {
     expect(worker.postMessage).toHaveBeenCalledTimes(1);
     expect(within(panel).getByText(/resultados están desactualizados/i)).toBeInTheDocument();
     expect(within(panel).getByText(/Da$/).textContent).toBe(previousMass);
-    expect(panel.querySelector('dl')).toHaveClass('descriptores-desactualizados');
+    expect(panel.querySelector('dl')).toHaveClass('stale-descriptors');
   });
 
   it('excludes additional residues and shows their count', () => {

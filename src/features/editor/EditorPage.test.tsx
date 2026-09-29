@@ -14,7 +14,7 @@ describe('EditorPage', () => {
     act(() => { vi.advanceTimersByTime(50); });
     expect(editor).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByText('Posiciones inválidas: 3.')).toBeInTheDocument();
-    expect(document.querySelectorAll('mark.residuo-invalido')).toHaveLength(1);
+    expect(document.querySelectorAll('mark.invalid-residue')).toHaveLength(1);
   });
 
   it('updates positions after pasting and correcting the sequence', () => {

@@ -52,7 +52,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
       instance.onerror = () => { setError('El hilo de la gráfica dejó de responder.'); };
 
       const canvas = document.createElement('canvas');
-      canvas.className = 'grafica-hidrofobicidad';
+      canvas.className = 'hydropathy-chart';
       canvas.setAttribute('aria-hidden', 'true');
       container.current?.append(canvas);
       canvasRef.current = canvas;
@@ -116,11 +116,11 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
   const rows = propensities.slice(currentPage * ROWS_PER_PAGE, (currentPage + 1) * ROWS_PER_PAGE);
 
   return (
-    <section aria-labelledby="titulo-perfil" className="panel-perfil">
-      <h2 id="titulo-perfil">Perfil de hidrofobicidad</h2>
-      <label htmlFor="ventana-hidropatia">Ventana de residuos</label>
+    <section aria-labelledby="profile-title" className="profile-panel">
+      <h2 id="profile-title">Perfil de hidrofobicidad</h2>
+      <label htmlFor="hydropathy-window">Ventana de residuos</label>
       <select
-        id="ventana-hidropatia"
+        id="hydropathy-window"
         value={windowSize}
         onChange={(event) => { setWindowSize(Number(event.target.value) as HydropathyWindow); }}
       >
@@ -135,7 +135,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         <a href="https://web.expasy.org/protscale/pscale/beta-sheetFasman.html">lámina</a> y{' '}
         <a href="https://web.expasy.org/protscale/pscale/beta-turnFasman.html">giro</a>.
       </p>
-      <p id="estado-perfil" role="status" aria-live="polite">
+      <p id="profile-status" role="status" aria-live="polite">
         {invalid && 'El perfil y las propensiones están desactualizados. Corrige las posiciones inválidas para recalcular.'}
         {tooShort && `Se necesitan al menos ${String(windowSize)} residuos para mostrar la gráfica; las propensiones siguen disponibles.`}
         {!invalid && !tooShort && validation.sequence.length === 0 && 'Escribe una secuencia válida para mostrar el perfil.'}
@@ -144,14 +144,14 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         {chartUnavailable && current && !tooShort && 'Este navegador no permite transferir el lienzo; consulta los valores en la tabla.'}
       </p>
       <div
-        className={invalid ? 'grafica-desactualizada' : !current ? 'grafica-esperando' : undefined}
+        className={invalid ? 'stale-chart' : !current ? 'pending-chart' : undefined}
         hidden={tooShort || validation.sequence.length === 0 || chartUnavailable}
       >
-        <div ref={container} className="contenedor-grafica" />
+        <div ref={container} className="chart-container" />
       </div>
       {propensities.length > 0 && (
-        <div className={invalid ? 'tabla-desactualizada' : undefined}>
-          <div className="tabla-perfil-contenedor">
+        <div className={invalid ? 'stale-table' : undefined}>
+          <div className="profile-table-container">
             <table>
               <caption>Hidropatía y propensiones por residuo, ventana de {displayedWindow} residuos</caption>
               <thead><tr><th scope="col">Posición</th><th scope="col">Residuo</th><th scope="col">Hidropatía</th><th scope="col">Hélice</th><th scope="col">Lámina</th><th scope="col">Giro</th></tr></thead>
@@ -174,7 +174,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
             </table>
           </div>
           {totalPages > 1 && (
-            <nav aria-label="Páginas de valores del perfil" className="paginas-perfil">
+            <nav aria-label="Páginas de valores del perfil" className="profile-pages">
               <button type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>Anterior</button>
               <span aria-live="polite">Página {currentPage + 1} de {totalPages}</span>
               <button type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>Siguiente</button>

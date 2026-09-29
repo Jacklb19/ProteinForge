@@ -39,7 +39,7 @@ export function EditorPage(): React.JSX.Element {
   for (const position of invalidPositions) {
     if (position > start) fragments.push(text.slice(start, position));
     fragments.push(
-      <mark key={position} className="residuo-invalido">
+      <mark key={position} className="invalid-residue">
         {text[position]}
       </mark>,
     );
@@ -57,14 +57,14 @@ export function EditorPage(): React.JSX.Element {
         <h1>Editor de secuencias</h1>
         <p>Escribe o pega una secuencia de aminoácidos. Se aceptan los veinte residuos estándar y U, O, B, Z o X con aviso; se quita un * final.</p>
       </header>
-      <section aria-labelledby="titulo-secuencia">
-        <h2 id="titulo-secuencia">Secuencia activa</h2>
-        <label htmlFor="secuencia">Secuencia de aminoácidos</label>
-        <div className="editor-capa">
-          <pre aria-hidden="true" className="editor-resaltado" ref={highlight}>{fragments}{'\n'}</pre>
+      <section aria-labelledby="sequence-title">
+        <h2 id="sequence-title">Secuencia activa</h2>
+        <label htmlFor="sequence-input">Secuencia de aminoácidos</label>
+        <div className="editor-layer">
+          <pre aria-hidden="true" className="editor-highlight" ref={highlight}>{fragments}{'\n'}</pre>
           <textarea
-            id="secuencia"
-            aria-describedby="ayuda-secuencia estado-secuencia"
+            id="sequence-input"
+            aria-describedby="sequence-help sequence-status"
             aria-invalid={invalidPositions.length > 0}
             autoCapitalize="characters"
             spellCheck={false}
@@ -78,8 +78,8 @@ export function EditorPage(): React.JSX.Element {
             }}
           />
         </div>
-        <p id="ayuda-secuencia">Las minúsculas se aceptan; los saltos de línea separan bloques de secuencia.</p>
-        <p id="estado-secuencia" role="status" aria-live="polite">{description}</p>
+        <p id="sequence-help">Las minúsculas se aceptan; los saltos de línea separan bloques de secuencia.</p>
+        <p id="sequence-status" role="status" aria-live="polite">{description}</p>
         {additional > 0 && <p role="note">La secuencia contiene {additional} residuo{additional === 1 ? '' : 's'} U, O, B, Z o X. Los descriptores los excluyen y las ventanas del perfil que los contienen muestran «sin dato».</p>}
       </section>
       <FastaLoader onSelect={(entry: FastaEntry) => {

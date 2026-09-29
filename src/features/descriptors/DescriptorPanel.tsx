@@ -8,8 +8,8 @@ export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.
   const { result, status, error, excluded } = data;
   const stale = result !== null && status !== 'current';
   return (
-    <section aria-labelledby="titulo-descriptores" className="panel-descriptores">
-      <h2 id="titulo-descriptores">Descriptores fisicoquímicos</h2>
+    <section aria-labelledby="descriptors-title" className="descriptor-panel">
+      <h2 id="descriptors-title">Descriptores fisicoquímicos</h2>
       {excluded > 0 && <p role="note">{excluded} residuo{excluded === 1 ? '' : 's'} U, O, B, Z o X excluido{excluded === 1 ? '' : 's'} de los descriptores.</p>}
       <p role="status" aria-live="polite">
         {status === 'invalid' && 'Los resultados están desactualizados. Corrige las posiciones inválidas para recalcular.'}
@@ -18,7 +18,7 @@ export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.
         {status === 'empty' && (excluded > 0 ? 'No hay residuos estándar para calcular descriptores.' : 'Escribe una secuencia válida para iniciar el análisis.')}
       </p>
       {result && (
-        <dl className={stale ? 'descriptores-desactualizados' : undefined}>
+        <dl className={stale ? 'stale-descriptors' : undefined}>
           <div><dt>Masa molecular</dt><dd>{TWO_DECIMALS.format(result.massDa)} Da</dd></div>
           <div><dt>Punto isoeléctrico</dt><dd>{TWO_DECIMALS.format(result.isoelectricPoint)}</dd></div>
           <div><dt>Índice de inestabilidad</dt><dd>{TWO_DECIMALS.format(result.instabilityIndex)}</dd></div>

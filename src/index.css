@@ -29,9 +29,9 @@ p { margin-top: var(--space-copy); }
 .editor-page { display: grid; gap: var(--space-large); }
 .editor-page section { display: grid; gap: var(--space-small); }
 .editor-page label { font-weight: var(--font-weight-label); }
-.editor-capa { position: relative; min-height: var(--height-editor); }
-.editor-capa textarea,
-.editor-resaltado {
+.editor-layer { position: relative; min-height: var(--height-editor); }
+.editor-layer textarea,
+.editor-highlight {
   width: 100%;
   height: var(--height-editor);
   margin: var(--space-none);
@@ -48,7 +48,7 @@ p { margin-top: var(--space-copy); }
   overflow: auto;
   tab-size: var(--tab-size-sequence);
 }
-.editor-resaltado {
+.editor-highlight {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -56,7 +56,7 @@ p { margin-top: var(--space-copy); }
   color: var(--color-text);
   scrollbar-width: none;
 }
-.editor-capa textarea {
+.editor-layer textarea {
   position: relative;
   z-index: 1;
   display: block;
@@ -65,16 +65,16 @@ p { margin-top: var(--space-copy); }
   caret-color: var(--color-text);
   background: transparent;
 }
-.editor-capa textarea::selection { background: var(--color-selection); }
-.residuo-invalido { color: var(--color-invalid-text); background: var(--color-invalid-surface); text-decoration: underline; }
-.lista-fasta {
+.editor-layer textarea::selection { background: var(--color-selection); }
+.invalid-residue { color: var(--color-invalid-text); background: var(--color-invalid-surface); text-decoration: underline; }
+.fasta-list {
   height: var(--height-fasta-list);
   overflow-y: auto;
   border: var(--border-width-control) solid var(--color-border);
   border-radius: var(--border-radius-control);
 }
-.lista-fasta-contenido { position: relative; }
-.entrada-fasta {
+.fasta-list-content { position: relative; }
+.fasta-entry {
   position: absolute;
   left: 0;
   width: 100%;
@@ -91,27 +91,27 @@ p { margin-top: var(--space-copy); }
   text-align: left;
   cursor: pointer;
 }
-.entrada-fasta span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.entrada-fasta[aria-selected='true'] { background: var(--color-selected-surface); }
+.fasta-entry span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.fasta-entry[aria-selected='true'] { background: var(--color-selected-surface); }
 
-.panel-descriptores dl { display: grid; gap: var(--space-small); }
-.panel-descriptores dl > div { display: flex; gap: var(--space-medium); }
-.panel-descriptores dt { font-weight: var(--font-weight-label); }
-.descriptores-desactualizados { color: var(--color-muted-text); }
+.descriptor-panel dl { display: grid; gap: var(--space-small); }
+.descriptor-panel dl > div { display: flex; gap: var(--space-medium); }
+.descriptor-panel dt { font-weight: var(--font-weight-label); }
+.stale-descriptors { color: var(--color-muted-text); }
 
-.panel-perfil { display: grid; gap: var(--space-small); }
-.panel-perfil select { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
-.contenedor-grafica { width: var(--width-full); }
-.grafica-hidrofobicidad { display: block; width: var(--width-full); height: var(--height-hydropathy-chart); font-family: var(--font-ui); font-size: var(--font-size-chart); font-weight: var(--font-weight-regular); }
-.grafica-desactualizada, .tabla-desactualizada { color: var(--color-muted-text); }
-.grafica-desactualizada { filter: var(--filter-stale-chart); }
-.grafica-esperando { visibility: hidden; }
-.tabla-perfil-contenedor { overflow-x: auto; }
-.tabla-perfil-contenedor table { width: var(--width-full); border-collapse: collapse; }
-.tabla-perfil-contenedor th, .tabla-perfil-contenedor td { padding: var(--space-small); border-bottom: var(--border-width-divider) solid var(--color-border-subtle); text-align: left; }
-.paginas-perfil { display: flex; align-items: center; gap: var(--space-medium); }
-.paginas-perfil button { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
-.paginas-perfil button:disabled { color: var(--color-muted-text); }
+.profile-panel { display: grid; gap: var(--space-small); }
+.profile-panel select { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
+.chart-container { width: var(--width-full); }
+.hydropathy-chart { display: block; width: var(--width-full); height: var(--height-hydropathy-chart); font-family: var(--font-ui); font-size: var(--font-size-chart); font-weight: var(--font-weight-regular); }
+.stale-chart, .stale-table { color: var(--color-muted-text); }
+.stale-chart { filter: var(--filter-stale-chart); }
+.pending-chart { visibility: hidden; }
+.profile-table-container { overflow-x: auto; }
+.profile-table-container table { width: var(--width-full); border-collapse: collapse; }
+.profile-table-container th, .profile-table-container td { padding: var(--space-small); border-bottom: var(--border-width-divider) solid var(--color-border-subtle); text-align: left; }
+.profile-pages { display: flex; align-items: center; gap: var(--space-medium); }
+.profile-pages button { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
+.profile-pages button:disabled { color: var(--color-muted-text); }
 
 textarea:focus-visible,
 button:focus-visible,
