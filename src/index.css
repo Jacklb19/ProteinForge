@@ -29,7 +29,9 @@ body {
 h1 { font-size: var(--font-size-title); }
 h2 { font-size: var(--font-size-section); }
 p { margin-top: var(--space-copy); }
-a { color: var(--color-link); }
+a { display: inline-flex; align-items: center; min-height: var(--size-touch-target); color: var(--color-link); }
+button, select, input[type='file'] { min-height: var(--size-touch-target); }
+.editor-page > *, .profile-panel > *, .settings-page > * { min-width: var(--space-none); }
 
 .editor-page { display: grid; gap: var(--space-large); }
 .editor-page section { display: grid; gap: var(--space-small); }
