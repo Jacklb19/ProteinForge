@@ -25,6 +25,7 @@ body {
 h1 { font-size: var(--font-size-title); }
 h2 { font-size: var(--font-size-section); }
 p { margin-top: var(--space-copy); }
+a { color: var(--color-link); }
 
 .editor-page { display: grid; gap: var(--space-large); }
 .editor-page section { display: grid; gap: var(--space-small); }

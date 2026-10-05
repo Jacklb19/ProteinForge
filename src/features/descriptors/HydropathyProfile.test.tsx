@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import { HydropathyProfile } from './HydropathyProfile';
@@ -127,5 +127,15 @@ describe('accessible hydropathy profile', () => {
     });
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByText(/no permite transferir el lienzo/i)).toBeInTheDocument();
+  });
+
+  it('sends a fresh chart style when the theme changes', async () => {
+    render(<HydropathyProfile text="ACDEFGHIKLMNPQRSTVWY" />);
+    const worker = profileWorker();
+    const original = lastRequest(worker);
+    act(() => { document.documentElement.dataset.theme = 'dark'; });
+    await waitFor(() => { expect(lastRequest(worker).id).toBeGreaterThan(original.id); });
+    expect(lastRequest(worker).style).toBeDefined();
+    Reflect.deleteProperty(document.documentElement.dataset, 'theme');
   });
 });

@@ -5,6 +5,7 @@ import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import type { ProfilePoint, HydropathyWindow } from './profile';
 import type { ResiduePropensity } from './chouFasman';
 import { useTranslation } from '../../i18n';
+import { useThemeRevision } from '../../theme/useThemeRevision';
 
 const ROWS_PER_PAGE = 50;
 const VALUE_FORMAT = { minimumFractionDigits: 3, maximumFractionDigits: 3 } as const;
@@ -19,6 +20,7 @@ interface ReceivedProfile {
 /** Draws the profile off the main thread and presents its values in a table. */
 export function HydropathyProfile({ text }: { text: string }): React.JSX.Element {
   const { t, formatNumber, locale } = useTranslation();
+  const themeRevision = useThemeRevision();
   const [windowSize, setWindowSize] = useState<HydropathyWindow>(9);
   const [profile, setProfile] = useState<ReceivedProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
     send();
     window.addEventListener('resize', send);
     return () => { window.removeEventListener('resize', send); };
-  }, [validation, windowSize, locale]);
+  }, [validation, windowSize, locale, themeRevision]);
 
   const invalid = validation.invalidPositions.length > 0;
   const tooShort = !invalid && validation.sequence.length > 0 && validation.sequence.length < windowSize;

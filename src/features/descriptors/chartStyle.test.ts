@@ -15,24 +15,27 @@ function luminance(hex: string): number {
 
 function contrast(a: string, b: string): number {
   const first = luminance(a);
-  const segunda = luminance(b);
-  return (Math.max(first, segunda) + 0.05) / (Math.min(first, segunda) + 0.05);
+  const second = luminance(b);
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
 }
 
 function token(css: string, name: string): string {
   const match = css.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`));
-  if (!match?.[1]) throw new Error(`Falta el token ${name}.`);
+  if (!match?.[1]) throw new Error(`Missing token ${name}.`);
   return match[1];
 }
 
 describe('accessible chart styles', () => {
-  it('keeps AA contrast for text, data, and reference tokens', () => {
+  it.each(['--', '--dark-'] as const)('keeps AA contrast for palette %s', (prefix) => {
     const css = readFileSync(resolve('src/design-tokens.css'), 'utf8');
-    const surface = token(css, '--color-surface');
-    expect(contrast(token(css, '--color-text'), surface)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(token(css, '--color-muted-text'), surface)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(token(css, '--color-focus'), surface)).toBeGreaterThanOrEqual(3);
-    expect(contrast(token(css, '--color-border'), surface)).toBeGreaterThanOrEqual(3);
+    const color = (name: string) => token(css, `${prefix}color-${name}`);
+    const surface = color('surface');
+    expect(contrast(color('text'), surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(color('muted-text'), surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(color('focus'), surface)).toBeGreaterThanOrEqual(3);
+    expect(contrast(color('link'), surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(color('border'), surface)).toBeGreaterThanOrEqual(3);
+    expect(contrast(color('invalid-text'), color('invalid-surface'))).toBeGreaterThanOrEqual(4.5);
   });
 
   it('reads CSS colors and typography on the main thread', () => {
