@@ -21,6 +21,10 @@ body {
   margin: var(--space-none) auto;
   padding: var(--space-large) var(--space-medium) var(--space-page-bottom);
 }
+.site-navigation { display: flex; flex-wrap: wrap; gap: var(--space-medium); margin-bottom: var(--space-large); }
+.site-navigation a { display: inline-flex; align-items: center; min-height: var(--size-touch-target); padding: var(--space-small); }
+.settings-page { display: grid; gap: var(--space-small); }
+.settings-page select { min-height: var(--size-touch-target); padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
 
 h1 { font-size: var(--font-size-title); }
 h2 { font-size: var(--font-size-section); }

@@ -12,3 +12,13 @@ test('light and dark themes pass WCAG AA axe checks', async ({ page }) => {
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
   }
 });
+
+test('settings persist language and theme after reload', async ({ page }) => {
+  await page.goto('/settings');
+  await page.getByRole('combobox', { name: 'Tema' }).selectOption('dark');
+  await page.getByRole('combobox', { name: 'Idioma' }).selectOption('en');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.locator('#settings-language')).toHaveValue('en');
+});

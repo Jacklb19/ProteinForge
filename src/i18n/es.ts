@@ -69,6 +69,7 @@ export const spanish = {
   'profile.pageCount': 'Página {{page}} de {{total}}',
   'profile.next': 'Siguiente',
   'nav.editor': 'Editor',
+  'nav.main': 'Navegación principal',
   'nav.alignment': 'Alineamiento',
   'nav.settings': 'Ajustes',
   'settings.title': 'Ajustes',

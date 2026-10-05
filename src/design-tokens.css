@@ -57,6 +57,7 @@
   --height-fasta-row-default: 44px;
   --height-fasta-row: var(--height-fasta-row-default);
   --height-hydropathy-chart: 18rem;
+  --size-touch-target: 44px;
   --space-chart-inner: 36px;
   --filter-stale-chart: grayscale(1);
 }
