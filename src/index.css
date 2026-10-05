@@ -119,6 +119,17 @@ button, select, input[type='file'] { min-height: var(--size-touch-target); }
 .profile-pages { display: flex; align-items: center; gap: var(--space-medium); }
 .profile-pages button { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
 .profile-pages button:disabled { color: var(--color-muted-text); }
+.alignment-page { display: grid; gap: var(--space-small); }
+.alignment-page textarea { width: var(--width-full); min-height: var(--height-fasta-list); padding: var(--space-control); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); font-family: var(--font-sequence); }
+.alignment-page select, .alignment-actions button { min-height: var(--size-touch-target); padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
+.alignment-actions { display: flex; flex-wrap: wrap; gap: var(--space-medium); }
+.alignment-viewport { height: var(--height-alignment-viewport); overflow: auto; border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); }
+.alignment-content { position: relative; min-width: max-content; }
+.alignment-block { position: absolute; left: var(--space-none); width: var(--width-full); height: var(--height-alignment-block); padding: var(--space-small); }
+.alignment-block p { margin: var(--space-none); }
+.alignment-block pre { margin: var(--space-none); font-family: var(--font-sequence); font-size: var(--font-size-alignment); line-height: var(--line-height-base); }
+.alignment-identical { color: var(--color-text); background: var(--color-selected-surface); }
+.alignment-similar { text-decoration: underline; text-decoration-color: var(--color-link); }
 
 textarea:focus-visible,
 button:focus-visible,
