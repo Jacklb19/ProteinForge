@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 import { drawProfile } from './drawProfile';
+import { translate } from '../../i18n/translate';
 import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import { calculateProfile } from './profile';
 import { calculatePropensities } from './chouFasman';
@@ -36,7 +37,7 @@ context.onmessage = (event: MessageEvent<ProfileRequest>) => {
   } catch (error) {
     const response: ProfileResponse = {
       id: request.id,
-      error: error instanceof Error ? error.message : 'No se pudo generar el perfil.',
+      error: error instanceof Error ? error.message : translate('es', 'errors.profileFailed'),
     };
     context.postMessage(response);
   }

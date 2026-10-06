@@ -100,6 +100,9 @@ button, select, input[type='file'] { min-height: var(--size-touch-target); }
 }
 .fasta-entry span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .fasta-entry[aria-selected='true'] { background: var(--color-selected-surface); }
+.file-control { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-medium); }
+.file-control button { padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); background: var(--color-surface); color: var(--color-text); }
+.file-control span { overflow-wrap: anywhere; }
 
 .descriptor-panel dl { display: grid; gap: var(--space-small); }
 .descriptor-panel dl > div { display: flex; gap: var(--space-medium); }

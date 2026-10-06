@@ -1,4 +1,5 @@
 import { DIPEPTIDE_WEIGHTS } from './dipeptides';
+import { translate } from '../../i18n/translate';
 
 /** Results calculated from a complete sequence of twenty standard amino acids. */
 export interface Descriptors {
@@ -66,7 +67,7 @@ function isoelectricPoint(sequence: string, counts: Readonly<Record<string, numb
 /** Calculates RF-03 descriptors and rejects empty or invalid inputs. */
 export function calculateDescriptors(sequence: string): Descriptors {
   if (sequence.length === 0 || /[^ACDEFGHIKLMNPQRSTVWY]/.test(sequence)) {
-    throw new RangeError('La secuencia debe contener solo aminoácidos estándar en mayúsculas.');
+    throw new RangeError(translate('es', 'errors.standardResidues'));
   }
 
   const counts: Record<string, number> = {};

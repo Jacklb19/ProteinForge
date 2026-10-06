@@ -23,13 +23,24 @@ function visibleLiteral(node: ts.Node): string | null {
   return null;
 }
 
-function untranslatedText(file: string): string[] {
-  const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+function untranslatedText(file: string, content = readFileSync(file, 'utf8')): string[] {
+  const source = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const violations: string[] = [];
-  function inspectExpression(node: ts.Expression) {
+  const initializers = new Map<string, ts.Expression>();
+  function collect(node: ts.Node) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+      initializers.set(node.name.text, node.initializer);
+    }
+    ts.forEachChild(node, collect);
+  }
+  collect(source);
+  function inspectExpression(node: ts.Expression, seen = new Set<string>()) {
     const value = visibleLiteral(node);
     if (value) violations.push(value);
-    if (ts.isConditionalExpression(node)) {
+    if (ts.isIdentifier(node) && !seen.has(node.text)) {
+      const initializer = initializers.get(node.text);
+      if (initializer) inspectExpression(initializer, new Set([...seen, node.text]));
+    } else if (ts.isConditionalExpression(node)) {
       inspectExpression(node.whenTrue);
       inspectExpression(node.whenFalse);
     } else if (ts.isBinaryExpression(node)) {
@@ -51,6 +62,9 @@ function untranslatedText(file: string): string[] {
       && ['aria-label', 'title', 'placeholder', 'alt'].includes(node.name.text)) {
       const value = node.initializer && visibleLiteral(node.initializer);
       if (value) violations.push(value);
+      if (node.initializer && ts.isJsxExpression(node.initializer) && node.initializer.expression) {
+        inspectExpression(node.initializer.expression);
+      }
     }
     if (ts.isJsxExpression(node) && !ts.isJsxAttribute(node.parent) && node.expression) {
       inspectExpression(node.expression);
@@ -76,6 +90,11 @@ describe('typed translations', () => {
     const violations = componentFiles(root).flatMap((file) =>
       untranslatedText(file).map((value) => `${relative(root, file)}: ${value}`));
     expect(violations).toEqual([]);
+  });
+
+  it('detects visible literals hidden in variables and attribute expressions', () => {
+    const source = "const label = 'Untranslated'; const view = <button aria-label={'Raw label'}>{label}</button>;";
+    expect(untranslatedText('fixture.tsx', source)).toEqual(['Raw label', 'Untranslated']);
   });
 
   it('formats numbers according to the selected language', () => {

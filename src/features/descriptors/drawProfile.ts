@@ -1,4 +1,5 @@
 import type { ChartStyle } from './profileMessages';
+import { translate } from '../../i18n/translate';
 import type { ProfilePoint, HydropathyWindow } from './profile';
 
 /** Scientific reference lines accompanying the curve. */
@@ -17,7 +18,7 @@ export function drawProfile(
   style: ChartStyle,
 ): void {
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('No se pudo iniciar el contexto 2D de la gráfica.');
+  if (!context) throw new Error(translate('es', 'errors.canvasContext'));
   const numberFormat = new Intl.NumberFormat(style.locale === 'es' ? 'es-CO' : 'en-US');
   canvas.width = Math.max(1, Math.round(width * scale));
   canvas.height = Math.max(1, Math.round(height * scale));

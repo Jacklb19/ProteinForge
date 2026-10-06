@@ -1,4 +1,5 @@
 import { HYDROPATHY } from './descriptors';
+import { translate } from '../../i18n/translate';
 
 /** Supported Kyte–Doolittle windows, excluding incomplete edge windows. */
 export type HydropathyWindow = 9 | 19;
@@ -12,10 +13,10 @@ export interface ProfilePoint {
 /** Calculates equally weighted complete-window means as ProtScale does. */
 export function calculateProfile(sequence: string, windowSize: HydropathyWindow): ProfilePoint[] {
   if (sequence.length === 0 || /[^ACDEFGHIKLMNPQRSTVWYUOBZX]/.test(sequence)) {
-    throw new RangeError('La secuencia contiene caracteres no admitidos.');
+    throw new RangeError(translate('es', 'errors.invalidResidues'));
   }
   if (![9, 19].includes(windowSize)) {
-    throw new RangeError('La ventana debe ser 9 o 19.');
+    throw new RangeError(translate('es', 'errors.invalidWindow'));
   }
   if (sequence.length < windowSize) return [];
 

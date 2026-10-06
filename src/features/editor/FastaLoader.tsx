@@ -17,12 +17,14 @@ type FastaMessage =
 export function FastaLoader({ onSelect }: Props): React.JSX.Element {
   const { t, formatNumber, formatUnit } = useTranslation();
   const [entries, setEntries] = useState<FastaEntry[]>([]);
+  const [fileName, setFileName] = useState('');
   const [statusKey, setStatusKey] = useState<TranslationKey>('fasta.empty');
   const [errorMessage, setErrorMessage] = useState('');
   const [selection, setSelection] = useState<number | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [dimensions, setDimensions] = useState({ row: 0, list: 0 });
   const worker = useRef<Worker | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const styles = window.getComputedStyle(document.documentElement);
   const tokenHeight = resolveRowHeight(
@@ -66,6 +68,7 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
 
   const loadFile = (file: File | undefined): void => {
     if (!file) return;
+    setFileName(file.name);
     worker.current?.terminate();
     setEntries([]);
     setSelection(null);
@@ -121,6 +124,8 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
       <label htmlFor="fasta-file">{t('fasta.fileLabel', { limit: formatUnit(5, 'megabyte') })}</label>
       <input
         id="fasta-file"
+        ref={fileInput}
+        hidden
         type="file"
         accept=".fa,.faa,.fasta,.fsa,text/plain"
         onChange={(event) => {
@@ -128,6 +133,10 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
           event.currentTarget.value = '';
         }}
       />
+      <div className="file-control">
+        <button type="button" onClick={() => { fileInput.current?.click(); }}>{t('fasta.chooseFile')}</button>
+        <span>{fileName ? t('fasta.selectedFile', { name: fileName }) : t('fasta.noFile')}</span>
+      </div>
       <p role="status" aria-live="polite">{t(statusKey, { message: errorMessage })} {entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''}</p>
       {entries.length > 0 && (
         <div

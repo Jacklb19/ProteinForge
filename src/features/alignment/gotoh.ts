@@ -1,4 +1,5 @@
 import blosum from './fixtures/blosum.json';
+import { translate } from '../../i18n/translate';
 
 /** Available substitution matrices for protein alignment. */
 export type MatrixName = 'BLOSUM45' | 'BLOSUM62' | 'BLOSUM80';
@@ -43,13 +44,13 @@ const STOP = 3;
 /** Maps selenocysteine and pyrrolysine only for alignment scoring. */
 export function normalizeForAlignment(sequence: string): { sequence: string; warnings: string[] } {
   const warnings: string[] = [];
-  if (sequence.includes('U')) warnings.push('U se puntúa como C.');
-  if (sequence.includes('O')) warnings.push('O se puntúa como K.');
+  if (sequence.includes('U')) warnings.push(translate('es', 'alignment.warningU'));
+  if (sequence.includes('O')) warnings.push(translate('es', 'alignment.warningO'));
   const normalized = sequence.replaceAll('U', 'C').replaceAll('O', 'K');
   if (Array.from(normalized).some((residue) => !ALPHABET.includes(residue))) {
-    throw new RangeError('La secuencia de alineamiento contiene caracteres no admitidos.');
+    throw new RangeError(translate('es', 'errors.invalidAlignmentResidues'));
   }
-  if (normalized.length === 0) throw new RangeError('Las dos secuencias deben contener residuos.');
+  if (normalized.length === 0) throw new RangeError(translate('es', 'errors.emptyAlignment'));
   return { sequence: normalized, warnings };
 }
 
@@ -139,7 +140,7 @@ export async function alignSequences(
   const matrix = options.matrix ?? 'BLOSUM62';
   const mode = options.mode ?? 'global';
   if (!['BLOSUM45', 'BLOSUM62', 'BLOSUM80'].includes(matrix) || !['global', 'local'].includes(mode)) {
-    throw new RangeError('Los parámetros de alineamiento no están admitidos.');
+    throw new RangeError(translate('es', 'errors.invalidAlignmentParameters'));
   }
   const a = normalizeForAlignment(first).sequence;
   const b = normalizeForAlignment(second).sequence;
@@ -205,7 +206,7 @@ export async function alignSequences(
     if (i % 64 === 0 || i === a.length) {
       options.onProgress?.(i / a.length);
       await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
-      if (options.isCancelled?.()) throw new Error('Alineamiento cancelado.');
+      if (options.isCancelled?.()) throw new Error(translate('es', 'alignment.cancelled'));
     }
   }
 

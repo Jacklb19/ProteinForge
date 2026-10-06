@@ -1,4 +1,5 @@
 import { validateSequence } from './sequence';
+import { translate } from '../../i18n/translate';
 
 export interface FastaEntry {
   number: number;
@@ -42,7 +43,7 @@ export class FastaParser {
     this.pendingLine = '';
     if (this.header !== null) entries.push(this.closeEntry());
     if (entries.length === 0 && this.entryNumber === 0) {
-      throw new Error('El archivo FASTA no contiene entradas.');
+      throw new Error(translate('es', 'errors.emptyFasta'));
     }
     return entries;
   }
@@ -51,14 +52,14 @@ export class FastaParser {
     this.lineNumber += 1;
     if (line.startsWith('>')) {
       const newHeader = line.slice(1).trim();
-      if (!newHeader) throw new Error(`La cabecera de la línea ${String(this.lineNumber)} está vacía.`);
+      if (!newHeader) throw new Error(translate('es', 'errors.emptyFastaHeader', { line: new Intl.NumberFormat('es-CO').format(this.lineNumber) }));
       const previous = this.header === null ? null : this.closeEntry();
       this.header = newHeader;
       return previous;
     }
     if (!line.trim()) return null;
     if (this.header === null) {
-      throw new Error(`Se esperaba una cabecera FASTA antes de la línea ${String(this.lineNumber)}.`);
+      throw new Error(translate('es', 'errors.missingFastaHeader', { line: new Intl.NumberFormat('es-CO').format(this.lineNumber) }));
     }
     this.parts.push(line);
     return null;
@@ -67,7 +68,7 @@ export class FastaParser {
   private closeEntry(): FastaEntry {
     const sequence = this.parts.join('').replace(/[a-z]/g, (character) => character.toUpperCase()).replace(/\*$/, '');
     if (!sequence) {
-      throw new Error(`La entrada «${String(this.header)}» no contiene secuencia.`);
+      throw new Error(translate('es', 'errors.emptyFastaEntry', { header: this.header ?? '' }));
     }
     this.entryNumber += 1;
     const entry = {

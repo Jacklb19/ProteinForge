@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { translate } from '../../i18n/translate';
 import { splitStandardResidues, validateSequence } from '../editor/sequence';
 import type { Descriptors } from './descriptors';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
@@ -40,9 +41,9 @@ export function useDescriptors(text: string): DescriptorState {
           setLastResult({ sequence: sentSequence.current, data: response.result });
         }
       };
-      instance.onerror = () => { setWorkerError('El hilo de cálculo dejó de responder.'); };
+      instance.onerror = () => { setWorkerError(translate('es', 'errors.descriptorWorkerStopped')); };
     } catch {
-      queueMicrotask(() => { setWorkerError('Este navegador no pudo iniciar el hilo de cálculo.'); });
+      queueMicrotask(() => { setWorkerError(translate('es', 'errors.descriptorWorkerStart')); });
     }
     return () => {
       worker.current?.terminate();

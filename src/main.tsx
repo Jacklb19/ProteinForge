@@ -7,7 +7,7 @@ import App from './App';
 const container = document.getElementById('root');
 
 if (!container) {
-  throw new Error('No se encontró el elemento raíz (#root) en el documento.');
+  throw new Error('The document root element (#root) is missing.');
 }
 
 createRoot(container).render(

@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 import { calculateDescriptors } from './descriptors';
+import { translate } from '../../i18n/translate';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
 
 const context = self as DedicatedWorkerGlobalScope;
@@ -13,7 +14,7 @@ context.onmessage = (event: MessageEvent<DescriptorRequest>) => {
   } catch (error) {
     const response: DescriptorResponse = {
       id,
-      error: error instanceof Error ? error.message : 'No se pudieron calcular los descriptores.',
+      error: error instanceof Error ? error.message : translate('es', 'descriptors.error'),
     };
     context.postMessage(response);
   }

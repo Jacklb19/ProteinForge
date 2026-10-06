@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 import { calculateTile } from './tile';
+import { translate } from '../../i18n/translate';
 import type { TileRequestMessage, TileResponseMessage } from './messages';
 
 const context = self as DedicatedWorkerGlobalScope;
@@ -16,7 +17,7 @@ context.onmessage = (event: MessageEvent<TileRequestMessage>) => {
   } catch (error) {
     const response: TileResponseMessage = {
       id: event.data.id,
-      error: error instanceof Error ? error.message : 'Falló una tesela del alineamiento.',
+      error: error instanceof Error ? error.message : translate('es', 'errors.tileFailed'),
     };
     context.postMessage(response);
   }
