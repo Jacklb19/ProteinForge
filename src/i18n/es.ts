@@ -1,5 +1,6 @@
 /** Complete Spanish catalog for currently implemented screens. */
 export const spanish = {
+  'visual.tools': 'Herramientas',
   'app.name': 'ProteinForge',
   'app.title': 'ProteinForge — Análisis de proteínas',
   'app.description': 'Análisis local de secuencias de proteínas.',

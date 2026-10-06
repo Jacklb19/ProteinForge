@@ -15,14 +15,31 @@ body {
   min-height: 100dvh;
 }
 
-#root {
-  width: 100%;
-  max-width: var(--width-page-max);
-  margin: var(--space-none) auto;
-  padding: var(--space-large) var(--space-medium) var(--space-page-bottom);
+#root { width: var(--width-full); max-width: var(--width-page-max); margin: var(--space-none) auto; }
+.workspace { display: grid; grid-template-columns: var(--width-sidebar) minmax(0, 1fr); min-height: 100dvh; }
+.site-header { display: flex; flex-direction: column; align-self: start; position: sticky; top: var(--space-none); height: 100dvh; padding: var(--space-panel) var(--space-medium); background: var(--color-surface); border-inline-end: var(--border-width-divider) solid var(--color-border-subtle); }
+.site-brand { display: flex; align-items: center; gap: var(--space-tight); font-size: var(--font-size-brand); font-weight: var(--font-weight-medium); letter-spacing: var(--letter-spacing-heading); }
+.brand-mark { width: var(--size-mark); height: var(--size-mark); flex-shrink: 0; fill: none; stroke: var(--color-accent); stroke-width: var(--stroke-icon); }
+.brand-residue { fill: var(--color-accent); stroke: var(--color-surface); }
+.navigation-label { margin-block: var(--space-large) var(--space-small); color: var(--color-muted-text); font-size: var(--font-size-caption); font-weight: var(--font-weight-label); letter-spacing: var(--letter-spacing-label); text-transform: uppercase; }
+.site-navigation { display: grid; gap: var(--space-tiny); }
+.site-navigation a { display: flex; align-items: center; gap: var(--space-small); min-height: var(--size-touch-target); padding: var(--space-small); border-radius: var(--border-radius-control); color: var(--color-muted-text); text-decoration: none; font-size: var(--font-size-small); font-weight: var(--font-weight-medium); }
+.site-navigation a:hover { color: var(--color-text); background: var(--color-page); }
+.site-navigation a[aria-current='page'] { color: var(--color-accent); background: var(--color-selected-surface); box-shadow: inset var(--decoration-width) var(--space-none) var(--color-accent); }
+.icon { width: var(--size-icon); height: var(--size-icon); flex-shrink: 0; stroke: currentColor; stroke-width: var(--stroke-icon); stroke-linecap: round; stroke-linejoin: round; }
+.workspace-note { margin-top: auto; padding-top: var(--space-panel); color: var(--color-muted-text); font-size: var(--font-size-small); border-top: var(--border-width-divider) solid var(--color-border-subtle); }
+.workspace-content { min-width: var(--space-none); padding: var(--space-large); }
+.page-heading { padding-bottom: var(--space-panel); border-bottom: var(--border-width-divider) solid var(--color-border-subtle); }
+.page-heading p { color: var(--color-muted-text); max-width: var(--width-copy-max); font-size: var(--font-size-small); }
+@media (max-width: 48rem) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .site-header { position: static; height: auto; padding: var(--space-medium); border-inline-end: none; border-bottom: var(--border-width-divider) solid var(--color-border-subtle); gap: var(--space-medium); }
+  .navigation-label, .workspace-note { display: none; }
+  .site-navigation { display: flex; gap: var(--space-tiny); }
+  .site-navigation a { flex: 1; justify-content: center; gap: var(--space-tight); padding: var(--space-tight); }
+  .site-navigation a[aria-current='page'] { box-shadow: inset var(--space-none) calc(-1 * var(--decoration-width)) var(--color-accent); }
+  .workspace-content { padding: var(--space-panel) var(--space-medium); }
 }
-.site-navigation { display: flex; flex-wrap: wrap; gap: var(--space-medium); margin-bottom: var(--space-large); }
-.site-navigation a { display: inline-flex; align-items: center; min-height: var(--size-touch-target); padding: var(--space-small); }
 .settings-page { display: grid; gap: var(--space-small); }
 .settings-page select { min-height: var(--size-touch-target); padding: var(--space-small); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); color: var(--color-text); background: var(--color-surface); }
 

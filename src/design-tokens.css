@@ -93,6 +93,7 @@
   --filter-stale-chart: grayscale(1);
   --size-icon: 1.25rem;
   --size-mark: 2rem;
+  --stroke-icon: 1.5px;
   --layer-base: 0;
   --layer-overlay: 1;
   --layer-navigation: 2;
