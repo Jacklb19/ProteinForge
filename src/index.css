@@ -266,3 +266,13 @@ a:hover { text-decoration-thickness: var(--decoration-width); }
   .alignment-inputs, .alignment-result { padding: var(--space-medium); }
   .sequence-pair, .alignment-parameters, .alignment-metrics { grid-template-columns: minmax(0, 1fr); }
 }
+
+.settings-page { max-width: var(--width-settings-max); gap: var(--space-panel); }
+.settings-preferences { display: grid; gap: var(--space-panel); }
+.settings-row { display: grid; grid-template-columns: var(--grid-pair); gap: var(--space-panel); align-items: start; padding-top: var(--space-panel); border-top: var(--border-width-divider) solid var(--color-border-subtle); }
+.settings-row label { font-weight: var(--font-weight-label); font-size: var(--font-size-small); }
+.settings-row select { width: var(--width-full); background: var(--color-surface-elevated); }
+@media (max-width: 48rem) {
+  .settings-preferences { padding: var(--space-medium); }
+  .settings-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-medium); }
+}

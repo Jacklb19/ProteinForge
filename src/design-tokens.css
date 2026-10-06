@@ -78,6 +78,7 @@
   --width-copy-max: 70ch;
   --width-field-max: 24rem;
   --width-fasta: 16rem;
+  --width-settings-max: 48rem;
   --grid-editor: minmax(0, 1fr) var(--width-fasta);
   --grid-metrics: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
   --grid-metrics-mobile: repeat(2, minmax(0, 1fr));
