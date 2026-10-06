@@ -29,8 +29,8 @@ body {
 h1 { font-size: var(--font-size-title); }
 h2 { font-size: var(--font-size-section); }
 p { margin-top: var(--space-copy); }
-a { display: inline-flex; align-items: center; min-height: var(--size-touch-target); color: var(--color-link); }
-button, select, input[type='file'] { min-height: var(--size-touch-target); }
+a { display: inline-flex; align-items: center; min-height: var(--size-touch-target); min-width: var(--size-touch-target); color: var(--color-link); }
+button, select, input[type='file'] { min-height: var(--size-touch-target); min-width: var(--size-touch-target); font-family: var(--font-ui); font-size: var(--font-size-base); }
 .editor-page > *, .profile-panel > *, .settings-page > * { min-width: var(--space-none); }
 
 .editor-page { display: grid; gap: var(--space-large); }
@@ -68,9 +68,9 @@ button, select, input[type='file'] { min-height: var(--size-touch-target); }
   z-index: 1;
   display: block;
   resize: vertical;
-  color: transparent;
+  color: var(--color-transparent);
   caret-color: var(--color-text);
-  background: transparent;
+  background: var(--color-transparent);
 }
 .editor-layer textarea::selection { background: var(--color-selection); }
 .invalid-residue { color: var(--color-invalid-text); background: var(--color-invalid-surface); text-decoration: underline; }
@@ -138,6 +138,10 @@ textarea:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
+  outline: var(--outline-width-focus) solid var(--color-focus);
+  outline-offset: var(--outline-offset-focus);
+}
+a:focus-visible, [tabindex='0']:focus-visible {
   outline: var(--outline-width-focus) solid var(--color-focus);
   outline-offset: var(--outline-offset-focus);
 }

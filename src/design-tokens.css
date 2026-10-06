@@ -1,5 +1,6 @@
 :root {
   --color-text: #111827;
+  --color-transparent: transparent;
   --color-surface: #ffffff;
   --color-border: #6b7280;
   --color-muted-text: #6b7280;

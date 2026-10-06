@@ -172,7 +172,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
       </div>
       {propensities.length > 0 && (
         <div className={invalid ? 'stale-table' : undefined}>
-          <div className="profile-table-container">
+          <div className="profile-table-container" tabIndex={0} role="region" aria-label={t('profile.tableRegion')}>
             <table>
               <caption>{t('profile.caption', { count: formatNumber(displayedWindow) })}</caption>
               <thead><tr><th scope="col">{t('profile.position')}</th><th scope="col">{t('profile.residue')}</th><th scope="col">{t('profile.hydropathy')}</th><th scope="col">{t('profile.helix')}</th><th scope="col">{t('profile.sheet')}</th><th scope="col">{t('profile.turn')}</th></tr></thead>

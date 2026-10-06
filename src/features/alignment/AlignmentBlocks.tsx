@@ -59,7 +59,7 @@ export function AlignmentBlocks({ result }: { result: AlignmentResult }): React.
   });
 
   return (
-    <div ref={viewport} className="alignment-viewport" onScroll={(event) => { setScrollTop(event.currentTarget.scrollTop); }}>
+    <div ref={viewport} className="alignment-viewport" tabIndex={0} role="region" aria-label={t('alignment.blocksRegion')} onScroll={(event) => { setScrollTop(event.currentTarget.scrollTop); }}>
       <div className="alignment-content" style={{ height: count * rowHeight }}>{blocks}</div>
     </div>
   );
