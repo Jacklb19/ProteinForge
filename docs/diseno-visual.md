@@ -6,6 +6,8 @@ ProteinForge sirve a estudiantes e investigadores que escriben, revisan y compar
 
 La firma funcional es el registro de residuos: posiciones separadas del dato, cifras tabulares y columnas numéricas alineadas. Los bloques de conservación conservarán los símbolos y posiciones existentes. No se añade numeración artificial al editor ni métricas ficticias. La primera propuesta descartada fue un dashboard oscuro con acento turquesa y tarjetas repetidas: no daba protagonismo a la secuencia ni identidad al dominio.
 
+El marco ocupa todo el viewport y la navegación queda pegada a su borde izquierdo. El ancho máximo se aplica solo al contenido: `--width-page-max` menos `--width-sidebar`. No centrar ni limitar `#root`; esa regla desplazaba la barra en pantallas de más de 1440 px. `responsive.spec.ts` verifica posición y ancho en las tres rutas, ambos temas y 1920/2560 px, conservando todas las pruebas y umbrales previos.
+
 Solo existen `/`, `/alignment` y `/settings`. La navegación lateral pasa a una fila visible en móvil. Las pantallas futuras se incorporan según `pantallas.md`; no se muestran enlaces ni acciones sin implementar.
 
 ## Tokens y contraste
