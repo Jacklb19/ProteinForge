@@ -42,3 +42,9 @@ jobs:
 
       - name: Verify build artifact
         run: test -f dist/index.html
+
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Run critical browser flows
+        run: npm run test:e2e
