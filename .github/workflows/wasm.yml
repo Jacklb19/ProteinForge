@@ -1,0 +1,28 @@
+name: WebAssembly build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.91.1 --profile minimal --component rustfmt --target wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked --version 0.15.0
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path rust/alignment/Cargo.toml --check
+      - name: Build WebAssembly
+        run: npm run build:wasm
+      - name: Initialize generated module
+        run: npm run check:wasm

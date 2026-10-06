@@ -1,0 +1,61 @@
+{
+  "version": "1.87",
+  "consultedAt": "2026-09-29",
+  "cases": [
+    {
+      "name": "internal_gap",
+      "first": "ACDEFGHIK",
+      "second": "ACDFGHIK",
+      "mode": "global",
+      "matrix": "BLOSUM62",
+      "freeEnds": true,
+      "score": 38.0,
+      "alignedFirst": "ACDEFGHIK",
+      "alignedSecond": "ACD-FGHIK"
+    },
+    {
+      "name": "free_ends",
+      "first": "GGACDEFGHKK",
+      "second": "ACDEFGH",
+      "mode": "global",
+      "matrix": "BLOSUM62",
+      "freeEnds": true,
+      "score": 44.0,
+      "alignedFirst": "GGACDEFGHKK",
+      "alignedSecond": "--ACDEFGH--"
+    },
+    {
+      "name": "local",
+      "first": "PPACDEFGHKK",
+      "second": "GGACDEFGHTT",
+      "mode": "local",
+      "matrix": "BLOSUM45",
+      "freeEnds": false,
+      "score": 55.0,
+      "alignedFirst": "ACDEFGH",
+      "alignedSecond": "ACDEFGH"
+    },
+    {
+      "name": "ambiguous",
+      "first": "ACBZXDE",
+      "second": "ACBZXDE",
+      "mode": "global",
+      "matrix": "BLOSUM80",
+      "freeEnds": true,
+      "score": 48.0,
+      "alignedFirst": "ACBZXDE",
+      "alignedSecond": "ACBZXDE"
+    },
+    {
+      "name": "free_ends",
+      "first": "GGACDEFGHKK",
+      "second": "ACDEFGH",
+      "mode": "global",
+      "matrix": "BLOSUM62",
+      "freeEnds": false,
+      "score": 23.0,
+      "alignedFirst": "GGACDEFGHKK",
+      "alignedSecond": "--ACDEFGH--"
+    }
+  ]
+}

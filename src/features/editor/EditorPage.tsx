@@ -1,93 +1,97 @@
 import { useEffect, useRef, useState } from 'react';
-import { actualizarPosicionesInvalidas } from './secuencia';
-import { CargadorFasta } from './CargadorFasta';
-import type { EntradaFasta } from './fasta';
-import { PanelDescriptores } from '../descriptores/PanelDescriptores';
-import { useDescriptores } from '../descriptores/useDescriptores';
-import { PerfilHidrofobicidad } from '../descriptores/PerfilHidrofobicidad';
+import { updateInvalidPositions, splitStandardResidues, validateSequence } from './sequence';
+import { FastaLoader } from './FastaLoader';
+import type { FastaEntry } from './fasta';
+import { DescriptorPanel } from '../descriptors/DescriptorPanel';
+import { useDescriptors } from '../descriptors/useDescriptors';
+import { HydropathyProfile } from '../descriptors/HydropathyProfile';
+import { useTranslation } from '../../i18n';
 
-const RETRASO_VALIDACION_MS = 45;
+const VALIDATION_DELAY_MS = 45;
 
-/** Editor de secuencias con validación local incremental y aviso accesible. */
+/** Sequence editor with incremental validation and accessible status. */
 export function EditorPage(): React.JSX.Element {
-  const [texto, setTexto] = useState('');
-  const descriptores = useDescriptores(texto);
-  const [posicionesInvalidas, setPosicionesInvalidas] = useState<number[]>([]);
-  const textoValidado = useRef('');
-  const posicionesValidadas = useRef<number[]>([]);
-  const resaltado = useRef<HTMLPreElement>(null);
+  const { t, formatNumber } = useTranslation();
+  const [text, setText] = useState('');
+  const descriptors = useDescriptors(text);
+  const additional = splitStandardResidues(validateSequence(text).sequence).excluded;
+  const [invalidPositions, setInvalidPositions] = useState<number[]>([]);
+  const validatedText = useRef('');
+  const validatedPositions = useRef<number[]>([]);
+  const highlight = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
-    if (texto === textoValidado.current) return;
-    const temporizador = window.setTimeout(() => {
-      const siguientes = actualizarPosicionesInvalidas(
-        textoValidado.current,
-        texto,
-        posicionesValidadas.current,
+    if (text === validatedText.current) return;
+    const timer = window.setTimeout(() => {
+      const nextPositions = updateInvalidPositions(
+        validatedText.current,
+        text,
+        validatedPositions.current,
       );
-      textoValidado.current = texto;
-      posicionesValidadas.current = siguientes;
-      setPosicionesInvalidas(siguientes);
-    }, RETRASO_VALIDACION_MS);
-    return () => { window.clearTimeout(temporizador); };
-  }, [texto]);
+      validatedText.current = text;
+      validatedPositions.current = nextPositions;
+      setInvalidPositions(nextPositions);
+    }, VALIDATION_DELAY_MS);
+    return () => { window.clearTimeout(timer); };
+  }, [text]);
 
-  const posiciones = new Set(posicionesInvalidas);
-  const fragmentos: React.ReactNode[] = [];
-  let inicio = 0;
-  for (const posicion of posicionesInvalidas) {
-    if (posicion > inicio) fragmentos.push(texto.slice(inicio, posicion));
-    fragmentos.push(
-      <mark key={posicion} className="residuo-invalido">
-        {texto[posicion]}
+  const positions = new Set(invalidPositions);
+  const fragments: React.ReactNode[] = [];
+  let start = 0;
+  for (const position of invalidPositions) {
+    if (position > start) fragments.push(text.slice(start, position));
+    fragments.push(
+      <mark key={position} className="invalid-residue">
+        {text[position]}
       </mark>,
     );
-    inicio = posicion + 1;
+    start = position + 1;
   }
-  if (inicio < texto.length) fragmentos.push(texto.slice(inicio));
+  if (start < text.length) fragments.push(text.slice(start));
 
-  const descripcion = posiciones.size === 0
-    ? 'No hay posiciones inválidas.'
-    : `Posiciones inválidas: ${posicionesInvalidas.map((posicion) => posicion + 1).join(', ')}.`;
+  const description = positions.size === 0
+    ? t('editor.noInvalid')
+    : t('editor.invalidPositions', { positions: invalidPositions.map((position) => formatNumber(position + 1)).join(', ') });
 
   return (
     <main className="editor-page">
       <header>
-        <h1>Editor de secuencias</h1>
-        <p>Escribe o pega una secuencia de aminoácidos. Se aceptan los veinte residuos estándar.</p>
+        <h1>{t('editor.title')}</h1>
+        <p>{t('editor.introduction')}</p>
       </header>
-      <section aria-labelledby="titulo-secuencia">
-        <h2 id="titulo-secuencia">Secuencia activa</h2>
-        <label htmlFor="secuencia">Secuencia de aminoácidos</label>
-        <div className="editor-capa">
-          <pre aria-hidden="true" className="editor-resaltado" ref={resaltado}>{fragmentos}{'\n'}</pre>
+      <section aria-labelledby="sequence-title">
+        <h2 id="sequence-title">{t('editor.section')}</h2>
+        <label htmlFor="sequence-input">{t('editor.label')}</label>
+        <div className="editor-layer">
+          <pre aria-hidden="true" className="editor-highlight" ref={highlight}>{fragments}{'\n'}</pre>
           <textarea
-            id="secuencia"
-            aria-describedby="ayuda-secuencia estado-secuencia"
-            aria-invalid={posicionesInvalidas.length > 0}
+            id="sequence-input"
+            aria-describedby="sequence-help sequence-status"
+            aria-invalid={invalidPositions.length > 0}
             autoCapitalize="characters"
             spellCheck={false}
-            value={texto}
-            onChange={(evento) => { setTexto(evento.target.value); }}
-            onScroll={(evento) => {
-              if (resaltado.current) {
-                resaltado.current.scrollTop = evento.currentTarget.scrollTop;
-                resaltado.current.scrollLeft = evento.currentTarget.scrollLeft;
+            value={text}
+            onChange={(event) => { setText(event.target.value.replace(/\*([\r\n]*)$/, '$1')); }}
+            onScroll={(event) => {
+              if (highlight.current) {
+                highlight.current.scrollTop = event.currentTarget.scrollTop;
+                highlight.current.scrollLeft = event.currentTarget.scrollLeft;
               }
             }}
           />
         </div>
-        <p id="ayuda-secuencia">Las minúsculas se aceptan; los saltos de línea separan bloques de secuencia.</p>
-        <p id="estado-secuencia" role="status" aria-live="polite">{descripcion}</p>
+        <p id="sequence-help">{t('editor.help')}</p>
+        <p id="sequence-status" role="status" aria-live="polite">{description}</p>
+        {additional > 0 && <p role="note">{t(additional === 1 ? 'editor.additionalOne' : 'editor.additional', { count: formatNumber(additional) })}</p>}
       </section>
-      <CargadorFasta alSeleccionar={(entrada: EntradaFasta) => {
-        textoValidado.current = entrada.secuencia;
-        posicionesValidadas.current = entrada.posicionesInvalidas;
-        setTexto(entrada.secuencia);
-        setPosicionesInvalidas(entrada.posicionesInvalidas);
+      <FastaLoader onSelect={(entry: FastaEntry) => {
+        validatedText.current = entry.sequence;
+        validatedPositions.current = entry.invalidPositions;
+        setText(entry.sequence);
+        setInvalidPositions(entry.invalidPositions);
       }} />
-      <PanelDescriptores datos={descriptores} />
-      <PerfilHidrofobicidad texto={texto} />
+      <DescriptorPanel data={descriptors} />
+      <HydropathyProfile text={text} />
     </main>
   );
 }

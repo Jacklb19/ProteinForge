@@ -1,11 +1,10 @@
 -- =============================================================================
--- Migración inicial: profiles, projects, analyses, alignments, external_cache
--- Incluye función UUIDv7 en PL/pgSQL pura, RLS estricta y trigger de registro
+-- Initial schema: profiles, projects, analyses, alignments, external_cache
+-- Includes a provisional UUIDv7 function, strict RLS, and registration trigger.
 -- =============================================================================
 
--- 1. Función para generación de UUIDv7 (RFC 9562) sin dependencias externas
--- NOTA: Documentada en docs/propuestas.md como alternativa provisional ante la
--- falta de soporte nativo de uuidv7() en core pg_catalog de PostgreSQL 15/16.
+-- 1. Generate UUIDv7 (RFC 9562) without external dependencies.
+-- Provisional fallback documented in docs/propuestas.md for PostgreSQL 15/16.
 create or replace function public.uuid_generate_v7()
 returns uuid
 as $$
@@ -21,7 +20,7 @@ begin
 end;
 $$ language plpgsql volatile;
 
--- 2. Tabla profiles
+-- 2. Profiles table
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text,
@@ -30,7 +29,7 @@ create table if not exists public.profiles (
   updated_at timestamptz default now() not null
 );
 
--- 3. Tabla projects
+-- 3. Projects table
 create table if not exists public.projects (
   id uuid primary key default public.uuid_generate_v7(),
   owner_id uuid not null references public.profiles(id) on delete cascade,
@@ -41,7 +40,7 @@ create table if not exists public.projects (
   updated_at timestamptz default now() not null
 );
 
--- 4. Tabla analyses
+-- 4. Analyses table
 create table if not exists public.analyses (
   id uuid primary key default public.uuid_generate_v7(),
   project_id uuid not null references public.projects(id) on delete cascade,
@@ -52,7 +51,7 @@ create table if not exists public.analyses (
   created_at timestamptz default now() not null
 );
 
--- 5. Tabla alignments
+-- 5. Alignments table
 create table if not exists public.alignments (
   id uuid primary key default public.uuid_generate_v7(),
   project_id uuid not null references public.projects(id) on delete cascade,
@@ -64,7 +63,7 @@ create table if not exists public.alignments (
   created_at timestamptz default now() not null
 );
 
--- 6. Tabla external_cache
+-- 6. External cache table
 create table if not exists public.external_cache (
   source text not null,
   identifier text not null,
@@ -74,19 +73,19 @@ create table if not exists public.external_cache (
   primary key (source, identifier)
 );
 
--- 7. Índices en claves foráneas para optimizar comprobaciones de RLS y relaciones
+-- 7. Foreign key indexes support RLS checks and joins.
 create index if not exists idx_projects_owner_id on public.projects(owner_id);
 create index if not exists idx_analyses_project_id on public.analyses(project_id);
 create index if not exists idx_alignments_project_id on public.alignments(project_id);
 
--- 8. Activación de Seguridad a Nivel de Fila (RLS) en todas las tablas
+-- 8. Enable row level security on every table.
 alter table public.profiles enable row level security;
 alter table public.projects enable row level security;
 alter table public.analyses enable row level security;
 alter table public.alignments enable row level security;
 alter table public.external_cache enable row level security;
 
--- 9. Políticas de seguridad para profiles
+-- 9. Profile security policies
 create policy "Users can view own profile"
   on public.profiles for select
   to authenticated
@@ -103,7 +102,7 @@ create policy "Users can insert own profile"
   to authenticated
   with check ((select auth.uid()) = id);
 
--- 10. Políticas de seguridad para projects
+-- 10. Project security policies
 create policy "Users can view own projects"
   on public.projects for select
   to authenticated
@@ -125,7 +124,7 @@ create policy "Users can delete own projects"
   to authenticated
   using ((select auth.uid()) = owner_id);
 
--- 11. Políticas de seguridad para analyses (a través de projects)
+-- 11. Analysis security policies inherit project ownership.
 create policy "Users can view analyses of own projects"
   on public.analyses for select
   to authenticated
@@ -177,7 +176,7 @@ create policy "Users can delete analyses of own projects"
     )
   );
 
--- 12. Políticas de seguridad para alignments (a través de projects)
+-- 12. Alignment security policies inherit project ownership.
 create policy "Users can view alignments of own projects"
   on public.alignments for select
   to authenticated
@@ -229,10 +228,10 @@ create policy "Users can delete alignments of own projects"
     )
   );
 
--- 13. Restricción estricta en external_cache (solo accesible por rol de servicio)
+-- 13. External cache is accessible only to the service role.
 revoke all on table public.external_cache from anon, authenticated;
 
--- 14. Trigger para auto-crear perfil al registrar un usuario en auth.users
+-- 14. Create a profile when a user is registered in auth.users.
 create or replace function public.handle_new_user()
 returns trigger
 security definer

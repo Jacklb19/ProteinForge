@@ -1,83 +1,84 @@
-import { validarSecuencia } from './secuencia';
+import { validateSequence } from './sequence';
+import { translate } from '../../i18n/translate';
 
-export interface EntradaFasta {
-  numero: number;
-  encabezado: string;
-  secuencia: string;
-  posicionesInvalidas: number[];
+export interface FastaEntry {
+  number: number;
+  header: string;
+  sequence: string;
+  invalidPositions: number[];
 }
 
-/** Analizador incremental de FASTA independiente del navegador. */
-export class AnalizadorFasta {
-  private lineaPendiente = '';
-  private encabezado: string | null = null;
-  private partes: string[] = [];
-  private numeroLinea = 0;
-  private numeroEntrada = 0;
+/** Incremental FASTA parser independent of the browser. */
+export class FastaParser {
+  private pendingLine = '';
+  private header: string | null = null;
+  private parts: string[] = [];
+  private lineNumber = 0;
+  private entryNumber = 0;
 
-  /** Consume un bloque de texto y devuelve únicamente las entradas que ya terminaron. */
-  agregar(bloque: string): EntradaFasta[] {
-    const texto = this.lineaPendiente + bloque;
-    const terminaEnRetorno = texto.endsWith('\r');
-    const lineas = (terminaEnRetorno ? texto.slice(0, -1) : texto).split(/\r\n|\n|\r/);
-    this.lineaPendiente = (lineas.pop() ?? '') + (terminaEnRetorno ? '\r' : '');
-    const entradas: EntradaFasta[] = [];
-    for (const linea of lineas) {
-      const entrada = this.procesarLinea(linea);
-      if (entrada) entradas.push(entrada);
+  /** Consumes a text chunk and returns only completed entries. */
+  addChunk(chunk: string): FastaEntry[] {
+    const text = this.pendingLine + chunk;
+    const endsWithCarriageReturn = text.endsWith('\r');
+    const lines = (endsWithCarriageReturn ? text.slice(0, -1) : text).split(/\r\n|\n|\r/);
+    this.pendingLine = (lines.pop() ?? '') + (endsWithCarriageReturn ? '\r' : '');
+    const entries: FastaEntry[] = [];
+    for (const line of lines) {
+      const entry = this.processLine(line);
+      if (entry) entries.push(entry);
     }
-    return entradas;
+    return entries;
   }
 
-  /** Procesa el último renglón y emite la última entrada. */
-  finalizar(): EntradaFasta[] {
-    const entradas: EntradaFasta[] = [];
-    if (this.lineaPendiente) {
-      for (const linea of this.lineaPendiente.split(/\r\n|\n|\r/)) {
-        if (!linea) continue;
-        const entrada = this.procesarLinea(linea);
-        if (entrada) entradas.push(entrada);
+  /** Processes the last line and emits the final entry. */
+  finish(): FastaEntry[] {
+    const entries: FastaEntry[] = [];
+    if (this.pendingLine) {
+      for (const line of this.pendingLine.split(/\r\n|\n|\r/)) {
+        if (!line) continue;
+        const entry = this.processLine(line);
+        if (entry) entries.push(entry);
       }
     }
-    this.lineaPendiente = '';
-    if (this.encabezado !== null) entradas.push(this.cerrarEntrada());
-    if (entradas.length === 0 && this.numeroEntrada === 0) {
-      throw new Error('El archivo FASTA no contiene entradas.');
+    this.pendingLine = '';
+    if (this.header !== null) entries.push(this.closeEntry());
+    if (entries.length === 0 && this.entryNumber === 0) {
+      throw new Error(translate('es', 'errors.emptyFasta'));
     }
-    return entradas;
+    return entries;
   }
 
-  private procesarLinea(linea: string): EntradaFasta | null {
-    this.numeroLinea += 1;
-    if (linea.startsWith('>')) {
-      const nuevoEncabezado = linea.slice(1).trim();
-      if (!nuevoEncabezado) throw new Error(`La cabecera de la línea ${String(this.numeroLinea)} está vacía.`);
-      const anterior = this.encabezado === null ? null : this.cerrarEntrada();
-      this.encabezado = nuevoEncabezado;
-      return anterior;
+  private processLine(line: string): FastaEntry | null {
+    this.lineNumber += 1;
+    if (line.startsWith('>')) {
+      const newHeader = line.slice(1).trim();
+      if (!newHeader) throw new Error(translate('es', 'errors.emptyFastaHeader', { line: new Intl.NumberFormat('es-CO').format(this.lineNumber) }));
+      const previous = this.header === null ? null : this.closeEntry();
+      this.header = newHeader;
+      return previous;
     }
-    if (!linea.trim()) return null;
-    if (this.encabezado === null) {
-      throw new Error(`Se esperaba una cabecera FASTA antes de la línea ${String(this.numeroLinea)}.`);
+    if (!line.trim()) return null;
+    if (this.header === null) {
+      throw new Error(translate('es', 'errors.missingFastaHeader', { line: new Intl.NumberFormat('es-CO').format(this.lineNumber) }));
     }
-    this.partes.push(linea);
+    this.parts.push(line);
     return null;
   }
 
-  private cerrarEntrada(): EntradaFasta {
-    const secuencia = this.partes.join('').replace(/[a-z]/g, (caracter) => caracter.toUpperCase());
-    if (!secuencia) {
-      throw new Error(`La entrada «${String(this.encabezado)}» no contiene secuencia.`);
+  private closeEntry(): FastaEntry {
+    const sequence = this.parts.join('').replace(/[a-z]/g, (character) => character.toUpperCase()).replace(/\*$/, '');
+    if (!sequence) {
+      throw new Error(translate('es', 'errors.emptyFastaEntry', { header: this.header ?? '' }));
     }
-    this.numeroEntrada += 1;
-    const entrada = {
-      numero: this.numeroEntrada,
-      encabezado: this.encabezado ?? '',
-      secuencia,
-      posicionesInvalidas: validarSecuencia(secuencia).posicionesInvalidas,
+    this.entryNumber += 1;
+    const entry = {
+      number: this.entryNumber,
+      header: this.header ?? '',
+      sequence,
+      invalidPositions: validateSequence(sequence).invalidPositions,
     };
-    this.partes = [];
-    this.encabezado = null;
-    return entrada;
+    this.parts = [];
+    this.header = null;
+    return entry;
   }
 }

@@ -4,13 +4,13 @@ import './design-tokens.css';
 import './index.css';
 import App from './App';
 
-const contenedor = document.getElementById('root');
+const container = document.getElementById('root');
 
-if (!contenedor) {
-  throw new Error('No se encontró el elemento raíz (#root) en el documento.');
+if (!container) {
+  throw new Error('The document root element (#root) is missing.');
 }
 
-createRoot(contenedor).render(
+createRoot(container).render(
   <StrictMode>
     <App />
   </StrictMode>,

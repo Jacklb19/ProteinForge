@@ -1,8 +1,11 @@
-# Dependencias y builds
+# Dependencies and build output
 node_modules/
 dist/
 build/
 coverage/
+playwright-report/
+test-results/
+artifacts/
 .vite/
 *.tsbuildinfo
 
@@ -14,14 +17,14 @@ pkg/
 .vercel/
 supabase/.temp/
 
-# Python (entrenamiento / scripts)
+# Python environments and scripts
 __pycache__/
 *.pyc
 .venv/
 venv/
 .ipynb_checkpoints/
 
-# Secretos y entorno (NUNCA versionar)
+# Secrets and environment files
 .env
 .env.*
 !.env.example
@@ -29,14 +32,14 @@ venv/
 *.key
 credentials*
 
-# Datos y modelos pesados (ver documento antes de versionar alguno)
+# Large datasets and models
 *.onnx
 data/raw/
 *.wav
 *.mp3
 *.pdb
 
-# Logs y temporales
+# Logs and temporary files
 *.log
 npm-debug.log*
 .DS_Store

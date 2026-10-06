@@ -1,0 +1,24 @@
+{
+  "sequence": "ACDEFGHIKLMNPQRSTVWY",
+  "windowSize": 9,
+  "consultedAt": "2026-09-29",
+  "source": "https://web.expasy.org/protscale/",
+  "scale": "Hydropath. / Kyte & Doolittle",
+  "edgeWeightPercent": 100,
+  "normalized": false,
+  "note": "El archivo numérico de ProtScale rotula la primera media con 4; aquí se expresa el residuo central en base uno, 5.",
+  "values": [
+    -0.322,
+    -0.1,
+    -0.167,
+    -0.167,
+    0.044,
+    -0.656,
+    -1.111,
+    -0.844,
+    -1.422,
+    -0.522,
+    -1.044,
+    -1.4
+  ]
+}

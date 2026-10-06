@@ -1,30 +1,30 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-interface ContextoSimulado {
-  onmessage: ((evento: MessageEvent<unknown>) => Promise<void>) | null;
+interface MockWorkerContext {
+  onmessage: ((event: MessageEvent<unknown>) => Promise<void>) | null;
   postMessage: ReturnType<typeof vi.fn>;
 }
 
-async function prepararWorker(): Promise<ContextoSimulado> {
-  const contexto: ContextoSimulado = { onmessage: null, postMessage: vi.fn() };
-  vi.stubGlobal('self', contexto);
+async function setupWorker(): Promise<MockWorkerContext> {
+  const context: MockWorkerContext = { onmessage: null, postMessage: vi.fn() };
+  vi.stubGlobal('self', context);
   vi.resetModules();
   await import('./fasta.worker');
-  return contexto;
+  return context;
 }
 
-function archivoConFlujo(contenido: string): File {
-  const archivo = new File([contenido], 'prueba.fa');
-  const bytes = new TextEncoder().encode(contenido);
-  Object.defineProperty(archivo, 'stream', {
+function fileWithStream(content: string): File {
+  const file = new File([content], 'prueba.fa');
+  const bytes = new TextEncoder().encode(content);
+  Object.defineProperty(file, 'stream', {
     value: () => new ReadableStream<Uint8Array>({
-      start(controlador) {
-        controlador.enqueue(bytes);
-        controlador.close();
+      start(controller) {
+        controller.enqueue(bytes);
+        controller.close();
       },
     }),
   });
-  return archivo;
+  return file;
 }
 
 afterEach(() => {
@@ -33,32 +33,32 @@ afterEach(() => {
 });
 
 describe('fasta.worker', () => {
-  it('publica las entradas y confirma la carga', async () => {
-    const contexto = await prepararWorker();
-    await contexto.onmessage?.(new MessageEvent('message', { data: archivoConFlujo('>uno\nac\n>dos\nWX') }));
-    expect(contexto.postMessage).toHaveBeenCalledWith({
-      tipo: 'entradas',
-      entradas: [{ numero: 1, encabezado: 'uno', secuencia: 'AC', posicionesInvalidas: [] }],
+  it('publishes entries and confirms completion', async () => {
+    const context = await setupWorker();
+    await context.onmessage?.(new MessageEvent('message', { data: fileWithStream('>uno\nac\n>dos\nWX') }));
+    expect(context.postMessage).toHaveBeenCalledWith({
+      type: 'entries',
+      entries: [{ number: 1, header: 'uno', sequence: 'AC', invalidPositions: [] }],
     });
-    expect(contexto.postMessage).toHaveBeenCalledWith({ tipo: 'completo' });
+    expect(context.postMessage).toHaveBeenCalledWith({ type: 'complete' });
   });
 
-  it('rechaza archivos mayores a 5 MB antes de leerlos', async () => {
-    const contexto = await prepararWorker();
-    const archivo = new File([new Uint8Array(5_000_001)], 'grande.fa');
-    await contexto.onmessage?.(new MessageEvent('message', { data: archivo }));
-    expect(contexto.postMessage).toHaveBeenCalledWith({
-      tipo: 'error',
-      mensaje: 'El archivo supera el límite de 5 MB.',
+  it('rejects files larger than 5 MB before reading', async () => {
+    const context = await setupWorker();
+    const file = new File([new Uint8Array(5_000_001)], 'grande.fa');
+    await context.onmessage?.(new MessageEvent('message', { data: file }));
+    expect(context.postMessage).toHaveBeenCalledWith({
+      type: 'error',
+      message: 'El archivo supera el límite de 5 MB.',
     });
   });
 
-  it('informa errores de formato sin silenciarlos', async () => {
-    const contexto = await prepararWorker();
-    await contexto.onmessage?.(new MessageEvent('message', { data: archivoConFlujo('AC\n') }));
-    expect(contexto.postMessage).toHaveBeenCalledWith({
-      tipo: 'error',
-      mensaje: expect.stringContaining('cabecera FASTA') as string,
+  it('reports format errors explicitly', async () => {
+    const context = await setupWorker();
+    await context.onmessage?.(new MessageEvent('message', { data: fileWithStream('AC\n') }));
+    expect(context.postMessage).toHaveBeenCalledWith({
+      type: 'error',
+      message: expect.stringContaining('cabecera FASTA') as string,
     });
   });
 });
