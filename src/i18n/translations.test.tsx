@@ -106,5 +106,7 @@ describe('typed translations', () => {
     });
     expect(spanishResult.result.current.formatNumber(48.3)).toBe('48,3');
     expect(englishResult.result.current.formatNumber(48.3)).toBe('48.3');
+    expect(spanishResult.result.current.formatNumber(0.483, { style: 'percent', maximumFractionDigits: 1 })).toBe('48,3%');
+    expect(englishResult.result.current.formatNumber(0.483, { style: 'percent', maximumFractionDigits: 1 })).toBe('48.3%');
   });
 });

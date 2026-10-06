@@ -70,8 +70,8 @@ export function AlignmentPage(): React.JSX.Element {
     worker.current.postMessage(request);
   }
 
-  const percent = result && result.columns > 0 ? 100 * result.identities / result.columns : 0;
-  const similarityPercent = result && result.columns > 0 ? 100 * result.similarities / result.columns : 0;
+  const percent = result && result.columns > 0 ? result.identities / result.columns : 0;
+  const similarityPercent = result && result.columns > 0 ? result.similarities / result.columns : 0;
   return (
     <main className="alignment-page">
       <h1>{t('alignment.title')}</h1>
@@ -96,15 +96,15 @@ export function AlignmentPage(): React.JSX.Element {
         <button type="button" onClick={cancel} disabled={status !== 'running'}>{t('alignment.cancel')}</button>
       </div>
       <div role="status" aria-live="polite">
-        {message || (status === 'running' && t('alignment.running', { percent: formatNumber(Math.round(progress * 100)) })) || (status === 'cancelled' && t('alignment.cancelled'))}
+        {message || (status === 'running' && t('alignment.running', { percent: formatNumber(progress, { style: 'percent', maximumFractionDigits: 0 }) })) || (status === 'cancelled' && t('alignment.cancelled'))}
       </div>
       {warnings.map((warning) => <p key={warning} role="note">{warning}</p>)}
       {result && (
         <section aria-labelledby="alignment-result-title" className="alignment-result">
           <h2 id="alignment-result-title">{t('alignment.result')}</h2>
           <p>{t('alignment.score', { score: formatNumber(result.score) })}</p>
-          <p>{t('alignment.identities', { count: formatNumber(result.identities), total: formatNumber(result.columns), percent: formatNumber(percent, { maximumFractionDigits: 1 }) })}</p>
-          <p>{t('alignment.similarities', { count: formatNumber(result.similarities), total: formatNumber(result.columns), percent: formatNumber(similarityPercent, { maximumFractionDigits: 1 }) })}</p>
+          <p>{t('alignment.identities', { count: formatNumber(result.identities), total: formatNumber(result.columns), percent: formatNumber(percent, { style: 'percent', maximumFractionDigits: 1 }) })}</p>
+          <p>{t('alignment.similarities', { count: formatNumber(result.similarities), total: formatNumber(result.columns), percent: formatNumber(similarityPercent, { style: 'percent', maximumFractionDigits: 1 }) })}</p>
           <p>{t('alignment.parameters', {
             matrix: result.parameters.matrix,
             mode: t(result.parameters.mode === 'global' ? 'alignment.global' : 'alignment.local'),
