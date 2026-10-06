@@ -36,6 +36,13 @@ describe('accessible chart styles', () => {
     expect(contrast(color('link'), surface)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(color('border'), surface)).toBeGreaterThanOrEqual(3);
     expect(contrast(color('invalid-text'), color('invalid-surface'))).toBeGreaterThanOrEqual(4.5);
+    for (const background of ['page', 'surface-elevated', 'selected-surface']) {
+      expect(contrast(color('text'), color(background))).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(color('muted-text'), color(background))).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrast(color('on-accent'), color('focus'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(color('border'), color('page'))).toBeGreaterThanOrEqual(3);
+    expect(contrast(color('focus'), color('page'))).toBeGreaterThanOrEqual(3);
   });
 
   it('reads CSS colors and typography on the main thread', () => {

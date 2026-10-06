@@ -2,7 +2,7 @@
   font-family: var(--font-ui);
   line-height: var(--line-height-base);
   color: var(--color-text);
-  background-color: var(--color-surface);
+  background-color: var(--color-page);
 }
 
 * {
@@ -12,7 +12,7 @@
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 #root {
@@ -106,7 +106,7 @@ button, select, input[type='file'] { min-height: var(--size-touch-target); min-w
 
 .descriptor-panel dl { display: grid; gap: var(--space-small); }
 .descriptor-panel dl > div { display: flex; gap: var(--space-medium); }
-.descriptor-panel dt { font-weight: var(--font-weight-label); }
+.descriptor-panel dt { font-weight: var(--font-weight-medium); }
 .stale-descriptors { color: var(--color-muted-text); }
 
 .profile-panel { display: grid; gap: var(--space-small); }
@@ -145,3 +145,23 @@ a:focus-visible, [tabindex='0']:focus-visible {
   outline: var(--outline-width-focus) solid var(--color-focus);
   outline-offset: var(--outline-offset-focus);
 }
+
+/* Shared presentation primitives, including controls on pending screen redesigns. */
+:root { font-synthesis: none; font-variant-numeric: tabular-nums; }
+h1, h2 { line-height: var(--line-height-heading); letter-spacing: var(--letter-spacing-heading); font-weight: var(--font-weight-medium); }
+button, select { cursor: pointer; transition: border-color var(--duration-feedback) var(--ease-feedback); }
+button:disabled { cursor: not-allowed; color: var(--color-muted-text); }
+button:hover:not(:disabled), select:hover { border-color: var(--color-accent); }
+a:hover { text-decoration-thickness: var(--decoration-width); }
+.panel { background: var(--color-surface); border: var(--border-width-divider) solid var(--color-border-subtle); border-radius: var(--border-radius-panel); padding: var(--space-panel); }
+.field-help { color: var(--color-muted-text); font-size: var(--font-size-small); }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-tight); min-height: var(--size-touch-target); padding: var(--space-tight) var(--space-medium); border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); background: var(--color-surface-elevated); color: var(--color-text); font-weight: var(--font-weight-medium); box-shadow: var(--shadow-elevated); }
+.button-primary { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); }
+.button-primary:hover:not(:disabled) { text-decoration: underline; }
+.button-tertiary { background: var(--color-transparent); box-shadow: none; border-color: var(--color-transparent); }
+.button-danger { color: var(--color-invalid-text); background: var(--color-invalid-surface); }
+.status-message { padding: var(--space-small) var(--space-medium); background: var(--color-page); border-inline-start: var(--decoration-width) solid var(--color-border); font-size: var(--font-size-small); }
+.status-message:empty { display: none; }
+.status-message[data-state='error'], .status-message[data-state='invalid'] { color: var(--color-invalid-text); background: var(--color-invalid-surface); border-color: var(--color-invalid-text); }
+.notice { padding: var(--space-small); border-inline-start: var(--decoration-width) solid var(--color-border); font-size: var(--font-size-small); }
+.invalid-residue { font-weight: var(--font-weight-regular); text-decoration-thickness: var(--decoration-width); text-underline-offset: var(--decoration-offset); }

@@ -25,7 +25,7 @@ export default defineConfig({
       icons: [{ src: '/app-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
     },
     workbox: {
-      globPatterns: ['**/*.{js,css,html,svg,wasm}'],
+      globPatterns: ['**/*.{js,css,html,svg,wasm,woff2}'],
       navigateFallback: 'index.html',
       cleanupOutdatedCaches: true,
     },

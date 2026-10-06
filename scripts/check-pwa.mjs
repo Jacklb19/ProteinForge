@@ -14,6 +14,24 @@ try {
   await page.reload();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   await context.setOffline(true);
+  await page.reload();
+  const fonts = await page.evaluate(async () => {
+    const paths = ['plex-sans-regular', 'plex-sans-semibold', 'plex-sans-bold', 'plex-mono-regular'];
+    const result = [];
+    for (const name of paths) {
+      const url = `/fonts/${name}.woff2`;
+      const cached = await caches.match(url, { ignoreSearch: true });
+      const response = await fetch(url);
+      const data = new Uint8Array(await response.arrayBuffer());
+      if (!cached || !response.ok || String.fromCharCode(...data.slice(0, 4)) !== 'wOF2') {
+        throw new Error(`Offline font unavailable: ${name}`);
+      }
+      result.push({ name, bytes: data.length });
+    }
+    await Promise.all([document.fonts.load('400 16px "IBM Plex Sans"'), document.fonts.load('600 16px "IBM Plex Sans"'), document.fonts.load('700 16px "IBM Plex Sans"'), document.fonts.load('400 16px "IBM Plex Mono"')]);
+    return result;
+  });
+  process.stdout.write(`Offline reload and precached WOFF2 verified: ${JSON.stringify(fonts)}\n`);
   await page.goto('http://127.0.0.1:4173/alignment');
   await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIK');
   await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIK');
