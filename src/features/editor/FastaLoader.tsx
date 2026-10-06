@@ -3,6 +3,7 @@ import type { FastaEntry } from './fasta';
 import { resolveRowHeight } from './rowHeight';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
+import { Icon } from '../../shared/Icon';
 
 interface Props {
   onSelect: (entry: FastaEntry) => void;
@@ -38,17 +39,26 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
 
   useEffect(() => () => { worker.current?.terminate(); }, []);
   useLayoutEffect(() => {
-    const container = list.current;
-    const row = container?.querySelector<HTMLElement>('.fasta-entry');
-    if (!container || !row) return;
-    const measuredRowHeight = row.getBoundingClientRect().height;
-    const measuredListHeight = container.getBoundingClientRect().height;
-    const measurements = {
-      row: Number.isFinite(measuredRowHeight) && measuredRowHeight > 0 ? measuredRowHeight : tokenHeight.pixels,
-      list: Number.isFinite(measuredListHeight) && measuredListHeight > 0 ? measuredListHeight : 0,
+    let active = true;
+    const measure = () => {
+      if (!active) return;
+      const container = list.current;
+      const row = container?.querySelector<HTMLElement>('.fasta-entry');
+      if (!container || !row) return;
+      const measuredRowHeight = row.getBoundingClientRect().height;
+      const measuredListHeight = container.getBoundingClientRect().height;
+      const measurements = {
+        row: Number.isFinite(measuredRowHeight) && measuredRowHeight > 0 ? measuredRowHeight : tokenHeight.pixels,
+        list: Number.isFinite(measuredListHeight) && measuredListHeight > 0 ? measuredListHeight : 0,
+      };
+      setDimensions((current) =>
+        current.row === measurements.row && current.list === measurements.list ? current : measurements);
     };
-    setDimensions((current) =>
-      current.row === measurements.row && current.list === measurements.list ? current : measurements);
+    // Font loading may finish after FASTA entries arrive; measure only then.
+    const fonts = (document as { fonts?: FontFaceSet }).fonts;
+    if (fonts) void fonts.ready.then(measure);
+    else measure();
+    return () => { active = false; };
   }, [entries.length, tokenHeight.pixels]);
 
   const selectEntry = (index: number): void => {
@@ -119,8 +129,8 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
   const end = Math.min(entries.length, start + count);
 
   return (
-    <section aria-labelledby="fasta-title">
-      <h2 id="fasta-title">{t('fasta.title')}</h2>
+    <section className="fasta-panel" aria-labelledby="fasta-title">
+      <div className="section-heading"><Icon name="upload" /><h2 id="fasta-title">{t('fasta.title')}</h2></div>
       <label htmlFor="fasta-file">{t('fasta.fileLabel', { limit: formatUnit(5, 'megabyte') })}</label>
       <input
         id="fasta-file"
@@ -134,10 +144,10 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
         }}
       />
       <div className="file-control">
-        <button type="button" onClick={() => { fileInput.current?.click(); }}>{t('fasta.chooseFile')}</button>
+        <button className="button" type="button" onClick={() => { fileInput.current?.click(); }}>{t('fasta.chooseFile')}</button>
         <span>{fileName ? t('fasta.selectedFile', { name: fileName }) : t('fasta.noFile')}</span>
       </div>
-      <p role="status" aria-live="polite">{t(statusKey, { message: errorMessage })} {entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''}</p>
+      <p className="status-message" data-state={statusKey === 'fasta.reading' ? 'calculating' : ['fasta.error', 'fasta.workerError', 'fasta.startError'].includes(statusKey) ? 'error' : 'idle'} role="status" aria-live="polite">{t(statusKey, { message: errorMessage })} {entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''}</p>
       {entries.length > 0 && (
         <div
           ref={list}

@@ -138,6 +138,7 @@ export const spanish = {
   'errors.invalidWindow': 'La ventana debe ser 9 o 19.',
   'errors.profileFailed': 'No se pudo generar el perfil.',
   'errors.canvasContext': 'No se pudo iniciar el contexto 2D de la gráfica.',
+  'errors.chartFontLoad': 'No se pudo completar la carga tipográfica de la gráfica; se conservan los resultados y la fuente de respaldo.',
   'errors.emptyFasta': 'El archivo FASTA no contiene entradas.',
   'errors.emptyFastaHeader': 'La cabecera de la línea {{line}} está vacía.',
   'errors.missingFastaHeader': 'Se esperaba una cabecera FASTA antes de la línea {{line}}.',

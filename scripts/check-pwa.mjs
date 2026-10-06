@@ -1,5 +1,5 @@
 import { preview } from 'vite';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 
 const server = await preview({ preview: { host: '127.0.0.1', port: 4173, strictPort: true } });
 const browser = await chromium.launch({
@@ -32,6 +32,11 @@ try {
     return result;
   });
   process.stdout.write(`Offline reload and precached WOFF2 verified: ${JSON.stringify(fonts)}\n`);
+  const chartWorker = page.workers().find((worker) => worker.url().includes('profile.worker'));
+  if (!chartWorker) throw new Error('Offline profile worker is missing.');
+  await expect.poll(() => chartWorker.evaluate(() => [...self.fonts].some((face) =>
+    face.family.replaceAll('"', '') === 'IBM Plex Sans' && face.status === 'loaded'))).toBe(true);
+  process.stdout.write('Plex Sans loaded in the profile worker after offline reload.\n');
   await page.goto('http://127.0.0.1:4173/alignment');
   await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIK');
   await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIK');

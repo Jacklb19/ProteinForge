@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'vite';
 
-const server = await createServer({ server: {
+// Prebundle the FASTA worker dependency before file uploads can trigger a reload.
+const server = await createServer({ optimizeDeps: { include: ['zod'] }, server: {
   host: '127.0.0.1', port: 5173, strictPort: true,
   watch: { ignored: ['**/coverage/**', '**/artifacts/**', '**/test-results/**'] },
 } });

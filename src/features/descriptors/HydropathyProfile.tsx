@@ -138,8 +138,10 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
   const rows = propensities.slice(currentPage * ROWS_PER_PAGE, (currentPage + 1) * ROWS_PER_PAGE);
 
   return (
-    <section aria-labelledby="profile-title" className="profile-panel">
+    <section aria-labelledby="profile-title" className="profile-panel panel">
+      <div className="profile-heading">
       <h2 id="profile-title">{t('profile.title')}</h2>
+      <div className="profile-window">
       <label htmlFor="hydropathy-window">{t('profile.windowLabel')}</label>
       <select
         id="hydropathy-window"
@@ -149,14 +151,16 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         <option value="9">{t('profile.window9', { count: formatNumber(9) })}</option>
         <option value="19">{t('profile.window19', { count: formatNumber(19) })}</option>
       </select>
-      <p>{t('profile.scaleNote')}</p>
-      <p>
+      </div>
+      </div>
+      <p className="field-help">{t('profile.scaleNote')}</p>
+      <p className="field-help">
         {t('profile.chouFasmanNote')}{' '}
         <a href="https://web.expasy.org/protscale/pscale/alpha-helixFasman.html">{t('profile.helixLink')}</a>,{' '}
         <a href="https://web.expasy.org/protscale/pscale/beta-sheetFasman.html">{t('profile.sheetLink')}</a> {t('profile.and')}{' '}
         <a href="https://web.expasy.org/protscale/pscale/beta-turnFasman.html">{t('profile.turnLink')}</a>.
       </p>
-      <p id="profile-status" role="status" aria-live="polite">
+      <p id="profile-status" className="status-message" data-state={invalid ? 'invalid' : error ? 'error' : 'idle'} role="status" aria-live="polite">
         {invalid && t('profile.invalid')}
         {tooShort && t('profile.tooShort', { count: formatNumber(windowSize) })}
         {!invalid && !tooShort && validation.sequence.length === 0 && t('profile.empty')}
@@ -196,9 +200,9 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
           </div>
           {totalPages > 1 && (
             <nav aria-label={t('profile.pagesLabel')} className="profile-pages">
-              <button type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>{t('profile.previous')}</button>
+              <button className="button" type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>{t('profile.previous')}</button>
               <span aria-live="polite">{t('profile.pageCount', { page: formatNumber(currentPage + 1), total: formatNumber(totalPages) })}</span>
-              <button type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>{t('profile.next')}</button>
+              <button className="button" type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>{t('profile.next')}</button>
             </nav>
           )}
         </div>

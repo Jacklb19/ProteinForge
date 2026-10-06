@@ -77,10 +77,11 @@
   --width-sidebar: 208px;
   --width-copy-max: 70ch;
   --width-field-max: 24rem;
-  --width-fasta: 18rem;
+  --width-fasta: 16rem;
   --grid-editor: minmax(0, 1fr) var(--width-fasta);
-  --grid-metrics: repeat(5, minmax(0, 1fr));
-  --height-editor: 18rem;
+  --grid-metrics: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
+  --grid-metrics-mobile: repeat(2, minmax(0, 1fr));
+  --height-editor: 14rem;
   --height-fasta-list: 16.5rem;
   --height-fasta-row-default: 44px;
   --height-fasta-row: var(--height-fasta-row-default);

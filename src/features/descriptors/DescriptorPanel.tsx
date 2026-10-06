@@ -10,10 +10,10 @@ export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.
   const { result, status, error, excluded } = data;
   const stale = result !== null && status !== 'current';
   return (
-    <section aria-labelledby="descriptors-title" className="descriptor-panel">
+    <section aria-labelledby="descriptors-title" className="descriptor-panel panel">
       <h2 id="descriptors-title">{t('descriptors.title')}</h2>
-      {excluded > 0 && <p role="note">{t(excluded === 1 ? 'descriptors.excludedOne' : 'descriptors.excluded', { count: formatNumber(excluded) })}</p>}
-      <p role="status" aria-live="polite">
+      {excluded > 0 && <p className="notice" role="note">{t(excluded === 1 ? 'descriptors.excludedOne' : 'descriptors.excluded', { count: formatNumber(excluded) })}</p>}
+      <p className="status-message" data-state={status} role="status" aria-live="polite">
         {status === 'invalid' && t('descriptors.invalid')}
         {status === 'calculating' && t('descriptors.calculating')}
         {status === 'error' && (error ? t('descriptors.workerMessage', { message: error }) : t('descriptors.error'))}
