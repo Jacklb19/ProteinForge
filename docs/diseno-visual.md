@@ -61,7 +61,7 @@ Se precargan solo Sans 400 y Mono 400, con `font-display: swap`. El respaldo San
 | notice | Límite y advertencia científica | Ocultar el error o sustituir su anuncio |
 | Registro de tabla | Posición separada y cifras alineadas a la derecha | Recortar datos o desplazar el cuerpo |
 
-Las acciones de carga y error conservan sus anuncios `role=status`. Los datos desactualizados permanecen visibles con aviso explícito. No se añaden indicadores asíncronos en ajustes, que no tiene esa operación. Alineamiento y ajustes aún tienen pendiente su rediseño específico al corte del commit 3.
+Las acciones de carga y error conservan sus anuncios `role=status`. Los datos desactualizados permanecen visibles con aviso explícito. No se añaden indicadores asíncronos en ajustes, que no tiene esa operación. Alineamiento usa entradas emparejadas, barra nativa con la fracción real del Worker, acciones principal/peligro y resumen de puntuación/identidad/similitud. Ajustes agrupa idioma y tema en filas, con ayuda asociada y aviso de inglés pendiente.
 
 ## Mecanismos sensibles a estilos
 
@@ -69,11 +69,11 @@ Las acciones de carga y error conservan sus anuncios `role=status`. Los datos de
 - **FASTA:** filas de 44 px y altura de viewport fija, con respaldo positivo y finito. La medición de DOM espera `document.fonts.ready`, y su resultado se descarta si el componente ya no está activo. La edición y el cálculo no esperan fuentes.
 - **Alineamiento:** altura de bloque de 112 px y virtualización existente. No modificar un interlineado aislado ni usar Mono en negrita sin incorporar el peso correspondiente.
 - **Gráfica:** estilos resueltos en el hilo principal y enviados al Worker. No mover cálculo o trazado al hilo principal ni alterar contratos. OffscreenCanvas no hereda las fuentes cargadas en el documento: por autorización expresa, la inicialización registra Sans 400 en el conjunto de fuentes del Worker y redibuja los datos existentes al cargarla, sin publicar resultados adicionales ni recalcular. Si la carga falla, conserva el cálculo y registra un aviso explícito. Colores y contraste son independientes de esa limitación.
-- **PWA:** única modificación de configuración hasta el commit 3: añadir `woff2` a `workbox.globPatterns`. Registro, manifiesto y resto de opciones conservados. `check:pwa` comprueba las cuatro fuentes en la precaché y sus bytes después de recargar sin red, además del cálculo y aislamiento originales.
+- **PWA:** cambios de configuración: añadir `woff2` a `workbox.globPatterns` y usar el acento claro como `manifest.theme_color`. El manifiesto conserva su fondo, icono en la misma ruta y restantes campos. Registro y resto de opciones conservados. `check:pwa` comprueba las cuatro fuentes en la precaché y sus bytes después de recargar sin red, además del cálculo y aislamiento originales.
 
 ## Textos
 
-Español descriptivo: acción, estado y consecuencia. Conservar límites, unidades, residuos excluidos y advertencias de Chou–Fasman. Todo texto visible va en `src/i18n/es.ts`; las claves nuevas hasta el commit 3 son `visual.tools` y `errors.chartFontLoad`. Todo el catálogo inglés sigue marcado `[EN pending]` hasta S7, incluidas esas claves. No presentar cálculo local como guardado ni estimación clásica como predicción de estructura.
+Español descriptivo: acción, estado y consecuencia. Conservar límites, unidades, residuos excluidos y advertencias de Chou–Fasman. Todo texto visible va en `src/i18n/es.ts`; las claves nuevas son `visual.tools`, `errors.chartFontLoad`, `visual.alignmentInputs`, `visual.alignmentProgress`, `visual.alignmentEmpty`, `visual.settingsIntroduction`, `visual.preferences`, `visual.languageHelp` y `visual.themeHelp`. Todo el catálogo inglés sigue marcado `[EN pending]` hasta S7, incluidas esas claves. No presentar cálculo local como guardado ni estimación clásica como predicción de estructura.
 
 ## Checklist de pantalla nueva
 
@@ -91,7 +91,7 @@ Español descriptivo: acción, estado y consecuencia. Conservar límites, unidad
 
 Buscar primero un token semántico existente. Si falta, declarar nombre en inglés y responsabilidad en `design-tokens.css`; para colores añadir tema claro, fuente oscura y ambos mecanismos de sustitución. Documentar consumidores, fondo y contraste. Ampliar los pares pertinentes en `chartStyle.test.ts` sin reducir umbrales. Revisar editor superpuesto, virtualización y Workers antes de cambiar un token compartido.
 
-## Pruebas modificadas y añadidas hasta el commit 3
+## Pruebas modificadas y añadidas
 
 - `chartStyle.test.ts`, prueba parametrizada `keeps AA contrast for palette`: añade página, superficie elevada, selección y botón principal. Conserva texto ≥4,5 y gráficos ≥3.
 - `FastaLoader.test.tsx`: añade `waits for pending fonts before measuring virtualized rows`; verifica espera y selección de la entrada después de resolver las fuentes. Las pruebas anteriores no cambian.
@@ -101,4 +101,21 @@ Buscar primero un token semántico existente. Si falta, declarar nombre en ingl�
 - `scripts/check-pwa.mjs`: amplía la comprobación existente con recarga sin red, caché y carga real de los cuatro WOFF2. Conserva navegación, Worker e aislamiento.
 - `scripts/run-e2e.mjs`: precompila Zod en el servidor de pruebas para evitar que la primera carga FASTA provoque una recarga de Vite. No cambia el servidor de producción ni los umbrales de pruebas.
 
-Los ocho E2E originales no se modifican. Se exige ausencia de infracciones axe y ausencia de desbordamiento del cuerpo. Capturas en `artifacts/`, sin versionarlas. No se verificaron teléfono físico, Mac, Android, lectores de pantalla, otras familias de navegador, rendimiento externo ni despliegue.
+Los recorridos originales y sus umbrales se conservan; solo alineamiento añade aserciones y capturas. Se exige ausencia de infracciones axe y ausencia de desbordamiento del cuerpo. Capturas en `artifacts/`, sin versionarlas. No se verificaron teléfono físico, Mac, Android, lectores de pantalla, otras familias de navegador, rendimiento externo ni despliegue.
+
+
+## Icono y metadatos
+
+El símbolo propio de residuos reemplaza el icono anterior. La fuente `src/shared/app-icon.svg` tiene geometría de la misma familia que BrandMark; Vite sustituye colores y grosor desde `--color-surface`, `--color-focus` y `--stroke-icon`, lo sirve en desarrollo y lo emite como `app-icon.svg` durante el build. Ese SVG generado no se versiona. Sus coordenadas y radio forman la geometría vectorial, no la distribución de componentes.
+
+El favicon y la PWA usan la misma ruta. Título, descripción inicial y color de navegador salen del catálogo y los tokens mediante el plugin `application-identity`; el proveedor de preferencias existente sigue actualizando el título y el color al cambiar idioma, tema o apariencia de Sistema. No se modifica esa lógica. `manifest.theme_color` usa el cobre claro; el fondo se conserva como superficie.
+
+## Verificaciones finales añadidas
+
+- `AlignmentPage.test.tsx`: la prueba parametrizada de parámetros global/local ahora comprueba la fracción 0,5 en la barra y su retirada al terminar; conserva todos los parámetros y métricas existentes.
+- `alignment.spec.ts`: el recorrido de progreso/cancelación añade barra visible y botón principal deshabilitado; el recorrido responsive/axe genera capturas; un caso nuevo verifica vacío, caracteres inválidos y límite de 5.000 en ambos tamaños y temas. No se cambia ningún umbral ni aserción previa.
+- `preferences-design.spec.ts`: dos casos nuevos verifican controles de 44 px, ausencia de desbordamiento y axe en 360/1280 claro/oscuro, Sistema, foco por teclado y catálogo inglés pendiente.
+- `identity.spec.ts`: comprueba favicon resuelto, título/descripcion y color de navegador para claro/oscuro/Sistema.
+- `check:pwa`: además de fuentes, Worker y cálculo, comprueba que el icono generado siga disponible después de recargar sin red.
+
+Comandos: `npm run lint`, `npm run typecheck`, `npm run test:coverage`, `npm run build`, `npm run test:e2e`, `npm run check:pwa`. Si el lanzador npm del equipo falla, ejecutar cada script con Node y la CLI instalada de npm. Las capturas de las tres pantallas se regeneran en `artifacts/` con prefijos `editor-v2-`, `alignment-v2-` y `settings-v2-`; permanecen fuera de Git. La verificación local no certifica teléfonos físicos, Mac/Android, otros navegadores, lector de pantalla, métricas de rendimiento externas ni despliegue.

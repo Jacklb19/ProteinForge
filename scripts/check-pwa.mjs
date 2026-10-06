@@ -15,6 +15,15 @@ try {
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   await context.setOffline(true);
   await page.reload();
+  const offlineIcon = await page.evaluate(async () => {
+    const cached = await caches.match('/app-icon.svg', { ignoreSearch: true });
+    const response = await fetch('/app-icon.svg');
+    const source = await response.text();
+    return !!cached && response.ok && response.headers.get('content-type')?.includes('image/svg+xml')
+      && source.includes('#9a3e16') && !source.includes('{{');
+  });
+  if (!offlineIcon) throw new Error('Generated application icon is unavailable offline.');
+  process.stdout.write('Generated icon verified in precache after offline reload.\n');
   const fonts = await page.evaluate(async () => {
     const paths = ['plex-sans-regular', 'plex-sans-semibold', 'plex-sans-bold', 'plex-mono-regular'];
     const result = [];

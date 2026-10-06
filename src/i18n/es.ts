@@ -6,7 +6,7 @@ export const spanish = {
   'visual.alignmentEmpty': 'Introduce las dos secuencias y selecciona Alinear para comparar sus residuos.',
   'visual.settingsIntroduction': 'Idioma y apariencia de tu espacio de trabajo.',
   'visual.preferences': 'Preferencias de visualización',
-  'visual.languageHelp': 'El catálogo en inglés está pendiente de completar hasta S7; sus textos se muestran marcados como pendientes.',
+  'visual.languageHelp': 'El catálogo en inglés está pendiente de completar; sus textos se muestran marcados como pendientes.',
   'visual.themeHelp': 'Sistema sigue la apariencia del dispositivo. También puedes elegir un tema claro u oscuro.',
   'app.name': 'ProteinForge',
   'app.title': 'ProteinForge — Análisis de proteínas',
