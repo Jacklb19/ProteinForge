@@ -28,12 +28,18 @@ test('alignment remains accessible at mobile and desktop widths', async ({ page 
       await page.goto('/settings');
       await page.getByRole('combobox', { name: 'Tema' }).selectOption(theme);
       await page.goto('/alignment');
-      await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIKLMNPQRSTVWY');
-      await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIKLMNPQRSTVWY');
+      await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIKLMNPQRSTVWY'.repeat(6));
+      await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIKLMNPQRSTVWY'.repeat(6));
       await page.getByRole('button', { name: 'Alinear' }).click();
       await expect(page.getByRole('heading', { name: 'Resultado del alineamiento' })).toBeVisible();
       const overflow = await page.evaluate(() => document.body.scrollWidth - window.innerWidth);
       expect(overflow).toBeLessThanOrEqual(0);
+      if (width === 360) {
+        const blocks = page.getByRole('region', { name: /Bloques del alineamiento/i });
+        await blocks.focus();
+        await blocks.press('ArrowRight');
+        await expect.poll(() => blocks.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+      }
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
     }
