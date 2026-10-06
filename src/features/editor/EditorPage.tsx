@@ -6,6 +6,8 @@ import { DescriptorPanel } from '../descriptors/DescriptorPanel';
 import { useDescriptors } from '../descriptors/useDescriptors';
 import { HydropathyProfile } from '../descriptors/HydropathyProfile';
 import { useTranslation } from '../../i18n';
+import { PageHeading } from '../../shared/PageHeading';
+import { Icon } from '../../shared/Icon';
 
 const VALIDATION_DELAY_MS = 45;
 
@@ -55,12 +57,10 @@ export function EditorPage(): React.JSX.Element {
 
   return (
     <main className="editor-page">
-      <header>
-        <h1>{t('editor.title')}</h1>
-        <p>{t('editor.introduction')}</p>
-      </header>
-      <section aria-labelledby="sequence-title">
-        <h2 id="sequence-title">{t('editor.section')}</h2>
+      <PageHeading titleKey="editor.title" introduction="editor.introduction" />
+      <div className="sequence-workspace panel">
+      <section className="sequence-panel" aria-labelledby="sequence-title">
+        <div className="section-heading"><Icon name="sequence" /><h2 id="sequence-title">{t('editor.section')}</h2></div>
         <label htmlFor="sequence-input">{t('editor.label')}</label>
         <div className="editor-layer">
           <pre aria-hidden="true" className="editor-highlight" ref={highlight}>{fragments}{'\n'}</pre>
@@ -80,9 +80,9 @@ export function EditorPage(): React.JSX.Element {
             }}
           />
         </div>
-        <p id="sequence-help">{t('editor.help')}</p>
-        <p id="sequence-status" role="status" aria-live="polite">{description}</p>
-        {additional > 0 && <p role="note">{t(additional === 1 ? 'editor.additionalOne' : 'editor.additional', { count: formatNumber(additional) })}</p>}
+        <p id="sequence-help" className="field-help">{t('editor.help')}</p>
+        <p id="sequence-status" className="status-message" data-state={invalidPositions.length > 0 ? 'invalid' : 'current'} role="status" aria-live="polite">{description}</p>
+        {additional > 0 && <p className="notice" role="note">{t(additional === 1 ? 'editor.additionalOne' : 'editor.additional', { count: formatNumber(additional) })}</p>}
       </section>
       <FastaLoader onSelect={(entry: FastaEntry) => {
         validatedText.current = entry.sequence;
@@ -90,6 +90,7 @@ export function EditorPage(): React.JSX.Element {
         setText(entry.sequence);
         setInvalidPositions(entry.invalidPositions);
       }} />
+      </div>
       <DescriptorPanel data={descriptors} />
       <HydropathyProfile text={text} />
     </main>

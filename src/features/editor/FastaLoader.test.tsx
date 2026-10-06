@@ -43,6 +43,37 @@ afterEach(() => {
 });
 
 describe('FastaLoader', () => {
+  it('waits for pending fonts before measuring virtualized rows', async () => {
+    let completeFonts: (() => void) | undefined;
+    const ready = new Promise<void>((resolve) => { completeFonts = resolve; });
+    const originalFonts = Object.getOwnPropertyDescriptor(document, 'fonts');
+    Object.defineProperty(document, 'fonts', { configurable: true, value: { ready } });
+    const measured = vi.fn();
+    const bounds = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      if (this.classList.contains('fasta-entry')) measured();
+      return { x: 0, y: 0, top: 0, left: 0, bottom: 44, right: 200, width: 200, height: 44, toJSON: () => ({}) };
+    });
+    try {
+      const instances = setupWorker();
+      render(<EditorPage />);
+      fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
+        target: { files: [new File(['>entry\nAC'], 'entry.fa')] },
+      });
+      act(() => { fastaWorker(instances)?.onmessage?.(new MessageEvent('message', { data: {
+        type: 'entries', entries: [{ number: 1, header: 'entry', sequence: 'AC', invalidPositions: [] }],
+      } })); });
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      expect(measured).not.toHaveBeenCalled();
+      await act(async () => { completeFonts?.(); await ready; });
+      expect(measured).toHaveBeenCalledOnce();
+      fireEvent.keyDown(screen.getByRole('listbox'), { key: 'ArrowDown' });
+      expect(screen.getByRole('textbox', { name: /secuencia de aminoácidos/i })).toHaveValue('AC');
+    } finally {
+      bounds.mockRestore();
+      if (originalFonts) Object.defineProperty(document, 'fonts', originalFonts);
+      else Reflect.deleteProperty(document, 'fonts');
+    }
+  });
   it('receives worker entries and supports keyboard selection', () => {
     const instances = setupWorker();
     render(<EditorPage />);

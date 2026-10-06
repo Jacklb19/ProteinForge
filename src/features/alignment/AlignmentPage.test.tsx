@@ -70,10 +70,12 @@ describe('alignment interface', () => {
     expect(screen.queryByText('Resultado del alineamiento')).not.toBeInTheDocument();
     act(() => { worker().onmessage?.(new MessageEvent('message', { data: { type: 'progress', id: request.id, fraction: 0.5 } })); });
     expect(screen.getByRole('status')).toHaveTextContent('50%');
+    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '0.5');
     fireEvent.change(screen.getByLabelText('Matriz'), { target: { value: 'BLOSUM45' } });
     const storedResult: AlignmentResult = { ...result, parameters: { ...result.parameters, matrix: 'BLOSUM80', mode, terminalGaps } };
     act(() => { worker().onmessage?.(new MessageEvent('message', { data: { type: 'result', id: request.id, result: storedResult } })); });
     expect(screen.getByText('Identidad: 4 de 4 columnas (100%).')).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     expect(screen.getByText('Similitud: 4 de 4 columnas (100%).')).toBeInTheDocument();
     expect(screen.getByText(`Parámetros: BLOSUM80, modo ${label}, apertura 10, extensión 0,5, extremos ${ends}.`)).toBeInTheDocument();
   });

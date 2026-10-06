@@ -1,5 +1,13 @@
 /** Complete Spanish catalog for currently implemented screens. */
 export const spanish = {
+  'visual.tools': 'Herramientas',
+  'visual.alignmentInputs': 'Secuencias y parámetros',
+  'visual.alignmentProgress': 'Progreso del alineamiento',
+  'visual.alignmentEmpty': 'Introduce las dos secuencias y selecciona Alinear para comparar sus residuos.',
+  'visual.settingsIntroduction': 'Idioma y apariencia de tu espacio de trabajo.',
+  'visual.preferences': 'Preferencias de visualización',
+  'visual.languageHelp': 'El catálogo en inglés está pendiente de completar; sus textos se muestran marcados como pendientes.',
+  'visual.themeHelp': 'Sistema sigue la apariencia del dispositivo. También puedes elegir un tema claro u oscuro.',
   'app.name': 'ProteinForge',
   'app.title': 'ProteinForge — Análisis de proteínas',
   'app.description': 'Análisis local de secuencias de proteínas.',
@@ -137,6 +145,7 @@ export const spanish = {
   'errors.invalidWindow': 'La ventana debe ser 9 o 19.',
   'errors.profileFailed': 'No se pudo generar el perfil.',
   'errors.canvasContext': 'No se pudo iniciar el contexto 2D de la gráfica.',
+  'errors.chartFontLoad': 'No se pudo completar la carga tipográfica de la gráfica; se conservan los resultados y la fuente de respaldo.',
   'errors.emptyFasta': 'El archivo FASTA no contiene entradas.',
   'errors.emptyFastaHeader': 'La cabecera de la línea {{line}} está vacía.',
   'errors.missingFastaHeader': 'Se esperaba una cabecera FASTA antes de la línea {{line}}.',

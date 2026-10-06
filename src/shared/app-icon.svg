@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="4" fill="{{surface}}"/><g fill="none" stroke="{{accent}}" stroke-width="{{stroke}}"><path d="M8 8h16v16H8V8m0 8h16M16 8v16"/><path fill="{{accent}}" stroke="{{surface}}" d="M5 5h6v6H5zM21 13h6v6h-6zM5 21h6v6H5z"/></g></svg>
