@@ -6,6 +6,7 @@ import type { ProfilePoint, HydropathyWindow } from './profile';
 import type { ResiduePropensity } from './chouFasman';
 import { useTranslation } from '../../i18n';
 import { useThemeRevision } from '../../theme/useThemeRevision';
+import { translate } from '../../i18n/translate';
 
 const ROWS_PER_PAGE = 50;
 const VALUE_FORMAT = { minimumFractionDigits: 3, maximumFractionDigits: 3 } as const;
@@ -33,6 +34,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
   const currentRequest = useRef(0);
   const sentSequence = useRef('');
   const sentWindow = useRef<HydropathyWindow>(9);
+  const previousAppearance = useRef({ themeRevision, locale });
 
   useEffect(() => {
     try {
@@ -53,7 +55,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         setPage(0);
         setError(null);
       };
-      instance.onerror = () => { setError(t('profile.workerError')); };
+      instance.onerror = () => { setError(translate('es', 'profile.workerError')); };
 
       const canvas = document.createElement('canvas');
       canvas.className = 'hydropathy-chart';
@@ -65,12 +67,12 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         const message: ProfileRequest = {
           type: 'initialize',
           canvas: transferred,
-          style: getChartStyle(canvas, locale),
+          style: getChartStyle(canvas),
         };
         instance.postMessage(message, [transferred]);
       }
     } catch {
-      queueMicrotask(() => { setError(t('profile.startError')); });
+      queueMicrotask(() => { setError(translate('es', 'profile.startError')); });
     }
     return () => {
       worker.current?.terminate();
@@ -78,7 +80,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
       canvasRef.current?.remove();
       canvasRef.current = null;
     };
-  }, [t, locale]);
+  }, []);
 
   useEffect(() => {
     currentRequest.current += 1;
@@ -103,9 +105,25 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
       worker.current.postMessage(request);
     };
     send();
-    window.addEventListener('resize', send);
-    return () => { window.removeEventListener('resize', send); };
-  }, [validation, windowSize, locale, themeRevision]);
+  }, [validation, windowSize, locale]);
+
+  useEffect(() => {
+    const redraw = () => {
+      const canvas = canvasRef.current;
+      if (!canvas || !worker.current) return;
+      const rectangle = canvas.getBoundingClientRect();
+      const request: ProfileRequest = {
+        type: 'redraw', id: currentRequest.current,
+        width: Math.max(1, rectangle.width), height: Math.max(1, rectangle.height),
+        scale: Math.max(1, window.devicePixelRatio || 1), style: getChartStyle(canvas, locale),
+      };
+      worker.current.postMessage(request);
+    };
+    if (previousAppearance.current.themeRevision !== themeRevision || previousAppearance.current.locale !== locale) redraw();
+    previousAppearance.current = { themeRevision, locale };
+    window.addEventListener('resize', redraw);
+    return () => { window.removeEventListener('resize', redraw); };
+  }, [themeRevision, locale]);
 
   const invalid = validation.invalidPositions.length > 0;
   const tooShort = !invalid && validation.sequence.length > 0 && validation.sequence.length < windowSize;

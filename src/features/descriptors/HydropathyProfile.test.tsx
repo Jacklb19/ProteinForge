@@ -132,10 +132,24 @@ describe('accessible hydropathy profile', () => {
   it('sends a fresh chart style when the theme changes', async () => {
     render(<HydropathyProfile text="ACDEFGHIKLMNPQRSTVWY" />);
     const worker = profileWorker();
-    const original = lastRequest(worker);
+    const originalCalls = worker.postMessage.mock.calls.length;
     act(() => { document.documentElement.dataset.theme = 'dark'; });
-    await waitFor(() => { expect(lastRequest(worker).id).toBeGreaterThan(original.id); });
-    expect(lastRequest(worker).style).toBeDefined();
+    await waitFor(() => { expect(worker.postMessage.mock.calls.length).toBeGreaterThan(originalCalls); });
+    const message = worker.postMessage.mock.calls.at(-1)?.[0];
+    expect(message?.type).toBe('redraw');
+    expect(message && 'style' in message && message.style).toBeDefined();
+    Reflect.deleteProperty(document.documentElement.dataset, 'theme');
+  });
+
+  it('redraws stale values after a theme change without calculating invalid input', async () => {
+    const { rerender } = render(<HydropathyProfile text="ACDEFGHIKLMNPQRSTVWY" />);
+    const worker = profileWorker();
+    rerender(<HydropathyProfile text="ACDEFGHIKLMNPQRSTVWY-" />);
+    const originalCalls = worker.postMessage.mock.calls.length;
+    act(() => { document.documentElement.dataset.theme = 'dark'; });
+    await waitFor(() => { expect(worker.postMessage.mock.calls.length).toBeGreaterThan(originalCalls); });
+    expect(worker.postMessage.mock.calls.at(-1)?.[0].type).toBe('redraw');
+    expect(worker.postMessage.mock.calls.slice(originalCalls).some(([message]) => message.type === 'calculate')).toBe(false);
     Reflect.deleteProperty(document.documentElement.dataset, 'theme');
   });
 });

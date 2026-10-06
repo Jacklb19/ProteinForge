@@ -17,6 +17,7 @@ export interface ChartStyle {
 /** Configuration and calculation sent to the profile worker. */
 export type ProfileRequest =
   | { type: 'initialize'; canvas: OffscreenCanvas; style: ChartStyle }
+  | { type: 'redraw'; id: number; width: number; height: number; scale: number; style: ChartStyle }
   | {
     type: 'calculate';
     id: number;

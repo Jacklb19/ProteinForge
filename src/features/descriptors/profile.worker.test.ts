@@ -41,5 +41,10 @@ describe('profile worker', () => {
     expect(response.propensities).toHaveLength(9);
     expect(response.points?.[0]?.position).toBe(5);
     expect(drawing.strokeStyle).toBe('blue');
+    context.onmessage?.(new MessageEvent('message', {
+      data: { type: 'redraw', id: 7, width: 400, height: 200, scale: 1, style: { ...style, curve: 'dark-curve' } },
+    }));
+    expect(drawing.strokeStyle).toBe('dark-curve');
+    expect(context.postMessage).toHaveBeenCalledTimes(1);
   });
 });
