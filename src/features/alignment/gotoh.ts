@@ -174,24 +174,24 @@ export async function alignSequences(
         diagonal = previousY[j - 1] ?? -Infinity;
         originM = Y;
       }
-      let valorM = diagonal + (row[ALPHABET.indexOf(b[j - 1] ?? '')] ?? -Infinity);
-      if (mode === 'local' && valorM <= 0) {
-        valorM = 0;
+      let matchScore = diagonal + (row[ALPHABET.indexOf(b[j - 1] ?? '')] ?? -Infinity);
+      if (mode === 'local' && matchScore <= 0) {
+        matchScore = 0;
         originM = STOP;
       }
       const openX = (previousM[j] ?? -Infinity) - GAP_OPEN;
       const extendX = (previousX[j] ?? -Infinity) - GAP_EXTEND;
       const openY = (currentM[j - 1] ?? -Infinity) - GAP_OPEN;
       const extendY = (currentY[j - 1] ?? -Infinity) - GAP_EXTEND;
-      currentM[j] = valorM;
+      currentM[j] = matchScore;
       currentX[j] = Math.max(openX, extendX);
       currentY[j] = Math.max(openY, extendY);
       trace[index] = originM | (extendX > openX ? 4 : 0) | (extendY > openY ? 8 : 0);
       if (mode === 'local' || i === a.length || j === b.length) {
-        const candidates: [number, number][] = [[M, valorM], [X, currentX[j] ?? -Infinity], [Y, currentY[j] ?? -Infinity]];
-        for (const [state, valor] of candidates) {
-          if (valor > best) {
-            best = valor;
+        const candidates: [number, number][] = [[M, matchScore], [X, currentX[j] ?? -Infinity], [Y, currentY[j] ?? -Infinity]];
+        for (const [state, score] of candidates) {
+          if (score > best) {
+            best = score;
             bestI = i;
             bestJ = j;
             bestState = state;
