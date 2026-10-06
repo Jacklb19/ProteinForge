@@ -1,13 +1,13 @@
 # Mapa de pantallas — ProteinForge
 
-Este mapa fija la ubicación funcional de las pantallas y paneles. Las rutas marcadas como **previstas** aún no están implementadas; no describen puntos de acceso de la API. La aplicación usa rutas de cliente para `/` y `/settings`.
+Este mapa fija la ubicación funcional de las pantallas y paneles. Las rutas marcadas como **previstas** aún no están implementadas; no describen puntos de acceso de la API. La aplicación usa rutas de cliente para `/`, `/alignment` y `/settings`.
 
 | Pantalla o panel | Ruta | Estado y sprint | Propósito | HU y RF | Sesión | Lleva a |
 |---|---|---|---|---|---|---|
 | Editor de secuencias | `/` | Existente; S1–S2, ampliación S5–S6 | Escribir, pegar o cargar FASTA; ver validación, descriptores y perfil. En S5 incorpora el ensamblado desde catálogo. | HU-01, HU-02, HU-03, HU-04; RF-01, RF-02, RF-03, RF-04, RF-05 | No para análisis local; sí para guardar | Alineamiento, búsqueda UniProt, proyectos, informe y privacidad |
 | Selector FASTA, descriptores y perfil | `/` (paneles del editor) | Existentes; S1–S2 | Elegir la entrada cargada y consultar resultados calculados, gráfica y tabla accesible. | HU-02, HU-03; RF-01, RF-03, RF-04, RF-05 | No | Editor; desde el editor, alineamiento e informe |
 | Catálogo y ensamblado | `/` (panel del editor) | Previsto; S5 | Buscar en el JSON estático de dominios y péptidos, ordenar fragmentos y conservar su origen. | HU-04; RF-01, RF-16 | No para componer; sí para guardar | Editor y proyecto activo |
-| Alineamiento | `/alignment` | Prevista; S3–S4 | Seleccionar referencia y parámetros; iniciar, seguir y cancelar el alineamiento; consultar identidad y regiones conservadas. | HU-05; RF-06, RF-07, RF-16 | No para cálculo local; sí para guardar | Editor, búsqueda UniProt y proyecto activo |
+| Alineamiento | `/alignment` | Existente en TypeScript; S3, sustitución del núcleo en S4 | Introducir las dos secuencias, seleccionar matriz y modo; iniciar, seguir y cancelar el alineamiento; consultar identidad, similitud, parámetros y bloques virtualizados. | HU-05; RF-06, RF-07, RF-16 | No para cálculo local; sí para guardar desde S6 | Editor y ajustes; búsqueda UniProt y proyecto activo desde S5–S6 |
 | Búsqueda UniProt | `/uniprot` | Prevista; S5 | Buscar entradas y consultar su anotación para usar una referencia o abrir su estructura. | HU-05, HU-06; RF-08 | Sí, según la API vigente en la definición | Editor, alineamiento y visor de estructura |
 | Visor de estructura | `/structures/:id` | Prevista; S5 | Mostrar BinaryCIF con Mol* y sincronizar la selección de residuos con la secuencia. | HU-06; RF-09, RF-10 | No para visualización local; consultar anotaciones puede requerir sesión | Editor, búsqueda UniProt y proyecto activo |
 | Acceso, registro y recuperación | `/sign-in`, `/sign-up`, `/recover` | Previstas; S6 | Iniciar sesión, crear cuenta, confirmar correo y recuperar acceso. El desafío TOTP se resuelve en el flujo de acceso. | HU-08; RF-12 | No | Proyectos, editor y privacidad |
