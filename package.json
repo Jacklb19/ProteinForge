@@ -11,6 +11,7 @@
     "build": "tsc -b && vite build",
     "build:wasm": "wasm-pack build rust/alignment --target web --out-dir pkg",
     "check:wasm": "node scripts/verify-wasm.mjs",
+    "check:pwa": "node scripts/check-pwa.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc -b --noEmit",
@@ -43,6 +44,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.70.1",
     "vite": "8.3.1",
+    "vite-plugin-pwa": "2.0.0",
     "vitest": "5.0.2"
   }
 }

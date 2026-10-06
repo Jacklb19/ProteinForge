@@ -1,5 +1,8 @@
 /** Complete Spanish catalog for currently implemented screens. */
 export const spanish = {
+  'app.name': 'ProteinForge',
+  'app.title': 'ProteinForge — Análisis de proteínas',
+  'app.description': 'Análisis local de secuencias de proteínas.',
   'editor.title': 'Editor de secuencias',
   'editor.introduction': 'Escribe o pega una secuencia de aminoácidos. Se aceptan los veinte residuos estándar y U, O, B, Z o X con aviso; se quita un * final.',
   'editor.section': 'Secuencia activa',
