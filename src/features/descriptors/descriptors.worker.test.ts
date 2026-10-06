@@ -19,10 +19,10 @@ describe('descriptor worker', () => {
     context.onmessage?.(new MessageEvent('message', { data: { id: 1, sequence: 'ACDE' } }));
     context.onmessage?.(new MessageEvent('message', { data: { id: 2, sequence: 'ACXDE' } }));
     const first = context.postMessage.mock.calls[0]?.[0] as DescriptorResponse;
-    const segunda = context.postMessage.mock.calls[1]?.[0] as DescriptorResponse;
+    const second = context.postMessage.mock.calls[1]?.[0] as DescriptorResponse;
     expect(first.id).toBe(1);
     expect(first.result?.length).toBe(4);
-    expect(segunda.id).toBe(2);
-    expect(segunda.error).toMatch(/aminoácidos estándar/i);
+    expect(second.id).toBe(2);
+    expect(second.error).toMatch(/aminoácidos estándar/i);
   });
 });

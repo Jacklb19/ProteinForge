@@ -5,34 +5,34 @@ import { calculateDescriptors } from './descriptors';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
 
 class MockWorker {
-  static instancias: MockWorker[] = [];
-  ruta: string;
+  static instances: MockWorker[] = [];
+  url: string;
   onmessage: ((event: MessageEvent<DescriptorResponse>) => void) | null = null;
   onerror: (() => void) | null = null;
   postMessage = vi.fn<(message: DescriptorRequest) => void>();
   terminate = vi.fn();
 
-  constructor(ruta: URL | string) {
-    this.ruta = String(ruta);
-    MockWorker.instancias.push(this);
+  constructor(url: URL | string) {
+    this.url = String(url);
+    MockWorker.instances.push(this);
   }
 }
 
 function descriptorWorker(): MockWorker {
-  const worker = MockWorker.instancias.find((instance) => instance.ruta.includes('descriptors.worker'));
-  if (!worker) throw new Error('No se creó el Worker de descriptores.');
+  const worker = MockWorker.instances.find((instance) => instance.url.includes('descriptors.worker'));
+  if (!worker) throw new Error('The descriptor worker was not created.');
   return worker;
 }
 
 function requestAt(worker: MockWorker, index: number): DescriptorRequest {
   const request = worker.postMessage.mock.calls[index]?.[0];
-  if (!request) throw new Error('Falta la solicitud esperada.');
+  if (!request) throw new Error('The expected request is missing.');
   return request;
 }
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  MockWorker.instancias = [];
+  MockWorker.instances = [];
 });
 
 describe('descriptors in the editor', () => {
@@ -77,7 +77,7 @@ describe('descriptors in the editor', () => {
     const worker = descriptorWorker();
     const first = requestAt(worker, 0);
     fireEvent.change(editor, { target: { value: 'ACDF' } });
-    const segunda = requestAt(worker, 1);
+    const second = requestAt(worker, 1);
     act(() => {
       worker.onmessage?.(new MessageEvent('message', {
         data: { id: first.id, result: calculateDescriptors('ACDE') },
@@ -86,7 +86,7 @@ describe('descriptors in the editor', () => {
     expect(screen.queryByText('Masa molecular')).not.toBeInTheDocument();
     act(() => {
       worker.onmessage?.(new MessageEvent('message', {
-        data: { id: segunda.id, result: calculateDescriptors('ACDF') },
+        data: { id: second.id, result: calculateDescriptors('ACDF') },
       }));
     });
     expect(screen.getByText('Masa molecular')).toBeInTheDocument();

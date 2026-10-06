@@ -15,7 +15,7 @@ class MockWorker {
 }
 
 function profileWorker(): MockWorker {
-  if (!MockWorker.instance) throw new Error('No se creó el Worker del perfil.');
+  if (!MockWorker.instance) throw new Error('The profile worker was not created.');
   return MockWorker.instance;
 }
 
