@@ -5,6 +5,8 @@ import { MAX_ALIGNMENT_RESIDUES } from './wavefront';
 import type { AlignmentMode, AlignmentResult, MatrixName } from './gotoh';
 import type { AlignmentRequest, AlignmentResponse } from './messages';
 import { AlignmentBlocks } from './AlignmentBlocks';
+import { PageHeading } from '../../shared/PageHeading';
+import { Icon } from '../../shared/Icon';
 
 type Status = 'idle' | 'running' | 'cancelled' | 'error';
 
@@ -74,45 +76,59 @@ export function AlignmentPage(): React.JSX.Element {
   const similarityPercent = result && result.columns > 0 ? result.similarities / result.columns : 0;
   return (
     <main className="alignment-page">
-      <h1>{t('alignment.title')}</h1>
-      <p>{t('alignment.introduction')}</p>
+      <PageHeading titleKey="alignment.title" introduction="alignment.introduction" />
+      <section className="panel alignment-inputs" aria-labelledby="alignment-inputs-title">
+      <div className="section-heading"><Icon name="alignment" /><h2 id="alignment-inputs-title">{t('visual.alignmentInputs')}</h2></div>
+      <p className="field-help">{t('alignment.limit', { count: formatNumber(MAX_ALIGNMENT_RESIDUES) })}</p>
+      <div className="sequence-pair">
+      <div className="field">
       <label htmlFor="alignment-first">{t('alignment.first')}</label>
       <textarea id="alignment-first" value={first} onChange={(event) => { setFirst(event.target.value); }} />
+      </div><div className="field">
       <label htmlFor="alignment-second">{t('alignment.second')}</label>
       <textarea id="alignment-second" value={second} onChange={(event) => { setSecond(event.target.value); }} />
+      </div></div>
+      <div className="alignment-parameters"><div className="field">
       <label htmlFor="alignment-mode">{t('alignment.mode')}</label>
       <select id="alignment-mode" value={mode} onChange={(event) => { setMode(event.target.value as AlignmentMode); }}>
         <option value="global">{t('alignment.global')}</option>
         <option value="local">{t('alignment.local')}</option>
       </select>
+      </div><div className="field">
       <label htmlFor="alignment-matrix">{t('alignment.matrix')}</label>
       <select id="alignment-matrix" value={matrix} onChange={(event) => { setMatrix(event.target.value as MatrixName); }}>
         <option value="BLOSUM45">{t('alignment.matrix45')}</option>
         <option value="BLOSUM62">{t('alignment.matrix62')}</option>
         <option value="BLOSUM80">{t('alignment.matrix80')}</option>
       </select>
+      </div></div>
       <div className="alignment-actions">
-        <button type="button" onClick={start} disabled={status === 'running'}>{t('alignment.start')}</button>
-        <button type="button" onClick={cancel} disabled={status !== 'running'}>{t('alignment.cancel')}</button>
+        <button className="button button-primary" type="button" onClick={start} disabled={status === 'running'}>{t('alignment.start')}</button>
+        <button className="button button-danger" type="button" onClick={cancel} disabled={status !== 'running'}>{t('alignment.cancel')}</button>
       </div>
-      <div role="status" aria-live="polite">
+      {status === 'running' && <progress className="alignment-progress" max={1} value={progress} aria-label={t('visual.alignmentProgress')} />}
+      <div className="status-message" data-state={message ? 'error' : status} role="status" aria-live="polite">
         {message || (status === 'running' && t('alignment.running', { percent: formatNumber(progress, { style: 'percent', maximumFractionDigits: 0 }) })) || (status === 'cancelled' && t('alignment.cancelled'))}
       </div>
-      {warnings.map((warning) => <p key={warning} role="note">{warning}</p>)}
+      {warnings.map((warning) => <p className="notice" key={warning} role="note">{warning}</p>)}
+      {!result && status === 'idle' && !message && <p className="field-help">{t('visual.alignmentEmpty')}</p>}
+      </section>
       {result && (
-        <section aria-labelledby="alignment-result-title" className="alignment-result">
+        <section aria-labelledby="alignment-result-title" className="panel alignment-result">
           <h2 id="alignment-result-title">{t('alignment.result')}</h2>
-          <p>{t('alignment.score', { score: formatNumber(result.score) })}</p>
-          <p>{t('alignment.identities', { count: formatNumber(result.identities), total: formatNumber(result.columns), percent: formatNumber(percent, { style: 'percent', maximumFractionDigits: 1 }) })}</p>
-          <p>{t('alignment.similarities', { count: formatNumber(result.similarities), total: formatNumber(result.columns), percent: formatNumber(similarityPercent, { style: 'percent', maximumFractionDigits: 1 }) })}</p>
-          <p>{t('alignment.parameters', {
+          <div className="alignment-metrics">
+          <div><strong aria-hidden="true">{formatNumber(result.score)}</strong><p>{t('alignment.score', { score: formatNumber(result.score) })}</p></div>
+          <div><strong aria-hidden="true">{formatNumber(percent, { style: 'percent', maximumFractionDigits: 1 })}</strong><p>{t('alignment.identities', { count: formatNumber(result.identities), total: formatNumber(result.columns), percent: formatNumber(percent, { style: 'percent', maximumFractionDigits: 1 }) })}</p></div>
+          <div><strong aria-hidden="true">{formatNumber(similarityPercent, { style: 'percent', maximumFractionDigits: 1 })}</strong><p>{t('alignment.similarities', { count: formatNumber(result.similarities), total: formatNumber(result.columns), percent: formatNumber(similarityPercent, { style: 'percent', maximumFractionDigits: 1 }) })}</p></div>
+          </div>
+          <p className="notice">{t('alignment.parameters', {
             matrix: result.parameters.matrix,
             mode: t(result.parameters.mode === 'global' ? 'alignment.global' : 'alignment.local'),
             open: formatNumber(result.parameters.gapOpen),
             extend: formatNumber(result.parameters.gapExtend),
             ends: t(result.parameters.terminalGaps === 'free' ? 'alignment.freeEnds' : 'alignment.localEnds'),
           })}</p>
-          <p>{t('alignment.legend')}</p>
+          <p className="field-help">{t('alignment.legend')}</p>
           <AlignmentBlocks result={result} />
         </section>
       )}

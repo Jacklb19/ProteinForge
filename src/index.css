@@ -236,3 +236,33 @@ a:hover { text-decoration-thickness: var(--decoration-width); }
   .profile-heading, .profile-window { display: grid; width: var(--width-full); }
   .profile-window select { max-width: var(--width-full); }
 }
+
+/* Pairwise comparison uses the same residue record as the editor. */
+.alignment-page, .alignment-inputs, .alignment-result { display: grid; gap: var(--space-panel); }
+.field { display: grid; gap: var(--space-tight); min-width: var(--space-none); }
+.field label { font-size: var(--font-size-small); font-weight: var(--font-weight-label); }
+.sequence-pair, .alignment-parameters { display: grid; grid-template-columns: var(--grid-pair); gap: var(--space-panel); }
+.alignment-page textarea { min-height: var(--height-alignment-input); font-size: var(--font-size-base); background: var(--color-page); }
+.alignment-parameters { border-top: var(--border-width-divider) solid var(--color-border-subtle); padding-top: var(--space-panel); }
+.alignment-page select { width: var(--width-full); background: var(--color-surface-elevated); }
+.alignment-inputs > p, .alignment-result > p { margin-top: var(--space-none); }
+.alignment-actions { gap: var(--space-small); }
+.alignment-actions .button-primary { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); }
+.alignment-actions .button-danger { background: var(--color-invalid-surface); color: var(--color-invalid-text); }
+.alignment-actions button:disabled { color: var(--color-muted-text); background: var(--color-page); border-color: var(--color-border); box-shadow: none; }
+.alignment-progress { appearance: none; width: var(--width-full); height: var(--size-progress); overflow: hidden; border: var(--border-width-control) solid var(--color-border); border-radius: var(--border-radius-control); background: var(--color-page); accent-color: var(--color-accent); }
+.alignment-progress::-webkit-progress-bar { background: var(--color-page); }
+.alignment-progress::-webkit-progress-value { background: var(--color-accent); }
+.alignment-progress::-moz-progress-bar { background: var(--color-accent); }
+.alignment-metrics { display: grid; grid-template-columns: var(--grid-alignment-metrics); gap: var(--space-panel); }
+.alignment-metrics > div { border-top: var(--border-width-divider) solid var(--color-border-subtle); padding-top: var(--space-medium); }
+.alignment-metrics strong { font-family: var(--font-sequence); font-weight: var(--font-weight-regular); font-size: var(--font-size-metric); }
+.alignment-metrics p { font-size: var(--font-size-small); color: var(--color-muted-text); }
+.alignment-viewport { background: var(--color-page); border-radius: var(--space-none); }
+.alignment-block p { font-family: var(--font-sequence); font-size: var(--font-size-caption); color: var(--color-muted-text); }
+.alignment-identical { box-shadow: inset var(--space-none) calc(-1 * var(--border-width-divider)) var(--color-border); }
+.alignment-similar { text-decoration-thickness: var(--decoration-width); text-underline-offset: var(--decoration-offset); }
+@media (max-width: 48rem) {
+  .alignment-inputs, .alignment-result { padding: var(--space-medium); }
+  .sequence-pair, .alignment-parameters, .alignment-metrics { grid-template-columns: minmax(0, 1fr); }
+}

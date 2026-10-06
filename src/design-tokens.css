@@ -81,6 +81,10 @@
   --grid-editor: minmax(0, 1fr) var(--width-fasta);
   --grid-metrics: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
   --grid-metrics-mobile: repeat(2, minmax(0, 1fr));
+  --grid-pair: repeat(2, minmax(0, 1fr));
+  --grid-alignment-metrics: repeat(3, minmax(0, 1fr));
+  --size-progress: 0.5rem;
+  --height-alignment-input: 10rem;
   --height-editor: 14rem;
   --height-fasta-list: 16.5rem;
   --height-fasta-row-default: 44px;

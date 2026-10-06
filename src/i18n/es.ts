@@ -1,6 +1,9 @@
 /** Complete Spanish catalog for currently implemented screens. */
 export const spanish = {
   'visual.tools': 'Herramientas',
+  'visual.alignmentInputs': 'Secuencias y parámetros',
+  'visual.alignmentProgress': 'Progreso del alineamiento',
+  'visual.alignmentEmpty': 'Introduce las dos secuencias y selecciona Alinear para comparar sus residuos.',
   'app.name': 'ProteinForge',
   'app.title': 'ProteinForge — Análisis de proteínas',
   'app.description': 'Análisis local de secuencias de proteínas.',
