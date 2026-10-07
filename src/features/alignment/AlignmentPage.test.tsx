@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AlignmentPage } from './AlignmentPage';
 import type { AlignmentRequest, AlignmentResponse } from './messages';
 import type { AlignmentResult } from './gotoh';
+import { WorkspaceProviders } from '../../test/WorkspaceProviders';
 
 class MockWorker {
   static instance: MockWorker | null = null;
@@ -29,6 +30,11 @@ function worker(): MockWorker {
   return MockWorker.instance;
 }
 
+/** Text of the definition paired with a visible term in the result summary. */
+function definition(term: string): string | null | undefined {
+  return screen.getByText(term, { selector: 'dt' }).nextElementSibling?.textContent;
+}
+
 function enterSequences(first: string, second: string): void {
   fireEvent.change(screen.getByLabelText('Primera secuencia'), { target: { value: first } });
   fireEvent.change(screen.getByLabelText('Segunda secuencia'), { target: { value: second } });
@@ -42,7 +48,7 @@ afterEach(() => { vi.unstubAllGlobals(); MockWorker.instance = null; });
 
 describe('alignment interface', () => {
   it('rejects empty, invalid, and overlong sequences without starting a worker task', () => {
-    render(<AlignmentPage />);
+    render(<AlignmentPage />, { wrapper: WorkspaceProviders });
     fireEvent.click(screen.getByRole('button', { name: 'Alinear' }));
     expect(screen.getByRole('status')).toHaveTextContent('Escribe las dos secuencias');
     enterSequences('AC-', 'AC');
@@ -58,10 +64,10 @@ describe('alignment interface', () => {
     { mode: 'global', label: 'Global', ends: 'gratuitos', terminalGaps: 'free' },
     { mode: 'local', label: 'Local', ends: 'fuera del tramo', terminalGaps: 'not-applicable' },
   ] as const)('keeps exact $mode parameters, ignores old responses, and shows textual metrics', ({ mode, label, ends, terminalGaps }) => {
-    render(<AlignmentPage />);
+    render(<AlignmentPage />, { wrapper: WorkspaceProviders });
     enterSequences('ACDE*', 'ACDE');
-    fireEvent.change(screen.getByLabelText('Matriz'), { target: { value: 'BLOSUM80' } });
-    fireEvent.change(screen.getByLabelText('Modo'), { target: { value: mode } });
+    fireEvent.click(screen.getByRole('radio', { name: 'BLOSUM80' }));
+    fireEvent.click(screen.getByRole('radio', { name: label }));
     fireEvent.click(screen.getByRole('button', { name: 'Alinear' }));
     const request = worker().postMessage.mock.calls[0]?.[0];
     expect(request).toMatchObject({ type: 'start', first: 'ACDE', matrix: 'BLOSUM80', mode });
@@ -71,17 +77,19 @@ describe('alignment interface', () => {
     act(() => { worker().onmessage?.(new MessageEvent('message', { data: { type: 'progress', id: request.id, fraction: 0.5 } })); });
     expect(screen.getByRole('status')).toHaveTextContent('50%');
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '0.5');
-    fireEvent.change(screen.getByLabelText('Matriz'), { target: { value: 'BLOSUM45' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'BLOSUM45' }));
     const storedResult: AlignmentResult = { ...result, parameters: { ...result.parameters, matrix: 'BLOSUM80', mode, terminalGaps } };
     act(() => { worker().onmessage?.(new MessageEvent('message', { data: { type: 'result', id: request.id, result: storedResult } })); });
-    expect(screen.getByText('Identidad: 4 de 4 columnas (100%).')).toBeInTheDocument();
+    expect(definition('Identidad')).toBe('4 de 4 columnas (100%)');
+    expect(definition('Huecos')).toBe('0 de 4 columnas (0%)');
+    expect(screen.getByText(/cambiaron desde este resultado/)).toBeInTheDocument();
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    expect(screen.getByText('Similitud: 4 de 4 columnas (100%).')).toBeInTheDocument();
+    expect(definition('Similitud')).toBe('4 de 4 columnas (100%)');
     expect(screen.getByText(`Parámetros: BLOSUM80, modo ${label}, apertura 10, extensión 0,5, extremos ${ends}.`)).toBeInTheDocument();
   });
 
   it('warns for U and O and handles cancellation and worker failures', () => {
-    render(<AlignmentPage />);
+    render(<AlignmentPage />, { wrapper: WorkspaceProviders });
     enterSequences('UOBZX', 'CKBZX');
     fireEvent.click(screen.getByRole('button', { name: 'Alinear' }));
     expect(screen.getByText('U se puntúa como C.')).toBeInTheDocument();
@@ -99,7 +107,7 @@ describe('alignment interface', () => {
 
   it('reports unavailable worker support', async () => {
     vi.stubGlobal('Worker', vi.fn(function unavailableWorker() { throw new Error('Unavailable'); }));
-    render(<AlignmentPage />);
+    render(<AlignmentPage />, { wrapper: WorkspaceProviders });
     await waitFor(() => { expect(screen.getByRole('status')).toHaveTextContent('No se pudo iniciar'); });
     enterSequences('AC', 'AC');
     fireEvent.click(screen.getByRole('button', { name: 'Alinear' }));

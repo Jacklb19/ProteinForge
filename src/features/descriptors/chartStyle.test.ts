@@ -28,29 +28,28 @@ function token(css: string, name: string): string {
 describe('accessible chart styles', () => {
   it.each(['--', '--dark-'] as const)('keeps AA contrast for palette %s', (prefix) => {
     const css = readFileSync(resolve('src/design-tokens.css'), 'utf8');
-    const color = (name: string) => token(css, `${prefix}color-${name}`);
-    const surface = color('surface');
-    expect(contrast(color('text'), surface)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(color('muted-text'), surface)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(color('focus'), surface)).toBeGreaterThanOrEqual(3);
-    expect(contrast(color('link'), surface)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(color('border'), surface)).toBeGreaterThanOrEqual(3);
-    expect(contrast(color('invalid-text'), color('invalid-surface'))).toBeGreaterThanOrEqual(4.5);
-    for (const background of ['page', 'surface-elevated', 'selected-surface']) {
-      expect(contrast(color('text'), color(background))).toBeGreaterThanOrEqual(4.5);
-      expect(contrast(color('muted-text'), color(background))).toBeGreaterThanOrEqual(4.5);
+    const color = (name: string) => token(css, `${prefix}${name}`);
+    for (const background of ['bg-canvas', 'bg-subtle', 'bg-raised', 'bg-selected']) {
+      expect(contrast(color('text-primary'), color(background))).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(color('text-secondary'), color(background))).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(color('accent-brand'), color(background))).toBeGreaterThanOrEqual(4.5);
     }
-    expect(contrast(color('on-accent'), color('focus'))).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(color('border'), color('page'))).toBeGreaterThanOrEqual(3);
-    expect(contrast(color('focus'), color('page'))).toBeGreaterThanOrEqual(3);
+    for (const background of ['bg-canvas', 'bg-subtle', 'bg-raised']) {
+      expect(contrast(color('border-strong'), color(background))).toBeGreaterThanOrEqual(3);
+      expect(contrast(color('status-error'), color(background))).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrast(color('status-error'), color('status-error-subtle'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(color('text-primary'), color('status-error-subtle'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(color('text-on-accent'), color('accent-brand'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(color('text-on-accent'), color('accent-brand-hover'))).toBeGreaterThanOrEqual(4.5);
   });
 
   it('reads CSS colors and typography on the main thread', () => {
     const root = document.documentElement;
-    root.style.setProperty('--color-surface', '#ffffff');
-    root.style.setProperty('--color-text', '#111827');
-    root.style.setProperty('--color-focus', '#2563eb');
-    root.style.setProperty('--color-border', '#6b7280');
+    root.style.setProperty('--bg-canvas', '#ffffff');
+    root.style.setProperty('--text-secondary', '#111827');
+    root.style.setProperty('--chart-line', '#2563eb');
+    root.style.setProperty('--chart-reference', '#6b7280');
     root.style.setProperty('--space-chart-inner', '36px');
     root.style.setProperty('--border-width-chart-line', '2px');
     root.style.setProperty('--border-width-chart-reference', '1px');

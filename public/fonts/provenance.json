@@ -1,27 +1,47 @@
 {
-  "revision": "763c36ef9117782905ae010056dfbe8fd2653a25",
-  "version": "1.1.0",
-  "source": "https://github.com/IBM/plex/tree/763c36ef9117782905ae010056dfbe8fd2653a25",
+  "families": [
+    {
+      "family": "Atkinson Hyperlegible Next",
+      "license": "OFL-atkinson-hyperlegible-next.txt",
+      "source": "https://registry.npmjs.org/@fontsource/atkinson-hyperlegible-next/-/atkinson-hyperlegible-next-5.3.0.tgz",
+      "upstream": "https://github.com/googlefonts/atkinson-hyperlegible-next",
+      "version": "@fontsource/atkinson-hyperlegible-next 5.3.0, latin subset"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "license": "OFL-ibm-plex.txt",
+      "source": "https://github.com/IBM/plex/tree/763c36ef9117782905ae010056dfbe8fd2653a25",
+      "upstream": "https://github.com/IBM/plex",
+      "version": "1.1.0"
+    }
+  ],
   "files": [
     {
+      "file": "atkinson-next-regular.woff2",
+      "family": "Atkinson Hyperlegible Next",
+      "weight": 400,
+      "role": "interface",
+      "preload": true,
+      "bytes": 12096,
+      "sha256": "5cb240a4d99ab7e6fc3a4d4e6d11d89789fdffe9c86a8384000d662c53283f6f"
+    },
+    {
+      "file": "atkinson-next-semibold.woff2",
+      "family": "Atkinson Hyperlegible Next",
+      "weight": 600,
+      "role": "interface",
+      "preload": false,
+      "bytes": 12672,
+      "sha256": "828f4525c741b6864718e41aa23a4acbc049b35e6271317c0fd86e0702dd5d2e"
+    },
+    {
       "file": "plex-mono-regular.woff2",
+      "family": "IBM Plex Mono",
+      "weight": 400,
+      "role": "sequence",
+      "preload": true,
       "bytes": 49248,
       "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350"
-    },
-    {
-      "file": "plex-sans-bold.woff2",
-      "bytes": 63012,
-      "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d"
-    },
-    {
-      "file": "plex-sans-regular.woff2",
-      "bytes": 63020,
-      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a"
-    },
-    {
-      "file": "plex-sans-semibold.woff2",
-      "bytes": 67060,
-      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205"
     }
   ]
 }

@@ -1,9 +1,10 @@
 import type { ProfilePoint, HydropathyWindow } from './profile';
 import type { ResiduePropensity } from './chouFasman';
+import type { Locale } from '../../i18n/config';
 
 /** Visual values read from design tokens on the main thread. */
 export interface ChartStyle {
-  locale: 'es' | 'en';
+  locale: Locale;
   surface: string;
   text: string;
   curve: string;

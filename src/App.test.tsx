@@ -9,7 +9,7 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: /editor de secuencias/i,
+        name: /analizar secuencia/i,
       }),
     ).toBeInTheDocument();
   });

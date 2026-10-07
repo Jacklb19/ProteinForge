@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ChartStyle, ProfileResponse, ProfileRequest } from './profileMessages';
+import { CHART_FONT, fontUrl } from '../../theme/fonts';
 
 interface MockWorkerContext {
   onmessage: ((event: MessageEvent<ProfileRequest>) => void) | null;
@@ -19,7 +20,7 @@ afterEach(() => {
 });
 
 describe('profile worker', () => {
-  it('loads Plex in its font set and redraws without recalculating or publishing another result', async () => {
+  it('loads the interface font in its font set and redraws without recalculating or publishing another result', async () => {
     const context: MockWorkerContext = { onmessage: null, postMessage: vi.fn(), fonts: { add: vi.fn() } };
     let finishLoading: ((face: object) => void) | undefined;
     const loading = new Promise<object>((resolve) => { finishLoading = resolve; });
@@ -45,7 +46,8 @@ describe('profile worker', () => {
     finishLoading?.(loaded);
     await loading;
     expect(context.fonts?.add).toHaveBeenCalledWith(loaded);
-    expect(fontArguments).toHaveBeenCalledWith('IBM Plex Sans', 'url(/fonts/plex-sans-regular.woff2)', { weight: '400' });
+    if (!CHART_FONT) throw new Error('The font manifest has no regular interface face.');
+    expect(fontArguments).toHaveBeenCalledWith(CHART_FONT.family, `url(${fontUrl(CHART_FONT)})`, { weight: String(CHART_FONT.weight) });
     expect(drawing.fillRect).toHaveBeenCalledTimes(2);
     expect(context.postMessage).toHaveBeenCalledOnce();
   });

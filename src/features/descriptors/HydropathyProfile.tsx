@@ -2,14 +2,20 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { validateSequence } from '../editor/sequence';
 import { getChartStyle } from './chartStyle';
 import type { ProfileResponse, ProfileRequest } from './profileMessages';
-import type { ProfilePoint, HydropathyWindow } from './profile';
+import type { ProfilePoint } from './profile';
 import type { ResiduePropensity } from './chouFasman';
+import {
+  DEFAULT_HYDROPATHY_WINDOW, HYDROPATHY_WINDOWS, METHOD_REFERENCES, PROFILE_ROWS_PER_PAGE, PROFILE_VALUE_FORMAT,
+  WINDOW_PURPOSE_KEYS,
+} from './config';
+import type { HydropathyWindow } from './config';
+import { positionAtX, profileX, windowRange } from './chartGeometry';
+import { ResidueReader } from './ResidueReader';
 import { useTranslation } from '../../i18n';
 import { useThemeRevision } from '../../theme/useThemeRevision';
 import { translate } from '../../i18n/translate';
-
-const ROWS_PER_PAGE = 50;
-const VALUE_FORMAT = { minimumFractionDigits: 3, maximumFractionDigits: 3 } as const;
+import { WORKER_LOCALE } from '../../i18n/config';
+import { SegmentedControl } from '../../shared/SegmentedControl';
 
 interface ReceivedProfile {
   sequence: string;
@@ -18,14 +24,16 @@ interface ReceivedProfile {
   propensities: ResiduePropensity[];
 }
 
-/** Draws the profile off the main thread and presents its values in a table. */
+/** Draws the profile off the main thread, links it to the residue reader and lists its values. */
 export function HydropathyProfile({ text }: { text: string }): React.JSX.Element {
   const { t, formatNumber, locale } = useTranslation();
   const themeRevision = useThemeRevision();
-  const [windowSize, setWindowSize] = useState<HydropathyWindow>(9);
+  const [windowSize, setWindowSize] = useState<HydropathyWindow>(DEFAULT_HYDROPATHY_WINDOW);
   const [profile, setProfile] = useState<ReceivedProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [chartBox, setChartBox] = useState<{ width: number; margin: number } | null>(null);
   const chartUnavailable = typeof HTMLCanvasElement.prototype.transferControlToOffscreen !== 'function';
   const validation = useMemo(() => validateSequence(text), [text]);
   const container = useRef<HTMLDivElement>(null);
@@ -33,7 +41,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
   const worker = useRef<Worker | null>(null);
   const currentRequest = useRef(0);
   const sentSequence = useRef('');
-  const sentWindow = useRef<HydropathyWindow>(9);
+  const sentWindow = useRef<HydropathyWindow>(DEFAULT_HYDROPATHY_WINDOW);
   const previousAppearance = useRef({ themeRevision, locale });
 
   useEffect(() => {
@@ -55,7 +63,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         setPage(0);
         setError(null);
       };
-      instance.onerror = () => { setError(translate('es', 'profile.workerError')); };
+      instance.onerror = () => { setError(translate(WORKER_LOCALE, 'profile.workerError')); };
 
       const canvas = document.createElement('canvas');
       canvas.className = 'hydropathy-chart';
@@ -72,7 +80,7 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         instance.postMessage(message, [transferred]);
       }
     } catch {
-      queueMicrotask(() => { setError(translate('es', 'profile.startError')); });
+      queueMicrotask(() => { setError(translate(WORKER_LOCALE, 'profile.startError')); });
     }
     return () => {
       worker.current?.terminate();
@@ -129,37 +137,78 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
   const tooShort = !invalid && validation.sequence.length > 0 && validation.sequence.length < windowSize;
   const current = !invalid && profile?.sequence === validation.sequence
     && profile.windowSize === windowSize;
-  const points = invalid ? (profile?.points ?? []) : current ? profile.points : [];
-  const propensities = invalid ? (profile?.propensities ?? []) : current ? profile.propensities : [];
+  const shown = invalid ? profile : current ? profile : null;
+  const points = shown?.points ?? [];
+  const propensities = shown?.propensities ?? [];
   const hydropathyByResidue = new Map(points.map((point) => [point.position, point.value]));
-  const displayedWindow = invalid ? (profile?.windowSize ?? windowSize) : windowSize;
-  const totalPages = Math.ceil(propensities.length / ROWS_PER_PAGE);
+  const displayedWindow = shown?.windowSize ?? windowSize;
+  const totalPages = Math.ceil(propensities.length / PROFILE_ROWS_PER_PAGE);
   const currentPage = Math.min(page, Math.max(0, totalPages - 1));
-  const rows = propensities.slice(currentPage * ROWS_PER_PAGE, (currentPage + 1) * ROWS_PER_PAGE);
+  const rows = propensities.slice(currentPage * PROFILE_ROWS_PER_PAGE, (currentPage + 1) * PROFILE_ROWS_PER_PAGE);
+  const shownSequence = shown?.sequence ?? '';
+  const activeSelection = selected !== null && selected <= shownSequence.length ? selected : null;
+  // Only residues with a complete window have a value; elsewhere no window is highlighted.
+  const selectionHasWindow = activeSelection !== null && hydropathyByResidue.has(activeSelection);
+  const chartVisible = !tooShort && validation.sequence.length > 0 && !chartUnavailable;
+  const hasInput = validation.sequence.length > 0 || invalid;
+
+  useEffect(() => {
+    const element = container.current;
+    if (!element || typeof ResizeObserver !== 'function') return;
+    // The overlay follows the canvas box, including when the chart is revealed or resized.
+    const observer = new ResizeObserver(() => {
+      const canvas = canvasRef.current;
+      if (canvas) setChartBox({ width: canvas.getBoundingClientRect().width, margin: getChartStyle(canvas, locale).margin });
+    });
+    observer.observe(element);
+    return () => { observer.disconnect(); };
+  }, [locale]);
+
+  const axis = points.length > 0 && chartBox && chartBox.width > 0
+    ? { first: points[0]?.position ?? 0, last: points.at(-1)?.position ?? 0, width: chartBox.width, margin: chartBox.margin }
+    : null;
+  const marker = axis && activeSelection !== null && selectionHasWindow ? (() => {
+    const range = windowRange(activeSelection, displayedWindow, shownSequence.length);
+    const clampX = (x: number) => Math.min(axis.width, Math.max(0, x));
+    const left = clampX(profileX(range.start, axis));
+    return {
+      left,
+      width: Math.max(1, clampX(profileX(range.end, axis)) - left),
+      cursor: profileX(activeSelection, axis),
+    };
+  })() : null;
+
+  const selectedRow = activeSelection === null ? undefined : propensities[activeSelection - 1];
+  const selectedValue = activeSelection === null ? undefined : hydropathyByResidue.get(activeSelection);
+  const selectedRange = activeSelection === null ? null : windowRange(activeSelection, displayedWindow, shownSequence.length);
+  const format = (value: number | null) => value === null ? t('profile.missing') : formatNumber(value, PROFILE_VALUE_FORMAT);
+  const readout = selectedRow && selectedRange ? [
+    t('profile.readerResidue', { position: formatNumber(selectedRow.position), residue: selectedRow.residue }),
+    selectedValue === undefined ? t('profile.readerNoWindow')
+      : selectedValue === null ? t('profile.readerMissing')
+        : t('profile.readerHydropathy', { value: format(selectedValue), start: formatNumber(selectedRange.start), end: formatNumber(selectedRange.end) }),
+    t('profile.readerPropensities', { helix: format(selectedRow.helix), sheet: format(selectedRow.sheet), turn: format(selectedRow.turn) }),
+  ].join('. ') : t('profile.readerHint');
+
+  const selectFromChart = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!axis) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    setSelected(positionAtX(event.clientX - bounds.left, axis));
+  };
 
   return (
-    <section aria-labelledby="profile-title" className="profile-panel panel">
-      <div className="profile-heading">
-      <h2 id="profile-title">{t('profile.title')}</h2>
-      <div className="profile-window">
-      <label htmlFor="hydropathy-window">{t('profile.windowLabel')}</label>
-      <select
-        id="hydropathy-window"
-        value={windowSize}
-        onChange={(event) => { setWindowSize(Number(event.target.value) as HydropathyWindow); }}
-      >
-        <option value="9">{t('profile.window9', { count: formatNumber(9) })}</option>
-        <option value="19">{t('profile.window19', { count: formatNumber(19) })}</option>
-      </select>
+    <section aria-labelledby="profile-title" className="analysis-section profile-panel">
+      <div className="section-header">
+        <h2 id="profile-title">{t('profile.title')}</h2>
+        <SegmentedControl
+          legend={t('profile.windowLabel')}
+          options={HYDROPATHY_WINDOWS.map((size) => ({ value: size, label: t('profile.windowOption', { count: formatNumber(size) }) }))}
+          value={windowSize}
+          onChange={setWindowSize}
+          describedBy="profile-window-purpose"
+        />
       </div>
-      </div>
-      <p className="field-help">{t('profile.scaleNote')}</p>
-      <p className="field-help">
-        {t('profile.chouFasmanNote')}{' '}
-        <a href="https://web.expasy.org/protscale/pscale/alpha-helixFasman.html">{t('profile.helixLink')}</a>,{' '}
-        <a href="https://web.expasy.org/protscale/pscale/beta-sheetFasman.html">{t('profile.sheetLink')}</a> {t('profile.and')}{' '}
-        <a href="https://web.expasy.org/protscale/pscale/beta-turnFasman.html">{t('profile.turnLink')}</a>.
-      </p>
+      <p id="profile-window-purpose" className="field-help">{t(WINDOW_PURPOSE_KEYS[windowSize], { count: formatNumber(windowSize) })} {t('profile.scaleNote')}</p>
       <p id="profile-status" className="status-message" data-state={invalid ? 'invalid' : error ? 'error' : 'idle'} role="status" aria-live="polite">
         {invalid && t('profile.invalid')}
         {tooShort && t('profile.tooShort', { count: formatNumber(windowSize) })}
@@ -169,44 +218,73 @@ export function HydropathyProfile({ text }: { text: string }): React.JSX.Element
         {chartUnavailable && current && !tooShort && t('profile.unavailable')}
       </p>
       <div
-        className={invalid ? 'stale-chart' : !current ? 'pending-chart' : undefined}
-        hidden={tooShort || validation.sequence.length === 0 || chartUnavailable}
+        className={`chart-frame${invalid ? ' stale-chart' : !current ? ' pending-chart' : ''}`}
+        hidden={!chartVisible}
+        onPointerMove={(event) => { if (event.pointerType === 'mouse') selectFromChart(event); }}
+        onPointerDown={selectFromChart}
       >
         <div ref={container} className="chart-container" />
+        {marker && <div className="chart-window" aria-hidden="true" style={{ left: marker.left, width: marker.width }} />}
+        {marker && <div className="chart-cursor" aria-hidden="true" style={{ left: marker.cursor }} />}
+        <span className="chart-axis chart-axis-y" aria-hidden="true">{t('profile.axisY')}</span>
+        <span className="chart-axis chart-axis-x" aria-hidden="true">{t('profile.axisX')}</span>
       </div>
-      {propensities.length > 0 && (
-        <div className={invalid ? 'stale-table' : undefined}>
-          <div className="profile-table-container" tabIndex={0} role="region" aria-label={t('profile.tableRegion')}>
-            <table>
-              <caption>{t('profile.caption', { count: formatNumber(displayedWindow) })}</caption>
-              <thead><tr><th scope="col">{t('profile.position')}</th><th scope="col">{t('profile.residue')}</th><th scope="col">{t('profile.hydropathy')}</th><th scope="col">{t('profile.helix')}</th><th scope="col">{t('profile.sheet')}</th><th scope="col">{t('profile.turn')}</th></tr></thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.position}>
-                    <th scope="row">{formatNumber(row.position)}</th>
-                    <td>{row.residue}</td>
-                    <td>{hydropathyByResidue.has(row.position)
-                      ? hydropathyByResidue.get(row.position) === null
-                        ? t('profile.missing')
-                        : formatNumber(hydropathyByResidue.get(row.position) ?? 0, VALUE_FORMAT)
-                      : <span aria-label={t('profile.noWindow')}>{t('profile.noValue')}</span>}</td>
-                    <td>{row.helix === null ? t('profile.missing') : formatNumber(row.helix, VALUE_FORMAT)}</td>
-                    <td>{row.sheet === null ? t('profile.missing') : formatNumber(row.sheet, VALUE_FORMAT)}</td>
-                    <td>{row.turn === null ? t('profile.missing') : formatNumber(row.turn, VALUE_FORMAT)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {totalPages > 1 && (
-            <nav aria-label={t('profile.pagesLabel')} className="profile-pages">
-              <button className="button" type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>{t('profile.previous')}</button>
-              <span aria-live="polite">{t('profile.pageCount', { page: formatNumber(currentPage + 1), total: formatNumber(totalPages) })}</span>
-              <button className="button" type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>{t('profile.next')}</button>
-            </nav>
-          )}
+      {shownSequence.length > 0 && (
+        <div className={`reader-section${invalid ? ' stale-reader' : ''}`}>
+          <h3 className="visually-hidden">{t('profile.readerTitle')}</h3>
+          <ResidueReader
+            sequence={shownSequence}
+            windowSize={selectionHasWindow ? displayedWindow : 1}
+            selected={activeSelection}
+            onSelect={setSelected}
+            describedBy="reader-readout"
+          />
+          <p id="reader-readout" className="reader-readout" aria-live="polite">{readout}</p>
         </div>
       )}
+      {hasInput && (
+        <details className="disclosure">
+          <summary>{t('profile.tableToggle')}</summary>
+          {propensities.length > 0 && <div className={invalid ? 'stale-table' : undefined}>
+            <div className="profile-table-container" tabIndex={0} role="region" aria-label={t('profile.tableRegion')}>
+              <table>
+                <caption>{t('profile.caption', { count: formatNumber(displayedWindow) })}</caption>
+                <thead><tr><th scope="col">{t('profile.position')}</th><th scope="col">{t('profile.residue')}</th><th scope="col">{t('profile.hydropathy')}</th><th scope="col">{t('profile.helix')}</th><th scope="col">{t('profile.sheet')}</th><th scope="col">{t('profile.turn')}</th></tr></thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.position} aria-selected={row.position === activeSelection ? true : undefined}>
+                      <th scope="row">{formatNumber(row.position)}</th>
+                      <td className="residue-cell">{row.residue}</td>
+                      <td>{hydropathyByResidue.has(row.position)
+                        ? format(hydropathyByResidue.get(row.position) ?? null)
+                        : <span aria-label={t('profile.noWindow')}>{t('profile.noValue')}</span>}</td>
+                      <td>{format(row.helix)}</td>
+                      <td>{format(row.sheet)}</td>
+                      <td>{format(row.turn)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {totalPages > 1 && (
+              <nav aria-label={t('profile.pagesLabel')} className="profile-pages">
+                <button className="button button-secondary" type="button" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); }}>{t('profile.previous')}</button>
+                <span aria-live="polite">{t('profile.pageCount', { page: formatNumber(currentPage + 1), total: formatNumber(totalPages) })}</span>
+                <button className="button button-secondary" type="button" disabled={currentPage + 1 >= totalPages} onClick={() => { setPage(currentPage + 1); }}>{t('profile.next')}</button>
+              </nav>
+            )}
+          </div>}
+        </details>
+      )}
+      <details className="disclosure">
+        <summary>{t('profile.methodsToggle')}</summary>
+        <p className="field-help">{t('profile.chouFasmanNote')}</p>
+        <ul className="reference-list">
+          {METHOD_REFERENCES.map((reference) => (
+            <li key={reference.url}><a href={reference.url}>{t(reference.labelKey)}</a></li>
+          ))}
+        </ul>
+      </details>
     </section>
   );
 }

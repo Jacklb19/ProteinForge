@@ -89,7 +89,7 @@ describe('accessible hydropathy profile', () => {
     const sequence = 'ACDEFGHIKLMNPQRSTVWY'.repeat(6);
     const { rerender } = render(<HydropathyProfile text={sequence} />);
     const worker = profileWorker();
-    fireEvent.change(screen.getByRole('combobox', { name: /ventana de residuos/i }), { target: { value: '19' } });
+    fireEvent.click(screen.getByRole('radio', { name: '19' }));
     const request = lastRequest(worker);
     expect(request.windowSize).toBe(19);
     act(() => {
@@ -151,5 +151,26 @@ describe('accessible hydropathy profile', () => {
     expect(worker.postMessage.mock.calls.at(-1)?.[0].type).toBe('redraw');
     expect(worker.postMessage.mock.calls.slice(originalCalls).some(([message]) => message.type === 'calculate')).toBe(false);
     Reflect.deleteProperty(document.documentElement.dataset, 'theme');
+  });
+
+  it('links a selected residue to its averaged window and reads its values', () => {
+    const sequence = 'ACDEFGHIKLMNPQRSTVWY';
+    render(<HydropathyProfile text={sequence} />);
+    const worker = profileWorker();
+    const request = lastRequest(worker);
+    const points = calculateProfile(sequence, 9);
+    act(() => {
+      worker.onmessage?.(new MessageEvent('message', {
+        data: { id: request.id, points, propensities: calculatePropensities(sequence) },
+      }));
+    });
+    const reader = screen.getByRole('group', { name: /secuencia numerada/i });
+    fireEvent.click(within(reader).getByText('F'));
+    const value = points.find((point) => point.position === 5)?.value ?? 0;
+    expect(screen.getByText(new RegExp(`Residuo 5: F\\. Hidropatía ${value.toFixed(3).replace('.', ',')}, media de los residuos 1 a 9`))).toBeInTheDocument();
+    expect(reader.querySelectorAll('.in-window')).toHaveLength(8);
+    fireEvent.keyDown(reader, { key: 'Home' });
+    expect(screen.getByText(/Residuo 1: A\. Sin ventana completa/)).toBeInTheDocument();
+    expect(reader.querySelectorAll('.in-window')).toHaveLength(0);
   });
 });

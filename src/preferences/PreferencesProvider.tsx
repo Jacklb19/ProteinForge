@@ -5,6 +5,7 @@ import { loadPreferences, savePreferences } from './preferences';
 import { PreferencesContext } from './preferencesContext';
 import type { PreferencesContextValue } from './preferencesContext';
 import { translate } from '../i18n/translate';
+import { BROWSER_COLOR_TOKEN } from './config';
 
 /** Makes local appearance and language preferences available to routes. */
 export function PreferencesProvider({ children }: { children: ReactNode }): React.JSX.Element {
@@ -20,7 +21,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
     }
     savePreferences(preferences);
     const refreshBrowserColor = () => {
-      const color = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim();
+      const color = getComputedStyle(document.documentElement).getPropertyValue(BROWSER_COLOR_TOKEN).trim();
       const metadata = document.querySelector('meta[name="theme-color"]');
       if (color && metadata) metadata.setAttribute('content', color);
     };

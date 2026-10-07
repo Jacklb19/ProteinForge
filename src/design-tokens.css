@@ -1,152 +1,162 @@
+/*
+ * Design tokens. Light values are declared first; each color has a `--dark-` twin
+ * that the dark theme maps onto the same semantic name.
+ * Brand: Coomassie blue, the dye that reveals proteins on an electrophoresis gel.
+ */
 :root {
-  --color-text: #252722;
-  --dark-color-text: #edf1e9;
-  --color-page: #f4f3ed;
-  --dark-color-page: #141715;
-  --color-surface: #fffef9;
-  --dark-color-surface: #1c211e;
-  --color-surface-elevated: #ffffff;
-  --dark-color-surface-elevated: #242b26;
-  --color-border: #818579;
-  --dark-color-border: #899787;
-  --color-muted-text: #62665c;
-  --dark-color-muted-text: #b2bcad;
-  --color-border-subtle: #dcded4;
-  --dark-color-border-subtle: #39423b;
-  --color-focus: #9a3e16;
-  --dark-color-focus: #f2a76f;
-  --color-link: #9a3e16;
-  --dark-color-link: #f2a76f;
-  --color-selection: #eee6d8;
-  --dark-color-selection: #343a29;
-  --color-invalid-text: #ac2638;
-  --dark-color-invalid-text: #ffadb6;
-  --color-invalid-surface: #fff0ef;
-  --dark-color-invalid-surface: #3c2026;
-  --color-selected-surface: #eee6d8;
-  --dark-color-selected-surface: #343a29;
-  --color-on-accent: #fffef9;
-  --dark-color-on-accent: #141715;
-  --color-shadow: #25272212;
-  --dark-color-shadow: #00000033;
-  --color-transparent: transparent;
-  --color-accent: var(--color-focus);
-  --font-ui: 'IBM Plex Sans', 'Plex Sans Fallback', 'Segoe UI', sans-serif;
+  --bg-canvas: #ffffff;
+  --dark-bg-canvas: #121316;
+  --bg-subtle: #f3f4f6;
+  --dark-bg-subtle: #1b1d22;
+  --bg-raised: #ffffff;
+  --dark-bg-raised: #1e2025;
+  --bg-selected: #e8eaf7;
+  --dark-bg-selected: #272d4e;
+  --text-primary: #17191e;
+  --dark-text-primary: #eceef2;
+  --text-secondary: #575d69;
+  --dark-text-secondary: #a7acb6;
+  --text-on-accent: #ffffff;
+  --dark-text-on-accent: #121316;
+  --border-strong: #858b96;
+  --dark-border-strong: #737985;
+  --border-subtle: #e2e4e9;
+  --dark-border-subtle: #2b2e35;
+  --accent-brand: #2f3c96;
+  --dark-accent-brand: #aab4ff;
+  --accent-brand-hover: #252f7a;
+  --dark-accent-brand-hover: #c5cbff;
+  --status-error: #b3261e;
+  --dark-status-error: #ff8f86;
+  --status-error-subtle: #fdeceb;
+  --dark-status-error-subtle: #3b1f1e;
+  --shadow-color: #17191e1f;
+  --dark-shadow-color: #00000066;
+  --transparent: transparent;
+  --focus-ring: var(--accent-brand);
+  --chart-line: var(--text-primary);
+  --chart-reference: var(--border-strong);
+
+  --font-ui: 'Atkinson Hyperlegible Next', 'Atkinson Fallback', 'Segoe UI', sans-serif;
   --font-sequence: 'IBM Plex Mono', 'Plex Mono Fallback', 'Plex Courier Fallback', monospace;
-  --font-size-base: 1rem;
-  --font-size-title: 1.75rem;
-  --font-size-section: 1.25rem;
-  --font-size-small: 0.875rem;
   --font-size-caption: 0.75rem;
-  --font-size-metric: 1.75rem;
-  --font-size-brand: 1.125rem;
-  --font-size-chart: 0.875rem;
+  --font-size-small: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-section: 1.25rem;
+  --font-size-title: 1.75rem;
+  --font-size-title-compact: 1.5rem;
+  --font-size-sequence: 0.875rem;
+  --font-size-chart: 0.8125rem;
   --font-weight-regular: 400;
-  --font-weight-medium: 600;
-  --font-weight-label: 700;
+  --font-weight-strong: 600;
   --line-height-base: 1.5;
-  --line-height-heading: 1.2;
-  --letter-spacing-heading: -0.025em;
-  --letter-spacing-label: 0.08em;
+  --line-height-heading: 1.25;
   --letter-spacing-sequence: 0;
   --tab-size-sequence: 4;
+
   --space-none: 0;
-  --space-tiny: 0.25rem;
-  --space-tight: 0.5rem;
-  --space-copy: 0.5rem;
-  --space-small: 0.75rem;
-  --space-control: 1rem;
-  --space-medium: 1rem;
-  --space-panel: 1.5rem;
-  --space-large: 2rem;
-  --space-page-bottom: 3rem;
-  --border-width-control: 1px;
-  --border-width-divider: 1px;
-  --border-width-chart-line: 2px;
-  --border-width-chart-reference: 1px;
-  --border-radius-control: 0.25rem;
-  --border-radius-panel: 0.5rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  --radius-control: 0.375rem;
+  --radius-surface: 0.75rem;
+  --border-width: 1px;
+  --border-width-indicator: 2px;
   --outline-width-focus: 3px;
   --outline-offset-focus: 2px;
-  --shadow-elevated: 0 1px 3px var(--color-shadow);
+  --shadow-floating: 0 1px 2px var(--shadow-color), 0 4px 16px var(--shadow-color);
+
   --duration-feedback: 120ms;
   --duration-none: 0ms;
   --ease-feedback: ease-out;
-  --width-page-max: 1440px;
+
+  --size-touch: 44px;
+  --size-icon: 1.25rem;
+  --size-icon-tab: 1.5rem;
+  --size-mark: 1.75rem;
+  --stroke-icon: 1.5px;
+  --height-top-bar: 3.5rem;
+  --height-tab-bar: 4rem;
   --width-full: 100%;
-  --width-sidebar: 208px;
-  --width-copy-max: 70ch;
-  --width-field-max: 24rem;
-  --width-fasta: 16rem;
-  --width-settings-max: 48rem;
-  --grid-editor: minmax(0, 1fr) var(--width-fasta);
-  --grid-metrics: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
-  --grid-metrics-mobile: repeat(2, minmax(0, 1fr));
-  --grid-pair: repeat(2, minmax(0, 1fr));
-  --grid-alignment-metrics: repeat(3, minmax(0, 1fr));
-  --size-progress: 0.5rem;
-  --height-alignment-input: 10rem;
-  --height-editor: 14rem;
+  --width-content: 76rem;
+  --width-input-column: 26rem;
+  --width-copy: 65ch;
+  --width-settings: 40rem;
+
+  --height-editor: 12rem;
+  --height-alignment-input: 9rem;
   --height-fasta-list: 16.5rem;
   --height-fasta-row-default: 44px;
   --height-fasta-row: var(--height-fasta-row-default);
-  --height-hydropathy-chart: 18rem;
+  --height-hydropathy-chart: 16rem;
+  --height-reader-line: 2.75rem;
+  --height-reader-viewport: 16rem;
+  --width-reader-position: 6ch;
   --height-alignment-viewport: 22.5rem;
   --height-alignment-block: 112px;
-  --font-size-alignment: 0.875rem;
-  --size-touch-target: 44px;
+  --height-progress: 0.375rem;
   --space-chart-inner: 36px;
-  --filter-stale-chart: grayscale(1);
-  --size-icon: 1.25rem;
-  --size-mark: 2rem;
-  --stroke-icon: 1.5px;
+  --border-width-chart-line: 2px;
+  --border-width-chart-reference: 1px;
+  --filter-stale: grayscale(1);
+
   --layer-base: 0;
   --layer-overlay: 1;
   --layer-navigation: 2;
-  --decoration-width: 2px;
   --decoration-offset: 0.2em;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-text: var(--dark-color-text);
-  --color-page: var(--dark-color-page);
-  --color-surface: var(--dark-color-surface);
-  --color-surface-elevated: var(--dark-color-surface-elevated);
-  --color-border: var(--dark-color-border);
-  --color-muted-text: var(--dark-color-muted-text);
-  --color-border-subtle: var(--dark-color-border-subtle);
-  --color-focus: var(--dark-color-focus);
-  --color-link: var(--dark-color-link);
-  --color-selection: var(--dark-color-selection);
-  --color-invalid-text: var(--dark-color-invalid-text);
-  --color-invalid-surface: var(--dark-color-invalid-surface);
-  --color-selected-surface: var(--dark-color-selected-surface);
-  --color-on-accent: var(--dark-color-on-accent);
-  --color-shadow: var(--dark-color-shadow);
+  --bg-canvas: var(--dark-bg-canvas);
+  --bg-subtle: var(--dark-bg-subtle);
+  --bg-raised: var(--dark-bg-raised);
+  --bg-selected: var(--dark-bg-selected);
+  --text-primary: var(--dark-text-primary);
+  --text-secondary: var(--dark-text-secondary);
+  --text-on-accent: var(--dark-text-on-accent);
+  --border-strong: var(--dark-border-strong);
+  --border-subtle: var(--dark-border-subtle);
+  --accent-brand: var(--dark-accent-brand);
+  --accent-brand-hover: var(--dark-accent-brand-hover);
+  --status-error: var(--dark-status-error);
+  --status-error-subtle: var(--dark-status-error-subtle);
+  --shadow-color: var(--dark-shadow-color);
 }
+
 @media (prefers-color-scheme: dark) {
-:root:not([data-theme]) {
-  color-scheme: dark;
-  --color-text: var(--dark-color-text);
-  --color-page: var(--dark-color-page);
-  --color-surface: var(--dark-color-surface);
-  --color-surface-elevated: var(--dark-color-surface-elevated);
-  --color-border: var(--dark-color-border);
-  --color-muted-text: var(--dark-color-muted-text);
-  --color-border-subtle: var(--dark-color-border-subtle);
-  --color-focus: var(--dark-color-focus);
-  --color-link: var(--dark-color-link);
-  --color-selection: var(--dark-color-selection);
-  --color-invalid-text: var(--dark-color-invalid-text);
-  --color-invalid-surface: var(--dark-color-invalid-surface);
-  --color-selected-surface: var(--dark-color-selected-surface);
-  --color-on-accent: var(--dark-color-on-accent);
-  --color-shadow: var(--dark-color-shadow);
-}
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg-canvas: var(--dark-bg-canvas);
+    --bg-subtle: var(--dark-bg-subtle);
+    --bg-raised: var(--dark-bg-raised);
+    --bg-selected: var(--dark-bg-selected);
+    --text-primary: var(--dark-text-primary);
+    --text-secondary: var(--dark-text-secondary);
+    --text-on-accent: var(--dark-text-on-accent);
+    --border-strong: var(--dark-border-strong);
+    --border-subtle: var(--dark-border-subtle);
+    --accent-brand: var(--dark-accent-brand);
+    --accent-brand-hover: var(--dark-accent-brand-hover);
+    --status-error: var(--dark-status-error);
+    --status-error-subtle: var(--dark-status-error-subtle);
+    --shadow-color: var(--dark-shadow-color);
+  }
 }
 
 :root[data-theme='light'] { color-scheme: light; }
+
+/* Compact input on phones so results and the example stay close to the fold. */
+@media (max-width: 47.99rem) {
+  :root { --height-editor: 8rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root { --duration-feedback: var(--duration-none); }
 }
