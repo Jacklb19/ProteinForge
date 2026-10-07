@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { summaryValue } from './helpers';
 
 test('loads WASM and completes a parallel alignment of 2000 residues', async ({ page }) => {
   const wasmResponses: number[] = [];
@@ -13,7 +14,7 @@ test('loads WASM and completes a parallel alignment of 2000 residues', async ({ 
   await page.getByRole('button', { name: 'Alinear' }).click();
   await expect(page.getByRole('heading', { name: 'Resultado del alineamiento' })).toBeVisible();
   const elapsedMs = Date.now() - start;
-  await expect(page.getByText(/Identidad: 2\.000 de 2\.000 columnas/)).toBeVisible();
+  await expect(summaryValue(page, 'Identidad')).toHaveText(/^2\.000 de 2\.000 columnas/);
   expect(wasmResponses.length).toBeGreaterThan(0);
   expect(wasmResponses.every((status) => status === 200)).toBe(true);
   await test.info().attach('alignment-timing', { body: JSON.stringify({ elapsedMs }), contentType: 'application/json' });
