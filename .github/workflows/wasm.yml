@@ -26,3 +26,8 @@ jobs:
         run: npm run build:wasm
       - name: Initialize generated module
         run: npm run check:wasm
+      - name: Verify committed package matches source
+        run: |
+          rm rust/alignment/pkg/.gitignore
+          git diff --exit-code -- rust/alignment/pkg
+          test -z "$(git ls-files --others --exclude-standard rust/alignment/pkg)"

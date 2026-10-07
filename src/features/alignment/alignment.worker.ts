@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 import { alignInTiles, TILE_SIZE } from './wavefront';
+import { calculateWasmTile, initializeAlignmentWasm } from './wasm';
 import { translate } from '../../i18n/translate';
 import type { TileRequest, TileResult } from './tile';
 import type { AlignmentRequest, AlignmentResponse, TileResponseMessage, TileRequestMessage } from './messages';
@@ -56,7 +57,10 @@ context.onmessage = (event: MessageEvent<AlignmentRequest>) => {
     : [];
   const executeBatch = workers.length > 0
     ? (tiles: TileRequest[]) => executeInPool(workers, tiles, request.id)
-    : undefined;
+    : async (tiles: TileRequest[]) => {
+      await initializeAlignmentWasm();
+      return tiles.map(calculateWasmTile);
+    };
   void alignInTiles(request.first, request.second, {
     matrix: request.matrix,
     mode: request.mode,
