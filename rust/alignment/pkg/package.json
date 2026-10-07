@@ -1,0 +1,16 @@
+{
+  "name": "proteinforge-alignment",
+  "type": "module",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "proteinforge_alignment_bg.wasm",
+    "proteinforge_alignment.js",
+    "proteinforge_alignment.d.ts"
+  ],
+  "main": "proteinforge_alignment.js",
+  "types": "proteinforge_alignment.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

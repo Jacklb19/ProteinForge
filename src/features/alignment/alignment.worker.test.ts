@@ -1,6 +1,15 @@
 import { waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { calculateTile } from './tile';
+import { readFile } from 'node:fs/promises';
+
+vi.mock('./wasm', async (importOriginal) => {
+  const original = await importOriginal<typeof import('./wasm')>();
+  return { ...original, initializeAlignmentWasm: async () => {
+    const { default: init } = await import('../../../rust/alignment/pkg/proteinforge_alignment');
+    await init({ module_or_path: await readFile('rust/alignment/pkg/proteinforge_alignment_bg.wasm') });
+  } };
+});
 import type { AlignmentRequest, AlignmentResponse, TileRequestMessage, TileResponseMessage } from './messages';
 
 interface MockContext {
