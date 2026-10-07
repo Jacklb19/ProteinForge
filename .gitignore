@@ -12,11 +12,10 @@ artifacts/
 # Rust / WebAssembly
 target/
 
-# Vercel & Supabase
+# Vercel
 .vercel/
-supabase/.temp/
 
-# Python environments and scripts
+# Python reference tooling
 __pycache__/
 *.pyc
 .venv/
@@ -34,8 +33,6 @@ credentials*
 # Large datasets and models
 *.onnx
 data/raw/
-*.wav
-*.mp3
 *.pdb
 
 # Logs and temporary files
