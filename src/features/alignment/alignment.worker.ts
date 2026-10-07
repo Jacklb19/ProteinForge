@@ -5,6 +5,7 @@ import { calculateWasmTile, initializeAlignmentWasm } from './wasm';
 import { translate } from '../../i18n/translate';
 import type { TileRequest, TileResult } from './tile';
 import type { AlignmentRequest, AlignmentResponse, TileResponseMessage, TileRequestMessage } from './messages';
+import { WORKER_LOCALE } from '../../i18n/config';
 
 const context = self as DedicatedWorkerGlobalScope;
 let active: { id: number; isCancelled: boolean } | null = null;
@@ -16,7 +17,7 @@ function executeTile(worker: Worker, tile: TileRequest, id: number): Promise<Til
       if ('error' in event.data) reject(new Error(event.data.error));
       else resolve(event.data.tile);
     };
-    worker.onerror = () => { reject(new Error(translate('es', 'errors.workerStopped'))); };
+    worker.onerror = () => { reject(new Error(translate(WORKER_LOCALE, 'errors.workerStopped'))); };
     const request: TileRequestMessage = { id, tile };
     worker.postMessage(request);
   });
@@ -28,7 +29,7 @@ async function executeInPool(workers: Worker[], requests: TileRequest[], id: num
     const batch = requests.slice(start, start + workers.length);
     const calculated = await Promise.all(batch.map((tile, index) => {
       const worker = workers[index];
-      if (!worker) throw new Error(translate('es', 'errors.missingTileWorker'));
+      if (!worker) throw new Error(translate(WORKER_LOCALE, 'errors.missingTileWorker'));
       return executeTile(worker, tile, id);
     }));
     responses.push(...calculated);
@@ -43,7 +44,7 @@ context.onmessage = (event: MessageEvent<AlignmentRequest>) => {
     return;
   }
   if (active) {
-    const response: AlignmentResponse = { type: 'error', id: request.id, message: translate('es', 'errors.alignmentActive') };
+    const response: AlignmentResponse = { type: 'error', id: request.id, message: translate(WORKER_LOCALE, 'errors.alignmentActive') };
     context.postMessage(response);
     return;
   }
@@ -79,7 +80,7 @@ context.onmessage = (event: MessageEvent<AlignmentRequest>) => {
   }).catch((error: unknown) => {
     const response: AlignmentResponse = task.isCancelled
       ? { type: 'cancelled', id: task.id }
-      : { type: 'error', id: task.id, message: error instanceof Error ? error.message : translate('es', 'alignment.workerError') };
+      : { type: 'error', id: task.id, message: error instanceof Error ? error.message : translate(WORKER_LOCALE, 'alignment.workerError') };
     context.postMessage(response);
   }).finally(() => {
     workers.forEach((worker) => { worker.terminate(); });

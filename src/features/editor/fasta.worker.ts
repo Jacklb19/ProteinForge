@@ -2,11 +2,12 @@
 import { loadFasta } from './loadFasta';
 import { translate } from '../../i18n/translate';
 import { fastaFileSchema } from './fastaFile';
+import { WORKER_LOCALE } from '../../i18n/config';
 
 self.onmessage = async (event: MessageEvent<unknown>): Promise<void> => {
   const result = fastaFileSchema.safeParse(event.data);
   if (!result.success) {
-    self.postMessage({ type: 'error', message: result.error.issues[0]?.message ?? translate('es', 'errors.invalidFasta') });
+    self.postMessage({ type: 'error', message: result.error.issues[0]?.message ?? translate(WORKER_LOCALE, 'errors.invalidFasta') });
     return;
   }
 
@@ -16,7 +17,7 @@ self.onmessage = async (event: MessageEvent<unknown>): Promise<void> => {
     });
     self.postMessage({ type: 'complete' });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : translate('es', 'errors.fastaRead');
+    const message = error instanceof Error ? error.message : translate(WORKER_LOCALE, 'errors.fastaRead');
     self.postMessage({ type: 'error', message });
   }
 };

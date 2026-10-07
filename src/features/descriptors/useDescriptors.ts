@@ -3,6 +3,7 @@ import { translate } from '../../i18n/translate';
 import { splitStandardResidues, validateSequence } from '../editor/sequence';
 import type { Descriptors } from './descriptors';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
+import { WORKER_LOCALE } from '../../i18n/config';
 
 /** Visible state of the latest calculation and its input. */
 export interface DescriptorState {
@@ -41,9 +42,9 @@ export function useDescriptors(text: string): DescriptorState {
           setLastResult({ sequence: sentSequence.current, data: response.result });
         }
       };
-      instance.onerror = () => { setWorkerError(translate('es', 'errors.descriptorWorkerStopped')); };
+      instance.onerror = () => { setWorkerError(translate(WORKER_LOCALE, 'errors.descriptorWorkerStopped')); };
     } catch {
-      queueMicrotask(() => { setWorkerError(translate('es', 'errors.descriptorWorkerStart')); });
+      queueMicrotask(() => { setWorkerError(translate(WORKER_LOCALE, 'errors.descriptorWorkerStart')); });
     }
     return () => {
       worker.current?.terminate();

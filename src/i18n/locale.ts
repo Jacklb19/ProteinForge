@@ -1,5 +1,7 @@
 import { createContext } from 'react';
+import { DEFAULT_LOCALE } from './config';
+import type { Locale } from './config';
 
-export type Locale = 'es' | 'en';
-export const LocaleContext = createContext<Locale>('es');
-export const languageTags: Record<Locale, string> = { es: 'es-CO', en: 'en-US' };
+export { DEFAULT_LOCALE, LOCALES, languageTags } from './config';
+export type { Locale } from './config';
+export const LocaleContext = createContext<Locale>(DEFAULT_LOCALE);

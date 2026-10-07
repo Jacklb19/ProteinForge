@@ -1,16 +1,19 @@
 import blosum from './fixtures/blosum.json';
 import { translate } from '../../i18n/translate';
+import {
+  ALIGNMENT_MARKS, ALIGNMENT_MODES, DEFAULT_MATRIX, DEFAULT_MODE, GAP_CHARACTER, GAP_EXTEND, GAP_OPEN, MATRIX_NAMES,
+} from './config';
+import type { AlignmentMode, MatrixName } from './config';
+import { WORKER_LOCALE } from '../../i18n/config';
 
-/** Available substitution matrices for protein alignment. */
-export type MatrixName = 'BLOSUM45' | 'BLOSUM62' | 'BLOSUM80';
-export type AlignmentMode = 'global' | 'local';
+export type { AlignmentMode, MatrixName } from './config';
 
 /** Complete parameters stored with each reproducible result. */
 export interface AlignmentParameters {
   matrix: MatrixName;
   mode: AlignmentMode;
-  gapOpen: 10;
-  gapExtend: 0.5;
+  gapOpen: typeof GAP_OPEN;
+  gapExtend: typeof GAP_EXTEND;
   terminalGaps: 'free' | 'not-applicable';
 }
 
@@ -34,8 +37,6 @@ export interface AlignmentOptions {
 }
 
 const ALPHABET = blosum.alphabet;
-const GAP_OPEN = 10;
-const GAP_EXTEND = 0.5;
 const M = 0;
 const X = 1;
 const Y = 2;
@@ -44,13 +45,13 @@ const STOP = 3;
 /** Maps selenocysteine and pyrrolysine only for alignment scoring. */
 export function normalizeForAlignment(sequence: string): { sequence: string; warnings: string[] } {
   const warnings: string[] = [];
-  if (sequence.includes('U')) warnings.push(translate('es', 'alignment.warningU'));
-  if (sequence.includes('O')) warnings.push(translate('es', 'alignment.warningO'));
+  if (sequence.includes('U')) warnings.push(translate(WORKER_LOCALE, 'alignment.warningU'));
+  if (sequence.includes('O')) warnings.push(translate(WORKER_LOCALE, 'alignment.warningO'));
   const normalized = sequence.replaceAll('U', 'C').replaceAll('O', 'K');
   if (Array.from(normalized).some((residue) => !ALPHABET.includes(residue))) {
-    throw new RangeError(translate('es', 'errors.invalidAlignmentResidues'));
+    throw new RangeError(translate(WORKER_LOCALE, 'errors.invalidAlignmentResidues'));
   }
-  if (normalized.length === 0) throw new RangeError(translate('es', 'errors.emptyAlignment'));
+  if (normalized.length === 0) throw new RangeError(translate(WORKER_LOCALE, 'errors.emptyAlignment'));
   return { sequence: normalized, warnings };
 }
 
@@ -63,11 +64,11 @@ export function tracebackMemoryBytes(firstLength: number, secondLength: number):
 function marksFor(first: string, second: string, matrix: number[][]): string {
   let marks = '';
   for (let index = 0; index < first.length; index += 1) {
-    const a = first[index] ?? '-';
-    const b = second[index] ?? '-';
-    if (a === '-' || b === '-') marks += ' ';
-    else if (a === b) marks += '|';
-    else marks += (matrix[ALPHABET.indexOf(a)]?.[ALPHABET.indexOf(b)] ?? 0) > 0 ? ':' : ' ';
+    const a = first[index] ?? GAP_CHARACTER;
+    const b = second[index] ?? GAP_CHARACTER;
+    if (a === GAP_CHARACTER || b === GAP_CHARACTER) marks += ALIGNMENT_MARKS.none;
+    else if (a === b) marks += ALIGNMENT_MARKS.identical;
+    else marks += (matrix[ALPHABET.indexOf(a)]?.[ALPHABET.indexOf(b)] ?? 0) > 0 ? ALIGNMENT_MARKS.similar : ALIGNMENT_MARKS.none;
   }
   return marks;
 }
@@ -85,8 +86,8 @@ export function buildResult(
   const alignedA: string[] = [];
   const alignedB: string[] = [];
   if (mode === 'global') {
-    for (let i = a.length; i > best.i; i -= 1) { alignedA.push(a[i - 1] ?? ''); alignedB.push('-'); }
-    for (let j = b.length; j > best.j; j -= 1) { alignedA.push('-'); alignedB.push(b[j - 1] ?? ''); }
+    for (let i = a.length; i > best.i; i -= 1) { alignedA.push(a[i - 1] ?? ''); alignedB.push(GAP_CHARACTER); }
+    for (let j = b.length; j > best.j; j -= 1) { alignedA.push(GAP_CHARACTER); alignedB.push(b[j - 1] ?? ''); }
   }
   let i = best.i;
   let j = best.j;
@@ -102,19 +103,19 @@ export function buildResult(
       state = code & 3;
     } else if (state === X) {
       alignedA.push(a[i - 1] ?? '');
-      alignedB.push('-');
+      alignedB.push(GAP_CHARACTER);
       i -= 1;
       state = code & 4 ? X : M;
     } else {
-      alignedA.push('-');
+      alignedA.push(GAP_CHARACTER);
       alignedB.push(b[j - 1] ?? '');
       j -= 1;
       state = code & 8 ? Y : M;
     }
   }
   if (mode === 'global') {
-    while (i > 0) { alignedA.push(a[--i] ?? ''); alignedB.push('-'); }
-    while (j > 0) { alignedA.push('-'); alignedB.push(b[--j] ?? ''); }
+    while (i > 0) { alignedA.push(a[--i] ?? ''); alignedB.push(GAP_CHARACTER); }
+    while (j > 0) { alignedA.push(GAP_CHARACTER); alignedB.push(b[--j] ?? ''); }
   }
   const alignedFirst = alignedA.reverse().join('');
   const alignedSecond = alignedB.reverse().join('');
@@ -124,10 +125,10 @@ export function buildResult(
     alignedSecond,
     marks,
     score: best.score,
-    identities: Array.from(marks).filter((mark) => mark === '|').length,
-    similarities: Array.from(marks).filter((mark) => mark === '|' || mark === ':').length,
+    identities: Array.from(marks).filter((mark) => mark === ALIGNMENT_MARKS.identical).length,
+    similarities: Array.from(marks).filter((mark) => mark === ALIGNMENT_MARKS.identical || mark === ALIGNMENT_MARKS.similar).length,
     columns: marks.length,
-    parameters: { matrix, mode, gapOpen: 10, gapExtend: 0.5, terminalGaps: mode === 'global' ? 'free' : 'not-applicable' },
+    parameters: { matrix, mode, gapOpen: GAP_OPEN, gapExtend: GAP_EXTEND, terminalGaps: mode === 'global' ? 'free' : 'not-applicable' },
   };
 }
 
@@ -137,10 +138,10 @@ export async function alignSequences(
   second: string,
   options: AlignmentOptions = {},
 ): Promise<AlignmentResult> {
-  const matrix = options.matrix ?? 'BLOSUM62';
-  const mode = options.mode ?? 'global';
-  if (!['BLOSUM45', 'BLOSUM62', 'BLOSUM80'].includes(matrix) || !['global', 'local'].includes(mode)) {
-    throw new RangeError(translate('es', 'errors.invalidAlignmentParameters'));
+  const matrix = options.matrix ?? DEFAULT_MATRIX;
+  const mode = options.mode ?? DEFAULT_MODE;
+  if (!MATRIX_NAMES.includes(matrix) || !ALIGNMENT_MODES.includes(mode)) {
+    throw new RangeError(translate(WORKER_LOCALE, 'errors.invalidAlignmentParameters'));
   }
   const a = normalizeForAlignment(first).sequence;
   const b = normalizeForAlignment(second).sequence;
@@ -206,7 +207,7 @@ export async function alignSequences(
     if (i % 64 === 0 || i === a.length) {
       options.onProgress?.(i / a.length);
       await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
-      if (options.isCancelled?.()) throw new Error(translate('es', 'alignment.cancelled'));
+      if (options.isCancelled?.()) throw new Error(translate(WORKER_LOCALE, 'alignment.cancelled'));
     }
   }
 
