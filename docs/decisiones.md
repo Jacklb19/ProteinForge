@@ -1,28 +1,26 @@
-# Decisiones técnicas y desviaciones de la definición
+# Decisiones vigentes
 
-Decisiones aprobadas el 29 de septiembre de 2026. La descripción de cada una indica el comportamiento previsto; no implica que esté implementado. `docs/definicion-proyecto.md` conserva la versión original.
+La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla explica las decisiones actuales; los documentos de `archive/` son historia. Previsto no significa implementado.
 
-## Convención de idioma del código
+| Decisión | Estado y consecuencia |
+|---|---|
+| Dos repositorios: frontend React/Vite y backend FastAPI | Organización local realizada. Remotos `ProteinForge` y `Protein_Back`; dos despliegues Vercel previstos |
+| Ramas `main` y `dev` | Desarrollo en dev, versiones verificadas en main; el usuario controla push, merge y despliegue |
+| Costo cero, sin tarjeta | Vercel Hobby y Supabase Free; no instalar modelos estructurales pesados en funciones ni depender del computador personal |
+| Cálculo en navegador | Descriptores y alineamiento implementados; futura búsqueda de candidatos en Worker. El backend coordina servicios/persistencia |
+| Gotoh, BLOSUM45/62/80 y huecos afines | Rust/WASM integrado; apertura 10, extensión 0,5 y extremos globales gratuitos. Mantener límite 5.000 |
+| Paquete WASM versionado | `rust/alignment/pkg/` generado, sin edición manual; CI reconstruye y compara |
+| Alfabeto ampliado y antirrebote 45 ms | Implementados. U/O/B/Z/X con avisos y tratamiento definido en especificación |
+| BinaryCIF directo y Mol* bajo demanda | Aprobado, integración pendiente. Origen RCSB ya permitido en CSP |
+| Catálogo JSON estático 30–50 fragmentos | Previsto; origen InterPro/Pfam/UniProt y trazabilidad de fragmentos |
+| Generación de candidatos RF-17 | Alcance aprobado; criterios, estrategia concreta y presupuestos pendientes de diseño |
+| Predicción externa RF-18 | API ESM Atlas respondió a una prueba puntual. Integración y límites pendientes; consentimiento para enviar secuencia, caché y errores visibles |
+| Asistente de interpretación | Groq/modelo previsto según especificación; no calcula ni genera secuencias. Configuración real y retención cero pendientes |
+| UUIDv7 Python 3.14 | API futura; `profiles.id` sigue Supabase Auth. Función SQL inicial aún provisional |
+| Concurrencia optimista | PUT con fecha conocida, conflicto 409. Pendiente |
+| Auth y TOTP opcional | Correo/contraseña, recuperación y Google previstos; hasta dos TOTP, exigir aal2 cuando se active. Pendiente |
+| PDF local y CSV | Cliente genera PDF, URL firmada para Storage y API registra. Pendiente |
+| Temas, traducciones y PWA | Base implementada; inglés y sincronización completos pendientes. Metadatos, icono y fuentes se conservan |
+| UI | Sistema actual permanece; nueva dirección visual se revisa en una tarea posterior |
 
-Desde el S3, los identificadores, nombres de archivos y carpetas, rutas URL, variables y clases CSS, nombres de pruebas, comentarios y mensajes de commit se escriben en inglés. Los documentos de `docs/` y los textos visibles al usuario permanecen en español. Los textos de la interfaz se reúnen en `src/i18n/es.ts`. El cambio de nombres no debe alterar el comportamiento de la aplicación.
-
-| Área y sprint | Decisión técnica | Desviación de la definición |
-|---|---|---|
-| Estructuras, S5 | Descargar BinaryCIF directamente de `https://models.rcsb.org` mediante CORS y conservarlo en la caché del service worker. | ADR-03 deja de exigir que la API intermedie esta descarga pública. `GET /v1/pdb/{id}/structure` deja de ser la ruta de descarga del visor. La CSP debe permitir ese origen. |
-| Informe, S6 | Generar el PDF en el navegador, subirlo a Supabase Storage con URL firmada y usar `POST /v1/reports` solo para registrar el informe. | La tabla de API atribuye a ese `POST` la generación del PDF. |
-| Modelo de lenguaje, S6 | Usar Groq con `openai/gpt-oss-120b`, clave propia del proyecto `proteinforge`, retención cero, caché, límites de uso y de tokens, y reintentos que respeten la espera indicada por el servicio. Solicitar consentimiento antes de cada envío; enviar solo descriptores, anotación y parámetros, nunca la secuencia completa. | Sustituye Gemini. El modelo solo interpreta resultados calculados; si falla la cuota, se usa una respuesta de plantilla. |
-| Alineamiento, S3–S4 | Usar Gotoh con huecos afines; ofrecer BLOSUM45, BLOSUM62 y BLOSUM80, con BLOSUM62 predeterminada. Un hueco de longitud `n` cuesta `10 + 0,5 × (n − 1)`. En modo global los huecos de ambos extremos son gratuitos, como en EMBOSS needle con `endweight` desactivado; en Biopython `PairwiseAligner` se fijan `end_open_gap_score = 0` y `end_extend_gap_score = 0` para los fixtures. El modo local no cobra extremos fuera del tramo alineado. | Concreta la matriz, las penalizaciones y el tratamiento de extremos que la definición deja abiertos. |
-| Alfabeto, S3 | Aceptar `U`, `O`, `B`, `Z` y `X` con aviso, indicar cuántos residuos se excluyen de los descriptores y quitar un `*` terminal. El alineamiento puntúa `B`, `Z` y `X` directamente con BLOSUM45/62/80; convierte `U` en `C` y `O` en `K` con aviso. | Amplía el alfabeto de veinte residuos de HU-01 y de la validación actual. |
-| Catálogo, S5 | Servir un JSON estático público con 30–50 dominios y péptidos, identificador de InterPro, Pfam o UniProt, secuencia y rango. Conservar el origen de cada fragmento al guardar un proyecto. | Sustituye `GET /v1/catalog/domains` por un archivo estático; HU-04 se realiza en S5. |
-| Sincronización, S6 | Usar concurrencia optimista: `PUT` incluye la fecha de actualización conocida; ante un cambio concurrente la API responde `409` y el usuario elige la resolución. | Precisa la política de conflicto que la definición no especifica. |
-| Identificadores, S6 | Generar UUIDv7 en la API con Python 3.14 (`uuid.uuid7()`) para las entidades creadas por ella. `profiles.id` sigue el identificador emitido por Supabase Auth. | Sustituye el valor predeterminado provisional `public.uuid_generate_v7()` de la migración para proyectos, análisis y alineamientos. |
-| Segundo factor, S6 | Ofrecer TOTP de forma opcional, hasta en dos dispositivos. Tras activarlo, exigir `aal2` en la API y las políticas RLS para las operaciones protegidas; FastAPI valida el JWT y el nivel de autenticación. | Añade una condición de autorización ausente en la migración y en la definición de acceso. |
-
-## Base de interfaz y cierre de S3 (5–6 oct)
-
-- **Traducción:** función propia pequeña con claves derivadas del catálogo español y un proveedor de idioma. Evita añadir i18next y react-i18next para dos idiomas y mensajes sin traducciones complejas. El español está completo; el inglés conserva cada clave con el marcador `[EN pending]` hasta S7. Números, porcentajes, fechas y unidades admitidas se formatean con `Intl` (`es-CO` y `en-US`). `Intl.NumberFormat` no admite daltons: la masa usa el número localizado y el símbolo científico `Da` del catálogo.
-- **Tema:** las paletas clara y oscura comparten los tokens de `src/design-tokens.css`. El tema explícito usa `data-theme`; el tema de sistema usa `prefers-color-scheme`. El hilo principal lee la paleta del canvas y la envía al Worker. El cambio de apariencia también redibuja los últimos valores válidos de una secuencia inválida, sin recalcular esa entrada.
-- **Preferencias:** idioma y tema se conservan en `localStorage` con acceso protegido. La cuenta de S6 sincronizará las mismas preferencias con `profiles.preferences`, que ya existe en la migración.
-- **Límite de alineamiento:** 5.000 residuos por secuencia. La traza necesita `(m + 1) × (n + 1)` bytes: unos 25 MB para dos secuencias de 5.000 y 100 MB para dos de 10.000. El núcleo secuencial tardó 7,11–7,30 s en 10.000 residuos en la medición local. Se revisará el límite en S4 con el núcleo WASM y mediciones comparables; no representa una garantía para todos los dispositivos.
-- **PWA:** `vite-plugin-pwa` 2.0.0 usa Workbox para generar el service worker y precachear los archivos locales, incluidos los Workers. El registro usa un script del mismo origen y las actualizaciones esperan al siguiente ciclo de la aplicación; no provocan una recarga automática durante la edición. La caché de estructuras y la sincronización siguen en S5–S7. La configuración sigue la [guía oficial de registro de Vite PWA](https://vite-pwa-org.netlify.app/guide/register-service-worker).
-- **Rust:** toolchain 1.91.1, wasm-pack 0.15.0 y wasm-bindgen 0.2.129 fijados. S3 verifica la compilación y la carga del módulo inicial; el alineamiento sigue en TypeScript hasta S4. `pkg/` y `target/` continúan excluidos de Git en este sprint.
+Cambios rutinarios siguen la autorización del usuario. Nuevos contratos, límites científicos, costos o cambios de stack requieren una decisión concreta antes de implementarse.

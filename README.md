@@ -1,83 +1,64 @@
-# Plantilla Base para Aplicaciones Web SPA (Vercel + Supabase)
+# ProteinForge — frontend
 
-Plantilla genérica de inicio para aplicaciones web de página única (SPA) con arquitectura sin costo sobre **Vercel** y **Supabase**, soporte de aislamiento de origen cruzado para cómputo intensivo en hilos de trabajo y batería completa de pruebas estáticas y de base de datos.
+Banco de trabajo académico para analizar secuencias proteicas, comparar alineamientos y explorar candidatos bajo condiciones definidas. Editor, FASTA, descriptores, perfil, temas y alineamiento Rust/WASM están implementados. Catálogo, UniProt, visor 3D, generación, predicción externa, proyectos e informes siguen pendientes.
 
----
+## Repositorios y carpetas
 
-## 1. Características principales
-
-- **Pila tecnológica:** React 19, TypeScript (modo estricto sin `any`), Vite.
-- **Alojamiento y borde (Vercel):** Servido con red de entrega global bajo el plan Hobby. Configuración centralizada en `vercel.json` con soporte para enrutamiento SPA.
-- **Aislamiento de origen cruzado y seguridad:** Cabeceras `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`, HSTS y CSP restrictiva (con `'wasm-unsafe-eval'` y `worker-src 'self' blob:`, y orígenes `https://*.supabase.co`), habilitando `SharedArrayBuffer` y Web Workers multi-hilo tanto en local como en Vercel.
-- **Base de datos y autenticación (Supabase):** PostgreSQL relacional con esquema versionado en `supabase/migrations/` (`profiles`, `projects`, `analyses`, `alignments`, `external_cache`).
-- **Seguridad en datos (RLS):** Row Level Security activo en todas las tablas con datos de usuario, con políticas restrictivas evaluadas mediante `(select auth.uid())` para usuarios autenticados y aislamiento estricto en caché externa.
-- **Calidad de código y pruebas:** ESLint 10 con configuración estricta, Vitest, React Testing Library, jsdom y prueba automatizada de cumplimiento de RLS en cada migración SQL.
-
----
-
-## 2. Requisitos previos
-
-- **Node.js:** Versión 24.x (ver `.nvmrc` o `engines` en `package.json`).
-- **npm:** Versión 11.x o superior.
-- **Cuenta en Vercel y Supabase** (planes gratuitos sin tarjeta).
-- **Supabase CLI** (opcional, para desarrollo local o aplicación de migraciones).
-
----
-
-## 3. Instalación y comandos locales
-
-```bash
-# Instalar dependencias con versiones fijadas en el lockfile
-npm ci
-
-# Ejecutar el servidor de desarrollo local (puerto 5173 con cabeceras COOP/COEP)
-npm run dev
-
-# Verificación de tipos estáticos
-npm run typecheck
-
-# Análisis estático de código (ESLint)
-npm run lint
-
-# Ejecutar pruebas unitarias, de componentes y de migraciones con cobertura
-npm run test:coverage
-
-# Generar la versión de producción optimizada
-npm run build
-
-# Previsualizar la compilación de producción localmente (puerto 4173 con cabeceras COOP/COEP)
-npm run preview
+```text
+ProteinForge/       # carpeta local, sin Git
+├── frontend/       # este repositorio
+└── backend/        # repositorio independiente
 ```
 
----
+Frontend: [Jacklb19/ProteinForge](https://github.com/Jacklb19/ProteinForge). Backend: [Jacklb19/Protein_Back](https://github.com/Jacklb19/Protein_Back). Cada uno tiene su propio `.git`, `main`, `dev` y despliegue Vercel. Abrir esta carpeta como proyecto; ejecutar comandos desde aquí. Moverla completa conserva historial y remoto.
 
-## 4. Procedimiento de despliegue
+## Desarrollo local
 
-El despliegue lo realiza el operador responsable mediante la integración Git de Vercel y la consola de Supabase. El agente no ejecuta despliegues ni interactúa con servicios remotos.
+Node fijado en [.nvmrc](.nvmrc); dependencias con versiones exactas en package/lockfile. No es necesario reconstruir Rust para iniciar: el paquete WASM generado está versionado.
 
-### Paso 1: Configurar el proyecto en Supabase
-1. Crear un nuevo proyecto en [Supabase](https://supabase.com) (plan Free).
-2. Obtener la **URL del proyecto** y la **clave anónima (`anon public`)** desde la sección *Project Settings > API*.
-3. Aplicar las migraciones del directorio `supabase/migrations/`:
-   - **Vía Supabase CLI (recomendado):**
-     ```bash
-     supabase link --project-ref <tu-project-ref>
-     supabase db push
-     ```
-   - **O vía SQL Editor:** Copiar y ejecutar el contenido de `supabase/migrations/20260928000000_initial_schema.sql` en el editor SQL del panel de Supabase.
+```bash
+npm ci
+npm run dev
+```
 
-### Paso 2: Desplegar en Vercel
-1. Importar el repositorio Git en [Vercel](https://vercel.com) (plan Hobby).
-2. Framework Preset: **Vite** (detectado automáticamente).
-3. Configurar las variables de entorno en el panel de Vercel (*Settings > Environment Variables*):
-   - `VITE_SUPABASE_URL`: `https://<tu-id>.supabase.co`
-   - `VITE_SUPABASE_ANON_KEY`: `<tu-clave-anon-publica>`
-4. Desplegar. Vercel aplicará automáticamente las cabeceras declaradas en `vercel.json` y el enrutamiento para la SPA.
+Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas actuales: `/`, `/alignment`, `/settings`. El archivo `.env.example` enumera variables públicas sin valores. No se incluye ningún secreto en el cliente.
 
----
+## Verificación
 
-## 5. Consideraciones de seguridad y arquitectura
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
 
-- **Seguridad a nivel de fila (RLS):** La clave anónima (`anon`) llega al cliente de forma segura porque la base de datos PostgreSQL impone RLS en todas las tablas con datos de usuario. Toda consulta sin autenticar es rechazada.
-- **Acceso a caché externa:** La tabla `external_cache` revoca permisos tanto a `anon` como a `authenticated`. Solo la API del backend mediante el rol de servicio (`service_role`) puede acceder a ella.
-- **Política de Seguridad de Contenido (CSP):** Se restringe estrictamente a `'self'` y al subdominio `https://*.supabase.co`. Dominios de fuentes externas (PDB, UniProt) se declararán conforme se integren en sprints posteriores.
+Pruebas específicas durante desarrollo: `npm run test -- src/features/alignment/wasm.test.ts`. Antes de cambios amplios, `npm run test:coverage`. E2E del recorrido afectado: `npm run test:e2e -- e2e/alignment.spec.ts`; requiere Chromium o Chrome local. `npm run check:pwa` verifica el build sin conexión; `PWA_CHECK_PORT` permite usar otro puerto si 4173 está ocupado.
+
+Rust se fija en `rust-toolchain.toml`; wasm-pack 0.15.0 y wasm-bindgen 0.2.129. Para cambios del núcleo:
+
+```bash
+npm run build:wasm
+npm run check:wasm
+```
+
+Eliminar el `.gitignore` que wasm-pack genera dentro de `rust/alignment/pkg/` antes de confirmar el paquete. CI lo reconstruye y compara. `target/` no se versiona.
+
+`scripts/generate_alignment_references.py` regenera fixtures con Biopython fijado en `requirements-reference.txt`; es una herramienta científica del frontend, no el backend. `node scripts/benchmark-alignment.mjs` compara ambos núcleos y escribe resultados locales en `artifacts/`.
+
+## Arquitectura y límites
+
+El cálculo pesado ocurre en Workers; el alineamiento usa WASM con máximo de 5.000 residuos por secuencia. FASTA admite 5.000.000 bytes. PWA precachea recursos locales. La cobertura V8 no mide internamente Rust. Inglés completo, auditoría de otros navegadores y rendimiento externo pendientes.
+
+El backend es propietario de migraciones Supabase y su prueba de RLS. Este frontend debe poder clonarse, probarse y construirse sin tener el backend al lado. `VITE_API_BASE_URL` conectará con la API al implementarla; CORS y orígenes CSP se ajustarán entonces.
+
+Predicción externa y generación están aprobadas como ampliación, aún sin implementar. El asistente solo interpreta. Descriptores y estructuras predichas no demuestran función biológica ni novedad experimental.
+
+## Documentación y despliegue
+
+- [Definición vigente](docs/definicion-proyecto.md)
+- [Decisiones](docs/decisiones.md)
+- [Pantallas](docs/pantallas.md)
+- [Diseño](docs/diseno-visual.md) y [fuentes](docs/font-provenance.md)
+- [Archivo histórico](docs/archive/README.md)
+
+Vercel importa únicamente este repositorio con preset Vite; el backend usa otro proyecto. Configurar producción desde `main` y desarrollo desde `dev` según corresponda. URLs efectivas pendientes de registrar. El usuario controla publicación y cambios remotos; la organización local no cambia el despliegue existente.
