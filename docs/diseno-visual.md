@@ -1,38 +1,77 @@
 # Diseño visual vigente
 
-El sistema implementado usa superficies minerales y acento cobre en claro, y grafito verdoso/cobre luminoso en oscuro. Se conserva mientras se acuerda una nueva dirección visual con el usuario. Cumplir accesibilidad y tokens no demuestra por sí solo que una composición sea atractiva; la revisión estética será una tarea específica.
+Actualizado el 7 de octubre de 2026. La dirección es una **ficha de laboratorio**: el contenido es la secuencia y sus cifras. La interfaz se aparta y no recurre a tarjetas decorativas. Las secciones se separan con espacio y líneas finas.
+
+## Referencias del dominio
+
+| Herramienta | Patrón adoptado |
+|---|---|
+| [ProtParam y ProtScale](https://web.expasy.org/protparam/protparam-doc.html) (Expasy) | Un solo paso de entrada; cada cifra con su método. Perfil por ventana centrada (9 para superficie y 19 para transmembrana) |
+| [UniProt, componente `Sequence`](https://github.com/ebi-uniprot/franklin-sites) | Secuencia en bloques de 10 con la numeración de cada bloque, en monoespaciada |
+| [Nightingale y ProtVista](https://github.com/ebi-webcomponents/nightingale) (EBI) y [RCSB Saguaro](https://www.rcsb.org/docs/sequence-viewers/sequence-annotations-viewer) | Pistas por residuo con resaltado sincronizado entre vistas |
+| [EMBOSS Needle y Water](https://emboss.sourceforge.net/docs/themes/AlignFormats.html) | Resumen de identidad, similitud, huecos y puntuación como n/longitud (%); marcas `\|` y `:` |
+| [Jalview](https://www.jalview.org/help/html/menus/alwformat.html) | Regla y posiciones junto a las filas alineadas |
+
+## Decisiones
+
+- **Color.**
+  - Fondo neutro: blanco en claro, `#121316` en oscuro.
+  - Texto casi negro: `#17191e` en claro, `#eceef2` en oscuro.
+  - Un único color de marca para acciones y selección: azul Coomassie, `#2f3c96` en claro y `#aab4ff` en oscuro. Es el tinte que revela las proteínas en un gel.
+  - Un solo color funcional, el error: `#b3261e` en claro y `#ff8f86` en oscuro.
+  - La curva del perfil va en tinta.
+- **Tipografía.**
+  - [Atkinson Hyperlegible Next](https://www.brailleinstitute.org/freefont/) (400 y 600) para la interfaz. Es humanista, distingue I/l/1 y O/0, algo relevante porque I, L y O son códigos de aminoácido, y tiene cifras tabulares.
+  - IBM Plex Mono 400 solo para residuos en columna.
+  - Escala: 12, 14, 16, 20 y 28 px; 24 px para el título en móvil.
+- **Navegación.**
+  - Escritorio: barra superior flotante con *Analizar · Alinear · Ajustes*.
+  - Móvil: el mismo `nav` se convierte en barra inferior con icono y texto.
+  - No hay indicador de proceso en curso: el alineamiento termina en menos de 1 s con el límite público medido.
+- **Elemento propio: el lector de residuos.**
+  - Muestra la secuencia en bloques de 10 numerados.
+  - Al elegir un residuo (clic, gráfica o teclado) se resaltan la ventana promediada en su hidropatía y su posición en la gráfica, y se leen sus valores.
+  - En los extremos sin ventana completa no se resalta ninguna ventana.
+- **Lenguaje.** Los estados se dicen con palabras ("desactualizados", "Leyendo archivo FASTA…"). La tabla por residuo y los métodos quedan plegados.
+- **Movimiento.** Solo se desplazan la ventana y el cursor de la gráfica, y duran 0 ms con movimiento reducido.
+- **Imágenes.** No se usan. El contenido del dominio son datos. Una estructura de insulina madura junto a la secuencia del precursor de ejemplo mezclaría dos objetos distintos.
 
 ## Fuentes de verdad
 
-- `src/design-tokens.css`: colores, dimensiones, tipografía, espaciado y movimiento.
-- `src/index.css`: marco y primitivas de panel, campo, botón, aviso y estado.
-- `src/shared/PageHeading.tsx`: encabezado común.
-- [Pantallas](pantallas.md): rutas y estados existentes/previstos.
-- [Procedencia de fuentes](font-provenance.md): licencias, tamaños y hashes de IBM Plex. No modificar los archivos de licencia ni fuentes originales.
-
-No repetir paletas o medidas en componentes. Los temas claro/oscuro y Sistema comparten tokens. IBM Plex Sans 400/600/700 es lectura/acciones; Mono 400 es secuencia/datos. Usar cifras tabulares, no negrita artificial en Mono.
-
-## Presentación y accesibilidad
-
-- Secuencia y resultados científicos como contenido principal; posiciones separadas, columnas numéricas alineadas y estados explícitos.
-- Reutilizar marco, PageHeading y primitivas. No añadir rutas futuras, datos ficticios ni controles sin operación.
-- Contraste de texto mínimo 4,5:1 y gráficos/controles 3:1; foco visible, teclado, controles de 44 px y movimiento reducido.
-- Datos desactualizados conservados con aviso. Invalidación marcada y anunciada, sin depender solo del color.
-- `#root` ocupa el viewport; navegación izquierda anclada al borde. El máximo de ancho se aplica al contenido, no al marco.
+- `src/design-tokens.css` contiene los tokens semánticos (`--bg-*`, `--text-*`, `--accent-brand`, `--status-error`, espaciado, radios y medidas). Cada color tiene una pareja `--dark-`.
+- `src/index.css` contiene el marco, los controles y las pantallas. Ningún componente define colores ni medidas.
+- Las opciones y los valores ajustables están en la configuración de cada característica:
+  - `features/*/config.ts`
+  - `preferences/config.ts`
+  - `i18n/config.ts`
+  - `shared/navigation.ts`
+- `public/fonts/provenance.json` es el manifiesto único de fuentes. Lo usan los Workers, la precarga de `index.html`, las pruebas y `check:pwa`. Ver [procedencia](font-provenance.md).
+- Componentes base:
+  - `PageHeading`
+  - `SegmentedControl`
+  - `Icon`
+  - `BrandMark`
+  - `ResidueReader`
 
 ## Contratos visuales que requieren cuidado
 
 | Mecanismo | Mantener y verificar si se modifica |
 |---|---|
-| Editor superpuesto | Fuente, peso, tamaños, relleno, borde, interlineado y scroll iguales entre textarea y resaltado; sin cálculos de ancho de glifo en JS |
-| FASTA virtualizado | Filas efectivas de 44 px, medidas tras `document.fonts.ready`, respaldo positivo y finito; descartar medidas tras desmontaje |
-| Bloques de alineamiento | Altura de 112 px y virtualización; no cambiar interlineado aislado |
-| Canvas de hidropatía | Colores y estilos desde hilo principal; dibujo/cálculo en Worker. Carga de Sans 400 en Worker redibuja datos existentes sin recalcular |
-| Fuentes | Precargar solo Sans 400 y Mono 400; swap y respaldos ajustados. Preservar hashes/licencia y prueba offline si cambian recursos |
-| PWA e identidad | Mismo icono `/app-icon.svg`, generado desde SVG/tokens; WOFF2 y WASM en precaché. Actualizaciones sin recargar durante edición |
+| Editor superpuesto | Misma fuente, tamaño, relleno, borde, interlineado y scroll en el textarea y el resaltado. El resaltado sigue el alto del textarea si se redimensiona |
+| FASTA virtualizado | Filas de 44 px medidas tras `document.fonts.ready` |
+| Lector de residuos | Bloques por línea medidos con `ResizeObserver`. Solo se pintan las líneas cercanas al viewport |
+| Bloques de alineamiento | Altura de 112 px y virtualización. El visor se ajusta al contenido hasta su máximo |
+| Canvas de hidropatía | Colores desde tokens en el hilo principal; dibujo en Worker con la fuente del manifiesto. Los extremos del eje Y y las posiciones inicial y final van rotulados |
+| Estados desactualizados | El canvas pasa a escala de grises y el texto a color secundario. Nunca opacidad que rompa AA |
 
 ## Comprobación de cambios visuales
 
-Revisar la pantalla afectada a 360/1280 px en claro/oscuro y sus estados pertinentes: vacío, cálculo, resultado, inválido, desactualizado, cancelado/error. Comprobar foco, teclado, contraste y desbordamiento. E2E del recorrido afectado con capturas; evitar repetir pantallas ajenas al cambio. Comprobar fuentes/canvas/virtualización/PWA solo cuando se toquen esos contratos.
+Revisar cada pantalla afectada a 360 y 1280 px, en claro y oscuro, con estados reales:
+- vacío;
+- cálculo;
+- resultado;
+- inválido;
+- desactualizado;
+- error.
 
-Evidencias históricas y pruebas existentes: [S3](archive/sprint-3-verificacion.md) y [S4](archive/sprint-4-verificacion.md). Los E2E actuales y `src/test/fonts.test.ts` conservan comprobaciones de geometría, accesibilidad e integridad; no reducir sus umbrales.
+Comprobar también foco, teclado, contraste y desbordamiento. La evidencia del rediseño está en `docs/PROGRESS.md`. Las pruebas de geometría, accesibilidad e integridad de fuentes conservan sus umbrales.

@@ -1,20 +1,41 @@
-# IBM Plex
+# Procedencia de fuentes
 
-Fuentes oficiales autoalojadas. IBM Plex Sans 1.1.0, revisión inmutable del repositorio IBM/Plex: `763c36ef9117782905ae010056dfbe8fd2653a25`.
+Todas las fuentes son autoalojadas en `public/fonts/` y están bajo la licencia SIL OFL 1.1. `public/fonts/provenance.json` es el manifiesto único. Indica para cada archivo su familia, peso, función (`interface` o `sequence`), si se precarga, su tamaño y su SHA-256. Leen el manifiesto:
 
-Procedencia: https://github.com/IBM/plex/tree/763c36ef9117782905ae010056dfbe8fd2653a25
+- el Worker de la gráfica, que registra su propia fuente;
+- `vite.config.ts`, que genera los `preload` de `index.html`;
+- las pruebas de integridad;
+- los E2E;
+- `check:pwa`.
 
-Sans: `packages/plex-sans/fonts/complete/woff2/`. Mono: `packages/plex-mono/fonts/complete/woff2/`. Los archivos conservan el contenido original; solo cambia su nombre de archivo. Licencia SIL OFL 1.1 completa en `OFL.txt`.
+| Archivo | Familia y peso | Bytes | SHA-256 | Origen |
+|---|---|---:|---|---|
+| atkinson-next-regular.woff2 | Atkinson Hyperlegible Next 400 | 12096 | 5cb240a4d99ab7e6fc3a4d4e6d11d89789fdffe9c86a8384000d662c53283f6f | `@fontsource/atkinson-hyperlegible-next` 5.3.0, subconjunto latin |
+| atkinson-next-semibold.woff2 | Atkinson Hyperlegible Next 600 | 12672 | 828f4525c741b6864718e41aa23a4acbc049b35e6271317c0fd86e0702dd5d2e | Ídem |
+| plex-mono-regular.woff2 | IBM Plex Mono 400 | 49248 | ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350 | IBM/plex `763c36ef9117782905ae010056dfbe8fd2653a25`, versión 1.1.0 |
 
-| Archivo | Peso | Bytes | SHA-256 |
-|---|---:|---:|---|
-| plex-sans-regular.woff2 | 400 | 63020 | ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a |
-| plex-sans-semibold.woff2 | 600 | 67060 | f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205 |
-| plex-sans-bold.woff2 | 700 | 63012 | fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d |
-| plex-mono-regular.woff2 | 400 | 49248 | ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350 |
+Los archivos de Atkinson se copiaron sin modificar del paquete npm (`files/atkinson-hyperlegible-next-latin-{400,600}-normal.woff2`) y solo se cambió su nombre. No se añadió ninguna dependencia de ejecución. Proyecto original: <https://github.com/googlefonts/atkinson-hyperlegible-next>. Licencias completas en `OFL-atkinson-hyperlegible-next.txt` y `OFL-ibm-plex.txt`.
 
-Solo se precargan Sans 400 (lectura) y Mono 400 (editor). Sans 600 se usa en títulos y acciones; 700 en etiquetas. Mono no usa negrita. `font-synthesis: none` impide pesos artificiales. Todos usan `font-display: swap`; los cuatro WOFF2 se incluyen en la precaché de Workbox.
+## Por qué estas familias
 
-`src/fonts.css` declara respaldos locales con `size-adjust` y métricas verticales. Los descriptores de `@font-face` exigen valores constantes y no resuelven variables del documento. Las familias consumidas por los componentes sí son tokens. Medición en Chrome/Windows a 100 px: Sans 400 mide 1270,10 px para `ACDEFGHIKLMNPQRSTVWY`, Arial 1366,80 px (ajuste 92,93 %); Mono mide 1200 px, Consolas 1099,61 px (109,13 %), Courier New 1200,20 px (99,984 %). El interlineado explícito limita cambios de altura; la anchura proporcional de otros textos puede variar durante el intercambio. En plataformas sin esos respaldos locales se usa la familia genérica hasta completar la carga.
+- **Atkinson Hyperlegible Next.** Lo publicó el Braille Institute para maximizar la distinción entre caracteres (I/l/1, O/0). En esta aplicación importa porque I, L y O son códigos de aminoácido que aparecen en textos, tablas y lecturas. El subconjunto latin cubre el español y tiene la característica `tnum`: los valores usan `font-variant-numeric: tabular-nums` para alinear cifras.
+- **IBM Plex Mono.** Se conserva solo para residuos en columna: editor, lector y bloques de alineamiento. Su geometría ya estaba verificada con el editor superpuesto.
 
-Los diez dígitos de Sans 400 y Mono 400 midieron 60 px cada uno a 100 px. Los datos usan `font-variant-numeric: tabular-nums`; E2E comprueba los tres pesos Sans. Las pruebas de integridad verifican tamaño, cabecera WOFF2 y SHA-256. `check:pwa` verifica caché, respuesta binaria y carga de las fuentes después de recargar sin red.
+## Respaldos y comprobaciones
+
+`src/fonts.css` declara respaldos locales ajustados:
+
+- **Atkinson sobre Arial.** `size-adjust` del 98,9 %, calculado con fontTools a partir de los avances de texto corrido en español. Las métricas verticales salen de las tablas OS/2: ascendente 984 y descendente 316 sobre 1000.
+- **Plex Mono.** Mantiene los respaldos Consolas y Courier New medidos anteriormente, que conservan el ajuste de líneas durante el intercambio.
+
+Se precargan Atkinson 400 y Plex Mono 400. Todas las fuentes usan `font-display: swap` y `font-synthesis: none`, y los tres WOFF2 están en la precaché de Workbox.
+
+Pruebas que cubren las fuentes:
+
+- `src/test/fonts.test.ts` verifica:
+  - la cabecera WOFF2, el tamaño y el SHA-256;
+  - las licencias;
+  - que `fonts.css` declare exactamente los archivos del manifiesto;
+  - que los tokens tipográficos usen sus familias.
+- El E2E del editor comprueba que las cifras de la interfaz sean tabulares en 400 y 600, y que el Worker mida igual que el documento.
+- `check:pwa` verifica la caché, la respuesta binaria y la carga de cada fuente sin conexión, así como la fuente del Worker.

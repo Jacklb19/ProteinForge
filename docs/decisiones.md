@@ -21,6 +21,7 @@ La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla 
 | Auth y TOTP opcional | Correo/contraseña, recuperación y Google previstos; hasta dos TOTP, exigir aal2 cuando se active. Pendiente |
 | PDF local y CSV | Cliente genera PDF, URL firmada para Storage y API registra. Pendiente |
 | Temas, traducciones y PWA | Base implementada; inglés y sincronización completos pendientes. Metadatos, icono y fuentes se conservan |
-| UI | Sistema actual permanece; nueva dirección visual se revisa en una tarea posterior |
+| UI | Dirección de ficha de laboratorio implementada: azul Coomassie, Atkinson Hyperlegible Next y Plex Mono, barra superior o inferior y lector de residuos. Ver [diseño](diseno-visual.md) |
+| Configuración | Opciones elegibles y valores ajustables en módulos de configuración por característica; textos en i18n, estilos en tokens y fuentes en un manifiesto. Sin valores fijos en componentes |
 
 Cambios rutinarios siguen la autorización del usuario. Nuevos contratos, límites científicos, costos o cambios de stack requieren una decisión concreta antes de implementarse.
