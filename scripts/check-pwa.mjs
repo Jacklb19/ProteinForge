@@ -1,7 +1,9 @@
 import { preview } from 'vite';
 import { chromium, expect } from '@playwright/test';
 
-const server = await preview({ preview: { host: '127.0.0.1', port: 4173, strictPort: true } });
+const port = Number(process.env.PWA_CHECK_PORT ?? 4173);
+const baseURL = 'http://127.0.0.1:' + String(port);
+const server = await preview({ preview: { host: '127.0.0.1', port, strictPort: true } });
 const browser = await chromium.launch({
   executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
     ?? (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined),
@@ -9,7 +11,7 @@ const browser = await chromium.launch({
 try {
   const context = await browser.newContext();
   const page = await context.newPage();
-  await page.goto('http://127.0.0.1:4173/');
+  await page.goto(baseURL + '/');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
@@ -46,7 +48,7 @@ try {
   await expect.poll(() => chartWorker.evaluate(() => [...self.fonts].some((face) =>
     face.family.replaceAll('"', '') === 'IBM Plex Sans' && face.status === 'loaded'))).toBe(true);
   process.stdout.write('Plex Sans loaded in the profile worker after offline reload.\n');
-  await page.goto('http://127.0.0.1:4173/alignment');
+  await page.goto(baseURL + '/alignment');
   await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIK');
   await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIK');
   await page.getByRole('button', { name: 'Alinear' }).click();
