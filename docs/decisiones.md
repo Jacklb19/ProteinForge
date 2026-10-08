@@ -18,10 +18,10 @@ La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla 
 | Asistente de interpretación | Groq/modelo previsto según especificación; no calcula ni genera secuencias. Configuración real y retención cero pendientes |
 | UUIDv7 Python 3.14 | API futura; `profiles.id` sigue Supabase Auth. Función SQL inicial aún provisional |
 | Concurrencia optimista | PUT con fecha conocida, conflicto 409. Pendiente |
-| Auth y TOTP opcional | Correo/contraseña, recuperación y Google previstos; hasta dos TOTP, exigir aal2 cuando se active. Pendiente |
+| Auth y TOTP opcional | Correo/contraseña, recuperación y Google por redirección implementados en el frontend contra la API REST de Supabase Auth, sin SDK; sesión en `localStorage` con refresco previo a la caducidad. Requiere `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; sin ellos las pantallas lo dicen. Verificado con la API simulada, no contra un proyecto remoto. TOTP y aal2 pendientes |
 | PDF local y CSV | Cliente genera PDF, URL firmada para Storage y API registra. Pendiente |
 | Temas, traducciones y PWA | Base implementada; inglés y sincronización completos pendientes. Metadatos, icono y fuentes se conservan |
-| UI | Dirección de ficha de laboratorio implementada: azul Coomassie, Atkinson Hyperlegible Next y Plex Mono, barra superior o inferior y lector de residuos. Ver [diseño](diseno-visual.md) |
+| UI | Dirección «la forja» implementada: portada con perfil real de insulina y hélice α ideal, índigo como único color de acción, colores de cadena para residuos, tarjetas, barra en píldora y movimiento con escalonado que respeta movimiento reducido. Ver [diseño](diseno-visual.md) |
 | Configuración | Opciones elegibles y valores ajustables en módulos de configuración por característica; textos en i18n, estilos en tokens y fuentes en un manifiesto. Sin valores fijos en componentes |
 
 Cambios rutinarios siguen la autorización del usuario. Nuevos contratos, límites científicos, costos o cambios de stack requieren una decisión concreta antes de implementarse.

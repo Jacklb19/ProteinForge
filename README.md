@@ -1,6 +1,6 @@
 # ProteinForge — frontend
 
-Banco de trabajo académico para analizar secuencias proteicas, comparar alineamientos y explorar candidatos bajo condiciones definidas. Editor, FASTA, descriptores, perfil, temas y alineamiento Rust/WASM están implementados. Catálogo, UniProt, visor 3D, generación, predicción externa, proyectos e informes siguen pendientes.
+Banco de trabajo académico para analizar secuencias proteicas, comparar alineamientos y explorar candidatos bajo condiciones definidas. Portada, editor, FASTA, descriptores, perfil, temas, alineamiento Rust/WASM y acceso con cuenta están implementados. Catálogo, UniProt, visor 3D, generación, predicción externa, proyectos e informes siguen pendientes.
 
 ## Repositorios y carpetas
 
@@ -21,7 +21,7 @@ npm ci
 npm run dev
 ```
 
-Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas actuales: `/`, `/alignment`, `/settings`. El archivo `.env.example` enumera variables públicas sin valores. No se incluye ningún secreto en el cliente.
+Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas actuales: `/` (Inicio), `/analyze`, `/alignment`, `/settings`, `/sign-in`, `/sign-up`, `/recover` y `/privacy`; se definen en `src/shared/navigation.ts`. El archivo `.env.example` enumera variables públicas sin valores; con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se activan acceso, registro y recuperación contra Supabase Auth. No se incluye ningún secreto en el cliente.
 
 ## Verificación
 
