@@ -93,9 +93,9 @@ export function AlignmentPage(): React.JSX.Element {
   const stale = result !== null && isStaleResult(resultInput, currentInput);
 
   return (
-    <main className="alignment-page">
+    <main className="page alignment-page">
       <PageHeading titleKey="alignment.title" introduction="alignment.introduction" />
-      <section className="alignment-inputs" aria-labelledby="alignment-inputs-title">
+      <section className="alignment-inputs card" aria-labelledby="alignment-inputs-title">
         <h2 id="alignment-inputs-title" className="visually-hidden">{t('alignment.inputs')}</h2>
         <div className="sequence-pair">
           <div className="field">

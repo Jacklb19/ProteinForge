@@ -1,37 +1,50 @@
 /*
  * Design tokens. Light values are declared first; each color has a `--dark-` twin
  * that the dark theme maps onto the same semantic name.
- * Brand: Coomassie blue, the dye that reveals proteins on an electrophoresis gel.
+ * Identity: "la forja". Ink on cool paper, one indigo for every action and selection,
+ * and two chain colors reserved for residues: amber for hydrophobic, cyan for hydrophilic.
  */
 :root {
-  --bg-canvas: #ffffff;
-  --dark-bg-canvas: #121316;
-  --bg-subtle: #f3f4f6;
-  --dark-bg-subtle: #1b1d22;
+  --bg-canvas: #f4f6fb;
+  --dark-bg-canvas: #0b0e17;
+  --bg-subtle: #e9edf5;
+  --dark-bg-subtle: #171c2c;
   --bg-raised: #ffffff;
-  --dark-bg-raised: #1e2025;
-  --bg-selected: #e8eaf7;
-  --dark-bg-selected: #272d4e;
-  --text-primary: #17191e;
-  --dark-text-primary: #eceef2;
-  --text-secondary: #575d69;
-  --dark-text-secondary: #a7acb6;
+  --dark-bg-raised: #121626;
+  --bg-selected: #e3e6fb;
+  --dark-bg-selected: #2a2f5c;
+  --bg-accent-soft: #eceefc;
+  --dark-bg-accent-soft: #1d2142;
+  --text-primary: #121826;
+  --dark-text-primary: #eef1f8;
+  --text-secondary: #4f576b;
+  --dark-text-secondary: #a6aec2;
   --text-on-accent: #ffffff;
-  --dark-text-on-accent: #121316;
-  --border-strong: #858b96;
-  --dark-border-strong: #737985;
-  --border-subtle: #e2e4e9;
-  --dark-border-subtle: #2b2e35;
-  --accent-brand: #2f3c96;
-  --dark-accent-brand: #aab4ff;
-  --accent-brand-hover: #252f7a;
-  --dark-accent-brand-hover: #c5cbff;
+  --dark-text-on-accent: #0b0e17;
+  --border-strong: #767e93;
+  --dark-border-strong: #6c7490;
+  --border-subtle: #dde2ec;
+  --dark-border-subtle: #262c40;
+  --accent-brand: #4338ca;
+  --dark-accent-brand: #a5b4fc;
+  --accent-brand-hover: #3730a3;
+  --dark-accent-brand-hover: #c7d2fe;
   --status-error: #b3261e;
   --dark-status-error: #ff8f86;
   --status-error-subtle: #fdeceb;
   --dark-status-error-subtle: #3b1f1e;
-  --shadow-color: #17191e1f;
-  --dark-shadow-color: #00000066;
+  --status-success: #1b6b3a;
+  --dark-status-success: #86efac;
+  --status-success-subtle: #e2f5e9;
+  --dark-status-success-subtle: #143524;
+  --chain-hydrophobic: #d97706;
+  --dark-chain-hydrophobic: #fbbf24;
+  --chain-hydrophilic: #0e7490;
+  --dark-chain-hydrophilic: #67e8f9;
+  --shadow-color: #12182614;
+  --dark-shadow-color: #00000080;
+  --glow-color: #4338ca33;
+  --dark-glow-color: #a5b4fc33;
   --transparent: transparent;
   --focus-ring: var(--accent-brand);
   --chart-line: var(--text-primary);
@@ -42,15 +55,21 @@
   --font-size-caption: 0.75rem;
   --font-size-small: 0.875rem;
   --font-size-base: 1rem;
-  --font-size-section: 1.25rem;
-  --font-size-title: 1.75rem;
-  --font-size-title-compact: 1.5rem;
+  --font-size-lead: 1.125rem;
+  --font-size-section: 1.375rem;
+  --font-size-title: 2rem;
+  --font-size-title-compact: 1.625rem;
+  --font-size-display: clamp(2.25rem, 1.5rem + 3.5vw, 3.75rem);
+  --font-size-stat: 1.5rem;
   --font-size-sequence: 0.875rem;
   --font-size-chart: 0.8125rem;
   --font-weight-regular: 400;
   --font-weight-strong: 600;
   --line-height-base: 1.5;
-  --line-height-heading: 1.25;
+  --line-height-heading: 1.2;
+  --line-height-display: 1.05;
+  --letter-spacing-display: -0.02em;
+  --letter-spacing-eyebrow: 0.12em;
   --letter-spacing-sequence: 0;
   --tab-size-sequence: 4;
 
@@ -63,23 +82,37 @@
   --space-xl: 2rem;
   --space-2xl: 3rem;
   --space-3xl: 4rem;
+  --space-4xl: 6rem;
 
-  --radius-control: 0.375rem;
-  --radius-surface: 0.75rem;
+  --radius-control: 0.625rem;
+  --radius-surface: 1rem;
+  --radius-pill: 999px;
   --border-width: 1px;
   --border-width-indicator: 2px;
   --outline-width-focus: 3px;
   --outline-offset-focus: 2px;
-  --shadow-floating: 0 1px 2px var(--shadow-color), 0 4px 16px var(--shadow-color);
+  --shadow-floating: 0 1px 2px var(--shadow-color), 0 8px 24px var(--shadow-color);
+  --shadow-raised: 0 1px 1px var(--shadow-color), 0 2px 8px var(--shadow-color);
+  --shadow-glow: 0 0 0 6px var(--glow-color);
 
   --duration-feedback: 120ms;
+  --duration-enter: 480ms;
+  --duration-ambient: 6s;
+  --duration-draw: 1600ms;
   --duration-none: 0ms;
   --ease-feedback: ease-out;
+  --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --stagger-step: 70ms;
+  --reveal-offset: 18px;
+  --lift-hover: -2px;
 
   --size-touch: 44px;
   --size-icon: 1.25rem;
   --size-icon-tab: 1.5rem;
   --size-mark: 1.75rem;
+  --size-mark-hero: 3rem;
+  --size-bead: 1.75rem;
+  --size-avatar: 2rem;
   --stroke-icon: 1.5px;
   --height-top-bar: 3.5rem;
   --height-tab-bar: 4rem;
@@ -87,10 +120,12 @@
   --width-content: 76rem;
   --width-input-column: 26rem;
   --width-copy: 65ch;
-  --width-settings: 40rem;
+  --width-settings: 44rem;
+  --width-form: 26rem;
+  --width-hero-art: 36rem;
 
-  --height-editor: 12rem;
-  --height-alignment-input: 9rem;
+  --height-editor: 14rem;
+  --height-alignment-input: 10rem;
   --height-fasta-list: 16.5rem;
   --height-fasta-row-default: 44px;
   --height-fasta-row: var(--height-fasta-row-default);
@@ -101,6 +136,8 @@
   --height-alignment-viewport: 22.5rem;
   --height-alignment-block: 112px;
   --height-progress: 0.375rem;
+  --height-hero-art: 22rem;
+  --height-helix-scene: 26rem;
   --space-chart-inner: 36px;
   --border-width-chart-line: 2px;
   --border-width-chart-reference: 1px;
@@ -118,6 +155,7 @@
   --bg-subtle: var(--dark-bg-subtle);
   --bg-raised: var(--dark-bg-raised);
   --bg-selected: var(--dark-bg-selected);
+  --bg-accent-soft: var(--dark-bg-accent-soft);
   --text-primary: var(--dark-text-primary);
   --text-secondary: var(--dark-text-secondary);
   --text-on-accent: var(--dark-text-on-accent);
@@ -127,7 +165,12 @@
   --accent-brand-hover: var(--dark-accent-brand-hover);
   --status-error: var(--dark-status-error);
   --status-error-subtle: var(--dark-status-error-subtle);
+  --status-success: var(--dark-status-success);
+  --status-success-subtle: var(--dark-status-success-subtle);
+  --chain-hydrophobic: var(--dark-chain-hydrophobic);
+  --chain-hydrophilic: var(--dark-chain-hydrophilic);
   --shadow-color: var(--dark-shadow-color);
+  --glow-color: var(--dark-glow-color);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -137,6 +180,7 @@
     --bg-subtle: var(--dark-bg-subtle);
     --bg-raised: var(--dark-bg-raised);
     --bg-selected: var(--dark-bg-selected);
+    --bg-accent-soft: var(--dark-bg-accent-soft);
     --text-primary: var(--dark-text-primary);
     --text-secondary: var(--dark-text-secondary);
     --text-on-accent: var(--dark-text-on-accent);
@@ -146,7 +190,12 @@
     --accent-brand-hover: var(--dark-accent-brand-hover);
     --status-error: var(--dark-status-error);
     --status-error-subtle: var(--dark-status-error-subtle);
+    --status-success: var(--dark-status-success);
+    --status-success-subtle: var(--dark-status-success-subtle);
+    --chain-hydrophobic: var(--dark-chain-hydrophobic);
+    --chain-hydrophilic: var(--dark-chain-hydrophilic);
     --shadow-color: var(--dark-shadow-color);
+    --glow-color: var(--dark-glow-color);
   }
 }
 
@@ -154,9 +203,16 @@
 
 /* Compact input on phones so results and the example stay close to the fold. */
 @media (max-width: 47.99rem) {
-  :root { --height-editor: 8rem; }
+  :root { --height-editor: 9rem; --height-hero-art: 15rem; --height-helix-scene: 18rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --duration-feedback: var(--duration-none); }
+  :root {
+    --duration-feedback: var(--duration-none);
+    --duration-enter: var(--duration-none);
+    --duration-ambient: var(--duration-none);
+    --duration-draw: var(--duration-none);
+    --stagger-step: var(--duration-none);
+    --reveal-offset: 0px;
+  }
 }

@@ -1,26 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { updateInvalidPositions, splitStandardResidues, validateSequence } from './sequence';
 import { FastaLoader } from './FastaLoader';
-import { FastaParser } from './fasta';
 import type { FastaEntry } from './fasta';
 import { EXAMPLE_SEQUENCES, VALIDATION_DELAY_MS } from './config';
+import { exampleEntry } from './examples';
 import { useSequenceDraft } from './sequenceDraft';
 import { DescriptorPanel } from '../descriptors/DescriptorPanel';
 import { useDescriptors } from '../descriptors/useDescriptors';
 import { HydropathyProfile } from '../descriptors/HydropathyProfile';
+import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { useTranslation } from '../../i18n';
+import { Icon } from '../../shared/Icon';
+import { ROUTES } from '../../shared/navigation';
 import { PageHeading } from '../../shared/PageHeading';
-
-/** First entry of a bundled FASTA example. */
-function exampleEntry(fasta: string): FastaEntry | undefined {
-  const parser = new FastaParser();
-  return [...parser.addChunk(fasta), ...parser.finish()][0];
-}
 
 /** Sequence input with incremental validation; results update automatically beside it. */
 export function EditorPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const { text, setText } = useSequenceDraft();
+  const alignment = useAlignmentDraft();
+  const navigate = useNavigate();
   const descriptors = useDescriptors(text);
   const validation = useMemo(() => validateSequence(text), [text]);
   const additional = splitStandardResidues(validation.sequence).excluded;
@@ -51,6 +51,13 @@ export function EditorPage(): React.JSX.Element {
     setInvalidPositions(entry.invalidPositions);
   };
 
+  const clear = (): void => { loadEntry({ number: 0, header: '', sequence: '', invalidPositions: [] }); };
+
+  const sendToAlignment = (): void => {
+    alignment.update({ first: validation.sequence });
+    void navigate(ROUTES.alignment);
+  };
+
   const fragments: React.ReactNode[] = [];
   let start = 0;
   for (const position of invalidPositions) {
@@ -71,10 +78,16 @@ export function EditorPage(): React.JSX.Element {
   const hasInput = residueCount > 0 || validation.invalidPositions.length > 0;
 
   return (
-    <main className="analysis-page">
-      <PageHeading titleKey="editor.title" introduction="editor.introduction" />
+    <main className="page analysis-page">
+      <PageHeading titleKey="editor.title" introduction="editor.introduction">
+        {hasInput && <button className="button button-secondary" type="button" onClick={clear}>{t('editor.clear')}</button>}
+        {residueCount > 0 && invalidPositions.length === 0 && (
+          <button className="button button-primary" type="button" onClick={sendToAlignment}>{t('editor.toAlignment')}<Icon name="arrow" /></button>
+        )}
+      </PageHeading>
       <div className="analysis-layout">
-        <div className="analysis-input">
+        <div className="analysis-input card">
+          <h2 className="visually-hidden">{t('editor.inputTitle')}</h2>
           <div className="field-header">
             <label htmlFor="sequence-input">{t('editor.label')}</label>
             {residueCount > 0 && <span className="field-meta">{t(residueCount === 1 ? 'editor.residueCountOne' : 'editor.residueCount', { count: formatNumber(residueCount) })}</span>}

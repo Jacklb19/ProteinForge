@@ -7,9 +7,12 @@ import { ROUTES } from './navigation';
 export function NotFoundPage(): React.JSX.Element {
   const { t } = useTranslation();
   return (
-    <main className="not-found-page">
+    <main className="page not-found-page">
       <PageHeading titleKey="notFound.title" introduction="notFound.text" />
-      <Link className="button button-primary" to={ROUTES.analyze}>{t('notFound.action')}</Link>
+      <div className="hero-actions">
+        <Link className="button button-primary" to={ROUTES.analyze}>{t('notFound.action')}</Link>
+        <Link className="button button-secondary" to={ROUTES.home}>{t('notFound.home')}</Link>
+      </div>
     </main>
   );
 }

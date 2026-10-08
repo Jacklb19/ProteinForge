@@ -1,4 +1,11 @@
-/** Connected residues form the application mark. */
-export function BrandMark(): React.JSX.Element {
-  return <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 8h16v16H8V8m0 8h16M16 8v16" /><path className="brand-residue" d="M5 5h6v6H5zM21 13h6v6h-6zM5 21h6v6H5z" /></svg>;
+/** Three residues joined by a bond form the mark; the same drawing is the application icon. */
+export function BrandMark({ large = false }: { large?: boolean }): React.JSX.Element {
+  return (
+    <svg className={large ? 'brand-mark brand-mark-large' : 'brand-mark'} viewBox="0 0 32 32" aria-hidden="true">
+      <path className="brand-bond" d="M8 22 L16 10 L24 22" />
+      <circle className="brand-residue" cx="8" cy="22" r="4.5" />
+      <circle className="brand-residue brand-residue-apex" cx="16" cy="10" r="4.5" />
+      <circle className="brand-residue" cx="24" cy="22" r="4.5" />
+    </svg>
+  );
 }
