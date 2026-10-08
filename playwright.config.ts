@@ -7,8 +7,12 @@ const systemChrome = process.platform === 'win32'
   ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
   : undefined;
 
+// Workers default to Playwright's choice; E2E_WORKERS pins them on busy machines.
+const workers = process.env.E2E_WORKERS ? Number(process.env.E2E_WORKERS) : undefined;
+
 export default defineConfig({
   testDir: './e2e',
+  workers,
   reporter: 'line',
   timeout: 30_000,
   use: {

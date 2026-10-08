@@ -1,9 +1,10 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { chooseTheme, openValueTable } from './helpers';
+import { ROUTES } from '../src/shared/navigation';
 
 test('light and dark themes pass WCAG AA axe checks', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(ROUTES.analyze);
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.evaluate(async () => { await navigator.clipboard.writeText('ACDEFGHIKLMNPQRSTVWY'); });
   const input = page.getByRole('textbox', { name: /secuencia de aminoácidos/i });

@@ -7,6 +7,13 @@ const accent = tokens.match(/(?<![\w-])--accent-brand:\s*([^;]+);/)?.[1]?.trim()
 if (!accent) throw new Error('The accent design token is missing.');
 const { files: fonts } = JSON.parse(readFileSync(new URL('../public/fonts/provenance.json', import.meta.url), 'utf8'));
 const chartFamily = fonts.find((font) => font.role === 'interface')?.family;
+// Routes come from the navigation catalog so this script never hard-codes a path.
+const navigation = readFileSync(new URL('../src/shared/navigation.ts', import.meta.url), 'utf8');
+const route = (name) => {
+  const value = navigation.match(new RegExp('(?<![\\w-])' + name + ":\\s*'([^']+)'"))?.[1];
+  if (!value) throw new Error(`The route ${name} is missing from the navigation catalog.`);
+  return value;
+};
 
 const port = Number(process.env.PWA_CHECK_PORT ?? 4173);
 const baseURL = 'http://127.0.0.1:' + String(port);
@@ -49,12 +56,14 @@ try {
     return result;
   }, fonts);
   process.stdout.write(`Offline reload and precached WOFF2 verified: ${JSON.stringify(cachedFonts)}\n`);
+  await page.goto(baseURL + route('analyze'));
+  await page.waitForEvent('worker', { predicate: (worker) => worker.url().includes('profile.worker') }).catch(() => undefined);
   const chartWorker = page.workers().find((worker) => worker.url().includes('profile.worker'));
   if (!chartWorker) throw new Error('Offline profile worker is missing.');
   await expect.poll(() => chartWorker.evaluate((family) => [...self.fonts].some((face) =>
     face.family.replaceAll('"', '') === family && face.status === 'loaded'), chartFamily)).toBe(true);
   process.stdout.write(`${chartFamily} loaded in the profile worker after offline reload.\n`);
-  await page.goto(baseURL + '/alignment');
+  await page.goto(baseURL + route('alignment'));
   await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIK');
   await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIK');
   await page.getByRole('button', { name: 'Alinear' }).click();

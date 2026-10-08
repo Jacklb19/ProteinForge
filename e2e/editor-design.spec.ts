@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { interfaceFamily, interfaceFonts } from './helpers';
+import { ROUTES } from '../src/shared/navigation';
 
 const sequence = 'MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN';
 
@@ -10,7 +11,7 @@ for (const width of [360, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       if (fallback) await page.route('**/*.woff2', (route) => route.abort());
       const chartWorkerReady = page.waitForEvent('worker', { predicate: (worker) => worker.url().includes('profile.worker') });
-      await page.goto('/');
+      await page.goto(ROUTES.analyze);
       await page.evaluate(() => document.fonts.ready);
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
@@ -104,7 +105,7 @@ for (const width of [360, 1280]) {
 
 test('editor empty and scientific warning states remain accessible', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 });
-  await page.goto('/');
+  await page.goto(ROUTES.analyze);
   await expect(page.getByRole('heading', { name: 'Empieza con una secuencia' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Probar con insulina humana' })).toBeVisible();
   await page.getByRole('textbox', { name: /secuencia de aminoácidos/i }).fill('ACX');
