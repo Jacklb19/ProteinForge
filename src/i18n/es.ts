@@ -84,7 +84,7 @@ export const spanish = {
   'footer.backendRepository': 'Código del servidor',
   'footer.course': 'Proyecto académico de Programación Web, sin fines comerciales.',
   'landing.eyebrow': 'Banco de trabajo para proteínas',
-  'landing.title': 'De la secuencia al análisis.',
+  'landing.title': 'ProteinForge. Explora tus proteínas.',
   'landing.lead': 'Calcula propiedades, explora la hidropatía y compara secuencias desde tu navegador.',
   'landing.primaryAction': 'Entrar a la app',
   'landing.exampleAction': 'Probar con insulina humana',

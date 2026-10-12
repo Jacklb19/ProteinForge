@@ -102,7 +102,7 @@
   --scene-turn: 6deg;
   --scene-tilt: -2deg;
   --scene-perspective: 70rem;
-  --height-welcome: 22rem;
+  --height-welcome: 18rem;
   --width-welcome-scene: 25rem;
   --width-welcome-scene-mobile: 8rem;
   --size-task-symbol: 3rem;
@@ -133,13 +133,13 @@
   --width-input-column: 26rem;
   --width-copy: 65ch;
   --width-settings: 44rem;
-  --width-form: 26rem;
+  --width-form: 30rem;
   --width-hero-art: 36rem;
   --width-hero-copy: 35.25rem;
   --width-hero-lead: 30.625rem;
-  --height-hero: 48rem;
+  --height-hero: 32rem;
   --space-hero-block: 1.5rem;
-  --height-scene: 27rem;
+  --height-scene: 22rem;
   --space-dock: 5.5rem;
   --space-header: 3.5rem;
   --radius-dock: 0.875rem;

@@ -39,7 +39,7 @@ export function LandingPage(): React.JSX.Element {
           <div className="hero-actions">
             <Link className="button button-primary button-large" to={ROUTES.workspace}>{t('landing.primaryAction')}<Icon name="arrow" /></Link>
             {HERO_EXAMPLE && (
-              <button className="button button-text" type="button" onClick={openExample}>
+              <button className="button button-secondary" type="button" onClick={openExample}>
                 {t('landing.exampleAction')}
               </button>
             )}
@@ -48,8 +48,8 @@ export function LandingPage(): React.JSX.Element {
         </div>
         <div className="hero-art">
           <OrnamentalChain />
-          <ExampleSummary />
         </div>
+        <div className="hero-evidence"><ExampleSummary /></div>
       </section>
 
       <section id={PUBLIC_SECTIONS.product} ref={tools} className="landing-section container reveal" aria-labelledby="tools-title">
