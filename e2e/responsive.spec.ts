@@ -5,7 +5,7 @@ import { NAVIGATION_ITEMS, ROUTES } from '../src/shared/navigation';
 
 const sequence = 'ACDEFGHIKLMNPQRSTVWY';
 
-test('top bar stays centered on wide screens and becomes a tab bar on phones', async ({ page }) => {
+test('masthead and bottom dock fit the public website and workspace on wide screens and phones', async ({ page }) => {
   for (const width of [360, 1920, 2560]) {
     await page.setViewportSize({ width, height: 1080 });
     for (const route of NAVIGATION_ITEMS.map((item) => item.path)) {
@@ -33,7 +33,7 @@ for (const width of [360, 768, 1280, 1440] as const) {
     await page.goto(ROUTES.analyze);
     await page.getByRole('textbox', { name: /secuencia de aminoácidos/i }).fill(sequence);
     await expect(page.getByRole('group', { name: /Secuencia numerada/ })).toBeVisible();
-    await expect(page.getByText(/masa molecular/i)).toBeVisible();
+    await expect(page.getByText(spanish['descriptors.mass'], { exact: true })).toBeVisible();
     await expect(page.getByText('No hay posiciones inválidas.')).toBeVisible();
     await expect(page.locator('canvas.hydropathy-chart')).toBeVisible();
 

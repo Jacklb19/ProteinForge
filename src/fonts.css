@@ -45,3 +45,10 @@
   descent-override: 28.004%;
   line-gap-override: 0%;
 }
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/bricolage-semibold.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}

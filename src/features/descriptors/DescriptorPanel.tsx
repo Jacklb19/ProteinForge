@@ -21,12 +21,13 @@ export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.
         <dl className={`property-list${stale ? ' stale-descriptors' : ''}`}>
           {DESCRIPTOR_FIELDS.map((field) => (
             <div key={field.key} className="property">
-              <dt>{t(field.labelKey)}<span className="property-method">{t(field.methodKey)}</span></dt>
-              <dd>{formatNumber(result[field.key], field.format)}{field.unitKey ? ` ${t(field.unitKey)}` : ''}</dd>
+              <dt>{t(field.labelKey)}</dt>
+              <dd>{formatNumber(result[field.key], field.format)}{field.unitKey ? ` ${t(field.unitKey)}` : ''}<span className="descriptor-explanation">{t(field.helpKey)}</span></dd>
             </div>
           ))}
         </dl>
       )}
+      {result && <details className="context-help"><summary>{t('guide.methods')}</summary><ul>{DESCRIPTOR_FIELDS.map((field) => <li key={field.key}>{t(field.labelKey)} — {t(field.methodKey)}</li>)}</ul></details>}
       <p className="field-help">{t('descriptors.scope')}</p>
     </section>
   );

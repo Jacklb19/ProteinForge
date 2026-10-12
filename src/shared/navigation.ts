@@ -4,6 +4,7 @@ import type { IconName } from './Icon';
 /** Application paths; every link and route reads them from here. */
 export const ROUTES = {
   home: '/',
+  workspace: '/app',
   analyze: '/analyze',
   alignment: '/alignment',
   settings: '/settings',
@@ -13,12 +14,23 @@ export const ROUTES = {
   privacy: '/privacy',
 } as const;
 
-/** Primary destinations in display order: top bar on wide screens, tab bar on phones. */
+/** Workspace destinations in display order; the public website has its own section links. */
 export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; icon: IconName; end: boolean }[] = [
-  { path: ROUTES.home, labelKey: 'nav.home', icon: 'home', end: true },
+  { path: ROUTES.workspace, labelKey: 'workspace.nav', icon: 'home', end: true },
   { path: ROUTES.analyze, labelKey: 'nav.analyze', icon: 'sequence', end: false },
   { path: ROUTES.alignment, labelKey: 'nav.alignment', icon: 'alignment', end: false },
   { path: ROUTES.settings, labelKey: 'nav.settings', icon: 'settings', end: false },
+];
+
+export const PUBLIC_SECTIONS = {
+  product: 'product',
+  flow: 'how-it-works',
+  criterion: 'scientific-criterion',
+} as const;
+
+export const PUBLIC_NAVIGATION: readonly { id: string; labelKey: TranslationKey }[] = [
+  { id: PUBLIC_SECTIONS.product, labelKey: 'landing.productLink' },
+  { id: PUBLIC_SECTIONS.flow, labelKey: 'landing.flowLink' },
 ];
 
 /** Secondary links shown in the page footer. */
@@ -34,4 +46,4 @@ export const REPOSITORY_LINKS: readonly { url: string; labelKey: TranslationKey 
 ];
 
 /** Where a visitor lands after signing in, unless a protected page sent them to sign in. */
-export const AFTER_SIGN_IN_ROUTE = ROUTES.analyze;
+export const AFTER_SIGN_IN_ROUTE = ROUTES.workspace;

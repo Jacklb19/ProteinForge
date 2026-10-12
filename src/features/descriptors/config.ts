@@ -47,12 +47,13 @@ export const DESCRIPTOR_FIELDS: readonly {
   key: keyof Descriptors;
   labelKey: TranslationKey;
   methodKey: TranslationKey;
+  helpKey: TranslationKey;
   unitKey?: TranslationKey;
   format: Intl.NumberFormatOptions;
 }[] = [
-  { key: 'massDa', labelKey: 'descriptors.mass', methodKey: 'descriptors.massMethod', unitKey: 'units.dalton', format: TWO_DECIMALS },
-  { key: 'isoelectricPoint', labelKey: 'descriptors.isoelectricPoint', methodKey: 'descriptors.isoelectricPointMethod', format: TWO_DECIMALS },
-  { key: 'instabilityIndex', labelKey: 'descriptors.instabilityIndex', methodKey: 'descriptors.instabilityIndexMethod', format: TWO_DECIMALS },
-  { key: 'aliphaticIndex', labelKey: 'descriptors.aliphaticIndex', methodKey: 'descriptors.aliphaticIndexMethod', format: TWO_DECIMALS },
-  { key: 'gravy', labelKey: 'descriptors.gravy', methodKey: 'descriptors.gravyMethod', format: THREE_DECIMALS },
+  { key: 'massDa', labelKey: 'descriptors.mass', methodKey: 'descriptors.massMethod', helpKey: 'guide.mass', unitKey: 'units.dalton', format: TWO_DECIMALS },
+  { key: 'isoelectricPoint', labelKey: 'descriptors.isoelectricPoint', methodKey: 'descriptors.isoelectricPointMethod', helpKey: 'guide.pi', format: TWO_DECIMALS },
+  { key: 'instabilityIndex', labelKey: 'descriptors.instabilityIndex', methodKey: 'descriptors.instabilityIndexMethod', helpKey: 'guide.instability', format: TWO_DECIMALS },
+  { key: 'aliphaticIndex', labelKey: 'descriptors.aliphaticIndex', methodKey: 'descriptors.aliphaticIndexMethod', helpKey: 'guide.aliphatic', format: TWO_DECIMALS },
+  { key: 'gravy', labelKey: 'descriptors.gravy', methodKey: 'descriptors.gravyMethod', helpKey: 'guide.gravy', format: THREE_DECIMALS },
 ];

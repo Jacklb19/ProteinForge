@@ -14,6 +14,9 @@ import { useTranslation } from '../../i18n';
 import { Icon } from '../../shared/Icon';
 import { ROUTES } from '../../shared/navigation';
 import { PageHeading } from '../../shared/PageHeading';
+import { AnalysisGuide } from '../workspace/AnalysisGuide';
+import { DESCRIPTOR_FIELDS } from '../descriptors/config';
+import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
 
 /** Sequence input with incremental validation; results update automatically beside it. */
 export function EditorPage(): React.JSX.Element {
@@ -80,11 +83,17 @@ export function EditorPage(): React.JSX.Element {
   return (
     <main className="page analysis-page">
       <PageHeading titleKey="editor.title" introduction="editor.introduction">
+        {hasInput && <button className="button button-secondary" type="button" disabled={descriptors.status !== 'current'} onClick={() => {
+          if (descriptors.status !== 'current' || !descriptors.result) return;
+          const methods = Object.fromEntries(DESCRIPTOR_FIELDS.map((field) => [field.key, t(field.methodKey)]));
+          downloadDescriptorCsv(descriptorCsv(validation.sequence, descriptors.result, descriptors.excluded, methods));
+        }}>{t('report.download')}</button>}
         {hasInput && <button className="button button-secondary" type="button" onClick={clear}>{t('editor.clear')}</button>}
         {residueCount > 0 && invalidPositions.length === 0 && (
           <button className="button button-primary" type="button" onClick={sendToAlignment}>{t('editor.toAlignment')}<Icon name="arrow" /></button>
         )}
       </PageHeading>
+      <AnalysisGuide hasInput={hasInput} ready={descriptors.status === 'current'} />
       <div className="analysis-layout">
         <div className="analysis-input card">
           <h2 className="visually-hidden">{t('editor.inputTitle')}</h2>
@@ -100,6 +109,7 @@ export function EditorPage(): React.JSX.Element {
               aria-invalid={invalidPositions.length > 0}
               autoCapitalize="characters"
               spellCheck={false}
+              placeholder={t('guide.placeholder')}
               value={text}
               onChange={(event) => { setText(event.target.value.replace(/\*([\r\n]*)$/, '$1')); }}
               onScroll={(event) => {
@@ -112,12 +122,14 @@ export function EditorPage(): React.JSX.Element {
           </div>
           <p id="sequence-status" className="status-message" data-state={invalidPositions.length > 0 ? 'invalid' : 'current'} role="status" aria-live="polite">{hasInput ? description : ''}</p>
           <p id="sequence-help" className="field-help">{t('editor.help')}</p>
+          <details className="context-help"><summary>{t('guide.whatIsSequence')}</summary><p>{t('guide.sequenceHelp')}</p><p>{t('guide.automatic')}</p></details>
           {additional > 0 && <p className="notice" role="note">{t(additional === 1 ? 'editor.additionalOne' : 'editor.additional', { count: formatNumber(additional) })}</p>}
           <FastaLoader onSelect={loadEntry} />
         </div>
         <div className="analysis-results">
           {!hasInput && (
             <section className="empty-state" aria-labelledby="empty-title">
+              <span className="task-symbol"><Icon name="flask" /></span>
               <h2 id="empty-title">{t('editor.emptyTitle')}</h2>
               <p>{t('editor.emptyText')}</p>
               {EXAMPLE_SEQUENCES.map((example) => (
@@ -138,6 +150,7 @@ export function EditorPage(): React.JSX.Element {
             </section>
           )}
           <div className="analysis-sections" hidden={!hasInput}>
+            {descriptors.status === 'current' && <p className="analysis-ready" role="status"><Icon name="check" />{t('guide.resultsReady')}</p>}
             <DescriptorPanel data={descriptors} />
             <HydropathyProfile text={text} />
           </div>

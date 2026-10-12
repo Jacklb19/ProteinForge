@@ -30,7 +30,7 @@ function mockApi(overrides: Partial<AuthApi> = {}): AuthApi {
 }
 
 function Destination(): React.JSX.Element {
-  return <p>{spanish['nav.analyze']}</p>;
+  return <p>{spanish['workspace.nav']}</p>;
 }
 
 function renderAt(path: string, api: AuthApi | undefined, children: ReactNode, configured = true): void {
@@ -41,7 +41,7 @@ function renderAt(path: string, api: AuthApi | undefined, children: ReactNode, c
           <Route path={ROUTES.signIn} element={<SignInPage />} />
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />
-          <Route path={ROUTES.analyze} element={<Destination />} />
+          <Route path={ROUTES.workspace} element={<Destination />} />
           {children}
         </Routes>
       </MemoryRouter>
@@ -50,11 +50,25 @@ function renderAt(path: string, api: AuthApi | undefined, children: ReactNode, c
 }
 
 afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
   window.localStorage.clear();
   window.history.replaceState(null, '', '/');
 });
 
 describe('identity screens', () => {
+  it('refreshes an expiring environment-configured session once instead of recreating the client after refresh', async () => {
+    vi.stubEnv('VITE_SUPABASE_URL', settings.url);
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', settings.anonKey);
+    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ ...session, expiresAt: Math.floor(Date.now() / 1000) + 1 }));
+    const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>().mockResolvedValue(Response.json({ access_token: 'renewed-access', refresh_token: 'renewed-refresh', expires_in: 3600, user: session.user }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<AuthProvider><MemoryRouter initialEntries={[ROUTES.signIn]}><Routes><Route path={ROUTES.signIn} element={<SignInPage />} /><Route path={ROUTES.workspace} element={<Destination />} /></Routes></MemoryRouter></AuthProvider>);
+    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain('grant_type=refresh_token');
+    expect(JSON.parse(window.localStorage.getItem(SESSION_STORAGE_KEY) ?? 'null')).toMatchObject({ accessToken: 'renewed-access' });
+  });
   it('explains when identity is not configured and keeps the form disabled', () => {
     renderAt(ROUTES.signIn, undefined, null, false);
     expect(screen.getByText(spanish['auth.disabled'])).toBeInTheDocument();
@@ -82,7 +96,7 @@ describe('identity screens', () => {
     fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'ana@example.org' } });
     fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'secret-password' } });
     fireEvent.click(screen.getByRole('button', { name: spanish['auth.signInAction'] }));
-    await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
     expect(JSON.parse(window.localStorage.getItem(SESSION_STORAGE_KEY) ?? 'null')).toEqual(session);
   });
 
@@ -123,7 +137,7 @@ describe('identity screens', () => {
     fireEvent.change(screen.getByLabelText(spanish['auth.newPassword']), { target: { value: 'another-password' } });
     fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'another-password' } });
     act(() => { fireEvent.click(screen.getByRole('button', { name: spanish['auth.resetAction'] })); });
-    await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
     expect(vi.mocked(api.updatePassword)).toHaveBeenCalledWith(access, 'another-password');
   });
 
@@ -131,7 +145,7 @@ describe('identity screens', () => {
     window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ ...session, expiresAt: Math.floor(Date.now() / 1000) + 10 }));
     const api = mockApi();
     renderAt(ROUTES.signIn, api, null);
-    await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
     expect(vi.mocked(api.refresh)).toHaveBeenCalledWith('refresh');
   });
 });

@@ -3,6 +3,7 @@ import type { IconName } from '../../shared/Icon';
 import { ROUTES } from '../../shared/navigation';
 import { EXAMPLE_SEQUENCES } from '../editor/config';
 import { DEFAULT_HYDROPATHY_WINDOW } from '../descriptors/config';
+import { DESCRIPTOR_FIELDS } from '../descriptors/config';
 
 /** Delivery state shown on each tool card; only `available` tools link anywhere. */
 export type ToolStatus = 'available' | 'preparing' | 'planned';
@@ -42,6 +43,21 @@ export const LANDING_HONESTY_KEYS: readonly TranslationKey[] = ['landing.honesty
 /** The hero draws the first bundled example with the default window; nothing is invented. */
 export const HERO_EXAMPLE = EXAMPLE_SEQUENCES[0];
 export const HERO_WINDOW = DEFAULT_HYDROPATHY_WINDOW;
+
+/** Decorative interaction only; tilt never changes the scientific profile or descriptor values. */
+export const ORNAMENT_POINTER_TILT_DEGREES = 5;
+
+export const HERO_METRICS = DESCRIPTOR_FIELDS.filter((field) => field.key !== 'aliphaticIndex').map((field) => ({
+  ...field,
+  shortLabelKey: {
+    massDa: 'landing.sampleMass',
+    isoelectricPoint: 'landing.samplePi',
+    instabilityIndex: 'landing.sampleInstability',
+    gravy: 'landing.sampleGravy',
+    aliphaticIndex: 'descriptors.aliphaticIndex',
+    length: 'landing.exampleLength',
+  }[field.key] as TranslationKey,
+}));
 
 /** Drawing box of the hero profile in SVG units; the element scales to its container. */
 export const HERO_BOX = { width: 640, height: 320, paddingX: 28, paddingY: 36 } as const;

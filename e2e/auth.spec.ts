@@ -11,10 +11,10 @@ const screens = [
   { route: ROUTES.recover, title: spanish['auth.recoverTitle'], action: spanish['auth.recoverAction'] },
 ] as const;
 
-test('identity screens explain the missing configuration and pass AA at both widths and themes', async ({ page }) => {
-  for (const width of [360, 1280]) {
-    await page.setViewportSize({ width, height: 900 });
-    for (const screen of screens) {
+for (const width of [360, 1280]) {
+  for (const screen of screens) {
+    test(`identity ${screen.route} fits ${String(width)}px and passes AA in both themes`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
       await page.goto(screen.route);
       await expect(page.getByRole('heading', { level: 1, name: screen.title })).toBeVisible();
       await expect(page.getByText(spanish['auth.disabled'])).toBeVisible();
@@ -28,15 +28,15 @@ test('identity screens explain the missing configuration and pass AA at both wid
           await page.screenshot({ path: `artifacts/auth-${screen.route.replace('/', '')}-${theme}-${String(width)}.png`, fullPage: true });
         }
       }
-    }
+    });
   }
-});
+}
 
 test('identity screens link to each other and the password toggle reveals the field', async ({ page }) => {
   await page.goto(ROUTES.signIn);
-  await page.getByRole('link', { name: spanish['auth.signUpAction'] }).click();
+  await page.getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signUp}$`));
-  await page.getByRole('link', { name: spanish['auth.signInAction'] }).click();
+  await page.getByRole('link', { name: spanish['auth.signInAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
   await page.getByRole('link', { name: spanish['auth.forgot'] }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.recover}$`));

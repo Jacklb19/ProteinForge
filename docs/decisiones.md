@@ -19,9 +19,9 @@ La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla 
 | UUIDv7 Python 3.14 | API futura; `profiles.id` sigue Supabase Auth. Función SQL inicial aún provisional |
 | Concurrencia optimista | PUT con fecha conocida, conflicto 409. Pendiente |
 | Auth y TOTP opcional | Correo/contraseña, recuperación y Google por redirección implementados en el frontend contra la API REST de Supabase Auth, sin SDK; sesión en `localStorage` con refresco previo a la caducidad. Requiere `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; sin ellos las pantallas lo dicen. Verificado con la API simulada, no contra un proyecto remoto. TOTP y aal2 pendientes |
-| PDF local y CSV | Cliente genera PDF, URL firmada para Storage y API registra. Pendiente |
+| PDF local y CSV | CSV de propiedades implementado en el cliente con secuencia, exclusiones, valores completos y métodos; solo resultado vigente. PDF, exportaciones ampliadas y subida/registro previstos |
 | Temas, traducciones y PWA | Base implementada; inglés y sincronización completos pendientes. Metadatos, icono y fuentes se conservan |
-| UI | Dirección «la forja» implementada: portada con perfil real de insulina y hélice α ideal, índigo como único color de acción, colores de cadena para residuos, tarjetas, barra en píldora y movimiento con escalonado que respeta movimiento reducido. Ver [diseño](diseno-visual.md) |
+| UI | Laboratorio cercano, actualizado por petición del usuario: inicio guiado /app, tareas claras, explicación junto a cada descriptor, superficies marfil/azul profundo y verde. Navegación del banco en encabezado de escritorio y pestañas móviles; dock público conservado. Movimiento CSS y tilt ornamental limitado, con movimiento reducido. Recursos locales y cálculos reales conservados. Ver [diseño](diseno-visual.md) |
 | Configuración | Opciones elegibles y valores ajustables en módulos de configuración por característica; textos en i18n, estilos en tokens y fuentes en un manifiesto. Sin valores fijos en componentes |
 
 Cambios rutinarios siguen la autorización del usuario. Nuevos contratos, límites científicos, costos o cambios de stack requieren una decisión concreta antes de implementarse.

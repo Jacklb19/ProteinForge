@@ -1,65 +1,47 @@
 # Diseño visual vigente
 
-Actualizado el 8 de octubre de 2026. La dirección es **la forja**: la proteína es el material y la interfaz es el banco donde se trabaja. El contenido de dominio sigue siendo la secuencia y sus cifras, pero ahora la página lo muestra desde el primer segundo con datos reales calculados en el navegador, no con decoración.
+Actualizado el 11 de octubre de 2026. Dirección actual: laboratorio cercano, por petición de hacer la app más amigable y animada. Conserva la identidad y los recursos Figma 30:70. La web pública explica el producto y conduce a una app con herramientas de trabajo, cuenta y preferencias. La misma identidad se aplica a todas las pantallas existentes.
 
-## Referencias del dominio
+## Composición e identidad
 
-| Herramienta | Patrón adoptado |
-|---|---|
-| [ProtParam y ProtScale](https://web.expasy.org/protparam/protparam-doc.html) (Expasy) | Un solo paso de entrada; cada cifra con su método. Perfil por ventana centrada (9 para superficie y 19 para transmembrana) |
-| [UniProt, componente `Sequence`](https://github.com/ebi-uniprot/franklin-sites) | Secuencia en bloques de 10 con la numeración de cada bloque, en monoespaciada |
-| [Nightingale y ProtVista](https://github.com/ebi-webcomponents/nightingale) (EBI) y [RCSB Saguaro](https://www.rcsb.org/docs/sequence-viewers/sequence-annotations-viewer) | Pistas por residuo con resaltado sincronizado entre vistas |
-| [EMBOSS Needle y Water](https://emboss.sourceforge.net/docs/themes/AlignFormats.html) | Resumen de identidad, similitud, huecos y puntuación como n/longitud (%); marcas `\|` y `:` |
-| [Jalview](https://www.jalview.org/help/html/menus/alwformat.html) | Regla y posiciones junto a las filas alineadas |
-| Pauling y Corey (1951) | Hélice α ideal: 3,6 residuos por vuelta, 1,5 Å de avance, 2,3 Å de radio Cα y puentes i → i+4. Se dibuja como geometría de referencia, nunca como estructura experimental |
+- Web pública: marca y acceso/registro visibles, presentación del producto, dos herramientas disponibles, capacidades futuras en un desplegable, recorrido de tres pasos, criterio científico y llamada a entrar o crear cuenta.
+- Héroe: mensaje y acciones a la izquierda; cadena ornamental y un único bloque de ejemplo a la derecha. Sin auroras, letras de fondo, regla lateral, órbitas, lente ni tarjetas flotantes. Adaptación a una columna en móvil.
+- La acción principal abre Mi espacio (/app) sin cuenta; allí se elige una tarea o el ejemplo guiado. El ejemplo carga la secuencia de insulina en el borrador. El registro no promete guardado de proyectos antes de su implementación.
+- App: navegación Mi espacio, Analizar, Alinear y Ajustes en el encabezado en escritorio y pestañas inferiores en móvil; encabezados, controles y estados coherentes. Se conserva la densidad necesaria para comparar datos científicos y las responsabilidades del editor, lector y Workers.
+- Navegación pública: Inicio, Qué es, Cómo funciona y Entrar a la app. Dock inferior flotante en escritorio y barra inferior en móvil. Tema y cuenta permanecen accesibles.
 
-## Decisiones
+## Color y tipografía
 
-- **Firma de la página: la cadena viva.** El héroe de Inicio dibuja el perfil Kyte–Doolittle de la insulina humana (P01308, ventana 9) calculado al abrir la página con `calculateProfile`. Cada residuo es una cuenta sobre su valor: ámbar si es hidrofóbico y cian si es hidrofílico. La curva se traza, las cuentas aparecen en orden y una banda recorre la cadena como el cursor del lector. La misma cadena, compacta, acompaña las pantallas de acceso.
-- **Segunda escena: la hélice.** La sección de criterio muestra una hélice α ideal en un lienzo 2D con proyección 3D (rotación lenta, profundidad por tamaño y opacidad, puentes de hidrógeno punteados). Su pie de figura dice que es geometría de referencia.
-- **Color.**
-  - Fondo frío: `#f4f6fb` en claro, `#0b0e17` en oscuro; superficies elevadas blancas o `#121626`.
-  - Tinta: `#121826` / `#eef1f8`. Secundario `#4f576b` / `#a6aec2`.
-  - Un único color de acción y selección: índigo `#4338ca` en claro y `#a5b4fc` en oscuro.
-  - Colores de cadena reservados a residuos: ámbar `#d97706` / `#fbbf24` para hidrofóbicos y cian `#0e7490` / `#67e8f9` para hidrofílicos. No se usan en controles.
-  - Estados: error `#b3261e` / `#ff8f86` y éxito `#1b6b3a` / `#86efac`, cada uno con su fondo tenue.
-  - La curva del perfil de Analizar sigue en tinta.
-- **Tipografía.**
-  - [Atkinson Hyperlegible Next](https://www.brailleinstitute.org/freefont/) 400/600 para la interfaz, con titulares de hasta 3,75 rem, interlineado 1,05 y seguimiento −0,02 em.
-  - IBM Plex Mono 400 para residuos, cifras de entrada, sobretítulos en versalitas espaciadas e insignias de estado.
-  - Escala: 12, 14, 16, 18, 22, 32 px y titular fluido; 26 px para el título en móvil.
-- **Superficies.** Tarjetas con borde fino, radio de 1 rem y sombra suave; barra superior en píldora con desenfoque; las tarjetas previstas no tienen relleno ni sombra para que la jerarquía diga lo que está listo.
-- **Navegación.** Escritorio: barra superior flotante con Inicio · Analizar · Alinear · Ajustes, cambio de tema y Acceder (o el correo de la sesión). Móvil: el mismo `nav` como barra inferior con icono y texto.
-- **Movimiento.** Entradas de página y de tarjetas con elevación de 18 px y escalonado de 70 ms; trazo del perfil en 1,6 s; barra ambiental de 6 s; hélice a 0,08 vueltas por segundo que se detiene fuera de pantalla. Con movimiento reducido todas las duraciones pasan a 0 ms, la banda desaparece y la hélice queda fija.
-- **Lenguaje.** Los estados se dicen con palabras («desactualizados», «En preparación», «Previsto»). Ningún texto afirma plegamiento, función ni novedad.
-- **Imágenes.** No se usan fotografías ni estructuras aplanadas. Las dos escenas se generan a partir de datos y geometría publicados.
+Fondos marfil en claro y azul profundo en oscuro, con acento verde y superficies suaves. Valores claro/oscuro y estados en src/design-tokens.css; no definir colores dentro de componentes. Los valores vigentes están en los tokens; no duplicarlos como constantes de componentes o documentación. Selecciones y controles usan el acento; los colores de la cadena se reservan a residuos.
 
-## Fuentes de verdad
+Bricolage Grotesque 600 para titulares y marca; Atkinson Hyperlegible Next 400/600 para interfaz; IBM Plex Mono para residuos y etiquetas de datos. Las cuatro fuentes WOFF2 son locales, tienen manifiesto, licencia y pruebas de integridad. Ver [procedencia](font-provenance.md). No cambiar la fuente del editor superpuesto ni del Worker por la fuente de titulares.
 
-- `src/design-tokens.css` contiene los tokens semánticos (`--bg-*`, `--text-*`, `--accent-brand`, `--chain-*`, `--status-*`, espaciado, radios, duraciones y medidas). Cada color tiene una pareja `--dark-`.
-- `src/index.css` contiene el marco, los controles, las pantallas y las `@keyframes`. Ningún componente define colores ni medidas.
-- Las opciones y los valores ajustables están en la configuración de cada característica:
-  - `features/*/config.ts` (incluidos `landing` y `auth`)
-  - `preferences/config.ts`
-  - `i18n/config.ts`
-  - `shared/navigation.ts`
-- `public/fonts/provenance.json` es el manifiesto único de fuentes. Ver [procedencia](font-provenance.md).
-- Componentes base: `PageHeading`, `SegmentedControl`, `Icon`, `BrandMark`, `ResidueReader`, `HeroChain`, `HelixScene`, `TextField` y `PasswordField`.
+Superficies con borde fino y radio contenido; una sola tarjeta agrupa el ejemplo de la portada. No usar gradientes, resplandores ni vidrio decorativo. Las herramientas previstas muestran su estado y no tienen enlaces ficticios.
 
-## Contratos visuales que requieren cuidado
+## Datos y recursos
 
-| Mecanismo | Mantener y verificar si se modifica |
-|---|---|
-| Editor superpuesto | Misma fuente, tamaño, relleno, borde, interlineado y scroll en el textarea y el resaltado |
-| FASTA virtualizado | Filas de 44 px medidas tras `document.fonts.ready` |
-| Lector de residuos | Bloques por línea medidos con `ResizeObserver`; solo se pintan las líneas cercanas |
-| Bloques de alineamiento | Altura de 112 px y virtualización |
-| Canvas de hidropatía | Colores desde tokens en el hilo principal; dibujo en Worker con la fuente del manifiesto |
-| Cadena del héroe | Posiciones calculadas por `buildChainLayout`; `pathLength` 1 para el trazo; `--i`/`--n` para el escalonado |
-| Hélice | Perspectiva en ångström, no en píxeles; repintado al cambiar el tema; pausa fuera del viewport |
-| Estados desactualizados | Escala de grises y texto secundario; nunca opacidad que rompa AA |
-| Secciones reveladas | `.reveal` oculta hasta `is-visible`; los E2E recorren la página antes de la captura |
+La cadena de portada es el SVG editable exportado del diseño aprobado. Sus 110 residuos y colores corresponden al ejemplo P01308, pero su geometría es ornamental. La leyenda lo explica: no es una estructura científica. El perfil de referencia exportado usa Kyte–Doolittle, ventana 9. Los cuatro descriptores visibles se calculan en el mismo Worker del análisis; no se copian sus cifras a componentes.
 
-## Comprobación de cambios visuales
+Marca, glifos, cadena y perfil exportados de Figma están en public/design. Las rutas se centralizan en src/shared/designAssets.ts; no se conservan URLs temporales. Los glifos monocromos se presentan con máscara y currentColor para funcionar en ambos temas. La ilustración mantiene proporciones.
 
-Revisar cada pantalla afectada a 360 y 1280 px, en claro y oscuro, con estados reales (vacío, cálculo, resultado, inválido, desactualizado, error, acceso sin configurar). Comprobar foco, teclado, contraste, desbordamiento y movimiento reducido. Las pruebas de contraste de `chartStyle.test.ts` exigen AA a los tokens; las geométricas y de fuentes conservan sus umbrales.
+La sección de criterio conserva la hélice α ideal con referencia explícita: geometría de Pauling/Corey, no estructura experimental. Los resultados científicos se presentan con sus métodos y alcance; ver [definición](definicion-proyecto.md).
+
+## Movimiento
+
+Giro CSS discreto de la ilustración ornamental, sin trayectoria científica. Se pausa fuera de pantalla y cuando la pestaña no está visible; con movimiento reducido la ilustración queda fija. Entradas escalonadas, respuesta al pasar el cursor e inclinación ornamental limitada a 5 grados con ratón. Con movimiento reducido se elimina también esa inclinación. La guía refleja el cálculo real; no simula progreso. La hélice mantiene su pausa por visibilidad y preferencia de movimiento.
+
+Duraciones y medidas en tokens; comportamiento ajustable en configuración por característica. El cálculo continúa en Workers/WASM, sin una biblioteca de animación ni dependencias de ejecución nuevas.
+
+## Fuentes de verdad y comprobación
+
+- Tokens: src/design-tokens.css; estilos: src/index.css.
+- Textos: src/i18n/es.ts; rutas/anclajes: src/shared/navigation.ts.
+- Opciones: configuración por característica, i18n y preferencias; fuentes: public/fonts/provenance.json.
+- Reutilizar Icon, BrandMark, PageHeading, SegmentedControl y los controles de cuenta/editor existentes.
+- Editor superpuesto: misma geometría, fuente y scroll en textarea y resaltado.
+- FASTA y alineamiento: preservar virtualización, alturas, cancelación y progreso.
+- Perfil y lector: paleta desde tokens, fuente del manifiesto y selección sincronizada.
+- Objetivos táctiles de 44 px, foco visible, navegación por teclado, contraste AA y ambos temas.
+- Revisar pantallas afectadas a 360/1280 px, tamaños intermedios cuando cambie el marco y recursos PWA si cambian fuentes o vectores.
+
+El [plan de desarrollo](plan-desarrollo.md) ordena las capacidades pendientes y separa lo implementado de la configuración externa todavía sin comprobar. Los cambios se desarrollan en dev; no se publican por esta revisión.

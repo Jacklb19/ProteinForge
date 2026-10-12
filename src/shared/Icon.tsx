@@ -1,3 +1,5 @@
+import { DESIGN_GLYPHS } from './designAssets';
+
 const paths = {
   home: 'M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z',
   sequence: 'M4 5h16M4 12h10M4 19h16M17 10l3 2-3 2',
@@ -29,5 +31,9 @@ export type IconName = keyof typeof paths;
 
 /** Decorative action glyphs; visible labels provide the accessible name. */
 export function Icon({ name }: { name: IconName }): React.JSX.Element {
+  if (name in DESIGN_GLYPHS) {
+    const source = DESIGN_GLYPHS[name as keyof typeof DESIGN_GLYPHS];
+    return <span className="icon design-glyph" style={{ '--glyph-source': `url("${source}")` } as React.CSSProperties} aria-hidden="true" />;
+  }
   return <svg className="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={paths[name]} /></svg>;
 }

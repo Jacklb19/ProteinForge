@@ -1,6 +1,6 @@
 # ProteinForge — frontend
 
-Banco de trabajo académico para analizar secuencias proteicas, comparar alineamientos y explorar candidatos bajo condiciones definidas. Portada, editor, FASTA, descriptores, perfil, temas, alineamiento Rust/WASM y acceso con cuenta están implementados. Catálogo, UniProt, visor 3D, generación, predicción externa, proyectos e informes siguen pendientes.
+Banco de trabajo académico para analizar secuencias proteicas, comparar alineamientos y explorar candidatos bajo condiciones definidas. Web pública, inicio guiado de la app, editor, FASTA, descriptores, perfil, temas, alineamiento Rust/WASM, CSV de propiedades y flujos de cuenta están implementados. Catálogo, UniProt, visor 3D, generación, predicción externa, proyectos e informes PDF siguen pendientes.
 
 ## Repositorios y carpetas
 
@@ -21,7 +21,7 @@ npm ci
 npm run dev
 ```
 
-Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas actuales: `/` (Inicio), `/analyze`, `/alignment`, `/settings`, `/sign-in`, `/sign-up`, `/recover` y `/privacy`; se definen en `src/shared/navigation.ts`. El archivo `.env.example` enumera variables públicas sin valores; con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se activan acceso, registro y recuperación contra Supabase Auth. No se incluye ningún secreto en el cliente.
+Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas actuales: `/` (web pública), `/app` (Mi espacio), `/analyze`, `/alignment`, `/settings`, `/sign-in`, `/sign-up`, `/recover` y `/privacy`; se definen en `src/shared/navigation.ts`. El archivo `.env.example` enumera variables públicas sin valores; con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se activan acceso, registro y recuperación contra Supabase Auth. No se incluye ningún secreto en el cliente.
 
 ## Verificación
 
@@ -49,7 +49,7 @@ Eliminar el `.gitignore` que wasm-pack genera dentro de `rust/alignment/pkg/` an
 
 El cálculo pesado ocurre en Workers; el alineamiento usa WASM con máximo de 5.000 residuos por secuencia. FASTA admite 5.000.000 bytes. PWA precachea recursos locales. La cobertura V8 no mide internamente Rust. Inglés completo, auditoría de otros navegadores y rendimiento externo pendientes.
 
-El backend es propietario de migraciones Supabase y su prueba de RLS. Este frontend debe poder clonarse, probarse y construirse sin tener el backend al lado. `VITE_API_BASE_URL` conectará con la API al implementarla; CORS y orígenes CSP se ajustarán entonces.
+El backend es propietario de migraciones Supabase y su prueba de RLS. Este frontend se puede clonar, probar y construir sin el backend. `VITE_API_BASE_URL` habilita la comprobación de `/v1/health` y `/v1/me` en Ajustes; sin ella no se hace ninguna petición a la API. La sesión se envía solo al servidor configurado, sin redirecciones ni cookies. Para publicación, añadir únicamente el origen concreto de la API a `connect-src` de la CSP; no se amplían orígenes antes de conocer la URL. Configurar CORS en el backend con el origen exacto del frontend.
 
 Predicción externa y generación están aprobadas como ampliación, aún sin implementar. El asistente solo interpreta. Descriptores y estructuras predichas no demuestran función biológica ni novedad experimental.
 
@@ -59,6 +59,7 @@ Predicción externa y generación están aprobadas como ampliación, aún sin im
 - [Decisiones](docs/decisiones.md)
 - [Pantallas](docs/pantallas.md)
 - [Diseño](docs/diseno-visual.md) y [fuentes](docs/font-provenance.md)
+- [Estado y plan de desarrollo](docs/plan-desarrollo.md): capacidades actuales, orden de entregables y configuración que debe aportar el responsable del proyecto
 - [Archivo histórico](docs/archive/README.md)
 
 Vercel importa únicamente este repositorio con preset Vite; el backend usa otro proyecto. Configurar producción desde `main` y desarrollo desde `dev` según corresponda. URLs efectivas pendientes de registrar. El usuario controla publicación y cambios remotos; la organización local no cambia el despliegue existente.

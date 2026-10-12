@@ -5,7 +5,7 @@ export interface FontFile {
   file: string;
   family: string;
   weight: number;
-  role: 'interface' | 'sequence';
+  role: 'interface' | 'sequence' | 'display';
   preload: boolean;
   bytes: number;
   sha256: string;

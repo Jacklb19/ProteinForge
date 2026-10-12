@@ -95,6 +95,7 @@ export function AlignmentPage(): React.JSX.Element {
   return (
     <main className="page alignment-page">
       <PageHeading titleKey="alignment.title" introduction="alignment.introduction" />
+      {!first && !second && <p className="analysis-ready">{t('guide.comparisonEmpty')}</p>}
       <section className="alignment-inputs card" aria-labelledby="alignment-inputs-title">
         <h2 id="alignment-inputs-title" className="visually-hidden">{t('alignment.inputs')}</h2>
         <div className="sequence-pair">
@@ -130,6 +131,7 @@ export function AlignmentPage(): React.JSX.Element {
             onChange={(value) => { update({ matrix: value }); }}
           />
         </div>
+        <p className="field-help">{t('guide.comparisonHelp')}</p>
         <p className="field-help">{t('alignment.limit', { count: formatNumber(MAX_ALIGNMENT_RESIDUES) })}</p>
         <div className="alignment-actions">
           <button className="button button-primary" type="button" onClick={start} disabled={status === 'running'}>{t('alignment.start')}</button>

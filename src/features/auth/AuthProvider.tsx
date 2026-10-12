@@ -46,8 +46,10 @@ function readInitialState(enabled: boolean): InitialState {
 }
 
 /** Keeps the Supabase session, captures tokens from redirect fragments and refreshes before expiry. */
-export function AuthProvider({ children, settings = readAuthSettings(), api }: Props): React.JSX.Element {
-  const client = useMemo(() => api ?? (settings ? createAuthApi(settings) : null), [api, settings]);
+export function AuthProvider({ children, settings, api }: Props): React.JSX.Element {
+  const [environmentSettings] = useState(() => readAuthSettings());
+  const configuredSettings = settings === undefined ? environmentSettings : settings;
+  const client = useMemo(() => api ?? (configuredSettings ? createAuthApi(configuredSettings) : null), [api, configuredSettings]);
   const [initial] = useState(() => readInitialState(client !== null));
   const [session, setSession] = useState<AuthSession | null>(initial.session);
   const [status, setStatus] = useState<AuthStatus>(initial.status);
@@ -116,7 +118,7 @@ export function AuthProvider({ children, settings = readAuthSettings(), api }: P
       setRecoveryPending(false);
     },
     authorizeUrl(provider) {
-      return client ? client.authorizeUrl(provider, `${window.location.origin}${ROUTES.analyze}`) : null;
+      return client ? client.authorizeUrl(provider, `${window.location.origin}${ROUTES.workspace}`) : null;
     },
   }), [status, session, recoveryPending, redirectError, client, apply]);
 

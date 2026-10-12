@@ -23,6 +23,13 @@ describe('identity settings', () => {
 });
 
 describe('Supabase Auth client', () => {
+  it('sends publishable keys as API keys, reserving Bearer authorization for user JWTs', async () => {
+    const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>().mockResolvedValue(response(200, {}));
+    const api = createAuthApi({ ...settings, anonKey: 'sb_publishable_test_key' }, fetchMock);
+    await api.recover('test@example.org', 'https://app.example/recover');
+    expect(fetchMock.mock.calls[0]?.[1]?.headers).toMatchObject({ apikey: 'sb_publishable_test_key' });
+    expect(fetchMock.mock.calls[0]?.[1]?.headers).not.toHaveProperty('Authorization');
+  });
   it('signs in with the password grant and converts the session', async () => {
     const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>().mockResolvedValue(response(200, {
       access_token: 'access', refresh_token: 'refresh', expires_in: 3600, user: { id: 'user-1', email: 'ana@example.org' },
@@ -71,7 +78,7 @@ describe('Supabase Auth client', () => {
     await api.signOut('access-token');
     const calls = fetchMock.mock.calls.map(([url, init]) => [url, init?.method, (init?.headers as Record<string, string>).Authorization]);
     expect(calls).toEqual([
-      ['https://project.supabase.co/auth/v1/recover?redirect_to=https%3A%2F%2Fapp.example%2Frecover', 'POST', 'Bearer public-key'],
+      ['https://project.supabase.co/auth/v1/recover?redirect_to=https%3A%2F%2Fapp.example%2Frecover', 'POST', undefined],
       ['https://project.supabase.co/auth/v1/user', 'PUT', 'Bearer access-token'],
       ['https://project.supabase.co/auth/v1/logout', 'POST', 'Bearer access-token'],
     ]);

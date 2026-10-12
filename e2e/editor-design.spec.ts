@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { spanish } from '../src/i18n/es';
 import { interfaceFamily, interfaceFonts } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
 
@@ -106,7 +107,7 @@ for (const width of [360, 1280]) {
 test('editor empty and scientific warning states remain accessible', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 });
   await page.goto(ROUTES.analyze);
-  await expect(page.getByRole('heading', { name: 'Empieza con una secuencia' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: spanish['editor.emptyTitle'] })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Probar con insulina humana' })).toBeVisible();
   await page.getByRole('textbox', { name: /secuencia de aminoácidos/i }).fill('ACX');
   await expect(page.getByText(/Se necesitan al menos 9 residuos/)).toBeVisible();

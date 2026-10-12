@@ -18,9 +18,9 @@ Un candidato que cumple intervalos de descriptores no queda validado como prote�
 | Descriptores, hidropatía y propensiones clásicas | Implementados en Workers |
 | Alineamiento global/local | Implementado en Rust/WASM y Workers |
 | Preferencias, temas y recursos locales sin conexión | Implementados; inglés completo y sincronización pendientes |
-| Backend y base de datos | Repositorio separado y migración inicial preparados; API pendiente |
+| Backend y base de datos | Base FastAPI con health/identidad y migración inicial; CRUD, prueba real RLS e integración frontend pendientes |
 | UniProt, catálogo, visor 3D y selección sincronizada | Pendientes |
-| Cuentas, persistencia, asistente y PDF/CSV | Pendientes |
+| Cuentas, persistencia, asistente y PDF/CSV | Flujos de cuenta y cliente health/me implementados; CSV local de propiedades disponible. Configuración real, proyectos, interpretación, PDF y exportaciones ampliadas pendientes |
 | Generación y comparación de candidatos | Alcance aprobado; algoritmo y condiciones exactas pendientes de diseño |
 | Predicción externa de candidatos | Prueba puntual del servicio realizada; integración pendiente |
 
@@ -79,7 +79,7 @@ Las historias originales HU-01 a HU-10 permanecen en el archivo histórico; sus 
 ```text
 ProteinForge/              # carpeta local sin Git
 ├── frontend/              # React/Vite; Git y despliegue propios
-└── backend/               # FastAPI previsto; Git y despliegue propios
+└── backend/               # base FastAPI; Git y despliegue propios
 ```
 
 - Frontend: repositorio `Jacklb19/ProteinForge`, React/TypeScript/Vite, organizado por características. Descriptores, alineamiento y futura búsqueda corren en Workers; WASM se mantiene en este repositorio.
@@ -124,7 +124,7 @@ El cronograma antiguo se conserva como historial, no como bloqueo por conversaci
 5. RF-18: integración de predicción, consentimiento, almacenamiento y visor, con respaldo para presentación.
 6. Completar proyectos, interpretación e informes; cerrar sincronización, inglés, rendimiento y documentación de la demo.
 
-No iniciar rediseño ni nuevas capacidades durante la limpieza. Las rutas/payloads nuevos y el esquema de candidatos se deciden al abordar cada entregable.
+La petición del 11 de octubre autoriza continuar el desarrollo completo con dirección visual v3 aprobada. El [plan actualizado](plan-desarrollo.md) ordena la web pública/app, conexión de identidad, proyectos, datos/visor, informes, generación y predicción. No se impone una fecha ni un sprint; las rutas/payloads nuevos y el esquema de candidatos se concretan al abordar cada entregable.
 
 ## Verificación proporcional y terminado
 

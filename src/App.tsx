@@ -6,6 +6,7 @@ import { AlignmentPage } from './features/alignment/AlignmentPage';
 import { AlignmentDraftProvider } from './features/alignment/AlignmentDraftProvider';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { LandingPage } from './features/landing/LandingPage';
+import { WorkspacePage } from './features/workspace/WorkspacePage';
 import { PrivacyPage } from './features/privacy/PrivacyPage';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
@@ -20,7 +21,7 @@ import { useTranslation } from './i18n';
 import { Icon } from './shared/Icon';
 import { BrandMark } from './shared/BrandMark';
 import { NotFoundPage } from './shared/NotFoundPage';
-import { FOOTER_LINKS, NAVIGATION_ITEMS, REPOSITORY_LINKS, ROUTES } from './shared/navigation';
+import { FOOTER_LINKS, NAVIGATION_ITEMS, PUBLIC_NAVIGATION, REPOSITORY_LINKS, ROUTES } from './shared/navigation';
 
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 
@@ -53,7 +54,7 @@ function AccountAction(): React.JSX.Element {
       </Link>
     );
   }
-  return <Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link>;
+  return <Link className="button button-secondary" to={ROUTES.signIn} aria-label={t('shell.signIn')}><Icon name="user" /><span className="account-action-label">{t('shell.signIn')}</span></Link>;
 }
 
 function SiteFooter(): React.JSX.Element {
@@ -82,6 +83,9 @@ function ApplicationRoutes(): React.JSX.Element {
   const location = useLocation();
   const previousPath = useRef(location.pathname);
   const content = useRef<HTMLDivElement>(null);
+  const isWorkspace = NAVIGATION_ITEMS.some((item) => item.path !== ROUTES.home && item.path === location.pathname);
+  const isIdentity = [ROUTES.signIn, ROUTES.signUp, ROUTES.recover].some((path) => path === location.pathname);
+  const auth = useAuth();
 
   useEffect(() => {
     if (previousPath.current === location.pathname) return;
@@ -90,30 +94,52 @@ function ApplicationRoutes(): React.JSX.Element {
     content.current?.focus();
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!location.hash) return;
+    document.getElementById(location.hash.slice(1))?.scrollIntoView();
+  }, [location.pathname, location.hash]);
+
   return (
-    <div className="app">
+    <div className={`app ${isWorkspace ? 'app-workspace' : 'app-public'}`}>
       <a className="skip-link" href="#app-content">{t('shell.skip')}</a>
       <header className="top-bar">
         <NavLink to={ROUTES.home} className="brand" aria-label={t('shell.home')}>
           <BrandMark />
           <span>{t('app.name')}</span>
         </NavLink>
-        <nav className="primary-navigation" aria-label={t('nav.main')}>
-          {NAVIGATION_ITEMS.map((item) => (
-            <NavLink key={item.path} to={item.path} end={item.end}>
-              <Icon name={item.icon} />
-              <span>{t(item.labelKey)}</span>
-            </NavLink>
-          ))}
-        </nav>
-        <div className="top-bar-actions">
-          <ThemeToggle />
-          <AccountAction />
-        </div>
+        <span className="shell-context">{t(isWorkspace ? 'landing.eyebrow' : 'landing.localStatus')}</span>
+        {isWorkspace ? (
+          <div className="navigation-dock">
+            <nav className="primary-navigation" aria-label={t('nav.main')}>
+              {NAVIGATION_ITEMS.map((item) => (
+                <NavLink key={item.path} to={item.path} end={item.end}>
+                  <Icon name={item.icon} /><span>{t(item.labelKey)}</span>
+                </NavLink>
+              ))}
+            </nav>
+            <div className="dock-actions"><ThemeToggle /><AccountAction /></div>
+          </div>
+        ) : (
+          <div className="navigation-dock public-dock">
+            <nav className="primary-navigation" aria-label={t('nav.main')}>
+              <NavLink to={ROUTES.home} end><Icon name="home" /><span>{t('nav.home')}</span></NavLink>
+              {PUBLIC_NAVIGATION.map((item) => <Link key={item.id} to={`${ROUTES.home}#${item.id}`}>{t(item.labelKey)}</Link>)}
+              <Link to={ROUTES.workspace}><span>{t('landing.primaryAction')}</span><Icon name="arrow" /></Link>
+            </nav>
+          </div>
+        )}
+        {!isWorkspace && (
+          <div className="top-bar-actions">
+            <ThemeToggle />
+            <AccountAction />
+            {!isIdentity && auth.status !== 'signed-in' && <Link className="button button-primary" to={ROUTES.signUp}>{t('landing.accountPrimary')}</Link>}
+          </div>
+        )}
       </header>
       <div className="app-content" id="app-content" ref={content} tabIndex={-1}>
         <Routes>
           <Route path={ROUTES.home} element={<LandingPage />} />
+          <Route path={ROUTES.workspace} element={<WorkspacePage />} />
           <Route path={ROUTES.analyze} element={<EditorPage />} />
           <Route path={ROUTES.alignment} element={<AlignmentPage />} />
           <Route path={ROUTES.settings} element={<SettingsPage />} />

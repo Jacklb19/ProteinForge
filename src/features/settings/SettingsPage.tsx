@@ -8,6 +8,7 @@ import { ROUTES } from '../../shared/navigation';
 import { PageHeading } from '../../shared/PageHeading';
 import { SegmentedControl } from '../../shared/SegmentedControl';
 import { useAuth } from '../auth/authContext';
+import { AccountConnection } from '../api/AccountConnection';
 
 /** Local appearance and language preferences, the account and privacy, grouped like system settings. */
 export function SettingsPage(): React.JSX.Element {
@@ -41,6 +42,7 @@ export function SettingsPage(): React.JSX.Element {
               </>
             )}
           </div>
+          <div className="list-row"><h3>{t('connection.title')}</h3><AccountConnection /></div>
         </div>
       </section>
       <section className="list-group" aria-labelledby="preferences-title">

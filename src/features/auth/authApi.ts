@@ -68,7 +68,7 @@ export function createAuthApi(settings: AuthSettings, fetchImplementation: Fetch
 
   async function request(path: string, init: { method: string; body?: unknown; accessToken?: string }): Promise<unknown> {
     const headers: Record<string, string> = { apikey: settings.anonKey, 'Content-Type': 'application/json' };
-    headers.Authorization = `Bearer ${init.accessToken ?? settings.anonKey}`;
+    if (init.accessToken) headers.Authorization = `Bearer ${init.accessToken}`;
     let response: Response;
     try {
       response = await fetchImplementation(`${base}${path}`, {

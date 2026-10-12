@@ -1,13 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { Icon } from '../../shared/Icon';
-import { ROUTES } from '../../shared/navigation';
+import { PUBLIC_SECTIONS, ROUTES } from '../../shared/navigation';
 import { useReveal } from '../../shared/useReveal';
 import { useAuth } from '../auth/authContext';
 import { MAX_FASTA_MEGABYTES } from '../editor/config';
 import { exampleEntry } from '../editor/examples';
 import { useSequenceDraft } from '../editor/sequenceDraft';
-import { HeroChain } from './HeroChain';
+import { OrnamentalChain } from './OrnamentalChain';
+import { ExampleSummary } from './ExampleSummary';
 import { HelixScene } from './HelixScene';
 import { HERO_EXAMPLE, LANDING_HONESTY_KEYS, LANDING_STEPS, LANDING_TOOLS, TOOL_STATUS_LABEL_KEYS } from './config';
 
@@ -36,27 +37,29 @@ export function LandingPage(): React.JSX.Element {
           <h1 id="hero-title" className="display">{t('landing.title')}</h1>
           <p className="lead">{t('landing.lead')}</p>
           <div className="hero-actions">
-            <Link className="button button-primary button-large" to={ROUTES.analyze}>{t('landing.primaryAction')}<Icon name="arrow" /></Link>
+            <Link className="button button-primary button-large" to={ROUTES.workspace}>{t('landing.primaryAction')}<Icon name="arrow" /></Link>
             {HERO_EXAMPLE && (
-              <button className="button button-secondary button-large" type="button" onClick={openExample}>
-                <Icon name="chain" />{t('landing.exampleAction')}
+              <button className="button button-text" type="button" onClick={openExample}>
+                {t('landing.exampleAction')}
               </button>
             )}
           </div>
+          <p className="hero-local-note">{t('landing.localNote')}</p>
         </div>
         <div className="hero-art">
-          <HeroChain />
+          <OrnamentalChain />
+          <ExampleSummary />
         </div>
       </section>
 
-      <section ref={tools} className="landing-section container reveal" aria-labelledby="tools-title">
+      <section id={PUBLIC_SECTIONS.product} ref={tools} className="landing-section container reveal" aria-labelledby="tools-title">
         <header className="section-heading">
           <p className="eyebrow">{t('landing.toolsEyebrow')}</p>
           <h2 id="tools-title">{t('landing.toolsTitle')}</h2>
           <p className="lead">{t('landing.toolsLead')}</p>
         </header>
         <ul className="tool-grid">
-          {LANDING_TOOLS.map((tool, index) => {
+          {LANDING_TOOLS.filter((tool) => tool.status === 'available').map((tool, index) => {
             const body = (
               <>
                 <span className="tool-icon"><Icon name={tool.icon} /></span>
@@ -74,9 +77,21 @@ export function LandingPage(): React.JSX.Element {
             );
           })}
         </ul>
+        <details className="landing-roadmap">
+          <summary>{t('landing.roadmapToggle')}</summary>
+          <ul className="roadmap-list">
+            {LANDING_TOOLS.filter((tool) => tool.status !== 'available').map((tool) => (
+              <li key={tool.id}>
+                <Icon name={tool.icon} />
+                <div><h3>{t(tool.titleKey)}</h3><p>{t(tool.textKey)}</p></div>
+                <span className="status-badge" data-status={tool.status}>{t(TOOL_STATUS_LABEL_KEYS[tool.status])}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </section>
 
-      <section ref={flow} className="landing-section container reveal" aria-labelledby="flow-title">
+      <section id={PUBLIC_SECTIONS.flow} ref={flow} className="landing-section container reveal" aria-labelledby="flow-title">
         <header className="section-heading">
           <p className="eyebrow">{t('landing.flowEyebrow')}</p>
           <h2 id="flow-title">{t('landing.flowTitle')}</h2>
@@ -93,7 +108,7 @@ export function LandingPage(): React.JSX.Element {
         </ol>
       </section>
 
-      <section ref={honesty} className="landing-section container reveal" aria-labelledby="honesty-title">
+      <section id={PUBLIC_SECTIONS.criterion} ref={honesty} className="landing-section container reveal" aria-labelledby="honesty-title">
         <div className="honesty">
           <div className="honesty-copy">
             <header className="section-heading">
@@ -118,7 +133,7 @@ export function LandingPage(): React.JSX.Element {
           </div>
           <div className="hero-actions">
             {auth.status === 'signed-in' ? (
-              <Link className="button button-primary button-large" to={ROUTES.analyze}>{t('landing.primaryAction')}<Icon name="arrow" /></Link>
+              <Link className="button button-primary button-large" to={ROUTES.workspace}>{t('landing.primaryAction')}<Icon name="arrow" /></Link>
             ) : (
               <>
                 <Link className="button button-primary button-large" to={ROUTES.signUp}>{t('landing.accountPrimary')}</Link>

@@ -24,7 +24,7 @@ export const AUTH_ENDPOINTS = {
   authorize: '/authorize',
 } as const;
 
-/** Local storage key for the current session; the token never leaves the browser except for Supabase requests. */
+/** Session storage key; tokens are sent only to Supabase Auth and the configured ProteinForge API. */
 export const SESSION_STORAGE_KEY = 'proteinforge.session';
 
 /** Sessions are refreshed this many seconds before their access token expires. */
