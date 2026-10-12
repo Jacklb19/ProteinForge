@@ -12,6 +12,7 @@ export const ROUTES = {
   signUp: '/sign-up',
   recover: '/recover',
   privacy: '/privacy',
+  terms: '/terms',
 } as const;
 
 /** Workspace destinations in display order; the public website has its own section links. */
@@ -36,6 +37,7 @@ export const PUBLIC_NAVIGATION: readonly { id: string; labelKey: TranslationKey 
 /** Secondary links shown in the page footer. */
 export const FOOTER_LINKS: readonly { path: string; labelKey: TranslationKey }[] = [
   { path: ROUTES.privacy, labelKey: 'nav.privacy' },
+  { path: ROUTES.terms, labelKey: 'nav.terms' },
   { path: ROUTES.settings, labelKey: 'nav.settings' },
 ];
 

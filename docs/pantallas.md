@@ -11,7 +11,8 @@ Actualizado el 11 de octubre de 2026. La web pública usa Inicio · Qué es · C
 | Alinear | `/alignment` | Rust/WASM, progreso, cancelación, bloques, resumen con huecos y aviso de resultado desactualizado | RF-06, RF-07, RF-16 |
 | Ajustes: cuenta, tema, idioma y privacidad | `/settings` | Tema, idioma y privacidad local implementados; cuenta muestra sesión, cierre o la ausencia de configuración; inglés completo pendiente | RF-12, RNF-08, RNF-09 |
 | Acceso, registro, recuperación | `/sign-in`, `/sign-up`, `/recover` | Implementados sobre Supabase Auth (correo/contraseña, enlace de recuperación, Google por redirección). Sin `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` la pantalla lo explica y desactiva el formulario. TOTP pendiente | RF-12 |
-| Privacidad | `/privacy` | Implementada; recoge el consentimiento previsto para predicción | RNF-07 |
+| Política de privacidad | `/privacy` | Pública, datos de Google/Supabase, sesión local, proveedores, conservación y contacto; funciones futuras diferenciadas | RNF-07 |
+| Condiciones del servicio | `/terms` | Pública, alcance académico, límites científicos, uso permitido, cuenta y contacto | RNF-07 |
 | Dirección desconocida | Cualquier otra | Página de recuperación con regreso a Analizar o Inicio | — |
 | UniProt | `/uniprot` | Previsto; acceso según contrato backend | RF-08 |
 | Visor experimental | `/structures/:id` | Previsto; descarga RCSB directa y Mol* | RF-09, RF-10 |

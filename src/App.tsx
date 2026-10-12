@@ -8,6 +8,7 @@ import { SettingsPage } from './features/settings/SettingsPage';
 import { LandingPage } from './features/landing/LandingPage';
 import { WorkspacePage } from './features/workspace/WorkspacePage';
 import { PrivacyPage } from './features/privacy/PrivacyPage';
+import { TermsPage } from './features/legal/TermsPage';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
 import { SignInPage } from './features/auth/SignInPage';
@@ -147,6 +148,7 @@ function ApplicationRoutes(): React.JSX.Element {
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />
           <Route path={ROUTES.privacy} element={<PrivacyPage />} />
+          <Route path={ROUTES.terms} element={<TermsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>

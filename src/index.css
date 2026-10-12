@@ -803,8 +803,13 @@ a.tool-link:hover .tool-open .icon { transform: translateX(var(--space-2xs)); }
 .list-row .hero-actions { margin-block-start: var(--space-xs); }
 .account-row { display: grid; gap: var(--space-xs); }
 .account-row strong { overflow-wrap: anywhere; }
-.privacy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--width-full), 18rem), 1fr)); gap: var(--space-md); }
-.privacy-card p { color: var(--text-secondary); }
+.legal-page { max-width: var(--width-settings); }
+.legal-updated { color: var(--text-secondary); margin-block-end: var(--space-xl); }
+.legal-sections { display: grid; gap: var(--space-xl); }
+.legal-section { display: grid; gap: var(--space-sm); }
+.legal-section p { color: var(--text-secondary); }
+.legal-contact { display: inline-flex; align-items: center; min-height: var(--size-touch); overflow-wrap: anywhere; max-width: var(--width-full); }
+.legal-links { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-block-start: var(--space-xl); }
 .not-found-page { display: grid; justify-items: start; gap: var(--space-md); }
 .not-found-page .page-heading { margin-block-end: var(--space-none); }
 
