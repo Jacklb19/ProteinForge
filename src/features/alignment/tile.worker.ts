@@ -3,6 +3,7 @@
 import { calculateWasmTile, initializeAlignmentWasm } from './wasm';
 import { translate } from '../../i18n/translate';
 import type { TileRequestMessage, TileResponseMessage } from './messages';
+import { WORKER_LOCALE } from '../../i18n/config';
 
 const context = self as DedicatedWorkerGlobalScope;
 
@@ -18,7 +19,7 @@ context.onmessage = async (event: MessageEvent<TileRequestMessage>) => {
   } catch (error) {
     const response: TileResponseMessage = {
       id: event.data.id,
-      error: error instanceof Error ? error.message : translate('es', 'errors.tileFailed'),
+      error: error instanceof Error ? error.message : translate(WORKER_LOCALE, 'errors.tileFailed'),
     };
     context.postMessage(response);
   }

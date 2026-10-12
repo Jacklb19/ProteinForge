@@ -1,0 +1,251 @@
+{
+  "version": 1,
+  "project": {
+    "name": "proteinforge-frontend",
+    "productType": "Academic scientific SaaS and browser workbench",
+    "stack": [
+      "react",
+      "vite"
+    ]
+  },
+  "sources": {
+    "tokens": [
+      "src/design-tokens.css",
+      "src/index.css"
+    ],
+    "components": [
+      "src/shared",
+      "src/features"
+    ],
+    "assets": [
+      "public/design",
+      "public/fonts/provenance.json"
+    ],
+    "instructions": [
+      "AGENTS.md"
+    ]
+  },
+  "design": {
+    "colorMode": "light and dark",
+    "colors": {
+      "--bg-canvas": {
+        "source": "src/design-tokens.css",
+        "value": "#f7f6f2"
+      },
+      "--dark-bg-canvas": {
+        "source": "src/design-tokens.css",
+        "value": "#101722"
+      },
+      "--bg-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#eaf0ed"
+      },
+      "--dark-bg-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#1d2c3b"
+      },
+      "--bg-raised": {
+        "source": "src/design-tokens.css",
+        "value": "#ffffff"
+      },
+      "--dark-bg-raised": {
+        "source": "src/design-tokens.css",
+        "value": "#162131"
+      },
+      "--bg-selected": {
+        "source": "src/design-tokens.css",
+        "value": "#d9e9e3"
+      },
+      "--dark-bg-selected": {
+        "source": "src/design-tokens.css",
+        "value": "#27483f"
+      },
+      "--bg-accent-soft": {
+        "source": "src/design-tokens.css",
+        "value": "#e4eeea"
+      },
+      "--dark-bg-accent-soft": {
+        "source": "src/design-tokens.css",
+        "value": "#1c332f"
+      },
+      "--text-primary": {
+        "source": "src/design-tokens.css",
+        "value": "#121826"
+      },
+      "--dark-text-primary": {
+        "source": "src/design-tokens.css",
+        "value": "#eef2ff"
+      },
+      "--text-secondary": {
+        "source": "src/design-tokens.css",
+        "value": "#525e62"
+      },
+      "--dark-text-secondary": {
+        "source": "src/design-tokens.css",
+        "value": "#acc0c9"
+      },
+      "--text-on-accent": {
+        "source": "src/design-tokens.css",
+        "value": "#ffffff"
+      },
+      "--dark-text-on-accent": {
+        "source": "src/design-tokens.css",
+        "value": "#101722"
+      },
+      "--border-strong": {
+        "source": "src/design-tokens.css",
+        "value": "#718181"
+      },
+      "--dark-border-strong": {
+        "source": "src/design-tokens.css",
+        "value": "#7c96a0"
+      },
+      "--border-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#dce4df"
+      },
+      "--dark-border-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#304454"
+      },
+      "--accent-brand": {
+        "source": "src/design-tokens.css",
+        "value": "#12615f"
+      },
+      "--dark-accent-brand": {
+        "source": "src/design-tokens.css",
+        "value": "#8fe0cc"
+      },
+      "--accent-brand-hover": {
+        "source": "src/design-tokens.css",
+        "value": "#0e4c4c"
+      },
+      "--dark-accent-brand-hover": {
+        "source": "src/design-tokens.css",
+        "value": "#b6f4e1"
+      },
+      "--status-error": {
+        "source": "src/design-tokens.css",
+        "value": "#b3261e"
+      },
+      "--dark-status-error": {
+        "source": "src/design-tokens.css",
+        "value": "#ff8f86"
+      },
+      "--status-error-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#fdeceb"
+      },
+      "--dark-status-error-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#3b1f1e"
+      },
+      "--status-success": {
+        "source": "src/design-tokens.css",
+        "value": "#1b6b3a"
+      },
+      "--dark-status-success": {
+        "source": "src/design-tokens.css",
+        "value": "#86efac"
+      },
+      "--status-success-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#e2f5e9"
+      },
+      "--dark-status-success-subtle": {
+        "source": "src/design-tokens.css",
+        "value": "#143524"
+      },
+      "--chain-hydrophobic": {
+        "source": "src/design-tokens.css",
+        "value": "#d97706"
+      },
+      "--dark-chain-hydrophobic": {
+        "source": "src/design-tokens.css",
+        "value": "#fbbf24"
+      },
+      "--chain-hydrophilic": {
+        "source": "src/design-tokens.css",
+        "value": "#0e7490"
+      },
+      "--dark-chain-hydrophilic": {
+        "source": "src/design-tokens.css",
+        "value": "#67e8f9"
+      },
+      "--shadow-color": {
+        "source": "src/design-tokens.css",
+        "value": "#12182614"
+      },
+      "--dark-shadow-color": {
+        "source": "src/design-tokens.css",
+        "value": "#00000080"
+      },
+      "--glow-color": {
+        "source": "src/design-tokens.css",
+        "value": "#25345324"
+      },
+      "--dark-glow-color": {
+        "source": "src/design-tokens.css",
+        "value": "#eef2ff24"
+      }
+    },
+    "typography": {},
+    "spacing": {},
+    "radius": {},
+    "shadows": {},
+    "motion": {},
+    "density": "restrained public website; compact scientific workspace"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [
+      "Icon",
+      "BrandMark",
+      "PageHeading",
+      "SegmentedControl"
+    ],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [
+      "Keep scientific calculations in Workers and WASM",
+      "Use centralized Spanish copy, configuration and tokens",
+      "Preserve keyboard navigation, 44px targets and reduced motion",
+      "Show implemented and planned capabilities truthfully"
+    ],
+    "avoid": [
+      "Decorative auroras, gradients, glass HUD cards and autoplay reading effects",
+      "Introducing UI frameworks or paid services",
+      "Presenting ornamental illustrations as scientific structures"
+    ]
+  },
+  "decisions": [
+    "2026-10-11: approved Figma 30:70, restrained dark workbench with Bricolage headings and local ornamental SVG",
+    "2026-10-11: public SaaS website and working app have distinct navigation; sign-in and registration stay visible",
+    "2026-10-11: restrained motion and feedback, including a quiet ornamental turn that pauses off screen",
+    "2026-10-11: user requests a friendly app: /app task welcome, warm ivory/deep navy surfaces, green accent, guided example, descriptor explanations and meaningful CSS motion; no scientific algorithm changes."
+  ],
+  "evidence": [
+    {
+      "fact": "design.colorMode:light",
+      "source": "src/index.css"
+    },
+    {
+      "fact": "design.tokens",
+      "source": "src/index.css"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "AGENTS.md"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:vite",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-10-12T01:19:19.592Z"
+}

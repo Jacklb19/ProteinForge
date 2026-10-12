@@ -1,6 +1,8 @@
 import init, { calculate_tile } from '../../../rust/alignment/pkg/proteinforge_alignment';
 import blosum from './fixtures/blosum.json';
 import type { Boundary, TileRequest, TileResult } from './tile';
+import { MATRIX_NAMES } from './config';
+import type { MatrixName } from './config';
 
 let initialization: Promise<unknown> | undefined;
 
@@ -33,11 +35,9 @@ function unpack(values: Float32Array, offset: number, length: number): Boundary 
   return boundary;
 }
 
-const matrices = {
-  BLOSUM45: Float32Array.from(blosum.values.BLOSUM45.flat()),
-  BLOSUM62: Float32Array.from(blosum.values.BLOSUM62.flat()),
-  BLOSUM80: Float32Array.from(blosum.values.BLOSUM80.flat()),
-};
+const matrices = Object.fromEntries(
+  MATRIX_NAMES.map((name) => [name, Float32Array.from(blosum.values[name].flat())]),
+) as Record<MatrixName, Float32Array>;
 
 /** Runs the initialized WASM kernel and copies only this tile's traceback cells. */
 export function calculateWasmTile(request: TileRequest): TileResult {

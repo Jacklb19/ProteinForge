@@ -2,9 +2,9 @@ name: WebAssembly build
 
 on:
   push:
-    branches: ['**']
+    branches: ['main', 'dev']
   pull_request:
-    branches: ['main']
+    branches: ['main', 'dev']
 
 jobs:
   verify:

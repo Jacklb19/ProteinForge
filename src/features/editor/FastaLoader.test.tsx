@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorPage } from './EditorPage';
 import type { FastaEntry } from './fasta';
+import { WorkspaceProviders } from '../../test/WorkspaceProviders';
 
 type WorkerMessage =
   | { type: 'entries'; entries: FastaEntry[] }
@@ -55,7 +56,7 @@ describe('FastaLoader', () => {
     });
     try {
       const instances = setupWorker();
-      render(<EditorPage />);
+      render(<EditorPage />, { wrapper: WorkspaceProviders });
       fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
         target: { files: [new File(['>entry\nAC'], 'entry.fa')] },
       });
@@ -76,7 +77,7 @@ describe('FastaLoader', () => {
   });
   it('receives worker entries and supports keyboard selection', () => {
     const instances = setupWorker();
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     const file = new File(['>uno\nAC\n>dos\nDE'], 'prueba.fa');
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), { target: { files: [file] } });
     const worker = fastaWorker(instances);
@@ -99,7 +100,7 @@ describe('FastaLoader', () => {
 
   it('bounds the number of rendered options', () => {
     const instances = setupWorker();
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['>uno\nAC'], 'muchas.fa')] },
     });
@@ -126,7 +127,7 @@ describe('FastaLoader', () => {
     document.documentElement.style.setProperty('--height-fasta-row', value);
     document.documentElement.style.setProperty('--height-fasta-row-default', fallback);
     const instances = setupWorker();
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['>uno\nAC'], 'altura.fa')] },
     });
@@ -146,7 +147,7 @@ describe('FastaLoader', () => {
 
   it('reports worker errors explicitly', () => {
     const instances = setupWorker();
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     fireEvent.change(screen.getByLabelText(/archivo FASTA de hasta/i), {
       target: { files: [new File(['texto'], 'mal.fa')] },
     });

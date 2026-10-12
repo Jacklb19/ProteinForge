@@ -4,6 +4,9 @@ import { resolveRowHeight } from './rowHeight';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
 import { Icon } from '../../shared/Icon';
+import { FASTA_ACCEPT, FASTA_FALLBACK_VISIBLE_ROWS, FASTA_OVERSCAN_ROWS, MAX_FASTA_MEGABYTES } from './config';
+
+const ERROR_STATUSES: readonly TranslationKey[] = ['fasta.error', 'fasta.workerError', 'fasta.startError'];
 
 interface Props {
   onSelect: (entry: FastaEntry) => void;
@@ -19,7 +22,7 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
   const { t, formatNumber, formatUnit } = useTranslation();
   const [entries, setEntries] = useState<FastaEntry[]>([]);
   const [fileName, setFileName] = useState('');
-  const [statusKey, setStatusKey] = useState<TranslationKey>('fasta.empty');
+  const [statusKey, setStatusKey] = useState<TranslationKey | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [selection, setSelection] = useState<number | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -122,32 +125,32 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
 
   const start = Math.min(
     Math.max(0, entries.length - 1),
-    Math.max(0, Math.floor((Number.isFinite(scrollOffset) ? scrollOffset : 0) / rowHeight) - 2),
+    Math.max(0, Math.floor((Number.isFinite(scrollOffset) ? scrollOffset : 0) / rowHeight) - FASTA_OVERSCAN_ROWS),
   );
-  const visible = listHeight > 0 ? Math.ceil(listHeight / rowHeight) + 4 : 10;
-  const count = tokenHeight.emergencyFallback ? Math.min(visible, 10) : visible;
+  const visible = listHeight > 0 ? Math.ceil(listHeight / rowHeight) + 2 * FASTA_OVERSCAN_ROWS : FASTA_FALLBACK_VISIBLE_ROWS;
+  const count = tokenHeight.emergencyFallback ? Math.min(visible, FASTA_FALLBACK_VISIBLE_ROWS) : visible;
   const end = Math.min(entries.length, start + count);
 
   return (
     <section className="fasta-panel" aria-labelledby="fasta-title">
-      <div className="section-heading"><Icon name="upload" /><h2 id="fasta-title">{t('fasta.title')}</h2></div>
-      <label htmlFor="fasta-file">{t('fasta.fileLabel', { limit: formatUnit(5, 'megabyte') })}</label>
+      <h2 id="fasta-title" className="visually-hidden">{t('fasta.title')}</h2>
       <input
         id="fasta-file"
         ref={fileInput}
         hidden
         type="file"
-        accept=".fa,.faa,.fasta,.fsa,text/plain"
+        aria-label={t('fasta.fileLabel', { limit: formatUnit(MAX_FASTA_MEGABYTES, 'megabyte') })}
+        accept={FASTA_ACCEPT}
         onChange={(event) => {
           loadFile(event.currentTarget.files?.[0]);
           event.currentTarget.value = '';
         }}
       />
       <div className="file-control">
-        <button className="button" type="button" onClick={() => { fileInput.current?.click(); }}>{t('fasta.chooseFile')}</button>
-        <span>{fileName ? t('fasta.selectedFile', { name: fileName }) : t('fasta.noFile')}</span>
+        <button className="button button-secondary" type="button" onClick={() => { fileInput.current?.click(); }}><Icon name="upload" />{t('fasta.chooseFile')}</button>
+        <span className="field-help">{fileName ? t('fasta.selectedFile', { name: fileName }) : t('fasta.fileLabel', { limit: formatUnit(MAX_FASTA_MEGABYTES, 'megabyte') })}</span>
       </div>
-      <p className="status-message" data-state={statusKey === 'fasta.reading' ? 'calculating' : ['fasta.error', 'fasta.workerError', 'fasta.startError'].includes(statusKey) ? 'error' : 'idle'} role="status" aria-live="polite">{t(statusKey, { message: errorMessage })} {entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''}</p>
+      <p className="status-message" data-state={statusKey === 'fasta.reading' ? 'calculating' : statusKey && ERROR_STATUSES.includes(statusKey) ? 'error' : 'idle'} role="status" aria-live="polite">{statusKey ? [t(statusKey, { message: errorMessage }), entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''].filter(Boolean).join(' ') : ''}</p>
       {entries.length > 0 && (
         <div
           ref={list}

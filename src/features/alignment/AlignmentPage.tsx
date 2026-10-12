@@ -1,29 +1,34 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { validateSequence } from '../editor/sequence';
+import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useTranslation } from '../../i18n';
-import { MAX_ALIGNMENT_RESIDUES } from './wavefront';
-import type { AlignmentMode, AlignmentResult, MatrixName } from './gotoh';
+import {
+  ALIGNMENT_MODES, MATRIX_NAMES, MAX_ALIGNMENT_RESIDUES, MODE_LABEL_KEYS, PERCENT_FORMAT, PROGRESS_FORMAT, SCORING_SUBSTITUTIONS,
+  TERMINAL_GAP_LABEL_KEYS,
+} from './config';
 import type { AlignmentRequest, AlignmentResponse } from './messages';
 import { AlignmentBlocks } from './AlignmentBlocks';
+import { useAlignmentDraft } from './alignmentDraft';
+import type { AlignmentInput } from './alignmentDraft';
+import { countGapColumns, isStaleResult } from './alignmentSummary';
 import { PageHeading } from '../../shared/PageHeading';
-import { Icon } from '../../shared/Icon';
+import { SegmentedControl } from '../../shared/SegmentedControl';
 
 type Status = 'idle' | 'running' | 'cancelled' | 'error';
 
 /** Starts cancellable alignments and displays reproducible results. */
 export function AlignmentPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
-  const [first, setFirst] = useState('');
-  const [second, setSecond] = useState('');
-  const [matrix, setMatrix] = useState<MatrixName>('BLOSUM62');
-  const [mode, setMode] = useState<AlignmentMode>('global');
+  const draft = useAlignmentDraft();
+  const { first, second, matrix, mode, result, resultInput, warnings, update } = draft;
+  const analysis = useSequenceDraft();
   const [status, setStatus] = useState<Status>('idle');
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState('');
-  const [warnings, setWarnings] = useState<string[]>([]);
-  const [result, setResult] = useState<AlignmentResult | null>(null);
   const worker = useRef<Worker | null>(null);
   const requestId = useRef(0);
+  const pendingInput = useRef<AlignmentInput | null>(null);
+  const analysisSequence = useMemo(() => validateSequence(analysis.text).sequence, [analysis.text]);
 
   useEffect(() => {
     try {
@@ -33,7 +38,10 @@ export function AlignmentPage(): React.JSX.Element {
         const response = event.data;
         if (response.id !== requestId.current) return;
         if (response.type === 'progress') setProgress(response.fraction);
-        if (response.type === 'result') { setResult(response.result); setStatus('idle'); }
+        if (response.type === 'result') {
+          update({ result: response.result, resultInput: pendingInput.current });
+          setStatus('idle');
+        }
         if (response.type === 'cancelled') setStatus('cancelled');
         if (response.type === 'error') { setMessage(t('alignment.workerError')); setStatus('error'); }
       };
@@ -42,11 +50,13 @@ export function AlignmentPage(): React.JSX.Element {
       queueMicrotask(() => { setMessage(t('alignment.workerStartError')); setStatus('error'); });
     }
     return () => { worker.current?.terminate(); worker.current = null; };
-  }, [t]);
+  }, [t, update]);
+
+  const a = validateSequence(first);
+  const b = validateSequence(second);
+  const currentInput: AlignmentInput = { first: a.sequence, second: b.sequence, matrix, mode };
 
   function start(): void {
-    const a = validateSequence(first);
-    const b = validateSequence(second);
     if (a.invalidPositions.length > 0 || b.invalidPositions.length > 0) { setMessage(t('alignment.invalid')); return; }
     if (!a.sequence || !b.sequence) { setMessage(t('alignment.empty')); return; }
     if (a.sequence.length > MAX_ALIGNMENT_RESIDUES || b.sequence.length > MAX_ALIGNMENT_RESIDUES) {
@@ -54,11 +64,11 @@ export function AlignmentPage(): React.JSX.Element {
       return;
     }
     if (!worker.current) { setMessage(t('alignment.workerStartError')); return; }
-    const nextWarnings: string[] = [];
-    if (a.sequence.includes('U') || b.sequence.includes('U')) nextWarnings.push(t('alignment.warningU'));
-    if (a.sequence.includes('O') || b.sequence.includes('O')) nextWarnings.push(t('alignment.warningO'));
-    setWarnings(nextWarnings);
-    setResult(null);
+    const nextWarnings = SCORING_SUBSTITUTIONS
+      .filter(({ residue }) => a.sequence.includes(residue) || b.sequence.includes(residue))
+      .map(({ warningKey }) => t(warningKey));
+    pendingInput.current = currentInput;
+    update({ warnings: nextWarnings, result: null, resultInput: null });
     setMessage('');
     setProgress(0);
     setStatus('running');
@@ -72,61 +82,83 @@ export function AlignmentPage(): React.JSX.Element {
     worker.current.postMessage(request);
   }
 
-  const percent = result && result.columns > 0 ? result.identities / result.columns : 0;
-  const similarityPercent = result && result.columns > 0 ? result.similarities / result.columns : 0;
+  const ratio = (count: number, total: number) => t('alignment.ratio', {
+    count: formatNumber(count),
+    total: formatNumber(total),
+    percent: formatNumber(total > 0 ? count / total : 0, PERCENT_FORMAT),
+  });
+  const residueCount = (sequence: string) => sequence.length > 0
+    ? t(sequence.length === 1 ? 'editor.residueCountOne' : 'editor.residueCount', { count: formatNumber(sequence.length) })
+    : '';
+  const stale = result !== null && isStaleResult(resultInput, currentInput);
+
   return (
-    <main className="alignment-page">
+    <main className="page alignment-page">
       <PageHeading titleKey="alignment.title" introduction="alignment.introduction" />
-      <section className="panel alignment-inputs" aria-labelledby="alignment-inputs-title">
-      <div className="section-heading"><Icon name="alignment" /><h2 id="alignment-inputs-title">{t('visual.alignmentInputs')}</h2></div>
-      <p className="field-help">{t('alignment.limit', { count: formatNumber(MAX_ALIGNMENT_RESIDUES) })}</p>
-      <div className="sequence-pair">
-      <div className="field">
-      <label htmlFor="alignment-first">{t('alignment.first')}</label>
-      <textarea id="alignment-first" value={first} onChange={(event) => { setFirst(event.target.value); }} />
-      </div><div className="field">
-      <label htmlFor="alignment-second">{t('alignment.second')}</label>
-      <textarea id="alignment-second" value={second} onChange={(event) => { setSecond(event.target.value); }} />
-      </div></div>
-      <div className="alignment-parameters"><div className="field">
-      <label htmlFor="alignment-mode">{t('alignment.mode')}</label>
-      <select id="alignment-mode" value={mode} onChange={(event) => { setMode(event.target.value as AlignmentMode); }}>
-        <option value="global">{t('alignment.global')}</option>
-        <option value="local">{t('alignment.local')}</option>
-      </select>
-      </div><div className="field">
-      <label htmlFor="alignment-matrix">{t('alignment.matrix')}</label>
-      <select id="alignment-matrix" value={matrix} onChange={(event) => { setMatrix(event.target.value as MatrixName); }}>
-        <option value="BLOSUM45">{t('alignment.matrix45')}</option>
-        <option value="BLOSUM62">{t('alignment.matrix62')}</option>
-        <option value="BLOSUM80">{t('alignment.matrix80')}</option>
-      </select>
-      </div></div>
-      <div className="alignment-actions">
-        <button className="button button-primary" type="button" onClick={start} disabled={status === 'running'}>{t('alignment.start')}</button>
-        <button className="button button-danger" type="button" onClick={cancel} disabled={status !== 'running'}>{t('alignment.cancel')}</button>
-      </div>
-      {status === 'running' && <progress className="alignment-progress" max={1} value={progress} aria-label={t('visual.alignmentProgress')} />}
-      <div className="status-message" data-state={message ? 'error' : status} role="status" aria-live="polite">
-        {message || (status === 'running' && t('alignment.running', { percent: formatNumber(progress, { style: 'percent', maximumFractionDigits: 0 }) })) || (status === 'cancelled' && t('alignment.cancelled'))}
-      </div>
-      {warnings.map((warning) => <p className="notice" key={warning} role="note">{warning}</p>)}
-      {!result && status === 'idle' && !message && <p className="field-help">{t('visual.alignmentEmpty')}</p>}
+      {!first && !second && <p className="analysis-ready">{t('guide.comparisonEmpty')}</p>}
+      <section className="alignment-inputs card" aria-labelledby="alignment-inputs-title">
+        <h2 id="alignment-inputs-title" className="visually-hidden">{t('alignment.inputs')}</h2>
+        <div className="sequence-pair">
+          <div className="field">
+            <div className="field-header">
+              <label htmlFor="alignment-first">{t('alignment.first')}</label>
+              <span className="field-meta">{residueCount(a.sequence)}</span>
+            </div>
+            <textarea id="alignment-first" spellCheck={false} value={first} onChange={(event) => { update({ first: event.target.value }); }} />
+            {analysisSequence.length > 0 && analysisSequence !== a.sequence && (
+              <button className="button button-quiet" type="button" onClick={() => { update({ first: analysisSequence }); }}>{t('alignment.useAnalysis')}</button>
+            )}
+          </div>
+          <div className="field">
+            <div className="field-header">
+              <label htmlFor="alignment-second">{t('alignment.second')}</label>
+              <span className="field-meta">{residueCount(b.sequence)}</span>
+            </div>
+            <textarea id="alignment-second" spellCheck={false} value={second} onChange={(event) => { update({ second: event.target.value }); }} />
+          </div>
+        </div>
+        <div className="alignment-parameters">
+          <SegmentedControl
+            legend={t('alignment.mode')}
+            options={ALIGNMENT_MODES.map((value) => ({ value, label: t(MODE_LABEL_KEYS[value]) }))}
+            value={mode}
+            onChange={(value) => { update({ mode: value }); }}
+          />
+          <SegmentedControl
+            legend={t('alignment.matrix')}
+            options={MATRIX_NAMES.map((value) => ({ value, label: value }))}
+            value={matrix}
+            onChange={(value) => { update({ matrix: value }); }}
+          />
+        </div>
+        <p className="field-help">{t('guide.comparisonHelp')}</p>
+        <p className="field-help">{t('alignment.limit', { count: formatNumber(MAX_ALIGNMENT_RESIDUES) })}</p>
+        <div className="alignment-actions">
+          <button className="button button-primary" type="button" onClick={start} disabled={status === 'running'}>{t('alignment.start')}</button>
+          {status === 'running' && <button className="button button-secondary" type="button" onClick={cancel}>{t('alignment.cancel')}</button>}
+        </div>
+        {status === 'running' && <progress className="alignment-progress" max={1} value={progress} aria-label={t('alignment.progress')} />}
+        <div className="status-message" data-state={message ? 'error' : status} role="status" aria-live="polite">
+          {message || (status === 'running' && t('alignment.running', { percent: formatNumber(progress, PROGRESS_FORMAT) })) || (status === 'cancelled' && t('alignment.cancelled'))}
+        </div>
+        {warnings.map((warning) => <p className="notice" key={warning} role="note">{warning}</p>)}
       </section>
       {result && (
-        <section aria-labelledby="alignment-result-title" className="panel alignment-result">
+        <section aria-labelledby="alignment-result-title" className={`alignment-result${stale ? ' is-stale' : ''}`}>
           <h2 id="alignment-result-title">{t('alignment.result')}</h2>
-          <div className="alignment-metrics">
-          <div><strong aria-hidden="true">{formatNumber(result.score)}</strong><p>{t('alignment.score', { score: formatNumber(result.score) })}</p></div>
-          <div><strong aria-hidden="true">{formatNumber(percent, { style: 'percent', maximumFractionDigits: 1 })}</strong><p>{t('alignment.identities', { count: formatNumber(result.identities), total: formatNumber(result.columns), percent: formatNumber(percent, { style: 'percent', maximumFractionDigits: 1 }) })}</p></div>
-          <div><strong aria-hidden="true">{formatNumber(similarityPercent, { style: 'percent', maximumFractionDigits: 1 })}</strong><p>{t('alignment.similarities', { count: formatNumber(result.similarities), total: formatNumber(result.columns), percent: formatNumber(similarityPercent, { style: 'percent', maximumFractionDigits: 1 }) })}</p></div>
-          </div>
-          <p className="notice">{t('alignment.parameters', {
+          {stale && <p className="notice" role="note">{t('alignment.stale')}</p>}
+          <dl className="property-list summary-list">
+            <div className="property"><dt>{t('alignment.score')}</dt><dd>{formatNumber(result.score)}</dd></div>
+            <div className="property"><dt>{t('alignment.identity')}</dt><dd>{ratio(result.identities, result.columns)}</dd></div>
+            <div className="property"><dt>{t('alignment.similarity')}</dt><dd>{ratio(result.similarities, result.columns)}</dd></div>
+            <div className="property"><dt>{t('alignment.gaps')}</dt><dd>{ratio(countGapColumns(result), result.columns)}</dd></div>
+          </dl>
+          <p className="field-help">{t('alignment.parameters', {
             matrix: result.parameters.matrix,
-            mode: t(result.parameters.mode === 'global' ? 'alignment.global' : 'alignment.local'),
+            mode: t(MODE_LABEL_KEYS[result.parameters.mode]),
             open: formatNumber(result.parameters.gapOpen),
             extend: formatNumber(result.parameters.gapExtend),
-            ends: t(result.parameters.terminalGaps === 'free' ? 'alignment.freeEnds' : 'alignment.localEnds'),
+            ends: t(TERMINAL_GAP_LABEL_KEYS[result.parameters.terminalGaps]),
           })}</p>
           <p className="field-help">{t('alignment.legend')}</p>
           <AlignmentBlocks result={result} />

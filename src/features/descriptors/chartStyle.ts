@@ -1,4 +1,5 @@
 import type { ChartStyle } from './profileMessages';
+import { DEFAULT_LOCALE } from '../../i18n/config';
 
 function positiveMeasure(value: string): number {
   const number = Number.parseFloat(value);
@@ -6,16 +7,16 @@ function positiveMeasure(value: string): number {
 }
 
 /** Resolves CSS tokens on the main thread before passing them to the worker. */
-export function getChartStyle(canvas: HTMLCanvasElement, locale: ChartStyle['locale'] = 'es'): ChartStyle {
+export function getChartStyle(canvas: HTMLCanvasElement, locale: ChartStyle['locale'] = DEFAULT_LOCALE): ChartStyle {
   const root = getComputedStyle(document.documentElement);
   const chart = getComputedStyle(canvas);
   const token = (name: string): string => root.getPropertyValue(name).trim();
   return {
     locale,
-    surface: token('--color-surface') || root.backgroundColor,
-    text: token('--color-text') || root.color,
-    curve: token('--color-focus') || root.color,
-    reference: token('--color-border') || root.color,
+    surface: token('--bg-canvas') || root.backgroundColor,
+    text: token('--text-secondary') || root.color,
+    curve: token('--chart-line') || root.color,
+    reference: token('--chart-reference') || root.color,
     font: `${chart.fontWeight} ${chart.fontSize} ${chart.fontFamily}`,
     margin: positiveMeasure(token('--space-chart-inner')),
     lineWidth: positiveMeasure(token('--border-width-chart-line')),

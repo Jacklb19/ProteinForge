@@ -1,16 +1,14 @@
 import type { DescriptorState } from './useDescriptors';
+import { DESCRIPTOR_FIELDS } from './config';
 import { useTranslation } from '../../i18n';
 
-const TWO_DECIMALS = { maximumFractionDigits: 2, minimumFractionDigits: 2 } as const;
-const THREE_DECIMALS = { maximumFractionDigits: 3, minimumFractionDigits: 3 } as const;
-
-/** Displays five descriptors and marks stale results. */
+/** Displays the descriptors with their method and marks stale results. */
 export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const { result, status, error, excluded } = data;
   const stale = result !== null && status !== 'current';
   return (
-    <section aria-labelledby="descriptors-title" className="descriptor-panel panel">
+    <section aria-labelledby="descriptors-title" className="analysis-section descriptor-panel">
       <h2 id="descriptors-title">{t('descriptors.title')}</h2>
       {excluded > 0 && <p className="notice" role="note">{t(excluded === 1 ? 'descriptors.excludedOne' : 'descriptors.excluded', { count: formatNumber(excluded) })}</p>}
       <p className="status-message" data-state={status} role="status" aria-live="polite">
@@ -20,14 +18,17 @@ export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.
         {status === 'empty' && (excluded > 0 ? t('descriptors.noStandard') : t('descriptors.empty'))}
       </p>
       {result && (
-        <dl className={stale ? 'stale-descriptors' : undefined}>
-          <div><dt>{t('descriptors.mass')}</dt><dd>{formatNumber(result.massDa, TWO_DECIMALS)} {t('units.dalton')}</dd></div>
-          <div><dt>{t('descriptors.isoelectricPoint')}</dt><dd>{formatNumber(result.isoelectricPoint, TWO_DECIMALS)}</dd></div>
-          <div><dt>{t('descriptors.instabilityIndex')}</dt><dd>{formatNumber(result.instabilityIndex, TWO_DECIMALS)}</dd></div>
-          <div><dt>{t('descriptors.aliphaticIndex')}</dt><dd>{formatNumber(result.aliphaticIndex, TWO_DECIMALS)}</dd></div>
-          <div><dt>{t('descriptors.gravy')}</dt><dd>{formatNumber(result.gravy, THREE_DECIMALS)}</dd></div>
+        <dl className={`property-list${stale ? ' stale-descriptors' : ''}`}>
+          {DESCRIPTOR_FIELDS.map((field) => (
+            <div key={field.key} className="property">
+              <dt>{t(field.labelKey)}</dt>
+              <dd>{formatNumber(result[field.key], field.format)}{field.unitKey ? ` ${t(field.unitKey)}` : ''}<span className="descriptor-explanation">{t(field.helpKey)}</span></dd>
+            </div>
+          ))}
         </dl>
       )}
+      {result && <details className="context-help"><summary>{t('guide.methods')}</summary><ul>{DESCRIPTOR_FIELDS.map((field) => <li key={field.key}>{t(field.labelKey)} — {t(field.methodKey)}</li>)}</ul></details>}
+      <p className="field-help">{t('descriptors.scope')}</p>
     </section>
   );
 }

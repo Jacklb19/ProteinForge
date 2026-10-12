@@ -1,4 +1,5 @@
 import { translate } from '../../i18n/translate';
+import { WORKER_LOCALE } from '../../i18n/config';
 
 /** Classical Chou–Fasman (1978) propensities without structure assignment. */
 export interface ResiduePropensity {
@@ -23,7 +24,7 @@ const PARAMETERS: Readonly<Record<string, readonly [number, number, number]>> = 
 /** Returns all three propensities for each residue in a valid sequence. */
 export function calculatePropensities(sequence: string): ResiduePropensity[] {
   if (sequence.length === 0 || /[^ACDEFGHIKLMNPQRSTVWYUOBZX]/.test(sequence)) {
-    throw new RangeError(translate('es', 'errors.invalidResidues'));
+    throw new RangeError(translate(WORKER_LOCALE, 'errors.invalidResidues'));
   }
   return Array.from(sequence, (residue, index) => {
     const parameters = PARAMETERS[residue];

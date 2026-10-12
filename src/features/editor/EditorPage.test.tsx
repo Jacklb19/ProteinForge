@@ -1,13 +1,14 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditorPage } from './EditorPage';
+import { WorkspaceProviders } from '../../test/WorkspaceProviders';
 
 describe('EditorPage', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
   it('accepts typing and marks invalid characters within 100 ms', () => {
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'AC-' } });
     expect(editor).toHaveValue('AC-');
@@ -18,7 +19,7 @@ describe('EditorPage', () => {
   });
 
   it('updates positions after pasting and correcting the sequence', () => {
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'AC\n--' } });
     act(() => { vi.advanceTimersByTime(50); });
@@ -29,7 +30,7 @@ describe('EditorPage', () => {
   });
 
   it('removes a terminal asterisk when entered', () => {
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'ACX*' } });
     expect(editor).toHaveValue('ACX');

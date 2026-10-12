@@ -4,13 +4,22 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
 import { translate } from './src/i18n/translate';
+import { DEFAULT_LOCALE } from './src/i18n/config';
+import { FONT_FILES, fontUrl } from './src/theme/fonts';
 
 const tokens = readFileSync(new URL('./src/design-tokens.css', import.meta.url), 'utf8');
-const surface = tokens.match(/--color-surface:\s*([^;]+);/)?.[1]?.trim();
-if (!surface) throw new Error('The surface design token is missing.');
-const accent = tokens.match(/--color-focus:\s*([^;]+);/)?.[1]?.trim();
-const stroke = tokens.match(/--stroke-icon:\s*([^;]+);/)?.[1]?.trim();
-if (!accent || !stroke) throw new Error('The icon design tokens are missing.');
+/** First declaration of a design token, which holds the light theme value. */
+function token(name: string): string {
+  const value = tokens.match(new RegExp(`(?<![\\w-])${name}:\\s*([^;]+);`))?.[1]?.trim();
+  if (!value) throw new Error(`The design token ${name} is missing.`);
+  return value;
+}
+const surface = token('--bg-canvas');
+const accent = token('--accent-brand');
+const stroke = token('--stroke-icon');
+const fontPreloads = FONT_FILES.filter((font) => font.preload)
+  .map((font) => `<link rel="preload" href="${fontUrl(font)}" as="font" type="font/woff2" crossorigin />`)
+  .join('\n    ');
 const appIcon = readFileSync(new URL('./src/shared/app-icon.svg', import.meta.url), 'utf8')
   .replaceAll('{{surface}}', surface).replaceAll('{{accent}}', accent).replaceAll('{{stroke}}', stroke);
 
@@ -27,8 +36,10 @@ const applicationIdentity: Plugin = {
   transformIndexHtml: {
     order: 'pre',
     handler(html) {
-      return html.replaceAll('%APP_TITLE%', translate('es', 'app.title'))
-        .replaceAll('%APP_DESCRIPTION%', translate('es', 'app.description'))
+      return html.replaceAll('%APP_TITLE%', translate(DEFAULT_LOCALE, 'app.title'))
+        .replaceAll('%APP_DESCRIPTION%', translate(DEFAULT_LOCALE, 'app.description'))
+        .replaceAll('%FONT_PRELOADS%', fontPreloads)
+        .replaceAll('%APP_LANG%', DEFAULT_LOCALE)
         .replaceAll('%APP_THEME_COLOR%', surface);
     },
   },
@@ -40,10 +51,10 @@ export default defineConfig({
     registerType: 'prompt',
     injectRegister: 'script',
     manifest: {
-      name: translate('es', 'app.name'),
-      short_name: translate('es', 'app.name'),
-      description: translate('es', 'app.description'),
-      lang: 'es',
+      name: translate(DEFAULT_LOCALE, 'app.name'),
+      short_name: translate(DEFAULT_LOCALE, 'app.name'),
+      description: translate(DEFAULT_LOCALE, 'app.description'),
+      lang: DEFAULT_LOCALE,
       start_url: '/',
       display: 'standalone',
       theme_color: accent,

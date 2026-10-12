@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EditorPage } from '../editor/EditorPage';
 import { calculateDescriptors } from './descriptors';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
+import { WorkspaceProviders } from '../../test/WorkspaceProviders';
 
 class MockWorker {
   static instances: MockWorker[] = [];
@@ -38,7 +39,7 @@ afterEach(() => {
 describe('descriptors in the editor', () => {
   it('keeps prior values faded and does not calculate invalid input', () => {
     vi.stubGlobal('Worker', MockWorker);
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'ACDE' } });
     const worker = descriptorWorker();
@@ -63,7 +64,7 @@ describe('descriptors in the editor', () => {
 
   it('excludes additional residues and shows their count', () => {
     vi.stubGlobal('Worker', MockWorker);
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     fireEvent.change(screen.getByRole('textbox', { name: /secuencia de aminoácidos/i }), { target: { value: 'ACXDO' } });
     expect(requestAt(descriptorWorker(), 0).sequence).toBe('ACD');
     expect(screen.getByText(/2 residuos U, O, B, Z o X excluidos/i)).toBeInTheDocument();
@@ -71,7 +72,7 @@ describe('descriptors in the editor', () => {
 
   it('ignores a response older than the latest valid edit', () => {
     vi.stubGlobal('Worker', MockWorker);
-    render(<EditorPage />);
+    render(<EditorPage />, { wrapper: WorkspaceProviders });
     const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
     fireEvent.change(editor, { target: { value: 'ACDE' } });
     const worker = descriptorWorker();

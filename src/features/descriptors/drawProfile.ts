@@ -1,10 +1,13 @@
 import type { ChartStyle } from './profileMessages';
 import { translate } from '../../i18n/translate';
 import type { ProfilePoint, HydropathyWindow } from './profile';
+import { PROFILE_AXIS_FORMAT, PROFILE_MINIMUM_HALF_RANGE, PROFILE_REFERENCE_LINES } from './config';
+import { profileX } from './chartGeometry';
+import { WORKER_LOCALE, languageTags } from '../../i18n/config';
 
 /** Scientific reference lines accompanying the curve. */
 export function referencesForWindow(windowSize: HydropathyWindow): number[] {
-  return windowSize === 19 ? [0, 1.6] : [0];
+  return [...PROFILE_REFERENCE_LINES[windowSize]];
 }
 
 /** Draws the profile and reference lines on the canvas transferred to the worker. */
@@ -18,8 +21,9 @@ export function drawProfile(
   style: ChartStyle,
 ): void {
   const context = canvas.getContext('2d');
-  if (!context) throw new Error(translate('es', 'errors.canvasContext'));
-  const numberFormat = new Intl.NumberFormat(style.locale === 'es' ? 'es-CO' : 'en-US');
+  if (!context) throw new Error(translate(WORKER_LOCALE, 'errors.canvasContext'));
+  const numberFormat = new Intl.NumberFormat(languageTags[style.locale]);
+  const axisFormat = new Intl.NumberFormat(languageTags[style.locale], PROFILE_AXIS_FORMAT);
   canvas.width = Math.max(1, Math.round(width * scale));
   canvas.height = Math.max(1, Math.round(height * scale));
   context.setTransform(scale, 0, 0, scale, 0, 0);
@@ -28,25 +32,25 @@ export function drawProfile(
   if (points.length === 0) return;
 
   const references = referencesForWindow(windowSize);
-  let minimum = Math.min(...references, -0.5);
-  let maximum = Math.max(...references, 0.5);
+  let minimum = Math.min(...references, -PROFILE_MINIMUM_HALF_RANGE);
+  let maximum = Math.max(...references, PROFILE_MINIMUM_HALF_RANGE);
   for (const point of points) {
     if (point.value !== null) {
       minimum = Math.min(minimum, point.value);
       maximum = Math.max(maximum, point.value);
     }
   }
-  const plotWidth = Math.max(1, width - 2 * style.margin);
   const plotHeight = Math.max(1, height - 2 * style.margin);
   const first = points[0]?.position ?? 0;
   const last = points.at(-1)?.position ?? first;
-  const xFor = (position: number): number => last === first
-    ? width / 2
-    : style.margin + ((position - first) / (last - first)) * plotWidth;
+  const axis = { first, last, width, margin: style.margin };
+  const xFor = (position: number): number => profileX(position, axis);
   const yFor = (value: number): number => height - style.margin
     - ((value - minimum) / (maximum - minimum)) * plotHeight;
 
   context.font = style.font;
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
   context.fillStyle = style.text;
   context.strokeStyle = style.reference;
   context.lineWidth = style.referenceWidth;
@@ -79,7 +83,14 @@ export function drawProfile(
     context.fillStyle = style.curve;
     context.fill();
   }
+  // Vertical extremes on the left edge; first and last plotted positions under the curve.
   context.fillStyle = style.text;
-  context.fillText(numberFormat.format(first), style.margin, height - style.referenceWidth);
-  context.fillText(numberFormat.format(last), width - style.margin, height - style.referenceWidth);
+  context.textAlign = 'left';
+  context.textBaseline = 'top';
+  context.fillText(axisFormat.format(maximum), style.referenceWidth, yFor(maximum));
+  context.textBaseline = 'bottom';
+  context.fillText(axisFormat.format(minimum), style.referenceWidth, yFor(minimum));
+  context.fillText(numberFormat.format(first), xFor(first), height - style.referenceWidth);
+  context.textAlign = 'right';
+  context.fillText(numberFormat.format(last), xFor(last), height - style.referenceWidth);
 }

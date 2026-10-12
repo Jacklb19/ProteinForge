@@ -6,6 +6,8 @@ import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import { calculateProfile } from './profile';
 import { calculatePropensities } from './chouFasman';
 import type { ProfilePoint, HydropathyWindow } from './profile';
+import { WORKER_LOCALE } from '../../i18n/config';
+import { CHART_FONT, fontUrl } from '../../theme/fonts';
 
 const context = self as DedicatedWorkerGlobalScope;
 let canvas: OffscreenCanvas | null = null;
@@ -15,8 +17,8 @@ let viewport: { width: number; height: number; scale: number } | null = null;
 
 /** Font faces belong to the worker, independently from the document's CSS. */
 function initializeChartFont(): void {
-  if (typeof FontFace === 'undefined' || !('fonts' in context)) return;
-  const face = new FontFace('IBM Plex Sans', 'url(/fonts/plex-sans-regular.woff2)', { weight: '400' });
+  if (typeof FontFace === 'undefined' || !('fonts' in context) || !CHART_FONT) return;
+  const face = new FontFace(CHART_FONT.family, `url(${fontUrl(CHART_FONT)})`, { weight: String(CHART_FONT.weight) });
   void face.load().then((loaded) => {
     context.fonts.add(loaded);
     if (canvas && previousProfile && chartStyle && viewport) {
@@ -24,7 +26,7 @@ function initializeChartFont(): void {
     }
   }).catch(() => {
     // Keep calculated data available if the font cannot load or redraw.
-    console.warn(translate('es', 'errors.chartFontLoad'));
+    console.warn(translate(WORKER_LOCALE, 'errors.chartFontLoad'));
   });
 }
 
@@ -64,7 +66,7 @@ context.onmessage = (event: MessageEvent<ProfileRequest>) => {
   } catch (error) {
     const response: ProfileResponse = {
       id: request.id,
-      error: error instanceof Error ? error.message : translate('es', 'errors.profileFailed'),
+      error: error instanceof Error ? error.message : translate(WORKER_LOCALE, 'errors.profileFailed'),
     };
     context.postMessage(response);
   }

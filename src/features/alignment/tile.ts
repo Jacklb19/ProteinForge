@@ -1,5 +1,6 @@
 import blosum from './fixtures/blosum.json';
 import type { MatrixName, AlignmentMode } from './gotoh';
+import { GAP_EXTEND, GAP_OPEN } from './config';
 
 /** Boundary of the three Gotoh matrices for a tile row or column. */
 export interface Boundary {
@@ -77,10 +78,10 @@ export function calculateTile(request: TileRequest): TileResult {
         m = 0;
         origin = 3;
       }
-      const openX = (previousM[localJ] ?? -Infinity) - 10;
-      const extendX = (previousX[localJ] ?? -Infinity) - 0.5;
-      const openY = (currentM[localJ - 1] ?? -Infinity) - 10;
-      const extendY = (currentY[localJ - 1] ?? -Infinity) - 0.5;
+      const openX = (previousM[localJ] ?? -Infinity) - GAP_OPEN;
+      const extendX = (previousX[localJ] ?? -Infinity) - GAP_EXTEND;
+      const openY = (currentM[localJ - 1] ?? -Infinity) - GAP_OPEN;
+      const extendY = (currentY[localJ - 1] ?? -Infinity) - GAP_EXTEND;
       currentM[localJ] = m;
       currentX[localJ] = Math.max(openX, extendX);
       currentY[localJ] = Math.max(openY, extendY);

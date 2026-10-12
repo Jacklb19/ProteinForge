@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { chooseTheme, summaryValue } from './helpers';
 
 test('aligns with progress, supports cancellation, and displays reproducible metrics', async ({ page }) => {
   await page.goto('/alignment');
@@ -17,8 +18,9 @@ test('aligns with progress, supports cancellation, and displays reproducible met
   await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIKLMNPQRSTVWY');
   await page.getByRole('button', { name: 'Alinear' }).click();
   await expect(page.getByRole('heading', { name: 'Resultado del alineamiento' })).toBeVisible();
-  await expect(page.getByText(/Identidad: 20 de 20 columnas/)).toBeVisible();
-  await expect(page.getByText(/Similitud: 20 de 20 columnas/)).toBeVisible();
+  await expect(summaryValue(page, 'Identidad')).toHaveText('20 de 20 columnas (100%)');
+  await expect(summaryValue(page, 'Similitud')).toHaveText('20 de 20 columnas (100%)');
+  await expect(summaryValue(page, 'Huecos')).toHaveText('0 de 20 columnas (0%)');
   await expect(page.getByText(/BLOSUM62, modo Global, apertura 10, extensión 0,5, extremos gratuitos/)).toBeVisible();
   await expect(page.getByText('Columnas 1 a 20')).toBeVisible();
 });
@@ -28,7 +30,7 @@ test('alignment remains accessible at mobile and desktop widths', async ({ page 
     await page.setViewportSize({ width, height: 900 });
     for (const theme of ['light', 'dark'] as const) {
       await page.goto('/settings');
-      await page.getByRole('combobox', { name: 'Tema' }).selectOption(theme);
+      await chooseTheme(page, theme);
       await page.goto('/alignment');
       await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIKLMNPQRSTVWY'.repeat(6));
       await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIKLMNPQRSTVWY'.repeat(6));
@@ -44,7 +46,7 @@ test('alignment remains accessible at mobile and desktop widths', async ({ page 
       }
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
-      await page.screenshot({ path: `artifacts/alignment-v2-${theme}-${String(width)}.png`, fullPage: true });
+      await page.screenshot({ path: `artifacts/alignment-${theme}-${String(width)}.png`, fullPage: true });
     }
   }
 });
@@ -65,7 +67,7 @@ test('alignment empty, invalid and length limit states remain explicit', async (
       await page.getByRole('button', { name: 'Alinear' }).click();
       await expect(page.getByRole('status')).toContainText('5.000 residuos');
       await expect(page.getByRole('progressbar')).toHaveCount(0);
-      await page.screenshot({ path: `artifacts/alignment-v2-limit-${theme}-${String(width)}.png`, fullPage: true });
+      await page.screenshot({ path: `artifacts/alignment-limit-${theme}-${String(width)}.png`, fullPage: true });
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
     }

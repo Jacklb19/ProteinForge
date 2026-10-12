@@ -1,54 +1,71 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { spanish } from '../src/i18n/es';
+import { interfaceFamily, interfaceFonts } from './helpers';
+import { ROUTES } from '../src/shared/navigation';
 
 const sequence = 'MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN';
 
 for (const width of [360, 1280]) {
   for (const fallback of [false, true]) {
-    test(`editor preserves geometry at ${String(width)}px with ${fallback ? 'fallback' : 'Plex'} fonts`, async ({ page }) => {
+    test(`editor preserves geometry at ${String(width)}px with ${fallback ? 'fallback' : 'interface'} fonts`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       if (fallback) await page.route('**/*.woff2', (route) => route.abort());
       const chartWorkerReady = page.waitForEvent('worker', { predicate: (worker) => worker.url().includes('profile.worker') });
-      await page.goto('/');
+      await page.goto(ROUTES.analyze);
       await page.evaluate(() => document.fonts.ready);
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
       const input = page.getByRole('textbox', { name: /secuencia de aminoácidos/i });
       await input.fill(sequence);
-      await expect(page.getByRole('table')).toBeVisible();
-      const widths = await page.evaluate(async () => {
-        if (!document.fonts.check('400 16px "IBM Plex Sans"')) return null;
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        if (!context) throw new Error('Missing canvas context.');
+      const reader = page.getByRole('group', { name: /Secuencia numerada/ });
+      await expect(reader).toBeVisible();
+      // Interface figures are tabular through `font-variant-numeric`, as the descriptor values use them.
+      const widths = await page.evaluate(async (fonts) => {
+        const family = fonts[0]?.family ?? '';
+        if (!document.fonts.check(`400 16px "${family}"`)) return null;
         const result = [];
-        for (const weight of [400, 600, 700]) {
-          await document.fonts.load(`${String(weight)} 100px "IBM Plex Sans"`);
-          context.font = `${String(weight)} 100px "IBM Plex Sans"`;
-          result.push(Array.from('0123456789', (digit) => context.measureText(digit).width));
+        for (const { weight } of fonts) {
+          await document.fonts.load(`${String(weight)} 100px "${family}"`);
+          result.push(Array.from('0123456789', (digit) => {
+            const probe = document.createElement('span');
+            probe.style.cssText = `position:absolute;white-space:pre;font:${String(weight)} 100px "${family}";font-variant-numeric:tabular-nums`;
+            probe.textContent = digit.repeat(4);
+            document.body.append(probe);
+            const measured = probe.getBoundingClientRect().width;
+            probe.remove();
+            return measured;
+          }));
         }
         return result;
-      });
+      }, interfaceFonts);
       if (!fallback) {
         const chartWorker = await chartWorkerReady;
-        await expect.poll(() => chartWorker.evaluate(() => {
+        await expect.poll(() => chartWorker.evaluate((family) => {
           const workerFonts = (globalThis as unknown as { fonts: FontFaceSet }).fonts;
-          return [...workerFonts].some((face) => face.family.replaceAll('"', '') === 'IBM Plex Sans' && face.status === 'loaded');
-        })).toBe(true);
-        expect(await chartWorker.evaluate(() => {
+          return [...workerFonts].some((face) => face.family.replaceAll('"', '') === family && face.status === 'loaded');
+        }, interfaceFamily)).toBe(true);
+        const documentWidth = await page.evaluate(async (family) => {
+          await document.fonts.load(`400 100px "${family}"`);
+          const context = document.createElement('canvas').getContext('2d');
+          if (!context) throw new Error('Missing canvas context.');
+          context.font = `400 100px "${family}"`;
+          return context.measureText('0123456789').width;
+        }, interfaceFamily);
+        expect(await chartWorker.evaluate((family) => {
           const context = new OffscreenCanvas(1, 1).getContext('2d');
           if (!context) throw new Error('Missing worker canvas context.');
-          context.font = '400 100px "IBM Plex Sans"';
+          context.font = `400 100px "${family}"`;
           return context.measureText('0123456789').width;
-        })).toBe(600);
+        }, interfaceFamily)).toBeCloseTo(documentWidth, 2);
         expect(widths).not.toBeNull();
         for (const digits of widths ?? []) expect(Math.max(...digits) - Math.min(...digits)).toBeLessThan(0.01);
       }
       for (const theme of ['light', 'dark'] as const) {
         await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
         if (!fallback) {
-          await page.screenshot({ path: `artifacts/editor-v2-${theme}-${String(width)}.png` });
-          await page.screenshot({ path: `artifacts/editor-v2-full-${theme}-${String(width)}.png`, fullPage: true });
+          await page.screenshot({ path: `artifacts/editor-${theme}-${String(width)}.png` });
+          await page.screenshot({ path: `artifacts/editor-full-${theme}-${String(width)}.png`, fullPage: true });
         }
         await input.fill(`${sequence.repeat(12)}?`);
         await expect(input).toHaveAttribute('aria-invalid', 'true');
@@ -69,7 +86,7 @@ for (const width of [360, 1280]) {
         expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
         await input.fill(sequence);
         await expect(input).toHaveAttribute('aria-invalid', 'false');
-        await expect(page.getByRole('table')).toBeVisible();
+        await expect(reader).toBeVisible();
       }
       await page.locator('#fasta-file').setInputFiles({ name: 'entries.fasta', mimeType: 'text/plain', buffer: Buffer.from(Array.from({ length: 100 }, (_, index) => `>entry-${String(index)}\n${sequence}`).join('\n')) });
       const list = page.getByRole('listbox');
@@ -79,7 +96,7 @@ for (const width of [360, 1280]) {
       await expect(list.getByRole('option', { selected: true })).toContainText('entry-11');
       expect(await list.getByRole('option', { selected: true }).evaluate((element) => element.getBoundingClientRect().height)).toBe(44);
       await expect(input).toHaveValue(sequence);
-      if (!fallback) await page.screenshot({ path: `artifacts/editor-v2-fasta-${String(width)}.png`, fullPage: true });
+      if (!fallback) await page.screenshot({ path: `artifacts/editor-fasta-${String(width)}.png`, fullPage: true });
       await page.locator('#fasta-file').setInputFiles({ name: 'invalid.fasta', mimeType: 'text/plain', buffer: Buffer.from('missing header') });
       await expect(page.locator('.fasta-panel [role="status"]')).toContainText('Error:');
       expect(errors).toEqual([]);
@@ -89,14 +106,15 @@ for (const width of [360, 1280]) {
 
 test('editor empty and scientific warning states remain accessible', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 });
-  await page.goto('/');
-  await expect(page.getByText('Escribe una secuencia válida para iniciar el análisis.')).toBeVisible();
+  await page.goto(ROUTES.analyze);
+  await expect(page.getByRole('heading', { name: spanish['editor.emptyTitle'] })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Probar con insulina humana' })).toBeVisible();
   await page.getByRole('textbox', { name: /secuencia de aminoácidos/i }).fill('ACX');
   await expect(page.getByText(/Se necesitan al menos 9 residuos/)).toBeVisible();
   await expect(page.getByText(/1 residuo U, O, B, Z o X excluido/)).toBeVisible();
-  await page.getByRole('combobox', { name: 'Ventana de residuos' }).selectOption('19');
+  await page.getByRole('radio', { name: '19' }).check();
   await expect(page.getByText(/Se necesitan al menos 19 residuos/)).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-feedback').trim())).toBe('0ms');
-  await page.screenshot({ path: 'artifacts/editor-v2-empty-short.png', fullPage: true });
+  await page.screenshot({ path: 'artifacts/editor-empty-short.png', fullPage: true });
 });
