@@ -7,6 +7,7 @@ import { AlignmentDraftProvider } from './features/alignment/AlignmentDraftProvi
 import { SettingsPage } from './features/settings/SettingsPage';
 import { LandingPage } from './features/landing/LandingPage';
 import { WorkspacePage } from './features/workspace/WorkspacePage';
+import { ProjectProvider } from './features/projects/ProjectProvider';
 import { PrivacyPage } from './features/privacy/PrivacyPage';
 import { TermsPage } from './features/legal/TermsPage';
 import { AuthProvider } from './features/auth/AuthProvider';
@@ -164,7 +165,7 @@ export function App(): React.JSX.Element {
         <SequenceDraftProvider>
           <AlignmentDraftProvider>
             <BrowserRouter>
-              <ApplicationRoutes />
+              <ProjectProvider><ApplicationRoutes /></ProjectProvider>
             </BrowserRouter>
           </AlignmentDraftProvider>
         </SequenceDraftProvider>

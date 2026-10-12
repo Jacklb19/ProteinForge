@@ -17,11 +17,12 @@ import { PageHeading } from '../../shared/PageHeading';
 import { AnalysisGuide } from '../workspace/AnalysisGuide';
 import { DESCRIPTOR_FIELDS } from '../descriptors/config';
 import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
+import { ProjectControls } from '../projects/ProjectControls';
 
 /** Sequence input with incremental validation; results update automatically beside it. */
 export function EditorPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
-  const { text, setText } = useSequenceDraft();
+  const { text, setText, profileWindow, setProfileWindow } = useSequenceDraft();
   const alignment = useAlignmentDraft();
   const navigate = useNavigate();
   const descriptors = useDescriptors(text);
@@ -93,6 +94,7 @@ export function EditorPage(): React.JSX.Element {
           <button className="button button-primary" type="button" onClick={sendToAlignment}>{t('editor.toAlignment')}<Icon name="arrow" /></button>
         )}
       </PageHeading>
+      <ProjectControls descriptors={descriptors} />
       <AnalysisGuide hasInput={hasInput} ready={descriptors.status === 'current'} />
       <div className="analysis-layout">
         <div className="analysis-input card">
@@ -152,7 +154,7 @@ export function EditorPage(): React.JSX.Element {
           <div className="analysis-sections" hidden={!hasInput}>
             {descriptors.status === 'current' && <p className="analysis-ready" role="status"><Icon name="check" />{t('guide.resultsReady')}</p>}
             <DescriptorPanel data={descriptors} />
-            <HydropathyProfile text={text} />
+            <HydropathyProfile text={text} windowSize={profileWindow} onWindowChange={setProfileWindow} />
           </div>
         </div>
       </div>

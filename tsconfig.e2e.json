@@ -6,7 +6,7 @@
     "strict": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["node", "@playwright/test"],
+    "types": ["node", "@playwright/test", "vite/client"],
     "skipLibCheck": true
   },
   "include": ["playwright.config.ts", "e2e/**/*.ts"]

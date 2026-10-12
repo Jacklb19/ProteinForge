@@ -9,6 +9,7 @@ import { validateSequence } from '../editor/sequence';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { OrnamentalChain } from '../landing/OrnamentalChain';
 import { GETTING_STARTED_STEPS, SAMPLE_RESIDUES, SEQUENCE_PREVIEW_LENGTH, WORKSPACE_TASKS } from './config';
+import { ProjectLibrary } from '../projects/ProjectLibrary';
 
 /** A task-oriented starting point for visitors who have never used a protein workbench. */
 export function WorkspacePage(): React.JSX.Element {
@@ -71,6 +72,7 @@ export function WorkspacePage(): React.JSX.Element {
         {(alignment.first || alignment.second) && <p className="field-help">{t('workspace.comparisonDraft')} <Link className="inline-link" to={ROUTES.alignment}>{t('workspace.compareAction')}</Link></p>}
       </section>
 
+      <ProjectLibrary />
       <section className="first-steps" aria-labelledby="first-steps-title">
         <div className="sequence-explanation">
           <div className="residue-sample" aria-hidden="true">{SAMPLE_RESIDUES.map((letter, index) => <span key={index} style={{ '--i': index } as React.CSSProperties}>{letter}</span>)}</div>

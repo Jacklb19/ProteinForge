@@ -1,0 +1,14 @@
+import type { ApiErrorCode } from '../api/apiClient';
+import type { TranslationKey } from '../../i18n';
+
+export const PROJECT_ENDPOINT = '/v1/projects';
+export const MAX_PROJECT_NAME_LENGTH = 120;
+export const MAX_PROJECT_SEQUENCE_LENGTH = 100_000;
+export const PROJECT_PAGE_SIZE = 30;
+export const PROJECT_POINTER_PREFIX = 'proteinforge:last-project:';
+export const DESCRIPTOR_METHOD_VERSION = 'proteinforge-descriptors-v1';
+export const PROJECT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
+  network: 'projects.network', timeout: 'projects.timeout', cancelled: 'projects.cancelled', session: 'projects.session',
+  unavailable: 'projects.unavailable', 'invalid-response': 'projects.invalidResponse', unknown: 'projects.error',
+  conflict: 'projects.conflict', 'not-found': 'projects.notFound', validation: 'projects.validation', schema: 'projects.schema', forbidden: 'projects.forbidden',
+};

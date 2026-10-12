@@ -20,6 +20,11 @@ describe('validateSequence', () => {
     expect(validateSequence('AıC').invalidPositions).toEqual([1]);
   });
 
+  it('accepts ASCII spacing without shifting the reported position of invalid residues', () => {
+    expect(validateSequence('ac d\te!')).toEqual({ sequence: 'ACDE', invalidPositions: [6] });
+    expect(updateInvalidPositions('AC !D', 'AC E!D', [3])).toEqual([4]);
+  });
+
   it('revalidates a local edit and shifts later errors', () => {
     expect(updateInvalidPositions('A-Z', 'AC-Z', [1])).toEqual([2]);
     expect(updateInvalidPositions('AC-Z', 'ACZ', [2])).toEqual([]);

@@ -25,10 +25,12 @@ interface ReceivedProfile {
 }
 
 /** Draws the profile off the main thread, links it to the residue reader and lists its values. */
-export function HydropathyProfile({ text }: { text: string }): React.JSX.Element {
+export function HydropathyProfile({ text, windowSize: controlledWindow, onWindowChange }: { text: string; windowSize?: HydropathyWindow; onWindowChange?: (value: HydropathyWindow) => void }): React.JSX.Element {
   const { t, formatNumber, locale } = useTranslation();
   const themeRevision = useThemeRevision();
-  const [windowSize, setWindowSize] = useState<HydropathyWindow>(DEFAULT_HYDROPATHY_WINDOW);
+  const [localWindow, setLocalWindow] = useState<HydropathyWindow>(DEFAULT_HYDROPATHY_WINDOW);
+  const windowSize = controlledWindow ?? localWindow;
+  const setWindowSize = onWindowChange ?? setLocalWindow;
   const [profile, setProfile] = useState<ReceivedProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);

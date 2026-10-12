@@ -8,6 +8,7 @@ import { readApiBaseUrl } from './config';
 const ERROR_KEYS: Record<ApiError['code'], TranslationKey> = {
   network: 'connection.network', timeout: 'connection.timeout', cancelled: 'connection.loading',
   session: 'connection.session', unavailable: 'connection.unavailable', 'invalid-response': 'connection.invalid', unknown: 'connection.unavailable',
+  conflict: 'connection.unavailable', 'not-found': 'connection.unavailable', validation: 'connection.invalid', schema: 'connection.unavailable', forbidden: 'connection.session',
 };
 type ConnectionState = { key: TranslationKey; requestId?: string; identityId?: string };
 
