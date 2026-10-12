@@ -28,7 +28,7 @@ export const LANDING_TOOLS: readonly {
   { id: 'projects', icon: 'grid', titleKey: 'landing.toolProjectsTitle', textKey: 'landing.toolProjectsText', status: 'preparing' },
   { id: 'generate', icon: 'spark', titleKey: 'landing.toolGenerateTitle', textKey: 'landing.toolGenerateText', status: 'planned' },
   { id: 'structure', icon: 'cube', titleKey: 'landing.toolStructureTitle', textKey: 'landing.toolStructureText', status: 'available', path: ROUTES.library },
-  { id: 'report', icon: 'book', titleKey: 'landing.toolReportTitle', textKey: 'landing.toolReportText', status: 'planned' },
+  { id: 'report', icon: 'book', titleKey: 'landing.toolReportTitle', textKey: 'landing.toolReportText', status: 'available', path: ROUTES.analyze },
 ];
 
 /** The recorrido really happens in this order, so the steps are numbered. */

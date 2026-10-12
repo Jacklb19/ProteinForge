@@ -19,6 +19,7 @@ import { DESCRIPTOR_FIELDS } from '../descriptors/config';
 import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
 import { ProjectControls } from '../projects/ProjectControls';
 import { UNIPROT_URL } from '../library/config';
+import { ReportActions } from '../reports/ReportActions';
 import { bundledSequenceSource } from './source';
 
 /** Sequence input with incremental validation; results update automatically beside it. */
@@ -87,6 +88,7 @@ export function EditorPage(): React.JSX.Element {
     <main className="page analysis-page">
       <PageHeading titleKey="editor.title" introduction="editor.introduction">
         <Link className="button button-secondary" to={ROUTES.library}>{t('library.taskAction')}</Link>
+        <ReportActions />
         {hasInput && <button className="button button-secondary" type="button" disabled={descriptors.status !== 'current'} onClick={() => {
           if (descriptors.status !== 'current' || !descriptors.result) return;
           const methods = Object.fromEntries(DESCRIPTOR_FIELDS.map((field) => [field.key, t(field.methodKey)]));

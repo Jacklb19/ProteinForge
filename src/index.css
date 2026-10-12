@@ -1027,6 +1027,9 @@ a.tool-link:hover .tool-open .icon { transform: translateX(var(--space-2xs)); }
 .structure-canvas { position: relative; width: var(--width-full); height: var(--height-structure-viewer); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-surface); overflow: hidden; background: var(--bg-raised); }
 .structure-canvas canvas { position: absolute; inset: var(--space-none); width: var(--width-full); height: var(--width-full); touch-action: none; }
 .sequence-provenance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-lg); margin-block-end: var(--space-md); }
+.report-menu { flex-basis: var(--width-full); }
+.report-menu summary { display: list-item; width: fit-content; min-width: var(--size-touch); min-height: var(--size-touch); padding: var(--space-xs) var(--space-md); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); color: var(--text-primary); background: var(--bg-raised); font-weight: var(--font-weight-strong); cursor: pointer; }
+.report-options { display: grid; gap: var(--space-sm); padding-block: var(--space-md); }
 @keyframes soft-enter { from { opacity: 0; } to { opacity: 1; } }
 @media (min-width: 48rem) {
   .welcome-panel { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
