@@ -70,6 +70,27 @@ try {
   await page.getByRole('heading', { name: 'Resultado del alineamiento' }).waitFor();
   if (!await page.evaluate(() => crossOriginIsolated)) throw new Error('Offline navigation lost cross-origin isolation.');
   process.stdout.write('Offline navigation, alignment workers, and cross-origin isolation verified.\n');
+  await page.goto(baseURL + route('generate'));
+  await page.getByLabel('Evaluaciones por método').fill('100');
+  await page.getByRole('button', { name: 'Buscar y comparar' }).click();
+  await page.getByRole('heading', { name: 'Candidatos y comparación' }).waitFor();
+  await page.getByRole('button', { name: 'Analizar candidato' }).first().click();
+  await page.locator('.analysis-ready').waitFor();
+  await page.getByText('Exportar informe', { exact: true }).click();
+  const reportDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Informe PDF', exact: true }).click();
+  const report = await reportDownload;
+  if (await report.failure()) throw new Error('Offline PDF generation failed.');
+  // Inspect actual precache entries; the large online viewer must stay demand-loaded.
+  const viewerCached = await page.evaluate(async () => {
+    for (const name of await caches.keys()) {
+      const cache = await caches.open(name);
+      if ((await cache.keys()).some((request) => request.url.includes('molstarRuntime-'))) return true;
+    }
+    return false;
+  });
+  if (viewerCached) throw new Error('The online Mol* engine was unexpectedly precached.');
+  process.stdout.write('Offline candidate Worker and PDF export verified; Mol* engine excluded from precache.\n');
 } finally {
   await browser.close();
   await new Promise((resolve, reject) => { server.httpServer.close((error) => error ? reject(error) : resolve()); });

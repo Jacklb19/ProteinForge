@@ -26,7 +26,7 @@ export const LANDING_TOOLS: readonly {
   { id: 'analyze', icon: 'sequence', titleKey: 'landing.toolAnalyzeTitle', textKey: 'landing.toolAnalyzeText', status: 'available', path: ROUTES.analyze },
   { id: 'align', icon: 'alignment', titleKey: 'landing.toolAlignTitle', textKey: 'landing.toolAlignText', status: 'available', path: ROUTES.alignment },
   { id: 'projects', icon: 'grid', titleKey: 'landing.toolProjectsTitle', textKey: 'landing.toolProjectsText', status: 'preparing' },
-  { id: 'generate', icon: 'spark', titleKey: 'landing.toolGenerateTitle', textKey: 'landing.toolGenerateText', status: 'planned' },
+  { id: 'generate', icon: 'spark', titleKey: 'landing.toolGenerateTitle', textKey: 'landing.toolGenerateText', status: 'available', path: ROUTES.generate },
   { id: 'structure', icon: 'cube', titleKey: 'landing.toolStructureTitle', textKey: 'landing.toolStructureText', status: 'available', path: ROUTES.library },
   { id: 'report', icon: 'book', titleKey: 'landing.toolReportTitle', textKey: 'landing.toolReportText', status: 'available', path: ROUTES.analyze },
 ];

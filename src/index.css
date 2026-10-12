@@ -1061,3 +1061,25 @@ a.tool-link:hover .tool-open .icon { transform: translateX(var(--space-2xs)); }
   .ornamental-scene { transform: none; transition: none; }
   .analysis-guide li[data-complete='true'] .guide-number .icon { animation: none; }
 }
+.generator-page { max-width: var(--width-content); }
+.generator-form, .generator-results, .generator-method { margin-top: var(--space-lg); }
+.generator-form { padding: var(--space-lg); display: grid; gap: var(--space-md); }
+.generator-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md); }
+.generator-targets, .candidate-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); }
+.generator-targets fieldset { min-width: 0; border: 0; border-top: 1px solid var(--border-subtle); padding: var(--space-md) 0; }
+.generator-targets legend { padding: 0 var(--space-xs) 0 0; font-weight: var(--font-weight-strong); }
+.generator-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-sm); }
+.generator-targets .checkbox-option { display: flex; align-items: center; gap: var(--space-xs); min-height: 44px; margin-bottom: var(--space-sm); }
+.generator-progress { display: grid; gap: var(--space-xs); }
+.generator-progress progress { width: 100%; accent-color: var(--accent-brand); }
+.candidate-list { list-style: none; padding: 0; }
+.candidate-list li { padding: var(--space-md) 0; border-top: 1px solid var(--border-subtle); }
+.candidate-sequence { display: block; overflow-wrap: anywhere; font-family: var(--font-sequence); }
+.candidate-list .section-header { align-items: center; }
+.candidate-list p { color: var(--text-secondary); font-size: var(--font-size-small); }
+.generator-results > p, .generator-results > .hero-actions, .generator-method > p { margin-block: var(--space-md); }
+.generator-table { overflow-x: auto; margin-block: var(--space-md); }
+.generator-table table { width: 100%; border-collapse: collapse; }
+.generator-table caption { text-align: start; font-weight: var(--font-weight-strong); padding-block: var(--space-sm); }
+.generator-table th, .generator-table td { text-align: start; padding: var(--space-sm); border-bottom: 1px solid var(--border-subtle); }
+@media (max-width: 640px) { .generator-inputs, .generator-targets, .candidate-columns { grid-template-columns: 1fr; } }

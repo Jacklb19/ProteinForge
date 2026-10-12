@@ -9,6 +9,8 @@ import { LandingPage } from './features/landing/LandingPage';
 import { WorkspacePage } from './features/workspace/WorkspacePage';
 import { ProjectProvider } from './features/projects/ProjectProvider';
 import { LibraryPage } from './features/library/LibraryPage';
+import { GeneratorPage } from './features/generator/GeneratorPage';
+import { GeneratorProvider } from './features/generator/GeneratorProvider';
 import { PrivacyPage } from './features/privacy/PrivacyPage';
 import { TermsPage } from './features/legal/TermsPage';
 import { AuthProvider } from './features/auth/AuthProvider';
@@ -147,6 +149,7 @@ function ApplicationRoutes(): React.JSX.Element {
           <Route path={ROUTES.alignment} element={<AlignmentPage />} />
           <Route path={ROUTES.settings} element={<SettingsPage />} />
           <Route path={ROUTES.library} element={<LibraryPage />} />
+          <Route path={ROUTES.generate} element={<GeneratorPage />} />
           <Route path={ROUTES.signIn} element={<SignInPage />} />
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />
@@ -167,7 +170,7 @@ export function App(): React.JSX.Element {
         <SequenceDraftProvider>
           <AlignmentDraftProvider>
             <BrowserRouter>
-              <ProjectProvider><ApplicationRoutes /></ProjectProvider>
+              <ProjectProvider><GeneratorProvider><ApplicationRoutes /></GeneratorProvider></ProjectProvider>
             </BrowserRouter>
           </AlignmentDraftProvider>
         </SequenceDraftProvider>
