@@ -1,6 +1,6 @@
 # ProteinForge — frontend
 
-Banco de trabajo académico para analizar secuencias proteicas, comparar alineamientos y explorar candidatos bajo condiciones definidas. Web pública, inicio guiado de la app, editor, FASTA, descriptores, perfil, temas, alineamiento Rust/WASM, CSV de propiedades y flujos de cuenta están implementados. Catálogo, UniProt, visor 3D, generación, predicción externa, proyectos e informes PDF siguen pendientes.
+Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, visor experimental Mol*, informes locales PDF/JSON/CSV y búsqueda reproducible de candidatos. CRUD por propietario implementado localmente; requiere activar migraciones/publicar API. Predicción, interpretación, dominios/ensamblado y selección 3D sincronizada pendientes. [Estado y evidencia](docs/plan-desarrollo.md).
 
 ## Repositorios y carpetas
 
@@ -21,7 +21,7 @@ npm ci
 npm run dev
 ```
 
-Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas actuales: `/` (web pública), `/app` (Mi espacio), `/analyze`, `/alignment`, `/settings`, `/sign-in`, `/sign-up`, `/recover` y `/privacy`; se definen en `src/shared/navigation.ts`. El archivo `.env.example` enumera variables públicas sin valores; con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se activan acceso, registro y recuperación contra Supabase Auth. No se incluye ningún secreto en el cliente.
+Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas en `src/shared/navigation.ts`: Inicio/Mi espacio/Analizar/Alinear/Biblioteca/Candidatos/Ajustes, identidad y páginas legales. `.env.example` enumera variables públicas; Auth requiere URL/clave pública y proyectos/UniProt requieren VITE_API_BASE_URL. Sin secretos del servidor en cliente. [Pantallas](docs/pantallas.md), [proyectos](docs/projects.md), [referencias](docs/references.md), [informes](docs/reports.md), [candidatos](docs/candidates.md).
 
 ## Verificación
 

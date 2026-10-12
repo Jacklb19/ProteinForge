@@ -1,88 +1,26 @@
-# ProteinForge: estado y plan de desarrollo
+# Estado y siguiente trabajo
 
-Revisión actualizada el 12 de octubre de 2026. Basada en los dos repositorios locales en `dev`, sus reglas, documentación vigente y código. Frontend publicado en https://protein-forge.vercel.app/ y backend en https://protein-back.vercel.app/. Se comprobaron en lectura health/CORS remotos, Auth público y disponibilidad del esquema público de Supabase; no se cambió configuración remota. El progreso histórico conserva decisiones anteriores; esta página resume el estado actual.
+Actualizado el 12 oct 2026 tras la entrega autónoma. Estado local en dev; estos cambios **no están publicados**. Sitios previamente publicados: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/). Sin push, merge, despliegue ni cambio remoto.
 
-## El producto que estamos construyendo
-
-Una web pública explica qué es ProteinForge, para quién sirve y cómo se usa. Tiene una entrada a la app sin cuenta, registro e inicio de sesión. El espacio de trabajo reúne herramientas y, cuando esté implementada la persistencia, proyectos personales. La apariencia y los estados deben ser coherentes en todo el recorrido, en móvil y escritorio, con temas claro y oscuro.
-
-ProteinForge es un proyecto académico de exploración de secuencias. Los descriptores no demuestran función o plegamiento. La cadena de la portada es ornamental; la hélice es una referencia geométrica. Las estructuras experimentales y las predicciones deben estar etiquetadas y tener procedencia.
-
-## Qué hace hoy
-
-| Área | Comportamiento existente | Límite real |
+| Bloque | Implementación/evidencia | Límite vigente |
 |---|---|---|
-| Web pública | Presentación, explicación del producto, recorrido, criterio científico, acceso a las herramientas, registro e inicio de sesión; /privacy y /terms con contacto, enlazadas desde el inicio | Publicación de las últimas páginas por confirmar; capacidades futuras identificadas como tales |
-| Inicio de la app | `/app`: bienvenida, ejemplo guiado, análisis/comparación, explicación de secuencias y retorno al borrador | Usa los cálculos reales; no simula proyectos guardados |
-| Secuencia y FASTA | Edición, validación por posición, importación en Worker, lista virtualizada, ejemplo P01308 | FASTA hasta 5 MB; U/O/B/Z/X con avisos y tratamiento explícito |
-| Análisis | Masa, pI, inestabilidad, índice alifático y GRAVY en Worker | No es validación biológica ni predicción de estructura |
-| Perfil | Kyte–Doolittle con ventanas 9/19, lector sincronizado, tabla por residuo y propensiones clásicas | No inventa extremos sin ventana completa; Chou–Fasman no es predicción 3D |
-| Alineamiento | Global/local, Gotoh, BLOSUM45/62/80, WASM, resumen, trazas, progreso y cancelación | Hasta 5.000 residuos por entrada; rendimiento documentado para el equipo local |
-| Borradores | Secuencia y alineamiento sobreviven al cambio de herramienta durante la visita | Se descartan al recargar; todavía no son proyectos guardados |
-| Preferencias y PWA | Tema, preferencias locales y recursos precargados para trabajo sin conexión | Inglés completo y sincronización pendientes |
-| Cuenta | Registro, correo/contraseña, recuperación, cambio de contraseña, sesión/refresco, cierre y redirección Google | Configuración pública y Auth accesibles; usuario configura Gmail SMTP y Google. El último estado leído tenía Google deshabilitado; no asumir que sigue así. Sesión válida y correos pendientes de verificación |
-| API | FastAPI: `GET /v1/health`, `GET /v1/me`, validación de identidad mediante Supabase Auth, CORS, errores y correlación | `.env` automático, health/CORS remotos comprobados y rechazo de token inválido contra Supabase. Falta sesión válida y CRUD de proyectos |
-| Exportación | CSV local con secuencia, valores completos, exclusiones y métodos | Solo resultado vigente; PDF, perfil/alineamiento e informe guardado pendientes |
-| Base de datos | Migración inicial para perfiles, proyectos, análisis, alineamientos y caché, con políticas RLS | La API pública remota no encuentra las cinco tablas (PGRST205). Auditoría estática existente; falta prueba RLS en PostgreSQL y autorización de migración |
+| Experiencia | Jerarquía pública/banco, navegación, acciones, propiedades/formularios/Ajustes, estados y movimiento reducido refinados | Chromium local; revisión externa 21st bloqueada por aprobación automática |
+| Proyectos | CRUD API/frontend, JWT/RLS propietario, snapshots, microsegundos, 409/copia, reanudación/borrado deliberado | Migraciones/publicación y sesión real pendientes |
+| Seguridad SQL | Seis pruebas PostgreSQL 18 temporal: dos propietarios, anónimo, transferencia, cascada, rollback y carrera con un éxito/un conflicto | Auth.uid emulado; Supabase/PostgREST real pendiente |
+| Datos | Tres referencias completas, origen exacto, UniProt autenticado/acotado, consulta pública real P01308 | Dominios/ensamblado y gateway con JWT real pendientes |
+| Estructura | Mol*/BinaryCIF real 1TRZ, cámara/errores/pausa y cobertura anotada | Sin SIFTS/selección sincronizada ni predicción; necesita red/WebGL |
+| Informes | Worker PDF/JSON/perfil/alineamiento CSV, métodos/hash/valores crudos; PDF renderizado | Sin PDF etiquetado ni subida/registro |
+| RF17 | Worker reproducible, longitud/masa/GRAVY, referencia igual presupuesto, diversidad y transferencia/JSON | Heurística académica; ejecuciones en memoria, sin garantía biológica/óptimo |
+| PWA | Recursos/WASM/generador/PDF offline comprobados; Mol* excluido del precache | Proyectos/UniProt/coordenadas requieren red; no sincronización diferida |
+| Cuenta | REST Auth/recuperación/refresco/Google por redirección existentes | Google/SMTP y sesión válida actuales sin verificar; lectura Supabase bloqueada por aprobación automática |
+| RF18/asistente | Propuesta concreta con consentimiento/validación/cache en [candidatos](candidates.md) | Proveedor/límites/retención/contrato pendientes; sin envío privado habilitado |
 
-La app puede analizar, comparar y descargar propiedades sin iniciar sesión. Crear una cuenta todavía no habilita guardado, informes PDF ni herramientas científicas pendientes. Ambos `.env` locales están completos y apuntan al mismo Supabase; se comprobó su coherencia sin mostrar valores ni usar claves de administrador. API local en 127.0.0.1:8000, frontend en 127.0.0.1:5173 y origen CORS coinciden.
+## Prioridad siguiente
 
-## Orden para completar el sistema
+1. Activar persistencia **solo con autorización externa**: [pasos backend](../../backend/docs/project-persistence.md). Comprobar propietarios A/B con sesiones Supabase reales, CRUD/409/borrado. El usuario decide publicación de ambos repositorios.
+2. Comprobar Google/SMTP mediante configuración autorizada y cuenta de prueba real; health/CORS no acredita sesión ni correo. [Google](google-oauth-publicacion.md), [Supabase](conectar-supabase.md), [Vercel](despliegue-vercel.md).
+3. RF18 vertical: verificar proveedor vigente, concretar consentimiento/retención/cache privada, validar PDB asociado y reutilizar visor como predicha, fixture público de respaldo y errores explícitos. La respuesta histórica ESM Atlas no garantiza el servicio actual.
+4. Dominios InterPro/Pfam/ensamblado, SIFTS, interpretación separada con proveedor/retención comprobados.
+5. Inglés/TOTP/PDF etiquetado/historial de generaciones/sincronización definida y auditoría de rendimiento/otros navegadores para demo.
 
-Este orden reduce trabajo que después habría que rehacer. Cada bloque debe producir un recorrido utilizable y comprobado; no depende de un número de sprint.
-
-| Orden | Entregable | Trabajo de desarrollo | Criterio de terminado |
-|---|---|---|---|
-| 1 | Experiencia pública y app coherente | Aplicar la dirección Figma aprobada al marco, presentación, análisis, alineamiento, ajustes y cuenta; detalles discretos y adaptación móvil | Entrar desde Inicio, usar ambas herramientas y volver; registro/acceso visibles; teclado, contraste, temas y estados reales comprobados |
-| 2 | Cuenta real y conexión a la API | Cliente para los contratos existentes, estados de desconexión/configuración y validación real de la sesión; pruebas de registro, confirmación, recuperación y Google | Una cuenta de prueba puede completar los recorridos y la API reconoce su identidad, sin exponer secretos |
-| 3 | Proyectos personales | Acordar payloads de los endpoints previstos, implementar CRUD con propiedad, concurrencia optimista y RLS; integrar listado, apertura, guardado y renombrado | Guardar un análisis, recargar y retomarlo; otro usuario no puede leerlo ni modificarlo; conflicto 409 visible y recuperable |
-| 4 | Datos y estructura experimental | Catálogo trazable de fragmentos, consulta UniProt, Mol* bajo demanda, BinaryCIF RCSB y mapeo de residuos | Encontrar/importar una referencia y ver una estructura experimental, con cobertura, procedencia y selección sincronizada |
-| 5 | Informes reproducibles | CSV y PDF local con secuencia autorizada, métodos, parámetros, resultados y referencias; almacenamiento según contrato | El resultado exportado corresponde al proyecto y permite repetir el cálculo |
-| 6 | Generación RF-17 | Definir condiciones admitidas, estrategia, semilla, presupuesto y límites; implementar búsqueda en Worker, cancelación y comparación frente a referencia aleatoria | Experimento reproducible con candidatos y condiciones evaluadas, sin promesas de actividad biológica |
-| 7 | Predicción RF-18 | Elegir y comprobar proveedor; definir payload, tamaño, consentimiento, caché, procedencia y fallos; reutilizar el visor | Una solicitud deliberada muestra una predicción validada; un fallo externo queda explícito y no genera coordenadas falsas |
-| 8 | Interpretación y cierre | Asistente limitado a resultados calculados, cuotas/retención, inglés, TOTP opcional, sincronización y pruebas de rendimiento/navegadores | Demo de principio a fin con evidencia, documentación y límites de proveedor conocidos |
-
-Los contratos de proyectos están previstos, pero sus payloads concretos requieren revisión antes de implementarlos. RF-17 y RF-18 tienen alcance aprobado y decisiones científicas pendientes. Las pantallas no deben anunciar esas capacidades como operativas antes de cumplir sus criterios.
-
-Autorización posterior del usuario para la próxima entrega autónoma: priorizar el refinamiento visual de todas las pantallas y continuar con funcionalidad; resolver decisiones técnicas rutinarias, incluidos payloads compatibles con el esquema existente, documentándolas y probándolas sin esperar respuesta. No autoriza cambios remotos, costos ni promesas científicas. El relevo ejecutable está en [prompt-siguiente-entrega.md](prompt-siguiente-entrega.md).
-
-## Qué necesitas aportar tú
-
-### Para avanzar ahora
-
-1. **Revisar los recorridos al recibir cada entregable.** El objetivo vigente es desarrollar el sistema completo. Organizaré las capacidades en el orden anterior, sin exigir fechas, sprints ni una selección reducida del alcance. Tu revisión sirve para ajustar el producto mientras avanzamos.
-2. **Probar una cuenta real desde la app.** La configuración de ambos repositorios ya está completa y comprobada. Entrar con una cuenta de prueba, o registrarse y confirmar el correo; después revisar Ajustes para verificar `/v1/me`. Las claves de servidor nunca van en variables `VITE_`; no enviar contraseñas por el chat.
-3. **Confirmar que es una base de desarrollo antes de aplicar migraciones.** La API pública no encuentra las cinco tablas previstas; esto no descarta datos en esquemas privados. Primero se probará RLS en una base local; aplicar migraciones remotas requiere tu autorización.
-4. **Definir las URLs de desarrollo y de la demo.** Supabase necesita Site URL y redirecciones admitidas para acceso/recuperación; el backend necesita los orígenes del frontend en CORS. Consulta [redirecciones oficiales de Supabase](https://supabase.com/docs/guides/auth/redirect-urls).
-5. **Elegir cómo se probarán los correos y Google.** Para registro abierto hay que resolver la entrega de confirmación y recuperación: el SMTP incluido de Supabase es para pruebas y limita los destinatarios autorizados, por lo que no se debe suponer que enviará a cualquier visitante. Ver [SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Google requiere habilitar el proveedor y configurar sus credenciales/redirecciones; ver [guía oficial](https://supabase.com/docs/guides/auth/social-login/auth-google). Se conserva el requisito de costo cero y sin tarjeta al elegir servicios.
-
-### Antes de las capacidades científicas nuevas
-
-6. **Concretar RF-17 conmigo:** qué propiedades se pueden restringir, si se parte de una secuencia o se genera desde cero, qué debe conservarse y qué tamaño/presupuesto acepta la demo. No se han elegido valores por ti.
-7. **Concretar RF-18:** proveedor aceptado, consentimiento, tamaño de secuencia, condiciones de uso y si se conservarán resultados. Una respuesta pasada de ESM Atlas no garantiza disponibilidad actual.
-8. **Aportar una demo representativa:** secuencias de referencia públicas, un caso de alineamiento y, cuando exista el visor, una estructura experimental identificada. No necesitamos datos privados para verificar el producto.
-
-### Para publicar
-
-9. **Autorizar el despliegue cuando el resultado local esté revisado.** Son dos repositorios y dos proyectos de despliegue independientes. Confirmaremos la versión de Python soportada antes de publicar: 3.14 es el objetivo local aprobado y las pruebas previas usan 3.13. Las versiones soportadas se consultan en la [documentación de Vercel](https://vercel.com/docs/functions/runtimes/python), sin cambiar la arquitectura por suposición.
-
-## Punto de conexión con Supabase
-
-El inicio guiado, las explicaciones, el CSV y el cliente health/me están preparados. Supabase responde con la configuración existente, health/CORS funcionan y un token inválido se rechaza mediante el proveedor real. Falta completar un acceso válido y verificar `/v1/me`. Sigue la [guía de conexión](conectar-supabase.md). No hace falta una clave de administrador para verificar identidad; esta conexión no implementa CRUD ni certifica las políticas RLS.
-## Qué puedo continuar sin esperar servicios remotos
-
-- Implementar y verificar la interfaz completa de las capacidades existentes.
-- Mantener el cliente health/me ya implementado y comprobado con respuestas simuladas y health local real.
-- Proponer payloads de proyectos sobre el esquema existente y preparar su verificación local.
-- Trabajar en exportación local y componentes del visor, una vez delimitado su entregable.
-- Mantener documentación, datos de referencia y pruebas reproducibles.
-
-No se necesitan pagos, nuevas ramas, pushes, merges ni despliegues para completar estas tareas locales. La siguiente capacidad funcional prioritaria es **guardar y retomar proyectos propios**: convierte el banco de trabajo en una experiencia persistente y da una base a informes, generación y predicción.
-
-## Evidencia y límites
-
-El detalle de comprobaciones y cambios está en el progreso local de cada repositorio. Las pruebas unitarias de cuenta y API emplean proveedores simulados; además se comprobaron Auth público y rechazo de token inválido contra Supabase real el 12 de octubre. No se ha probado una sesión válida; las pruebas RLS actuales son estáticas. Chrome local no certifica Firefox/Edge/Safari, lectores de pantalla ni CI remoto. Cada entregable añadirá su evidencia antes de declararse completo.
-
-La entrega actual verificó lint, tipos, build y PWA. Los 156 casos unitarios y 38 E2E tienen pases registrados en batería y repeticiones enfocadas; la última comprobación de Auth/API/CSV pasó 28/28 y la matriz final de bienvenida 6/6. La conexión health/CORS se comprobó contra FastAPI local con identidad deliberadamente sin configurar. Ver progreso para los selectores corregidos y límites de la evidencia.
-
-La entrega de páginas legales posterior verificó 156/156 pruebas unitarias, ocho E2E de rutas públicas en 360/1280 y ambos temas, lint/tipos/build/PWA; backend tiene 14/14 pruebas locales registradas. Health remoto identity=true, CORS exacto y me sin sesión 401 comprobados. No certificar sesión real, Google/SMTP ni RLS PostgreSQL a partir de esos resultados.
+Autorización vigente: decisiones técnicas rutinarias revisables dentro del stack y costo cero. Conservada `.env` sin divulgar valores; nunca service_role. No se habilitan servicios sin condiciones verificables ni se reemplaza consentimiento por una aprobación de desarrollo.
