@@ -1,6 +1,6 @@
 # ProteinForge: estado y plan de desarrollo
 
-Revisión del 11 de octubre de 2026. Basada en los dos repositorios locales en `dev`, sus reglas, documentación vigente y código. El progreso histórico conserva decisiones anteriores; esta página resume el estado actual. Los despliegues y la configuración remota no se han inspeccionado.
+Revisión actualizada el 12 de octubre de 2026. Basada en los dos repositorios locales en `dev`, sus reglas, documentación vigente y código. Frontend publicado en https://protein-forge.vercel.app/ y backend en https://protein-back.vercel.app/. Se comprobaron en lectura health/CORS remotos, Auth público y disponibilidad del esquema público de Supabase; no se cambió configuración remota. El progreso histórico conserva decisiones anteriores; esta página resume el estado actual.
 
 ## El producto que estamos construyendo
 
@@ -12,7 +12,7 @@ ProteinForge es un proyecto académico de exploración de secuencias. Los descri
 
 | Área | Comportamiento existente | Límite real |
 |---|---|---|
-| Web pública | Presentación, explicación del producto, recorrido, criterio científico, acceso a las herramientas, registro e inicio de sesión | Las capacidades futuras se identifican como tales |
+| Web pública | Presentación, explicación del producto, recorrido, criterio científico, acceso a las herramientas, registro e inicio de sesión; /privacy y /terms con contacto, enlazadas desde el inicio | Publicación de las últimas páginas por confirmar; capacidades futuras identificadas como tales |
 | Inicio de la app | `/app`: bienvenida, ejemplo guiado, análisis/comparación, explicación de secuencias y retorno al borrador | Usa los cálculos reales; no simula proyectos guardados |
 | Secuencia y FASTA | Edición, validación por posición, importación en Worker, lista virtualizada, ejemplo P01308 | FASTA hasta 5 MB; U/O/B/Z/X con avisos y tratamiento explícito |
 | Análisis | Masa, pI, inestabilidad, índice alifático y GRAVY en Worker | No es validación biológica ni predicción de estructura |
@@ -20,12 +20,12 @@ ProteinForge es un proyecto académico de exploración de secuencias. Los descri
 | Alineamiento | Global/local, Gotoh, BLOSUM45/62/80, WASM, resumen, trazas, progreso y cancelación | Hasta 5.000 residuos por entrada; rendimiento documentado para el equipo local |
 | Borradores | Secuencia y alineamiento sobreviven al cambio de herramienta durante la visita | Se descartan al recargar; todavía no son proyectos guardados |
 | Preferencias y PWA | Tema, preferencias locales y recursos precargados para trabajo sin conexión | Inglés completo y sincronización pendientes |
-| Cuenta | Registro, correo/contraseña, recuperación, cambio de contraseña, sesión/refresco, cierre y redirección Google | Requiere configuración pública del frontend; verificado con proveedor simulado, sin certificación de cuentas remotas |
-| API | FastAPI: `GET /v1/health`, `GET /v1/me`, validación de identidad mediante Supabase Auth, CORS, errores y correlación | Cliente frontend health/me implementado en Ajustes; health local real comprobado e identidad remota pendiente; no hay CRUD de proyectos |
+| Cuenta | Registro, correo/contraseña, recuperación, cambio de contraseña, sesión/refresco, cierre y redirección Google | Configuración pública y Auth accesibles; usuario configura Gmail SMTP y Google. El último estado leído tenía Google deshabilitado; no asumir que sigue así. Sesión válida y correos pendientes de verificación |
+| API | FastAPI: `GET /v1/health`, `GET /v1/me`, validación de identidad mediante Supabase Auth, CORS, errores y correlación | `.env` automático, health/CORS remotos comprobados y rechazo de token inválido contra Supabase. Falta sesión válida y CRUD de proyectos |
 | Exportación | CSV local con secuencia, valores completos, exclusiones y métodos | Solo resultado vigente; PDF, perfil/alineamiento e informe guardado pendientes |
-| Base de datos | Migración inicial para perfiles, proyectos, análisis, alineamientos y caché, con políticas RLS | Auditoría estática existente; no sustituye probar las políticas en PostgreSQL |
+| Base de datos | Migración inicial para perfiles, proyectos, análisis, alineamientos y caché, con políticas RLS | La API pública remota no encuentra las cinco tablas (PGRST205). Auditoría estática existente; falta prueba RLS en PostgreSQL y autorización de migración |
 
-La app puede analizar, comparar y descargar propiedades sin iniciar sesión. Crear una cuenta todavía no habilita guardado, informes PDF ni herramientas científicas pendientes. El frontend tiene `.env.example`; no se encontró un archivo `.env` local. El backend sí tiene un archivo local de configuración; no se comprobó su contenido ni su conexión remota.
+La app puede analizar, comparar y descargar propiedades sin iniciar sesión. Crear una cuenta todavía no habilita guardado, informes PDF ni herramientas científicas pendientes. Ambos `.env` locales están completos y apuntan al mismo Supabase; se comprobó su coherencia sin mostrar valores ni usar claves de administrador. API local en 127.0.0.1:8000, frontend en 127.0.0.1:5173 y origen CORS coinciden.
 
 ## Orden para completar el sistema
 
@@ -44,13 +44,15 @@ Este orden reduce trabajo que después habría que rehacer. Cada bloque debe pro
 
 Los contratos de proyectos están previstos, pero sus payloads concretos requieren revisión antes de implementarlos. RF-17 y RF-18 tienen alcance aprobado y decisiones científicas pendientes. Las pantallas no deben anunciar esas capacidades como operativas antes de cumplir sus criterios.
 
+Autorización posterior del usuario para la próxima entrega autónoma: priorizar el refinamiento visual de todas las pantallas y continuar con funcionalidad; resolver decisiones técnicas rutinarias, incluidos payloads compatibles con el esquema existente, documentándolas y probándolas sin esperar respuesta. No autoriza cambios remotos, costos ni promesas científicas. El relevo ejecutable está en [prompt-siguiente-entrega.md](prompt-siguiente-entrega.md).
+
 ## Qué necesitas aportar tú
 
 ### Para avanzar ahora
 
 1. **Revisar los recorridos al recibir cada entregable.** El objetivo vigente es desarrollar el sistema completo. Organizaré las capacidades en el orden anterior, sin exigir fechas, sprints ni una selección reducida del alcance. Tu revisión sirve para ajustar el producto mientras avanzamos.
-2. **Preparar la configuración pública del frontend en tu equipo.** Desde `.env.example`, completar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. `VITE_API_BASE_URL` ya habilita health/me en Ajustes. Las claves de servidor nunca van en variables `VITE_`. No hace falta pegar secretos en el chat.
-3. **Identificar el proyecto Supabase de desarrollo y sus responsables.** El backend ya tiene configuración local, pero falta comprobarla deliberadamente. Confirmar si la migración inicial está aplicada y si la base tiene datos que deban conservarse. Primero se probará RLS en una base local; aplicar migraciones remotas requiere tu autorización.
+2. **Probar una cuenta real desde la app.** La configuración de ambos repositorios ya está completa y comprobada. Entrar con una cuenta de prueba, o registrarse y confirmar el correo; después revisar Ajustes para verificar `/v1/me`. Las claves de servidor nunca van en variables `VITE_`; no enviar contraseñas por el chat.
+3. **Confirmar que es una base de desarrollo antes de aplicar migraciones.** La API pública no encuentra las cinco tablas previstas; esto no descarta datos en esquemas privados. Primero se probará RLS en una base local; aplicar migraciones remotas requiere tu autorización.
 4. **Definir las URLs de desarrollo y de la demo.** Supabase necesita Site URL y redirecciones admitidas para acceso/recuperación; el backend necesita los orígenes del frontend en CORS. Consulta [redirecciones oficiales de Supabase](https://supabase.com/docs/guides/auth/redirect-urls).
 5. **Elegir cómo se probarán los correos y Google.** Para registro abierto hay que resolver la entrega de confirmación y recuperación: el SMTP incluido de Supabase es para pruebas y limita los destinatarios autorizados, por lo que no se debe suponer que enviará a cualquier visitante. Ver [SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Google requiere habilitar el proveedor y configurar sus credenciales/redirecciones; ver [guía oficial](https://supabase.com/docs/guides/auth/social-login/auth-google). Se conserva el requisito de costo cero y sin tarjeta al elegir servicios.
 
@@ -66,7 +68,7 @@ Los contratos de proyectos están previstos, pero sus payloads concretos requier
 
 ## Punto de conexión con Supabase
 
-El inicio guiado, las explicaciones, el CSV y el cliente health/me están preparados. La siguiente comprobación real necesita el proyecto de desarrollo y sus valores públicos. Sigue la [guía de conexión](conectar-supabase.md). No hace falta una clave de administrador para verificar identidad; esta conexión no implementa CRUD ni certifica las políticas RLS.
+El inicio guiado, las explicaciones, el CSV y el cliente health/me están preparados. Supabase responde con la configuración existente, health/CORS funcionan y un token inválido se rechaza mediante el proveedor real. Falta completar un acceso válido y verificar `/v1/me`. Sigue la [guía de conexión](conectar-supabase.md). No hace falta una clave de administrador para verificar identidad; esta conexión no implementa CRUD ni certifica las políticas RLS.
 ## Qué puedo continuar sin esperar servicios remotos
 
 - Implementar y verificar la interfaz completa de las capacidades existentes.
@@ -79,6 +81,8 @@ No se necesitan pagos, nuevas ramas, pushes, merges ni despliegues para completa
 
 ## Evidencia y límites
 
-El detalle de comprobaciones y cambios está en el progreso local de cada repositorio. Las pruebas de cuenta y API emplean proveedores simulados; las pruebas RLS actuales son estáticas. Chrome local no certifica Firefox/Edge/Safari, lectores de pantalla, servicios externos ni CI remoto. Cada entregable añadirá su evidencia antes de declararse completo.
+El detalle de comprobaciones y cambios está en el progreso local de cada repositorio. Las pruebas unitarias de cuenta y API emplean proveedores simulados; además se comprobaron Auth público y rechazo de token inválido contra Supabase real el 12 de octubre. No se ha probado una sesión válida; las pruebas RLS actuales son estáticas. Chrome local no certifica Firefox/Edge/Safari, lectores de pantalla ni CI remoto. Cada entregable añadirá su evidencia antes de declararse completo.
 
 La entrega actual verificó lint, tipos, build y PWA. Los 156 casos unitarios y 38 E2E tienen pases registrados en batería y repeticiones enfocadas; la última comprobación de Auth/API/CSV pasó 28/28 y la matriz final de bienvenida 6/6. La conexión health/CORS se comprobó contra FastAPI local con identidad deliberadamente sin configurar. Ver progreso para los selectores corregidos y límites de la evidencia.
+
+La entrega de páginas legales posterior verificó 156/156 pruebas unitarias, ocho E2E de rutas públicas en 360/1280 y ambos temas, lint/tipos/build/PWA; backend tiene 14/14 pruebas locales registradas. Health remoto identity=true, CORS exacto y me sin sesión 401 comprobados. No certificar sesión real, Google/SMTP ni RLS PostgreSQL a partir de esos resultados.
