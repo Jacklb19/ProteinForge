@@ -1,6 +1,6 @@
 # Estado y siguiente trabajo
 
-Actualizado el 12 oct 2026 tras la entrega autónoma. Estado local en dev; estos cambios **no están publicados**. Sitios previamente publicados: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/). Sin push, merge, despliegue ni cambio remoto.
+Actualizado el 12 oct 2026 tras acordar el laboratorio didáctico. Entrega comprobada en dev; el usuario autoriza publicar esa rama de ambos repositorios únicamente con su autoría exclusiva. Push no equivale a merge a main ni a verificar despliegue. Sitios existentes: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/). Migraciones remotas pendientes.
 
 | Bloque | Implementación/evidencia | Límite vigente |
 |---|---|---|
@@ -17,10 +17,10 @@ Actualizado el 12 oct 2026 tras la entrega autónoma. Estado local en dev; estos
 
 ## Prioridad siguiente
 
-1. Activar persistencia **solo con autorización externa**: [pasos backend](../../backend/docs/project-persistence.md). Comprobar propietarios A/B con sesiones Supabase reales, CRUD/409/borrado. El usuario decide publicación de ambos repositorios.
-2. Comprobar acceso Google completo y entrega SMTP con cuenta de prueba real; Google está habilitado en settings público pero no acredita sesión/credenciales/redirecciones ni correo. [Google](google-oauth-publicacion.md), [Supabase](conectar-supabase.md), [Vercel](despliegue-vercel.md).
-3. RF18 vertical: verificar proveedor vigente, concretar consentimiento/retención/cache privada, validar PDB asociado y reutilizar visor como predicha, fixture público de respaldo y errores explícitos. La respuesta histórica ESM Atlas no garantiza el servicio actual.
-4. Dominios InterPro/Pfam/ensamblado, SIFTS, interpretación separada con proveedor/retención comprobados.
-5. Inglés/TOTP/PDF etiquetado/historial de generaciones/sincronización definida y auditoría de rendimiento/otros navegadores para demo.
+1. [Laboratorio de diseño](design-lab-roadmap.md): primero comprobar un caso pequeño de forma → secuencia → predicción, con archivos reales, recursos/tiempo y procedencia. Meta: dos o tres diseños para demo, sin entrenamiento propio ni GPU permanente.
+2. Sobre esa evidencia construir «Diseña tu proteína»: visor central, selección secuencia/3D, sustitución/deshacer, posiciones protegidas, variantes y comparación. Distinguir referencia/diseño/predicción. Parámetros avanzados secundarios y exploración local sin cuenta.
+3. Activación de proyectos y acceso por un carril independiente: [persistencia](../../backend/docs/project-persistence.md), [Google](google-oauth-publicacion.md), [Supabase](conectar-supabase.md). Admitir /app y /recover del host/puerto local en Supabase. El retorno a Vercel reportado no prueba la configuración concreta. Migraciones/cambios de configuración necesitan autorización específica.
+4. Contratos y consentimiento tras elegir una cadena comprobada. Colab interactivo/equipo local primero; Foundry o RFdiffusion/MPNN/ColabFold por evaluar. ESM Atlas queda como alternativa histórica, no dependencia obligatoria. API ligera/ejecutor pesado separados si se automatiza.
+5. Dominios/ensamblado, SIFTS general, asistente, inglés/TOTP/PDF etiquetado y auditoría ampliada después de un recorrido de diseño útil. Ningún alojamiento de pago contratado; precios/límites registrados en el laboratorio.
 
-Autorización vigente: decisiones técnicas rutinarias revisables dentro del stack y costo cero. Conservada `.env` sin divulgar valores; nunca service_role. No se habilitan servicios sin condiciones verificables ni se reemplaza consentimiento por una aprobación de desarrollo.
+Autorización vigente: documentar esta dirección y push de dev con autoría exclusiva del propietario; decisiones técnicas rutinarias revisables dentro del stack y costo cero. Sin merge ni gastos/migraciones remotas. Conservada `.env` sin divulgar valores; nunca service_role. No sustituir consentimiento por aprobación de desarrollo.

@@ -30,7 +30,9 @@ Fundamentos: [Kirkpatrick, Gelatt y Vecchi, recocido simulado (1983)](https://re
 
 ## RF18 e interpretación: siguiente bloque, aún pendiente
 
-Propuesta concreta: endpoint autenticado POST `/v1/predictions`, proveedor ESM Atlas/ESMFold seleccionado en la definición, un candidato estándar de hasta 300 residuos por solicitud deliberada; consentimiento separado que nombre proveedor/envío y referencia a privacidad. Sin lote/reintento automático. Antes de habilitarlo verificar límites/condiciones y disponibilidad actuales de proveedor sin enviar una secuencia privada. No basta la respuesta puntual histórica de ubiquitina.
+El acuerdo posterior del 12 oct prioriza el [laboratorio didáctico](design-lab-roadmap.md): un caso pequeño forma → secuencia → predicción con Foundry o RFdiffusion/MPNN/ColabFold, recursos/tiempo medidos y archivos asociados. Dos o tres diseños para demo, cómputo interactivo/local; ESM Atlas/ESMFold queda como alternativa histórica. Consulta sin ejecución de modelos ni proveedor habilitado.
+
+Propuesta anterior revisable: endpoint autenticado POST `/v1/predictions`, hasta 300 residuos por solicitud deliberada y consentimiento que nombre proveedor/envío. Ruta/límite/ejecutor/almacenamiento se concretarán tras la prueba; no son contrato implementado. Sin lote/reintento automático. La respuesta histórica de ubiquitina no basta para habilitar un servicio.
 
 Validar PDB retornado (tamaño, ATOM, coordenadas finitas, cadena/residuos y asociación exacta), procedencia/modelo/fecha/hash; confianza solo si el proveedor la documenta. Caché privada con RLS, SHA-256 de secuencia+proveedor+versión y retención explícita, sobre tabla prevista sin service_role. Integrar el mismo visor con etiqueta Predicha y error/reintento deliberado. Añadir fixtures públicos trazables de respaldo; nunca presentarlos como nueva predicción. Falta concretar contrato/cache y verificar el servicio: no hay envío ni endpoint activo.
 

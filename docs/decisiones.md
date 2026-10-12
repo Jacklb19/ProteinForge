@@ -6,7 +6,7 @@ La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla 
 |---|---|
 | Dos repositorios: frontend React/Vite y backend FastAPI | Organización local realizada. Remotos `ProteinForge` y `Protein_Back`; dos despliegues Vercel previstos |
 | Ramas `main` y `dev` | Desarrollo en dev, versiones verificadas en main; el usuario controla push, merge y despliegue |
-| Costo cero, sin tarjeta | Vercel Hobby y Supabase Free; no instalar modelos estructurales pesados en funciones ni depender del computador personal |
+| Costo cero, sin tarjeta | App en Vercel/Supabase; probar cómputo estructural en Colab interactivo o equipo local, sin GPU permanente. Precios consultados no autorizan contratación |
 | Cálculo en navegador | Descriptores, alineamiento, candidatos e informes en Workers; backend coordina identidad/servicios/persistencia |
 | Gotoh, BLOSUM45/62/80 y huecos afines | Rust/WASM integrado; apertura 10, extensión 0,5 y extremos globales gratuitos. Mantener límite 5.000 |
 | Paquete WASM versionado | `rust/alignment/pkg/` generado, sin edición manual; CI reconstruye y compara |
@@ -14,7 +14,8 @@ La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla 
 | BinaryCIF directo y Mol* bajo demanda | Implementado, versión 5.13.1 fija; primer modelo/unidad asimétrica experimental, no precache del motor. [Evidencia y cobertura anotada](references.md) |
 | Catálogo de fragmentos | 30–50 dominios/ensamblado pendientes. Inicio conservador con tres secuencias completas ya incluidas y SV conocido; no se llaman dominios |
 | Generación de candidatos RF-17 | Implementada: masa/GRAVY, longitud 5–300, 100–5.000 evaluaciones por brazo, semilla, recocido y referencia aleatoria. Límites revisables y [comparación medida](candidates.md), sin garantía biológica |
-| Predicción externa RF-18 | API ESM Atlas respondió a una prueba puntual. Integración y límites pendientes; consentimiento para enviar secuencia, caché y errores visibles |
+| Diseño y predicción RF-18 | Primero probar una cadena pequeña: Foundry o RFdiffusion/MPNN/ColabFold. ESM Atlas es alternativa histórica, no proveedor obligatorio. Consentimiento, validación, procedencia y contratos pendientes |
+| Laboratorio didáctico como próxima prioridad | Visor central, selección/sustitución de residuos, posiciones protegidas y comparación. Dos o tres diseños computacionales para demo; evaluación experimental posterior por otros. [Acuerdo y estudio](design-lab-roadmap.md) |
 | Asistente de interpretación | Groq/modelo previsto según especificación; no calcula ni genera secuencias. Configuración real y retención cero pendientes |
 | UUIDv7 | Nueva migración reemplaza helper provisional con timestamp/bits/aleatoriedad gen_random_uuid SQL; evita dependencia Python local 3.13/3.14. profiles.id sigue Auth |
 | Concurrencia optimista | PUT/DELETE con timestamp completo, bloqueo SQL y 409. Snapshots transaccionales en analyses workspace-v1, SECURITY INVOKER/JWT/RLS. Seis tests PostgreSQL reales; activación remota pendiente |
@@ -24,4 +25,4 @@ La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla 
 | UI | Identidad/fuentes conservadas; ejemplo completo, métricas agrupadas y tareas con divisores. Cabecera pública escritorio/dock móvil; banco mantiene navegación. Nuevos módulos usan tokens/primitivas existentes. [Diseño](diseno-visual.md) |
 | Configuración | Opciones elegibles y valores ajustables en módulos de configuración por característica; textos en i18n, estilos en tokens y fuentes en un manifiesto. Sin valores fijos en componentes |
 
-La autorización del 12 oct permite decisiones técnicas/contratos compatibles revisables y documentados. No autoriza gastos, cambios remotos ni promesas científicas. [Estado y límites](plan-desarrollo.md).
+La autorización del 12 oct permite decisiones técnicas/contratos compatibles revisables y documentados. La petición posterior autoriza push de dev de ambos repositorios solo con autoría exclusiva del propietario y sin coautores. No autoriza merge, gastos, migraciones ni promesas científicas. [Estado y límites](plan-desarrollo.md).

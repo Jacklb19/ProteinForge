@@ -6,7 +6,7 @@ Actualizada el 12 de octubre de 2026. Sustituye la [definición original](archiv
 
 Explorar secuencias que satisfagan condiciones específicas exige buscar en un espacio combinatorio grande. ProteinForge permitirá generar candidatos bajo condiciones fisicoquímicas, analizarlos, compararlos y consultar estructuras experimentales o predichas en un recorrido académico reproducible.
 
-El producto conserva el editor, importación FASTA, descriptores, alineamiento, catálogo, UniProt, visor 3D, cuentas, proyectos, interpretación e informes. Se añaden generación de candidatos y predicción estructural externa. Está orientado a una demostración académica con costo cero y sin tarjeta.
+El producto conserva el editor, importación FASTA, descriptores, alineamiento, catálogo, UniProt, visor 3D, cuentas, proyectos, interpretación e informes. Se añaden generación de candidatos y predicción estructural externa. Próxima prioridad: laboratorio didáctico para crear/modificar candidatos y explorar/comparar sus modelos 3D, con parámetros avanzados secundarios. Basta demostrar dos o tres diseños computacionales útiles; validación experimental posterior por otros. [Alcance, primera prueba y alojamiento](design-lab-roadmap.md). Demo académica con costo cero y sin tarjeta.
 
 Un candidato que cumple intervalos de descriptores no queda validado como proteína funcional o estable. Una predicción 3D tampoco demuestra actividad experimental ni novedad en la naturaleza. La búsqueda guiada sigue evaluando alternativas: su mejora debe medirse frente a una referencia, sin afirmar que elimina la complejidad combinatoria.
 
@@ -109,7 +109,7 @@ Persistencia con fecha conocida en PUT/DELETE y 409, transacciones/RLS locales c
 
 Asistente previsto con Groq y `openai/gpt-oss-120b`, consentimiento, contexto delimitado, caché/límites y plantilla ante cuota agotada. No enviar secuencia completa al asistente. Retención cero debe comprobarse en la cuenta; la prueba de predicción sí envía la secuencia al proveedor elegido. PDF se genera en cliente, se sube mediante URL firmada y la API registra el informe; también se exporta CSV.
 
-ESM Atlas/ESMFold es la opción de predicción a integrar para la demo. Una prueba con ubiquitina devolvió HTTP 200 y un PDB de 50.181 bytes con 601 registros ATOM. Eso comprueba una respuesta puntual, no disponibilidad futura, calidad biológica, caché implementada ni integración del visor. Es un servicio compartido: no enviar lotes masivos ni probar carga sobre él. Límites, condiciones, reintentos y almacenamiento deben concretarse antes de implementar RF-18.
+ESM Atlas/ESMFold queda como alternativa histórica, no proveedor obligatorio. Una prueba con ubiquitina devolvió HTTP 200 y un PDB de 50.181 bytes con 601 registros ATOM; no acredita disponibilidad futura, calidad biológica, caché ni visor integrado. El acuerdo posterior prioriza ensayar forma → secuencia → predicción con Foundry o RFdiffusion/MPNN/ColabFold en entorno separado, midiendo recursos antes de ampliar la interfaz. No probar carga sobre proveedores compartidos. Límites, condiciones, consentimiento y almacenamiento se concretarán con la opción comprobada.
 
 Referencias de proveedor: [API de ESM Atlas](https://esmatlas.com/about), [ESMFold](https://github.com/facebookresearch/esm), [FastAPI en Vercel](https://vercel.com/docs/frameworks/backend/fastapi). Los límites se consultan cuando condicionen implementación; no se copian como garantías permanentes.
 

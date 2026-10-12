@@ -1,5 +1,7 @@
 # Prompt de continuación autónoma — ProteinForge
 
+> Relevo histórico de la entrega terminada. El acuerdo posterior del 12 oct prioriza el [laboratorio didáctico](design-lab-roadmap.md) y el [plan vigente](plan-desarrollo.md): un caso real pequeño y después interfaz 3D de creación/modificación. No repetir la entrega visual completa ni asumir ESM Atlas obligatorio. Push de dev autorizado solo con autoría exclusiva del propietario; merge, gastos y migraciones remotas siguen fuera de esa autorización.
+
 Copia desde «Eres el agente…» hasta el final en la siguiente conversación. Este prompt encarga trabajo; no solo planificación. El usuario revisará el resultado en la mañana.
 
 ---
