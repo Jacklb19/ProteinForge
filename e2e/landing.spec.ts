@@ -15,7 +15,7 @@ for (const width of [360, 1280]) {
     expect(await chain.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await expect(page.locator('.sample-properties')).toContainText('11.980,91');
     expect(await page.locator('.tool-card').count()).toBeGreaterThanOrEqual(2);
-    await expect(page.locator('.tool-card[data-status="available"] a')).toHaveCount(2);
+    await expect(page.locator('.tool-card[data-status="available"] a')).toHaveCount(5);
     await expect(page.getByRole('img', { name: spanish['landing.helixLabel'] })).toBeVisible();
     await revealAll(page);
     for (const theme of ['light', 'dark'] as const) {

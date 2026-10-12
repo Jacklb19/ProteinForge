@@ -45,3 +45,6 @@ Duraciones y medidas en tokens; comportamiento ajustable en configuración por c
 - Revisar pantallas afectadas a 360/1280 px, tamaños intermedios cuando cambie el marco y recursos PWA si cambian fuentes o vectores.
 
 El [plan de desarrollo](plan-desarrollo.md) ordena las capacidades pendientes y separa lo implementado de la configuración externa todavía sin comprobar. Los cambios se desarrollan en dev; no se publican por esta revisión.
+# Refinamiento del 12 de octubre de 2026
+
+Se conserva la identidad marfil/azul profundo/verde y las tres familias locales. Inicio adelanta el ejemplo científico a una franja completa y coloca la navegación pública en cabecera en escritorio. Mi espacio usa tareas con separadores; análisis y alineamiento agrupan sus métricas en una superficie. Ajustes organiza títulos y controles en columnas. Los formularios de cuenta ganan ancho y omiten la ilustración secundaria en móvil. Movimiento, foco, editor superpuesto y cálculo existentes se conservan.

@@ -7,7 +7,12 @@ import { AlignmentDraftProvider } from './features/alignment/AlignmentDraftProvi
 import { SettingsPage } from './features/settings/SettingsPage';
 import { LandingPage } from './features/landing/LandingPage';
 import { WorkspacePage } from './features/workspace/WorkspacePage';
+import { ProjectProvider } from './features/projects/ProjectProvider';
+import { LibraryPage } from './features/library/LibraryPage';
+import { GeneratorPage } from './features/generator/GeneratorPage';
+import { GeneratorProvider } from './features/generator/GeneratorProvider';
 import { PrivacyPage } from './features/privacy/PrivacyPage';
+import { TermsPage } from './features/legal/TermsPage';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
 import { SignInPage } from './features/auth/SignInPage';
@@ -21,7 +26,7 @@ import { useTranslation } from './i18n';
 import { Icon } from './shared/Icon';
 import { BrandMark } from './shared/BrandMark';
 import { NotFoundPage } from './shared/NotFoundPage';
-import { FOOTER_LINKS, NAVIGATION_ITEMS, PUBLIC_NAVIGATION, REPOSITORY_LINKS, ROUTES } from './shared/navigation';
+import { FOOTER_LINKS, NAVIGATION_ITEMS, PUBLIC_NAVIGATION, REPOSITORY_LINKS, ROUTES, WORKSPACE_PATHS } from './shared/navigation';
 
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 
@@ -83,7 +88,7 @@ function ApplicationRoutes(): React.JSX.Element {
   const location = useLocation();
   const previousPath = useRef(location.pathname);
   const content = useRef<HTMLDivElement>(null);
-  const isWorkspace = NAVIGATION_ITEMS.some((item) => item.path !== ROUTES.home && item.path === location.pathname);
+  const isWorkspace = WORKSPACE_PATHS.includes(location.pathname);
   const isIdentity = [ROUTES.signIn, ROUTES.signUp, ROUTES.recover].some((path) => path === location.pathname);
   const auth = useAuth();
 
@@ -143,10 +148,13 @@ function ApplicationRoutes(): React.JSX.Element {
           <Route path={ROUTES.analyze} element={<EditorPage />} />
           <Route path={ROUTES.alignment} element={<AlignmentPage />} />
           <Route path={ROUTES.settings} element={<SettingsPage />} />
+          <Route path={ROUTES.library} element={<LibraryPage />} />
+          <Route path={ROUTES.generate} element={<GeneratorPage />} />
           <Route path={ROUTES.signIn} element={<SignInPage />} />
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />
           <Route path={ROUTES.privacy} element={<PrivacyPage />} />
+          <Route path={ROUTES.terms} element={<TermsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
@@ -162,7 +170,7 @@ export function App(): React.JSX.Element {
         <SequenceDraftProvider>
           <AlignmentDraftProvider>
             <BrowserRouter>
-              <ApplicationRoutes />
+              <ProjectProvider><GeneratorProvider><ApplicationRoutes /></GeneratorProvider></ProjectProvider>
             </BrowserRouter>
           </AlignmentDraftProvider>
         </SequenceDraftProvider>

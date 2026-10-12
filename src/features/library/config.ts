@@ -1,0 +1,10 @@
+export const UNIPROT_ENDPOINT = '/v1/uniprot';
+export const UNIPROT_QUERY_MAX_LENGTH = 200;
+export const UNIPROT_DEFAULT_QUERY = 'accession:P01308';
+export const UNIPROT_URL = 'https://www.uniprot.org/uniprotkb/';
+export const PDB_URL = 'https://www.rcsb.org/structure/';
+export const STRUCTURE_DOWNLOAD_URL = 'https://models.rcsb.org/';
+export const STRUCTURE_TIMEOUT_MS = 20_000;
+export const MAX_STRUCTURE_BYTES = 25_000_000;
+export const CAMERA_ROTATION_RADIANS = Math.PI / 12;
+export const CAMERA_ZOOM_FACTOR = 0.8;

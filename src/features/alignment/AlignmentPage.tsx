@@ -13,6 +13,8 @@ import type { AlignmentInput } from './alignmentDraft';
 import { countGapColumns, isStaleResult } from './alignmentSummary';
 import { PageHeading } from '../../shared/PageHeading';
 import { SegmentedControl } from '../../shared/SegmentedControl';
+import { ProjectControls } from '../projects/ProjectControls';
+import { ReportActions } from '../reports/ReportActions';
 
 type Status = 'idle' | 'running' | 'cancelled' | 'error';
 
@@ -94,7 +96,8 @@ export function AlignmentPage(): React.JSX.Element {
 
   return (
     <main className="page alignment-page">
-      <PageHeading titleKey="alignment.title" introduction="alignment.introduction" />
+      <PageHeading titleKey="alignment.title" introduction="alignment.introduction"><ReportActions /></PageHeading>
+      <ProjectControls />
       {!first && !second && <p className="analysis-ready">{t('guide.comparisonEmpty')}</p>}
       <section className="alignment-inputs card" aria-labelledby="alignment-inputs-title">
         <h2 id="alignment-inputs-title" className="visually-hidden">{t('alignment.inputs')}</h2>

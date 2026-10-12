@@ -16,7 +16,7 @@ export function validateSequence(text: string): ValidationResult {
 
   for (let index = 0; index < text.length; index += 1) {
     const character = text[index];
-    if (character === '\n' || character === '\r' || (character === '*' && index === lastResidue)) continue;
+    if (character === '\n' || character === '\r' || character === ' ' || character === '\t' || (character === '*' && index === lastResidue)) continue;
     const code = character?.charCodeAt(0) ?? -1;
     const uppercase = code >= 97 && code <= 122
       ? String.fromCharCode(code - 32)

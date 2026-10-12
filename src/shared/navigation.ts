@@ -12,6 +12,9 @@ export const ROUTES = {
   signUp: '/sign-up',
   recover: '/recover',
   privacy: '/privacy',
+  terms: '/terms',
+  library: '/library',
+  generate: '/generate',
 } as const;
 
 /** Workspace destinations in display order; the public website has its own section links. */
@@ -21,6 +24,7 @@ export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey
   { path: ROUTES.alignment, labelKey: 'nav.alignment', icon: 'alignment', end: false },
   { path: ROUTES.settings, labelKey: 'nav.settings', icon: 'settings', end: false },
 ];
+export const WORKSPACE_PATHS: readonly string[] = [...NAVIGATION_ITEMS.map((item) => item.path), ROUTES.library, ROUTES.generate];
 
 export const PUBLIC_SECTIONS = {
   product: 'product',
@@ -36,6 +40,7 @@ export const PUBLIC_NAVIGATION: readonly { id: string; labelKey: TranslationKey 
 /** Secondary links shown in the page footer. */
 export const FOOTER_LINKS: readonly { path: string; labelKey: TranslationKey }[] = [
   { path: ROUTES.privacy, labelKey: 'nav.privacy' },
+  { path: ROUTES.terms, labelKey: 'nav.terms' },
   { path: ROUTES.settings, labelKey: 'nav.settings' },
 ];
 

@@ -3,8 +3,8 @@ import { API_ENDPOINTS, API_TIMEOUT_MS } from './config';
 
 const healthSchema = z.object({ status: z.literal('ok'), version: z.string().min(1), identity: z.boolean() });
 const identitySchema = z.object({ id: z.string().min(1), email: z.string() });
-const problemSchema = z.object({ requestId: z.string().max(64).optional() });
-export type ApiErrorCode = 'network' | 'timeout' | 'cancelled' | 'session' | 'unavailable' | 'invalid-response' | 'unknown';
+const problemSchema = z.object({ requestId: z.string().max(64).optional(), type: z.string().optional() });
+export type ApiErrorCode = 'network' | 'timeout' | 'cancelled' | 'session' | 'unavailable' | 'invalid-response' | 'unknown' | 'conflict' | 'not-found' | 'validation' | 'schema' | 'forbidden';
 
 /** Only safe categories and correlation IDs reach the UI; response details are never shown or logged. */
 export class ApiError extends Error {
@@ -19,8 +19,8 @@ export interface ProteinForgeApi {
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
 /** Token-bearing requests target only the configured API; local analyses remain local. */
-export function createProteinForgeApi(baseUrl: string, fetchImplementation: FetchLike = fetch): ProteinForgeApi {
-  async function request(path: string, signal?: AbortSignal, token?: string): Promise<unknown> {
+export function createApiTransport(baseUrl: string, fetchImplementation: FetchLike = fetch) {
+  return async function request(path: string, signal?: AbortSignal, token?: string, options: { method?: string; body?: unknown } = {}): Promise<unknown> {
     const controller = new AbortController();
     const cancel = () => { controller.abort('cancelled'); };
     signal?.addEventListener('abort', cancel, { once: true });
@@ -29,7 +29,9 @@ export function createProteinForgeApi(baseUrl: string, fetchImplementation: Fetc
     try {
       const headers: Record<string, string> = { Accept: 'application/json', 'X-Request-Id': crypto.randomUUID() };
       if (token) headers.Authorization = `Bearer ${token}`;
-      const response = await fetchImplementation(`${baseUrl}${path}`, { headers, signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' });
+      if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+      const response = await fetchImplementation(`${baseUrl}${path}`, { method: options.method ?? 'GET', body: options.body === undefined ? undefined : JSON.stringify(options.body), headers, signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' });
+      if (response.status === 204) return null;
       let data: unknown;
       try { data = await response.json(); } catch {
         if (!response.ok) throw new ApiError(response.status === 401 ? 'session' : 'unavailable');
@@ -37,7 +39,8 @@ export function createProteinForgeApi(baseUrl: string, fetchImplementation: Fetc
       }
       if (!response.ok) {
         const problem = problemSchema.safeParse(data);
-        throw new ApiError(response.status === 401 ? 'session' : response.status >= 500 ? 'unavailable' : 'unknown', problem.success ? problem.data.requestId : undefined);
+        const code: ApiErrorCode = response.status === 401 ? 'session' : response.status === 409 ? 'conflict' : response.status === 404 ? 'not-found' : response.status === 422 ? 'validation' : response.status === 403 ? 'forbidden' : problem.success && problem.data.type?.endsWith('/projects-schema-unavailable') ? 'schema' : response.status >= 500 ? 'unavailable' : 'unknown';
+        throw new ApiError(code, problem.success ? problem.data.requestId : undefined);
       }
       return data;
     } catch (error) {
@@ -48,7 +51,11 @@ export function createProteinForgeApi(baseUrl: string, fetchImplementation: Fetc
       clearTimeout(timer);
       signal?.removeEventListener('abort', cancel);
     }
-  }
+  };
+}
+
+export function createProteinForgeApi(baseUrl: string, fetchImplementation: FetchLike = fetch): ProteinForgeApi {
+  const request = createApiTransport(baseUrl, fetchImplementation);
 
   return {
     async health(signal) {

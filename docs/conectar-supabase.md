@@ -1,6 +1,8 @@
 # Conectar la cuenta de ProteinForge
 
-Guía local del 11 de octubre de 2026. La interfaz, Auth, el cliente de API y la descarga CSV están preparados. Falta comprobar un proyecto Supabase de desarrollo real. Esta guía no aplica migraciones ni crea recursos por su cuenta.
+Para las URLs públicas y variables de ambos proyectos, seguir [el tutorial de despliegue Vercel](despliegue-vercel.md). El frontend existente está en https://protein-forge.vercel.app/; Google se configura después de obtener la URL del backend y conectar ambos despliegues.
+
+Guía actualizada el 12 de octubre de 2026. Lectura pública expresamente autorizada a las 18:20 UTC: Google y correo/contraseña habilitados, registro permitido con confirmación requerida. Las cinco tablas previstas responden 404/PGRST205 en la API pública; revisar historial y migraciones antes de activarlas. Settings no verifica SMTP ni acceso Google/JWT completo. Esta guía no aplica migraciones ni crea recursos por su cuenta.
 
 ## Lo que necesitamos del proyecto
 
@@ -32,16 +34,14 @@ npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 
 ## Backend
 
-El backend lee el entorno del proceso. El comando de Uvicorn actual **no carga `.env` automáticamente**. En otra terminal, desde `backend`, establecer los valores públicos y el origen exacto antes de iniciar:
+El backend carga automáticamente el `.env` de su propio repositorio, con prioridad para las variables del proceso. No hace falta volver a escribir las claves en la terminal. En otra terminal, desde `backend`, instalar las dependencias e iniciar:
 
 ```powershell
-$env:SUPABASE_URL = 'https://TU-PROYECTO.supabase.co'
-$env:SUPABASE_ANON_KEY = 'TU-CLAVE-PUBLICA'
-$env:ALLOWED_ORIGINS = 'http://127.0.0.1:5173'
+.venv/Scripts/python.exe -m pip install -r requirements.txt
 .venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-No pegar claves privadas en el chat ni confirmar `.env` en Git. `localhost` y `127.0.0.1` son orígenes distintos; usar consistentemente la dirección anterior. Si otro programa ocupa esos puertos, actualizar origen, URLs y variables juntos.
+En `.env`, conservar `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `ALLOWED_ORIGINS=http://127.0.0.1:5173`. No pegar claves privadas en el chat ni confirmar `.env` en Git. `localhost` y `127.0.0.1` son orígenes distintos; usar consistentemente la dirección anterior. Si otro programa ocupa esos puertos, actualizar origen, URLs y variables juntos.
 
 ## Retorno desde Supabase Auth
 
@@ -66,4 +66,6 @@ Correo/contraseña puede probarse primero; Google requiere configuración de pro
 
 Los cálculos y CSV continúan funcionando sin cuenta. Identidad verificada todavía no equivale a guardar proyectos. El siguiente bloque es concretar e implementar CRUD sobre el esquema existente y comprobar RLS en PostgreSQL antes de aplicar migraciones remotas.
 
-Para publicar también hará falta permitir el origen concreto de la API en la CSP del frontend; la política actual se conserva hasta conocer esa URL. No hay despliegue ni operación de GitHub en esta configuración local.
+La comprobación del 12 de octubre pidió cero filas a la API de datos con la clave pública: las cinco tablas previstas respondieron `PGRST205` (no encontradas en el esquema expuesto). Esto no inspecciona esquemas privados, demuestra políticas RLS ni autoriza aplicar la migración. Se debe revisar el esquema y preparar la persistencia antes de cambiar la base remota.
+
+La CSP local ya permite https://protein-back.vercel.app. La última lectura de la cabecera publicada todavía no incluía ese origen; el usuario publicó el commit después y se debe comprobar el despliegue vigente. Frontend y backend están publicados por el usuario. Esta guía no realiza operaciones remotas.
