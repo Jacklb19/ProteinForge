@@ -6,6 +6,7 @@ import { ROUTES } from '../../shared/navigation';
 export const WORKSPACE_TASKS: readonly { path: string; icon: IconName; title: TranslationKey; text: TranslationKey; action: TranslationKey }[] = [
   { path: ROUTES.analyze, icon: 'sequence', title: 'workspace.analyzeTitle', text: 'workspace.analyzeText', action: 'workspace.analyzeAction' },
   { path: ROUTES.alignment, icon: 'alignment', title: 'workspace.compareTitle', text: 'workspace.compareText', action: 'workspace.compareAction' },
+  { path: ROUTES.library, icon: 'book', title: 'library.taskTitle', text: 'library.taskText', action: 'library.taskAction' },
 ];
 
 export const GETTING_STARTED_STEPS = ['workspace.step1', 'workspace.step2', 'workspace.step3'] as const;

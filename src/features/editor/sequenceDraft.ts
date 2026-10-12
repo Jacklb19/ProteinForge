@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import { useRequiredContext } from '../../shared/useRequiredContext';
 import type { HydropathyWindow } from '../descriptors/config';
+import type { SequenceSource } from './source';
 
 /** The sequence being analyzed, kept in memory while the visitor moves between tools. */
 export interface SequenceDraft {
@@ -8,6 +9,8 @@ export interface SequenceDraft {
   setText: (text: string) => void;
   profileWindow: HydropathyWindow;
   setProfileWindow: (value: HydropathyWindow) => void;
+  source: SequenceSource | null;
+  setSource: (source: SequenceSource | null) => void;
 }
 
 export const SequenceDraftContext = createContext<SequenceDraft | null>(null);

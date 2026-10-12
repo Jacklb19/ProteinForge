@@ -9,6 +9,7 @@ import { exampleEntry } from '../editor/examples';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import { OrnamentalChain } from './OrnamentalChain';
 import { ExampleSummary } from './ExampleSummary';
+import { bundledSequenceSource } from '../editor/source';
 import { HelixScene } from './HelixScene';
 import { HERO_EXAMPLE, LANDING_HONESTY_KEYS, LANDING_STEPS, LANDING_TOOLS, TOOL_STATUS_LABEL_KEYS } from './config';
 
@@ -25,7 +26,7 @@ export function LandingPage(): React.JSX.Element {
 
   const openExample = () => {
     const entry = HERO_EXAMPLE ? exampleEntry(HERO_EXAMPLE.fasta) : undefined;
-    if (entry) draft.setText(entry.sequence);
+    if (entry) { draft.setText(entry.sequence); draft.setSource(bundledSequenceSource(entry)); }
     void navigate(ROUTES.analyze);
   };
 

@@ -33,7 +33,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const auth = useAuth();
   const sequence = useSequenceDraft();
   const alignment = useAlignmentDraft();
-  const { setText, setProfileWindow } = sequence;
+  const { setText, setProfileWindow, setSource } = sequence;
   const { update } = alignment;
   const { t } = useTranslation();
   const [configuredApi] = useState(() => { const url = readApiBaseUrl(); return url ? createProjectApi(url) : null; });
@@ -49,10 +49,11 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const restore = useCallback((project: Project) => {
     setText(project.activeSequence);
     setProfileWindow(project.workspace.profileWindow);
+    setSource(project.workspace.source ?? null);
     const restored = project.workspace.alignment;
     const warnings = SCORING_SUBSTITUTIONS.filter(({ residue }) => restored.first.includes(residue) || restored.second.includes(residue)).map(({ warningKey }) => t(warningKey));
     update({ ...restored, resultInput: restored.result ? { first: restored.first, second: restored.second, matrix: restored.matrix, mode: restored.mode } : null, warnings });
-  }, [setText, setProfileWindow, update, t]);
+  }, [setText, setProfileWindow, setSource, update, t]);
 
   // Initial restore runs once per owner. Token refresh does not replace an edited workspace.
   useEffect(() => {
@@ -131,7 +132,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       setState((value) => ({ ...value, active: project, notice: 'opened' }));
     }); },
     save(name: string, descriptors?: DescriptorState, copy = false) { return run(async (service, signal) => {
-      const snapshot = captureWorkspace(sequence.text, alignment, sequence.profileWindow, descriptors, current.active);
+      const snapshot = captureWorkspace(sequence.text, alignment, sequence.profileWindow, descriptors, current.active, sequence.source);
       const project = await service.save({ ...snapshot, name: name.trim() }, token, copy ? undefined : current.active ?? undefined, signal);
       if (signal.aborted) return;
       if (user) remember(user, project.id);

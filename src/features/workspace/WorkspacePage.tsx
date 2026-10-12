@@ -10,6 +10,7 @@ import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { OrnamentalChain } from '../landing/OrnamentalChain';
 import { GETTING_STARTED_STEPS, SAMPLE_RESIDUES, SEQUENCE_PREVIEW_LENGTH, WORKSPACE_TASKS } from './config';
 import { ProjectLibrary } from '../projects/ProjectLibrary';
+import { bundledSequenceSource } from '../editor/source';
 
 /** A task-oriented starting point for visitors who have never used a protein workbench. */
 export function WorkspacePage(): React.JSX.Element {
@@ -24,6 +25,7 @@ export function WorkspacePage(): React.JSX.Element {
     const entry = exampleEntry(fasta);
     if (!entry) return;
     draft.setText(entry.sequence);
+    draft.setSource(bundledSequenceSource(entry));
     void navigate(ROUTES.analyze);
   }
 

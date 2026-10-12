@@ -8,6 +8,7 @@ import { SettingsPage } from './features/settings/SettingsPage';
 import { LandingPage } from './features/landing/LandingPage';
 import { WorkspacePage } from './features/workspace/WorkspacePage';
 import { ProjectProvider } from './features/projects/ProjectProvider';
+import { LibraryPage } from './features/library/LibraryPage';
 import { PrivacyPage } from './features/privacy/PrivacyPage';
 import { TermsPage } from './features/legal/TermsPage';
 import { AuthProvider } from './features/auth/AuthProvider';
@@ -23,7 +24,7 @@ import { useTranslation } from './i18n';
 import { Icon } from './shared/Icon';
 import { BrandMark } from './shared/BrandMark';
 import { NotFoundPage } from './shared/NotFoundPage';
-import { FOOTER_LINKS, NAVIGATION_ITEMS, PUBLIC_NAVIGATION, REPOSITORY_LINKS, ROUTES } from './shared/navigation';
+import { FOOTER_LINKS, NAVIGATION_ITEMS, PUBLIC_NAVIGATION, REPOSITORY_LINKS, ROUTES, WORKSPACE_PATHS } from './shared/navigation';
 
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 
@@ -85,7 +86,7 @@ function ApplicationRoutes(): React.JSX.Element {
   const location = useLocation();
   const previousPath = useRef(location.pathname);
   const content = useRef<HTMLDivElement>(null);
-  const isWorkspace = NAVIGATION_ITEMS.some((item) => item.path !== ROUTES.home && item.path === location.pathname);
+  const isWorkspace = WORKSPACE_PATHS.includes(location.pathname);
   const isIdentity = [ROUTES.signIn, ROUTES.signUp, ROUTES.recover].some((path) => path === location.pathname);
   const auth = useAuth();
 
@@ -145,6 +146,7 @@ function ApplicationRoutes(): React.JSX.Element {
           <Route path={ROUTES.analyze} element={<EditorPage />} />
           <Route path={ROUTES.alignment} element={<AlignmentPage />} />
           <Route path={ROUTES.settings} element={<SettingsPage />} />
+          <Route path={ROUTES.library} element={<LibraryPage />} />
           <Route path={ROUTES.signIn} element={<SignInPage />} />
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />

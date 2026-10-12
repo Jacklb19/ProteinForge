@@ -34,4 +34,8 @@ describe('project result provenance', () => {
     expect(workspaceInputKey('ACD', EMPTY_ALIGNMENT, 19)).not.toBe(key);
     expect(workspaceInputKey('ACD', { ...EMPTY_ALIGNMENT, second: '?' }, 9)).not.toBe(key);
   });
+  it('does not persist an alignment whose producing inputs are unknown', async () => {
+    const result = await alignSequences('ACD', 'ACD');
+    expect(captureWorkspace('ACD', { ...EMPTY_ALIGNMENT, first: 'ACD', second: 'ACD', result, resultInput: null }, 9).workspace.alignment.result).toBeNull();
+  });
 });

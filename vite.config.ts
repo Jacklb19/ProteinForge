@@ -63,6 +63,8 @@ export default defineConfig({
     },
     workbox: {
       globPatterns: ['**/*.{js,css,html,svg,wasm,woff2}'],
+      // Experimental structures stay online and demand-loaded; do not precache the large viewer engine.
+      globIgnores: ['**/molstarRuntime-*.js'],
       navigateFallback: 'index.html',
       cleanupOutdatedCaches: true,
     },

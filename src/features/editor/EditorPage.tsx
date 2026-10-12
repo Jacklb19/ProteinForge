@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { updateInvalidPositions, splitStandardResidues, validateSequence } from './sequence';
 import { FastaLoader } from './FastaLoader';
 import type { FastaEntry } from './fasta';
@@ -18,11 +18,13 @@ import { AnalysisGuide } from '../workspace/AnalysisGuide';
 import { DESCRIPTOR_FIELDS } from '../descriptors/config';
 import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
 import { ProjectControls } from '../projects/ProjectControls';
+import { UNIPROT_URL } from '../library/config';
+import { bundledSequenceSource } from './source';
 
 /** Sequence input with incremental validation; results update automatically beside it. */
 export function EditorPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
-  const { text, setText, profileWindow, setProfileWindow } = useSequenceDraft();
+  const { text, setText, profileWindow, setProfileWindow, source, setSource } = useSequenceDraft();
   const alignment = useAlignmentDraft();
   const navigate = useNavigate();
   const descriptors = useDescriptors(text);
@@ -84,6 +86,7 @@ export function EditorPage(): React.JSX.Element {
   return (
     <main className="page analysis-page">
       <PageHeading titleKey="editor.title" introduction="editor.introduction">
+        <Link className="button button-secondary" to={ROUTES.library}>{t('library.taskAction')}</Link>
         {hasInput && <button className="button button-secondary" type="button" disabled={descriptors.status !== 'current'} onClick={() => {
           if (descriptors.status !== 'current' || !descriptors.result) return;
           const methods = Object.fromEntries(DESCRIPTOR_FIELDS.map((field) => [field.key, t(field.methodKey)]));
@@ -95,6 +98,7 @@ export function EditorPage(): React.JSX.Element {
         )}
       </PageHeading>
       <ProjectControls descriptors={descriptors} />
+      {source && <p className="sequence-provenance"><a className="inline-link" href={`${UNIPROT_URL}${source.accession}`}>{source.accession} · {t(source.origin === 'catalog' ? 'library.catalogSource' : 'library.uniprotSource')}</a><span className="field-help">{source.sequenceVersion === null ? t('library.fixtureVersion') : t('library.sourceVersion', { version: formatNumber(source.sequenceVersion) })}</span></p>}
       <AnalysisGuide hasInput={hasInput} ready={descriptors.status === 'current'} />
       <div className="analysis-layout">
         <div className="analysis-input card">
@@ -141,7 +145,7 @@ export function EditorPage(): React.JSX.Element {
                     type="button"
                     onClick={() => {
                       const entry = exampleEntry(example.fasta);
-                      if (entry) loadEntry(entry);
+                      if (entry) { loadEntry(entry); setSource(bundledSequenceSource(entry)); }
                     }}
                   >
                     {t('examples.try', { name: t(example.labelKey) })}

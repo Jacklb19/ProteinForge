@@ -7,9 +7,10 @@ import { ApiError } from '../api/apiClient';
 import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_SEQUENCE_LENGTH } from './config';
 import type { Project, WorkspaceSnapshot } from './contracts';
 import { workspaceSchema } from './contracts';
+import type { SequenceSource } from '../editor/source';
 
 /** Only results tied to the current normalized inputs can be sent to storage. */
-export function captureWorkspace(text: string, draft: AlignmentDraftState, profileWindow: HydropathyWindow, descriptors?: DescriptorState, saved?: Project | null): { activeSequence: string; workspace: WorkspaceSnapshot } {
+export function captureWorkspace(text: string, draft: AlignmentDraftState, profileWindow: HydropathyWindow, descriptors?: DescriptorState, saved?: Project | null, source?: SequenceSource | null): { activeSequence: string; workspace: WorkspaceSnapshot } {
   const active = validateSequence(text);
   const first = validateSequence(draft.first);
   const second = validateSequence(draft.second);
@@ -19,8 +20,9 @@ export function captureWorkspace(text: string, draft: AlignmentDraftState, profi
   const previous = saved?.workspace.descriptors;
   const snapshot = {
     schemaVersion: 1, profileWindow,
+    source: source?.sequence === active.sequence ? source : null,
     descriptors: descriptors?.status === 'current' && descriptors.result ? { sequence: active.sequence, excluded: descriptors.excluded, methodVersion: DESCRIPTOR_METHOD_VERSION, result: descriptors.result } : !descriptors && previous?.sequence === active.sequence ? previous : null,
-    alignment: { ...input, result: draft.result && !isStaleResult(draft.resultInput, input) ? draft.result : null },
+    alignment: { ...input, result: draft.result && draft.resultInput && !isStaleResult(draft.resultInput, input) ? draft.result : null },
   };
   const parsed = workspaceSchema.safeParse(snapshot);
   if (!parsed.success) throw new ApiError('validation');

@@ -10,6 +10,7 @@ const SECTIONS: readonly LegalSection[] = [
   { titleKey: 'privacy.retentionTitle', textKey: 'privacy.retentionText' },
   { titleKey: 'privacy.noTrackingTitle', textKey: 'privacy.noTrackingText' },
   { titleKey: 'privacy.externalTitle', textKey: 'privacy.externalText' },
+  { titleKey: 'privacy.referencesTitle', textKey: 'privacy.referencesText' },
 ];
 
 /** What stays in the browser, what leaves it and when the visitor is asked. */

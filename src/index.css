@@ -1010,6 +1010,23 @@ a.tool-link:hover .tool-open .icon { transform: translateX(var(--space-2xs)); }
 .project-confirm h3 { overflow-wrap: anywhere; }
 .button-danger { background: var(--status-error); color: var(--bg-raised); }
 .button-danger:hover:not(:disabled) { color: var(--bg-raised); }
+.library-page, .library-section { display: grid; gap: var(--space-lg); }
+.library-page .page-heading { margin-block-end: var(--space-none); }
+.library-section { padding-block: var(--space-lg); border-block-start: var(--border-width) solid var(--border-subtle); }
+.reference-listing { list-style: none; padding: var(--space-none); }
+.reference-listing li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-md); padding-block: var(--space-md); border-block-end: var(--border-width) solid var(--border-subtle); }
+.reference-listing h3 { overflow-wrap: anywhere; }
+.library-search { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: end; }
+.library-search .field { flex: 1; min-width: min(var(--width-full), var(--width-form)); }
+.entry-detail { display: grid; gap: var(--space-md); padding: var(--space-lg); border-inline-start: var(--border-width-indicator) solid var(--accent-brand); background: var(--bg-accent-soft); }
+.entry-annotation p:last-child { white-space: pre-line; max-width: var(--width-copy); }
+.structure-provenance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-lg); }
+.structure-provenance code { font-family: var(--font-sequence); overflow-wrap: anywhere; }
+.structure-provenance .field-help { flex-basis: var(--width-full); }
+.structure-viewer { display: grid; gap: var(--space-md); }
+.structure-canvas { position: relative; width: var(--width-full); height: var(--height-structure-viewer); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-surface); overflow: hidden; background: var(--bg-raised); }
+.structure-canvas canvas { position: absolute; inset: var(--space-none); width: var(--width-full); height: var(--width-full); touch-action: none; }
+.sequence-provenance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-lg); margin-block-end: var(--space-md); }
 @keyframes soft-enter { from { opacity: 0; } to { opacity: 1; } }
 @media (min-width: 48rem) {
   .welcome-panel { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
