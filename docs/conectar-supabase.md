@@ -2,7 +2,7 @@
 
 Para las URLs públicas y variables de ambos proyectos, seguir [el tutorial de despliegue Vercel](despliegue-vercel.md). El frontend existente está en https://protein-forge.vercel.app/; Google se configura después de obtener la URL del backend y conectar ambos despliegues.
 
-Guía local actualizada el 12 de octubre de 2026. La interfaz, Auth, el cliente de API y la descarga CSV están preparados. Supabase responde; el último estado leído habilitaba correo/contraseña y registro con confirmación, y Google estaba deshabilitado antes de que el usuario lo configurase. No suponer ese estado vigente sin comprobarlo. Health/CORS remotos funcionan con identidad configurada; sesión válida, correos y redirecciones todavía requieren verificación. Esta guía no aplica migraciones ni crea recursos por su cuenta.
+Guía actualizada el 12 de octubre de 2026. Lectura pública expresamente autorizada a las 18:20 UTC: Google y correo/contraseña habilitados, registro permitido con confirmación requerida. Las cinco tablas previstas responden 404/PGRST205 en la API pública; revisar historial y migraciones antes de activarlas. Settings no verifica SMTP ni acceso Google/JWT completo. Esta guía no aplica migraciones ni crea recursos por su cuenta.
 
 ## Lo que necesitamos del proyecto
 

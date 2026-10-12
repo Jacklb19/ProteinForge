@@ -20,7 +20,7 @@ Un candidato que cumple intervalos de descriptores no queda validado como prote�
 | Preferencias, temas y recursos locales sin conexión | Implementados; inglés completo y sincronización pendientes |
 | Backend y base de datos | Health/identidad/CRUD/UniProt e integración frontend implementados; seis pruebas RLS PostgreSQL reales. Migración/publicación y JWT real pendientes |
 | UniProt, catálogo, visor 3D y selección sincronizada | Referencias/UniProt/Mol* experimental implementados; cobertura anotada, SIFTS/selección sincronizada pendientes |
-| Cuentas, persistencia, asistente y PDF/CSV | Cuenta/proyectos e informes PDF/JSON/CSV implementados localmente; SMTP/Google actuales, activación remota e interpretación pendientes |
+| Cuentas, persistencia, asistente y PDF/CSV | Cuenta/proyectos e informes PDF/JSON/CSV implementados localmente; entrega SMTP/flujo Google completo, activación remota e interpretación pendientes |
 | Generación y comparación de candidatos | RF17 local implementado, límites/configuración y evidencia en [candidatos](candidates.md) |
 | Predicción externa de candidatos | Prueba puntual del servicio realizada; integración pendiente |
 
@@ -105,7 +105,7 @@ ProteinForge/              # carpeta local sin Git
 
 Supabase RLS separa propietarios y bloquea acceso de usuarios a `external_cache`. El UUIDv7 PL/pgSQL inicial es provisional; la API usará `uuid.uuid7()` de Python 3.14 para entidades que crea. `profiles.id` conserva el UUID de Supabase Auth. No cambiar migraciones remotas durante esta limpieza.
 
-Persistencia con fecha conocida en PUT/DELETE y 409, transacciones/RLS locales comprobados; activación remota pendiente. Cuenta/recuperación/Google por redirección; SMTP/Google actuales sin verificar, TOTP/MFA pendientes.
+Persistencia con fecha conocida en PUT/DELETE y 409, transacciones/RLS locales comprobados; activación remota pendiente. Cuenta/recuperación/Google por redirección; entrega SMTP/flujo Google completo sin verificar, TOTP/MFA pendientes.
 
 Asistente previsto con Groq y `openai/gpt-oss-120b`, consentimiento, contexto delimitado, caché/límites y plantilla ante cuota agotada. No enviar secuencia completa al asistente. Retención cero debe comprobarse en la cuenta; la prueba de predicción sí envía la secuencia al proveedor elegido. PDF se genera en cliente, se sube mediante URL firmada y la API registra el informe; también se exporta CSV.
 

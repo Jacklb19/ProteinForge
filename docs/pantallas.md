@@ -16,7 +16,7 @@ Actualizado el 12 oct 2026. Web pública con encabezado en escritorio y dock mó
 | Candidatos | `/generate` | RF17 local: masa/GRAVY, semilla/presupuesto, referencia aleatoria, diversidad y transferencia a análisis/alineamiento |
 | Predicción/interpretación | Sin ruta activa | RF18/asistente pendientes de condiciones de proveedor, consentimiento y caché |
 | Ajustes | `/settings` | Cuenta/conexión API/tema/idioma; inglés completo/TOTP/sincronización pendientes |
-| Acceso/registro/recuperación | `/sign-in`, `/sign-up`, `/recover` | REST Supabase Auth; estados configurado/no configurado; Google/SMTP actuales sin verificar |
+| Acceso/registro/recuperación | `/sign-in`, `/sign-up`, `/recover` | REST Supabase Auth; estados configurado/no configurado; Google habilitado públicamente; flujo completo y entrega SMTP sin verificar |
 | Privacidad/condiciones | `/privacy`, `/terms` | Públicas, incluyen guardado deliberado y consultas/descargas reales |
 | Dirección desconocida | Cualquier otra | Regreso al trabajo o Inicio |
 
