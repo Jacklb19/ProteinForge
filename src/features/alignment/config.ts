@@ -25,11 +25,11 @@ export const TILE_SIZE = 256;
 export const MAX_ALIGNMENT_RESIDUES = 5000;
 
 /** Columns per rendered alignment block and blocks rendered beyond the viewport. */
-export const BLOCK_COLUMNS = 60;
+export const BLOCK_COLUMNS = 55;
 export const BLOCK_OVERSCAN = 2;
 
 /** Used only until the block height token and the viewport are measured. */
-export const FALLBACK_BLOCK_HEIGHT_PX = 112;
+export const FALLBACK_BLOCK_HEIGHT_PX = 104;
 export const FALLBACK_VIEWPORT_HEIGHT_PX = 360;
 
 export const PERCENT_FORMAT = { style: 'percent', maximumFractionDigits: 1 } as const;
@@ -52,3 +52,18 @@ export const TERMINAL_GAP_LABEL_KEYS = {
   free: 'alignment.freeEnds',
   'not-applicable': 'alignment.localEnds',
 } as const satisfies Record<AlignmentParameters['terminalGaps'], TranslationKey>;
+
+/** Bundled references compared when the application opens. */
+export const EXAMPLE_ALIGNMENT_ACCESSIONS = { first: 'P01308', second: 'P01317' } as const;
+
+/** Columns per alignment block; phones show fewer so letters stay readable. */
+export const BLOCK_COLUMNS_NARROW = 30;
+export const NARROW_BLOCK_QUERY = '(max-width: 47.99rem)';
+
+/** Labels for the kinds of column shown in the alignment map. */
+export const COLUMN_KIND_LABEL_KEYS = {
+  identical: 'alignment.kindIdentical',
+  similar: 'alignment.kindSimilar',
+  different: 'alignment.kindDifferent',
+  gap: 'alignment.kindGap',
+} as const satisfies Record<'identical' | 'similar' | 'different' | 'gap', TranslationKey>;

@@ -9,8 +9,8 @@ const INITIAL_DRAFT: AlignmentDraftState = {
 };
 
 /** Keeps alignment inputs and the last result alive across routes; nothing is written to storage. */
-export function AlignmentDraftProvider({ children }: { children: ReactNode }): React.JSX.Element {
-  const [state, setState] = useState(INITIAL_DRAFT);
+export function AlignmentDraftProvider({ children, initial = INITIAL_DRAFT }: { children: ReactNode; initial?: AlignmentDraftState }): React.JSX.Element {
+  const [state, setState] = useState(initial);
   const update = useCallback((changes: Partial<AlignmentDraftState>) => {
     setState((current) => ({ ...current, ...changes }));
   }, []);

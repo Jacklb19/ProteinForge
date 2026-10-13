@@ -5,9 +5,9 @@ import { validateSequence } from '../editor/sequence';
 
 describe('reference integrity', () => {
   it('keeps full versioned references valid and identifiable by canonical accession', () => {
-    expect(REFERENCE_CATALOG.map((entry) => entry.accession)).toEqual(['P01308', 'P00698', 'P13569']);
+    expect(REFERENCE_CATALOG.map((entry) => entry.accession)).toEqual(['P01308', 'P01317', 'P00698', 'P13569']);
     for (const reference of REFERENCE_CATALOG) expect(validateSequence(reference.sequence).invalidPositions).toEqual([]);
-    expect(REFERENCE_CATALOG.map((entry) => entry.sequence.length)).toEqual([110, 147, 1480]);
+    expect(REFERENCE_CATALOG.map((entry) => entry.sequence.length)).toEqual([110, 105, 147, 1480]);
   });
   it('counts unique annotation positions across duplicate chains without claiming coordinates', () => {
     expect(annotatedCoverage('A/C=90-110, B/D=25-54', 110)).toBe(51);

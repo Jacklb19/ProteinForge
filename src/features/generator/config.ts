@@ -11,3 +11,7 @@ export const GENERATOR_REFERENCES = [
   'https://www.jstatsoft.org/article/view/v008i14',
   'https://web.expasy.org/protparam/',
 ] as const;
+
+/** Number formats of the compact candidate rows. */
+export const CANDIDATE_GRAVY_FORMAT = { minimumFractionDigits: 3, maximumFractionDigits: 3 } as const;
+export const CANDIDATE_MASS_FORMAT = { maximumFractionDigits: 0 } as const;
