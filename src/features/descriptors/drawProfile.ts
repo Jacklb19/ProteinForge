@@ -63,6 +63,37 @@ export function drawProfile(
     context.fillText(numberFormat.format(reference), style.margin, y - style.referenceWidth);
   }
 
+  // Area between the curve and zero: one hue above, another below, so the sign reads at a glance.
+  const zero = yFor(0);
+  const runs: ProfilePoint[][] = [];
+  for (const point of points) {
+    if (point.value === null) { runs.push([]); continue; }
+    if (runs.length === 0) runs.push([]);
+    runs.at(-1)?.push(point);
+  }
+  const fillSide = (color: string, top: number, bottom: number): void => {
+    context.save();
+    context.beginPath();
+    context.rect(0, top, width, Math.max(0, bottom - top));
+    context.clip();
+    context.globalAlpha = style.areaOpacity;
+    context.fillStyle = color;
+    for (const run of runs) {
+      const start = run[0];
+      const end = run.at(-1);
+      if (!start || !end || run.length < 2) continue;
+      context.beginPath();
+      context.moveTo(xFor(start.position), zero);
+      for (const point of run) context.lineTo(xFor(point.position), yFor(point.value ?? 0));
+      context.lineTo(xFor(end.position), zero);
+      context.closePath();
+      context.fill();
+    }
+    context.restore();
+  };
+  fillSide(style.above, 0, zero);
+  fillSide(style.below, zero, height);
+
   context.strokeStyle = style.curve;
   context.lineWidth = style.lineWidth;
   context.beginPath();

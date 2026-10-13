@@ -4,6 +4,9 @@ import { EditorPage } from '../editor/EditorPage';
 import { calculateDescriptors } from './descriptors';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
 import { WorkspaceProviders } from '../../test/WorkspaceProviders';
+import { spanish } from '../../i18n/es';
+import { DEFAULT_LOCALE, languageTags } from '../../i18n/config';
+import { translate } from '../../i18n/translate';
 
 class MockWorker {
   static instances: MockWorker[] = [];
@@ -31,6 +34,13 @@ function requestAt(worker: MockWorker, index: number): DescriptorRequest {
   return request;
 }
 
+/** Definition paired with a descriptor label: its value, unit and short reading. */
+function definition(panel: HTMLElement, label: string): HTMLElement {
+  const element = within(panel).getByText(label, { selector: 'dt' }).nextElementSibling;
+  if (!(element instanceof HTMLElement)) throw new Error('The descriptor value is missing.');
+  return element;
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   MockWorker.instances = [];
@@ -40,7 +50,7 @@ describe('descriptors in the editor', () => {
   it('keeps prior values faded and does not calculate invalid input', () => {
     vi.stubGlobal('Worker', MockWorker);
     render(<EditorPage />, { wrapper: WorkspaceProviders });
-    const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
+    const editor = screen.getByRole('textbox', { name: spanish['editor.label'] });
     fireEvent.change(editor, { target: { value: 'ACDE' } });
     const worker = descriptorWorker();
     expect(worker.postMessage).toHaveBeenCalledTimes(1);
@@ -51,29 +61,34 @@ describe('descriptors in the editor', () => {
         data: { id: request.id, result: calculateDescriptors('ACDE') },
       }));
     });
-    const panel = screen.getByRole('region', { name: /descriptores fisicoquímicos/i });
-    expect(within(panel).getByText('Masa molecular')).toBeInTheDocument();
-    const previousMass = within(panel).getByText(/Da$/).textContent;
+    const panel = screen.getByRole('region', { name: spanish['descriptors.title'] });
+    const mass = new Intl.NumberFormat(languageTags[DEFAULT_LOCALE], { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(calculateDescriptors('ACDE').massDa);
+    const previousMass = definition(panel, spanish['descriptors.mass']).textContent;
+    expect(previousMass).toBe(`${mass} ${spanish['units.dalton']}${spanish['guide.mass']}`);
+    expect(definition(panel, spanish['descriptors.mass']).querySelector('.property-unit')).toHaveTextContent(spanish['units.dalton']);
+    expect(panel.querySelector('dl')).toHaveClass('property-list');
+    expect(panel.querySelector('dl')).not.toHaveClass('stale-descriptors');
+    expect(within(panel).getByText(spanish['guide.methods'], { selector: 'summary' }).closest('details')).toHaveTextContent(`${spanish['descriptors.mass']}: ${spanish['descriptors.massMethod']}`);
 
     fireEvent.change(editor, { target: { value: 'AC-DE' } });
     expect(worker.postMessage).toHaveBeenCalledTimes(1);
-    expect(within(panel).getByText(/resultados están desactualizados/i)).toBeInTheDocument();
-    expect(within(panel).getByText(/Da$/).textContent).toBe(previousMass);
+    expect(within(panel).getByText(spanish['descriptors.invalid'])).toBeInTheDocument();
+    expect(definition(panel, spanish['descriptors.mass']).textContent).toBe(previousMass);
     expect(panel.querySelector('dl')).toHaveClass('stale-descriptors');
   });
 
   it('excludes additional residues and shows their count', () => {
     vi.stubGlobal('Worker', MockWorker);
     render(<EditorPage />, { wrapper: WorkspaceProviders });
-    fireEvent.change(screen.getByRole('textbox', { name: /secuencia de aminoácidos/i }), { target: { value: 'ACXDO' } });
+    fireEvent.change(screen.getByRole('textbox', { name: spanish['editor.label'] }), { target: { value: 'ACXDO' } });
     expect(requestAt(descriptorWorker(), 0).sequence).toBe('ACD');
-    expect(screen.getByText(/2 residuos U, O, B, Z o X excluidos/i)).toBeInTheDocument();
+    expect(screen.getByText(translate(DEFAULT_LOCALE, 'descriptors.excluded', { count: 2 }))).toBeInTheDocument();
   });
 
   it('ignores a response older than the latest valid edit', () => {
     vi.stubGlobal('Worker', MockWorker);
     render(<EditorPage />, { wrapper: WorkspaceProviders });
-    const editor = screen.getByRole('textbox', { name: /secuencia de aminoácidos/i });
+    const editor = screen.getByRole('textbox', { name: spanish['editor.label'] });
     fireEvent.change(editor, { target: { value: 'ACDE' } });
     const worker = descriptorWorker();
     const first = requestAt(worker, 0);
@@ -84,12 +99,12 @@ describe('descriptors in the editor', () => {
         data: { id: first.id, result: calculateDescriptors('ACDE') },
       }));
     });
-    expect(screen.queryByText('Masa molecular')).not.toBeInTheDocument();
+    expect(screen.queryByText(spanish['descriptors.mass'])).not.toBeInTheDocument();
     act(() => {
       worker.onmessage?.(new MessageEvent('message', {
         data: { id: second.id, result: calculateDescriptors('ACDF') },
       }));
     });
-    expect(screen.getByText('Masa molecular')).toBeInTheDocument();
+    expect(screen.getByText(spanish['descriptors.mass'])).toBeInTheDocument();
   });
 });

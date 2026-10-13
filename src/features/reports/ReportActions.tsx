@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from '../../i18n';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
@@ -7,7 +8,7 @@ import { REPORT_FILENAMES, REPORT_TIMEOUT_MS } from './config';
 import type { ReportFormat, ReportRequest, ReportResponse } from './reportMessages';
 
 /** On-demand local Worker; obsolete exports are discarded if inputs change while generating. */
-export function ReportActions(): React.JSX.Element | null {
+export function ReportActions({ children }: { children?: ReactNode }): React.JSX.Element | null {
   const { t, locale } = useTranslation();
   const sequence = useSequenceDraft(); const alignment = useAlignmentDraft();
   const [status, setStatus] = useState<'idle' | 'running' | 'error' | 'stale' | 'done'>('idle');
@@ -44,11 +45,12 @@ export function ReportActions(): React.JSX.Element | null {
       worker.postMessage(request);
     } catch { finish(); setStatus('error'); }
   }
-  return <details className="report-menu"><summary>{t('report.export')}</summary><div className="report-options"><p className="field-help">{t('report.help')}</p><div className="hero-actions">
-    <button type="button" className="button button-secondary" disabled={status === 'running'} onClick={() => { start('pdf'); }}>{t('report.pdf')}</button>
-    <button type="button" className="button button-secondary" disabled={status === 'running'} onClick={() => { start('json'); }}>{t('report.json')}</button>
-    {sequence.text && <button type="button" className="button button-secondary" disabled={status === 'running'} onClick={() => { start('profile'); }}>{t('report.profileCsv')}</button>}
-    {alignment.result && <button type="button" className="button button-secondary" disabled={status === 'running'} onClick={() => { start('alignment'); }}>{t('report.alignmentCsv')}</button>}
-    {status === 'running' && <button type="button" className="button button-secondary" onClick={() => { finish(); setStatus('idle'); }}>{t('projects.cancel')}</button>}
-  </div><p role="status" className="status-message" data-state={status === 'error' || status === 'stale' ? 'error' : undefined}>{status === 'idle' ? '' : t(`report.${status}`)}</p></div></details>;
+  return <details className="toolbar-menu report-menu"><summary className="button button-secondary">{t('report.export')}</summary><div className="toolbar-popover">
+    <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('pdf'); }}>{t('report.pdf')}</button>
+    <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('json'); }}>{t('report.json')}</button>
+    {sequence.text && <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('profile'); }}>{t('report.profileCsv')}</button>}
+    {alignment.result && <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('alignment'); }}>{t('report.alignmentCsv')}</button>}
+    {children}
+    {status === 'running' && <button type="button" className="button" onClick={() => { finish(); setStatus('idle'); }}>{t('projects.cancel')}</button>}
+    <p role="status" className="status-message" data-state={status === 'error' || status === 'stale' ? 'error' : undefined}>{status === 'idle' ? '' : t(`report.${status}`)}</p></div></details>;
 }

@@ -4,6 +4,15 @@ import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import { HydropathyProfile } from './HydropathyProfile';
 import { calculateProfile } from './profile';
 import { calculatePropensities } from './chouFasman';
+import type { ResiduePropensity } from './chouFasman';
+import { PROFILE_VALUE_FORMAT, RESIDUES_PER_BLOCK } from './config';
+import { RESIDUE_NAMES } from '../chemistry/config';
+import { annotationsFor } from '../editor/annotations';
+import { DEFAULT_EXAMPLE } from '../editor/examples';
+import { spanish } from '../../i18n/es';
+import { DEFAULT_LOCALE, languageTags } from '../../i18n/config';
+import { translate } from '../../i18n/translate';
+import type { TranslationKey, TranslationVariables } from '../../i18n/translate';
 
 class MockWorker {
   static instance: MockWorker | null = null;
@@ -23,6 +32,29 @@ function lastRequest(worker: MockWorker): Extract<ProfileRequest, { type: 'calcu
   const message = worker.postMessage.mock.calls.at(-1)?.[0];
   if (!message || message.type !== 'calculate') throw new Error('Expected calculation request was not sent.');
   return message;
+}
+
+function t(key: TranslationKey, variables?: TranslationVariables): string {
+  return translate(DEFAULT_LOCALE, key, variables);
+}
+
+function formatValue(value: number | null | undefined): string {
+  if (typeof value !== 'number') throw new Error('Expected a numeric value.');
+  return new Intl.NumberFormat(languageTags[DEFAULT_LOCALE], PROFILE_VALUE_FORMAT).format(value);
+}
+
+/** Readout shown for a selected residue, assembled from the same catalog entries as the component. */
+function readout(row: ResiduePropensity | undefined, details: readonly string[]): string {
+  if (!row) throw new Error('The selected residue has no propensities.');
+  return [
+    t('profile.readerName', { name: RESIDUE_NAMES[row.residue] ?? row.residue, position: row.position }),
+    ...details,
+    t('profile.readerPropensities', { helix: formatValue(row.helix), sheet: formatValue(row.sheet), turn: formatValue(row.turn) }),
+  ].join(' · ');
+}
+
+function section(titleKey: TranslationKey): HTMLElement {
+  return screen.getByRole('region', { name: spanish[titleKey] });
 }
 
 beforeEach(() => {
@@ -48,7 +80,7 @@ describe('accessible hydropathy profile', () => {
     expect(start?.type).toBe('initialize');
     expect(transferables).toHaveLength(1);
     expect(start && 'style' in start && start.style.font).toBeTruthy();
-    expect(screen.getByText(/al menos 9 residuos/i)).toBeInTheDocument();
+    expect(screen.getByText(t('profile.tooShort', { count: 9 }))).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     const shortRequest = lastRequest(worker);
     act(() => {
@@ -81,8 +113,8 @@ describe('accessible hydropathy profile', () => {
     });
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(21);
-    expect(screen.getByRole('columnheader', { name: 'Posición' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Giro' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: spanish['profile.position'] })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: spanish['profile.turn'] })).toBeInTheDocument();
   });
 
   it('supports window 19, paginates values, and retains the profile for invalid input', () => {
@@ -99,16 +131,21 @@ describe('accessible hydropathy profile', () => {
     });
     const table = screen.getByRole('table');
     expect(within(table).getAllByRole('row')).toHaveLength(51);
-    expect(screen.getByText(/Página 1 de 3/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
-    expect(screen.getByText(/Página 2 de 3/i)).toBeInTheDocument();
+    expect(table.closest('details')?.querySelector('summary')).toHaveTextContent(spanish['profile.tableToggle']);
+    expect(section('profile.tendencyTitle')).toContainElement(table);
+    expect(section('profile.tendencyTitle')).not.toHaveClass('stale-table');
+    expect(section('profile.readerTitle')).not.toHaveClass('stale-reader');
+    expect(screen.getByText(t('profile.pageCount', { page: 1, total: 3 }))).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: spanish['profile.next'] }));
+    expect(screen.getByText(t('profile.pageCount', { page: 2, total: 3 }))).toBeInTheDocument();
     const messagesBefore = worker.postMessage.mock.calls.length;
 
     rerender(<HydropathyProfile text={`${sequence}-`} />);
     expect(worker.postMessage).toHaveBeenCalledTimes(messagesBefore);
-    expect(screen.getByText(/perfil y las propensiones están desactualizados/i)).toBeInTheDocument();
-    expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getByRole('table').parentElement?.parentElement).toHaveClass('stale-table');
+    expect(within(section('profile.title')).getByRole('status')).toHaveTextContent(spanish['profile.invalid']);
+    expect(section('profile.tendencyTitle')).toContainElement(screen.getByRole('table'));
+    expect(section('profile.tendencyTitle')).toHaveClass('stale-table');
+    expect(section('profile.readerTitle')).toHaveClass('stale-reader');
   });
 
   it('keeps the accessible table when canvas transfer is unavailable', () => {
@@ -126,7 +163,7 @@ describe('accessible hydropathy profile', () => {
       }));
     });
     expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getByText(/no permite transferir el lienzo/i)).toBeInTheDocument();
+    expect(within(section('profile.title')).getByRole('status')).toHaveTextContent(spanish['profile.unavailable']);
   });
 
   it('sends a fresh chart style when the theme changes', async () => {
@@ -164,13 +201,68 @@ describe('accessible hydropathy profile', () => {
         data: { id: request.id, points, propensities: calculatePropensities(sequence) },
       }));
     });
-    const reader = screen.getByRole('group', { name: /secuencia numerada/i });
+    const propensities = calculatePropensities(sequence);
+    const reader = screen.getByRole('group', { name: t('profile.readerLabel', { count: RESIDUES_PER_BLOCK }) });
+    const display = document.getElementById('reader-readout');
+    expect(section('profile.readerTitle')).toContainElement(reader);
+    expect(section('profile.readerTitle')).toContainElement(display);
+    expect(reader).toHaveAttribute('aria-describedby', 'reader-readout');
+    expect(display).toHaveTextContent(spanish['profile.readerHint']);
+    // Only the lines near the viewport are rendered; every rendered cell carries its chemistry and position.
+    const cells = reader.querySelectorAll('.reader-residues > *');
+    expect(cells).toHaveLength(RESIDUES_PER_BLOCK);
+    expect(reader.querySelectorAll('span.residue[data-chem][data-position]')).toHaveLength(cells.length);
     fireEvent.click(within(reader).getByText('F'));
     const value = points.find((point) => point.position === 5)?.value ?? 0;
-    expect(screen.getByText(new RegExp(`Residuo 5: F\\. Hidropatía ${value.toFixed(3).replace('.', ',')}, media de los residuos 1 a 9`))).toBeInTheDocument();
+    expect(formatValue(value)).toBe(value.toFixed(3).replace('.', ','));
+    expect(display?.textContent).toBe(readout(propensities[4], [t('profile.readerHydropathy', { value: formatValue(value), start: 1, end: 9 })]));
+    expect(reader.querySelector('.residue.is-selected')).toHaveAttribute('data-position', '5');
+    expect(reader.querySelector('.residue.is-selected')).toHaveAttribute('data-chem', 'hydrophobic');
     expect(reader.querySelectorAll('.in-window')).toHaveLength(8);
     fireEvent.keyDown(reader, { key: 'Home' });
-    expect(screen.getByText(/Residuo 1: A\. Sin ventana completa/)).toBeInTheDocument();
+    expect(display?.textContent).toBe(readout(propensities[0], [spanish['profile.readerNoWindow']]));
     expect(reader.querySelectorAll('.in-window')).toHaveLength(0);
+  });
+
+  it('follows a controlled selection and reads the region and bridge of an annotated reference', () => {
+    const sequence = DEFAULT_EXAMPLE.text;
+    const annotations = annotationsFor(DEFAULT_EXAMPLE.source);
+    if (!annotations) throw new Error('The bundled example has no annotations.');
+    const onSelect = vi.fn<(position: number | null) => void>();
+    const { rerender } = render(<HydropathyProfile text={sequence} selected={annotations.highlight} onSelect={onSelect} annotations={annotations} />);
+    const worker = profileWorker();
+    const request = lastRequest(worker);
+    const points = calculateProfile(sequence, 9);
+    const propensities = calculatePropensities(sequence);
+    act(() => {
+      worker.onmessage?.(new MessageEvent('message', { data: { id: request.id, points, propensities } }));
+    });
+    const position = annotations.highlight;
+    const value = points.find((point) => point.position === position)?.value;
+    const display = document.getElementById('reader-readout');
+    expect(display?.textContent).toBe(readout(propensities[position - 1], [
+      t('profile.readerRegion', { region: spanish['regions.chainA'], index: 7 }),
+      t('profile.readerBridge', { position: 31 }),
+      t('profile.readerHydropathy', { value: formatValue(value), start: position - 4, end: position + 4 }),
+    ]));
+    const ribbon = screen.getByRole('img', { name: spanish['profile.mapLabel'] });
+    expect(ribbon.querySelector('.is-selected')).toHaveAttribute('data-position', String(position));
+    expect(ribbon.querySelector('[data-position="1"]')).toHaveClass('is-cut');
+    expect(ribbon.querySelector(`[data-position="${String(position)}"]`)).not.toHaveClass('is-cut');
+    const reader = screen.getByRole('group', { name: t('profile.readerLabel', { count: RESIDUES_PER_BLOCK }) });
+    expect(reader.querySelector('[data-position="1"]')).toHaveClass('is-cut');
+
+    fireEvent.keyDown(reader, { key: 'Home' });
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith(1);
+    // The parent owns the selection: nothing moves until it passes the new position back.
+    expect(ribbon.querySelector('.is-selected')).toHaveAttribute('data-position', String(position));
+    expect(reader.querySelector('[data-position="1"]')).not.toHaveClass('is-selected');
+    rerender(<HydropathyProfile text={sequence} selected={1} onSelect={onSelect} annotations={annotations} />);
+    expect(reader.querySelector('[data-position="1"]')).toHaveClass('is-selected');
+    expect(display?.textContent).toBe(readout(propensities[0], [
+      t('profile.readerRegion', { region: spanish['regions.signal'], index: 1 }),
+      spanish['profile.readerNoWindow'],
+    ]));
   });
 });

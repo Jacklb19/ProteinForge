@@ -3,6 +3,7 @@ import { useTranslation } from '../../i18n';
 import { READER_OVERSCAN_LINES, RESIDUES_PER_BLOCK } from './config';
 import { windowRange } from './chartGeometry';
 import { nextReaderPosition, readerLines } from './readerLayout';
+import { residueClass } from '../chemistry/config';
 
 interface Props {
   sequence: string;
@@ -10,6 +11,8 @@ interface Props {
   selected: number | null;
   onSelect: (position: number) => void;
   describedBy: string;
+  /** Positions drawn muted, such as stretches removed from the mature protein. */
+  isMuted?: (position: number) => boolean;
 }
 
 interface Layout {
@@ -22,7 +25,7 @@ interface Layout {
  * Numbered sequence in blocks of ten. The selected residue and the window averaged
  * into its hydropathy value are highlighted; only lines near the viewport are rendered.
  */
-export function ResidueReader({ sequence, windowSize, selected, onSelect, describedBy }: Props): React.JSX.Element {
+export function ResidueReader({ sequence, windowSize, selected, onSelect, describedBy, isMuted }: Props): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const viewport = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout>({ blocksPerLine: 1, lineHeight: 0, viewportHeight: 0 });
@@ -107,10 +110,11 @@ export function ResidueReader({ sequence, windowSize, selected, onSelect, descri
             const residues = [];
             for (let index = blockStart; index < blockEnd; index += 1) {
               const position = index + 1;
-              const className = position === selected
-                ? 'is-selected'
-                : range && position >= range.start && position <= range.end ? 'in-window' : undefined;
-              residues.push(<span key={position} data-position={position} className={className}>{sequence[index]}</span>);
+              const state = position === selected
+                ? ' is-selected'
+                : range && position >= range.start && position <= range.end ? ' in-window' : '';
+              const residue = sequence[index] ?? '';
+              residues.push(<span key={position} data-position={position} data-chem={residueClass(residue)} className={`residue${isMuted?.(position) ? ' is-cut' : ''}${state}`}>{residue}</span>);
             }
             blocks.push(
               <span key={blockStart} className="reader-block">

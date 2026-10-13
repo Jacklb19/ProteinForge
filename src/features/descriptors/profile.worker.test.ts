@@ -10,9 +10,21 @@ interface MockWorkerContext {
 
 const style: ChartStyle = {
   locale: 'es',
-  surface: 'white', text: 'black', curve: 'blue', reference: 'gray',
+  surface: 'white', text: 'black', curve: 'blue', above: 'orange', below: 'teal', areaOpacity: 0.4, reference: 'gray',
   font: '14px sans-serif', margin: 36, lineWidth: 2, referenceWidth: 1,
 };
+
+/** Canvas context with every operation the chart uses; fills record the color they were painted with. */
+function drawingContext() {
+  const fillStyles: string[] = [];
+  const context = {
+    fillStyle: '', strokeStyle: '', globalAlpha: 1, lineWidth: 0, font: '', textAlign: '', textBaseline: '',
+    setTransform: vi.fn(), fillRect: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), closePath: vi.fn(),
+    stroke: vi.fn(), fillText: vi.fn(), arc: vi.fn(), save: vi.fn(), restore: vi.fn(), rect: vi.fn(), clip: vi.fn(),
+    fill: vi.fn(() => { fillStyles.push(context.fillStyle); }),
+  };
+  return Object.assign(context, { fillStyles });
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -32,10 +44,7 @@ describe('profile worker', () => {
     vi.stubGlobal('FontFace', MockFontFace);
     vi.stubGlobal('self', context);
     await import('./profile.worker');
-    const drawing = {
-      setTransform: vi.fn(), fillRect: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
-      stroke: vi.fn(), fillText: vi.fn(), arc: vi.fn(), fill: vi.fn(),
-    };
+    const drawing = drawingContext();
     const canvas = { getContext: () => drawing } as unknown as OffscreenCanvas;
     context.onmessage?.(new MessageEvent('message', { data: { type: 'initialize', canvas, style } }));
     context.onmessage?.(new MessageEvent('message', { data: {
@@ -49,7 +58,9 @@ describe('profile worker', () => {
     if (!CHART_FONT) throw new Error('The font manifest has no regular interface face.');
     expect(fontArguments).toHaveBeenCalledWith(CHART_FONT.family, `url(${fontUrl(CHART_FONT)})`, { weight: String(CHART_FONT.weight) });
     expect(drawing.fillRect).toHaveBeenCalledTimes(2);
+    expect(drawing.stroke).toHaveBeenCalledTimes(4);
     expect(context.postMessage).toHaveBeenCalledOnce();
+    expect((context.postMessage.mock.calls[0]?.[0] as ProfileResponse).error).toBeUndefined();
   });
 
   it('preserves results with an explicit warning when the chart font is unavailable', async () => {
@@ -59,16 +70,14 @@ describe('profile worker', () => {
       const context: MockWorkerContext = { onmessage: null, postMessage: vi.fn(), fonts: { add: vi.fn() } };
       vi.stubGlobal('self', context);
       await import('./profile.worker');
-      const drawing = {
-        setTransform: vi.fn(), fillRect: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
-        stroke: vi.fn(), fillText: vi.fn(), arc: vi.fn(), fill: vi.fn(),
-      };
+      const drawing = drawingContext();
       const canvas = { getContext: () => drawing } as unknown as OffscreenCanvas;
       context.onmessage?.(new MessageEvent('message', { data: { type: 'initialize', canvas, style } }));
       context.onmessage?.(new MessageEvent('message', { data: {
         type: 'calculate', id: 3, sequence: 'ACDEFGHIK', windowSize: 9, width: 400, height: 200, scale: 1, style,
       } }));
       await vi.waitFor(() => { expect(warning).toHaveBeenCalledOnce(); });
+      expect(context.postMessage).toHaveBeenCalledOnce();
       expect((context.postMessage.mock.calls[0]?.[0] as ProfileResponse).points).toHaveLength(1);
       expect(context.fonts?.add).not.toHaveBeenCalled();
     } finally { warning.mockRestore(); }
@@ -77,11 +86,7 @@ describe('profile worker', () => {
     const context: MockWorkerContext = { onmessage: null, postMessage: vi.fn() };
     vi.stubGlobal('self', context);
     await import('./profile.worker');
-    const drawing = {
-      setTransform: vi.fn(), fillRect: vi.fn(), beginPath: vi.fn(),
-      moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), fillText: vi.fn(),
-      arc: vi.fn(), fill: vi.fn(), fillStyle: '', strokeStyle: '', lineWidth: 0, font: '',
-    };
+    const drawing = drawingContext();
     const canvas = { width: 0, height: 0, getContext: vi.fn(() => drawing) } as unknown as OffscreenCanvas;
     context.onmessage?.(new MessageEvent('message', { data: { type: 'initialize', canvas, style } }));
     context.onmessage?.(new MessageEvent('message', {
@@ -95,11 +100,36 @@ describe('profile worker', () => {
     expect(response.points).toHaveLength(1);
     expect(response.propensities).toHaveLength(9);
     expect(response.points?.[0]?.position).toBe(5);
+    expect(response.error).toBeUndefined();
     expect(drawing.strokeStyle).toBe('blue');
     context.onmessage?.(new MessageEvent('message', {
       data: { type: 'redraw', id: 7, width: 400, height: 200, scale: 1, style: { ...style, curve: 'dark-curve' } },
     }));
     expect(drawing.strokeStyle).toBe('dark-curve');
+    expect(context.postMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('fills the area above and below zero with the colors of the style it received last', async () => {
+    const context: MockWorkerContext = { onmessage: null, postMessage: vi.fn() };
+    vi.stubGlobal('self', context);
+    await import('./profile.worker');
+    const drawing = drawingContext();
+    const canvas = { width: 0, height: 0, getContext: vi.fn(() => drawing) } as unknown as OffscreenCanvas;
+    context.onmessage?.(new MessageEvent('message', { data: { type: 'initialize', canvas, style } }));
+    context.onmessage?.(new MessageEvent('message', {
+      data: { type: 'calculate', id: 2, sequence: 'ACDEFGHIKL', windowSize: 9, width: 400, height: 200, scale: 1, style },
+    }));
+    const response = context.postMessage.mock.calls[0]?.[0] as ProfileResponse;
+    expect(response.error).toBeUndefined();
+    expect(response.points).toHaveLength(2);
+    expect(drawing.fillStyles).toEqual([style.above, style.below]);
+    expect(drawing.save).toHaveBeenCalledTimes(2);
+    expect(drawing.restore).toHaveBeenCalledTimes(2);
+    expect(drawing.clip).toHaveBeenCalledTimes(2);
+    context.onmessage?.(new MessageEvent('message', {
+      data: { type: 'redraw', id: 2, width: 400, height: 200, scale: 1, style: { ...style, above: 'dark-above', below: 'dark-below' } },
+    }));
+    expect(drawing.fillStyles.slice(2)).toEqual(['dark-above', 'dark-below']);
     expect(context.postMessage).toHaveBeenCalledTimes(1);
   });
 });

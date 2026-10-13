@@ -50,6 +50,9 @@ describe('accessible chart styles', () => {
     root.style.setProperty('--text-secondary', '#111827');
     root.style.setProperty('--chart-line', '#2563eb');
     root.style.setProperty('--chart-reference', '#6b7280');
+    root.style.setProperty('--chart-above', '#b45309');
+    root.style.setProperty('--chart-below', '#1d4ed8');
+    root.style.setProperty('--opacity-chart-area', '0.55');
     root.style.setProperty('--space-chart-inner', '36px');
     root.style.setProperty('--border-width-chart-line', '2px');
     root.style.setProperty('--border-width-chart-reference', '1px');
@@ -58,6 +61,9 @@ describe('accessible chart styles', () => {
     const style = getChartStyle(canvas);
     expect(style.curve).toBe('#2563eb');
     expect(style.text).toBe('#111827');
+    expect(style.above).toBe('#b45309');
+    expect(style.below).toBe('#1d4ed8');
+    expect(style.areaOpacity).toBe(0.55);
     expect(style.font).toContain('14px');
     expect(style.margin).toBe(36);
     root.removeAttribute('style');
