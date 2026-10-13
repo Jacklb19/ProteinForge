@@ -75,14 +75,50 @@ function untranslatedText(file: string, content = readFileSync(file, 'utf8')): s
   return violations;
 }
 
+const catalogKeys = Object.keys(spanish) as (keyof typeof spanish)[];
+
+function placeholders(text: string): string[] {
+  return [...new Set(Array.from(text.matchAll(/\{\{(\w+)\}\}/g), (match) => match[1] ?? ''))].sort();
+}
+
+/** Keys whose English text must differ from the Spanish one; a sample across every screen. */
+const TRANSLATED_SAMPLE: readonly (keyof typeof spanish)[] = [
+  'nav.home', 'nav.analyze', 'nav.alignment', 'nav.generate', 'nav.library', 'nav.profile', 'shell.signIn', 'settings.signOut',
+  'landing.title', 'app.title', 'generator.title', 'alignment.title', 'alignment.regionJoin', 'library.title', 'library.insulin',
+  'profile.title', 'descriptors.mass', 'projects.save', 'report.export', 'auth.signUpTitle', 'account.title', 'privacy.title',
+  'terms.title', 'legal.updated', 'notFound.title', 'errors.invalidFasta', 'chemistry.cysteine', 'regions.chainA',
+];
+
+/** Language names are written in their own language in both catalogs. */
+const LANGUAGE_NAME_KEYS: readonly (keyof typeof spanish)[] = ['settings.spanish', 'settings.english'];
+
 describe('typed translations', () => {
-  it('keeps Spanish complete and marks pending English strings', () => {
-    expect(Object.keys(spanish).length).toBeGreaterThan(0);
+  it('keeps both catalogs complete, with the same keys in the same order', () => {
+    expect(catalogKeys.length).toBeGreaterThan(0);
     expect(Object.keys(english)).toEqual(Object.keys(spanish));
-    for (const [key, value] of Object.entries(spanish)) {
-      expect(value.trim(), key).not.toBe('');
-      expect(english[key as keyof typeof english]).toContain('[EN pending]');
+    for (const key of catalogKeys) {
+      expect(spanish[key].trim(), key).not.toBe('');
+      expect(english[key].trim(), key).not.toBe('');
     }
+  });
+
+  it('leaves no pending marker or Spanish-only character in English', () => {
+    for (const key of catalogKeys) {
+      expect(english[key], key).not.toContain('[EN pending]');
+      if (!LANGUAGE_NAME_KEYS.includes(key)) expect(english[key], key).not.toMatch(/[áéíóúüñ¿¡«»]/i);
+    }
+    for (const key of LANGUAGE_NAME_KEYS) expect(english[key], key).toBe(spanish[key]);
+  });
+
+  it('keeps the same placeholders in both languages', () => {
+    for (const key of catalogKeys) expect(placeholders(english[key]), key).toEqual(placeholders(spanish[key]));
+  });
+
+  it('translates English instead of copying Spanish', () => {
+    for (const key of TRANSLATED_SAMPLE) expect(english[key], key).not.toBe(spanish[key]);
+    // Proper names, units and cognates may coincide; texts of three or more words may not.
+    const words = (text: string): number => (text.replace(/\{\{\w+\}\}/g, '').match(/\p{L}{2,}/gu) ?? []).length;
+    expect(catalogKeys.filter((key) => english[key] === spanish[key] && words(spanish[key]) >= 3)).toEqual([]);
   });
 
   it('keeps visible component literals behind translation calls', () => {

@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { assertFits, chooseTheme, message, signInWithEmptyAccount, TEST_ACCOUNT, token } from './helpers';
 import { spanish } from '../src/i18n/es';
+import { english } from '../src/i18n/en';
 import { SESSION_STORAGE_KEY } from '../src/features/auth/config';
 import { SUPPORT_EMAIL_URL } from '../src/features/legal/config';
 import { ROUTES } from '../src/shared/navigation';
@@ -27,7 +28,7 @@ test('profile preferences fit both widths and themes with accessible controls', 
   }
 });
 
-test('system theme and pending English preserve layout and keyboard focus', async ({ page }) => {
+test('system theme and English preserve layout and keyboard focus', async ({ page }) => {
   await signInWithEmptyAccount(page);
   await page.setViewportSize({ width: 360, height: 900 });
   await page.emulateMedia({ colorScheme: 'dark' });
@@ -45,9 +46,13 @@ test('system theme and pending English preserve layout and keyboard focus', asyn
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg-canvas').trim())).toBe(token('--dark-bg-canvas'));
   await page.getByRole('radio', { name: spanish['settings.english'], exact: true }).check();
   await page.reload();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('[EN pending]');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(english['account.title']);
+  await expect(page.getByRole('button', { name: english['settings.signOut'], exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: english['account.appearance'], exact: true })).toBeVisible();
+  await expect(page.getByText(english['settings.themeHelp'])).toBeVisible();
+  await expect(page.getByText(spanish['settings.themeHelp'])).toHaveCount(0);
   expect(await page.evaluate(() => document.body.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
-  await page.screenshot({ path: 'artifacts/profile-pending-english-360.png', fullPage: true });
+  await page.screenshot({ path: 'artifacts/profile-english-360.png', fullPage: true });
 });
 
 test('profile holds the account, its projects and its data choices, and signs out', async ({ page }) => {
