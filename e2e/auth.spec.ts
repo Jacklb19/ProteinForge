@@ -73,7 +73,7 @@ test('identity screens link to each other and the password toggle reveals the fi
   await page.goto(ROUTES.home);
   await page.getByRole('banner').getByRole('link', { name: spanish['shell.signIn'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
-  await page.getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
+  await page.locator('#app-content').getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signUp}$`));
   await page.getByRole('link', { name: spanish['auth.signInAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));

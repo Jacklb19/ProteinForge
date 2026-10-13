@@ -11,7 +11,7 @@ interface Props {
   placeholder?: ReactNode;
 }
 
-/** A small Spanish control surface over Mol*. Only real public BinaryCIF is rendered. */
+/** A small control surface over Mol*. Only real public BinaryCIF is rendered. */
 export default function StructureViewer({ pdbId, placeholder }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const themeRevision = useThemeRevision();

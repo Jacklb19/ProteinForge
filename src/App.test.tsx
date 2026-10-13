@@ -4,6 +4,7 @@ import App from './App';
 import { spanish } from './i18n/es';
 import { translate } from './i18n/translate';
 import { DEFAULT_LOCALE } from './i18n/config';
+import { readAuthSettings } from './features/auth/config';
 import { DEFAULT_EXAMPLE } from './features/editor/examples';
 import { INSULIN_BACKBONE } from './features/structure/backbone';
 import { NAVIGATION_ITEMS, ROUTES } from './shared/navigation';
@@ -26,6 +27,11 @@ describe('App', () => {
 
     expect(screen.getByRole('link', { name: spanish['landing.analyzeAction'] })).toHaveAttribute('href', ROUTES.analyze);
     expect(screen.getByRole('link', { name: spanish['landing.compareAction'] })).toHaveAttribute('href', ROUTES.alignment);
-    expect(screen.getByRole('link', { name: spanish['shell.signIn'] })).toHaveAttribute('href', ROUTES.signIn);
+    const bar = screen.getByRole('banner');
+    expect(within(bar).getByRole('link', { name: spanish['shell.signIn'] })).toHaveAttribute('href', ROUTES.signIn);
+    // Account creation is offered only where identity is configured.
+    const signUp = within(bar).queryByRole('link', { name: spanish['auth.signUpAction'] });
+    if (readAuthSettings()) expect(signUp).toHaveAttribute('href', ROUTES.signUp);
+    else expect(signUp).not.toBeInTheDocument();
   });
 });

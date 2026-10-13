@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { assertFits, examplePairTitle, alignmentVerdict, message, messagePattern, openSequenceEditor } from './helpers';
+import { assertFits, examplePairTitle, alignmentVerdict, identityEnabled, message, messagePattern, openSequenceEditor } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
 
@@ -73,7 +73,15 @@ for (const width of [360, 1280]) {
     await expect(ribbon.locator('.residue.is-selected')).toHaveCount(1);
 
     // Each view shows figures computed in this visit by the real workers.
-    await expect(page.locator('section.view')).toHaveCount(3);
+    // Three tool views, plus what an account adds for visitors who can create one.
+    await expect(page.locator('section.view')).toHaveCount(identityEnabled ? 4 : 3);
+    const account = page.locator('section.view', { hasText: spanish['landing.accountTitle'] });
+    await expect(account).toHaveCount(identityEnabled ? 1 : 0);
+    if (identityEnabled) {
+      await expect(account.locator('.account-compare dt')).toHaveText([spanish['landing.withoutAccount'], spanish['landing.withAccount']]);
+      await expect(account.getByRole('link', { name: spanish['auth.signUpAction'], exact: true })).toHaveAttribute('href', ROUTES.signUp);
+      await expect(account.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveAttribute('href', ROUTES.signIn);
+    }
     await expect(page.getByRole('img', { name: spanish['landing.profileLabel'] })).toBeVisible();
     await expect(page.locator('.view-fact')).toContainText('11.980,91');
     await expect(page.locator('section.view', { hasText: spanish['landing.alignmentTitle'] }).locator('.view-copy')).toContainText(messagePattern('landing.alignmentText'));
@@ -150,7 +158,7 @@ test('landing, identity and tools form a complete navigation flow', async ({ pag
   await page.getByRole('banner').getByRole('link', { name: spanish['shell.signIn'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
   await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signInTitle'] })).toBeVisible();
-  await page.getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
+  await page.locator('#app-content').getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signUp}$`));
   await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signUpTitle'] })).toBeVisible();
   await page.getByRole('banner').getByRole('link', { name: spanish['shell.home'] }).click();

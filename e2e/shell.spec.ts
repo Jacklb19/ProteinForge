@@ -2,11 +2,12 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import {
-  alignmentVerdict, assertFits, examplePairTitle, followNavigation, message, openExportMenu, openSequenceEditor, openSiteMenu,
+  alignmentVerdict, assertFits, examplePairTitle, followNavigation, identityEnabled, message, openExportMenu, openSequenceEditor, openSiteMenu,
   residueReader, signInWithEmptyAccount, siteMenu, TEST_ACCOUNT,
 } from './helpers';
 import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
+import { english } from '../src/i18n/en';
 import references from '../src/features/descriptors/fixtures/protparam.json' with { type: 'json' };
 
 const destinations = NAVIGATION_ITEMS.map((item) => spanish[item.labelKey]);
@@ -194,4 +195,46 @@ test('a signed-in visitor reaches the profile from the bar and from the phone me
   await menu.getByRole('link', { name: spanish['nav.profile'], exact: true }).click();
   await expect(siteMenu(page)).toBeHidden();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
+});
+
+test('a visitor without a session can create an account and switch language from every width', async ({ page }) => {
+  const bar = page.getByRole('banner');
+  const signUp = bar.getByRole('link', { name: spanish['auth.signUpAction'], exact: true });
+
+  // Desktop: both account actions sit in the bar next to the destinations.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(ROUTES.analyze);
+  await expect(bar.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toBeVisible();
+  await expect(signUp).toHaveCount(identityEnabled ? 1 : 0);
+  if (identityEnabled) {
+    await expect(signUp).toBeVisible();
+    await expect(signUp).toHaveAttribute('href', ROUTES.signUp);
+  }
+  await assertFits(page);
+
+  // Tablet: destinations and account creation move into the menu; the bar never overflows.
+  await page.setViewportSize({ width: 768, height: 900 });
+  await expect(bar.getByRole('navigation', { name: spanish['nav.main'] })).toBeHidden();
+  await expect(signUp).toBeHidden();
+  await expect(bar.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toBeVisible();
+  await assertFits(page);
+  const menu = await openSiteMenu(page);
+  if (identityEnabled) await expect(menu.getByRole('link', { name: spanish['auth.signUpAction'], exact: true })).toHaveAttribute('href', ROUTES.signUp);
+  await expect(menu.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveAttribute('href', ROUTES.signIn);
+
+  // Language is reachable without a session: from the menu and from the footer.
+  await menu.getByRole('radio', { name: spanish['settings.english'], exact: true }).check();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  // The dialog is renamed with the language, so it is located by its id from here on.
+  await expect(page.locator('#site-menu').getByRole('link', { name: english['shell.signIn'], exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('heading', { level: 1, name: english['examples.insulinName'] })).toBeVisible();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  const footer = page.getByRole('contentinfo');
+  await expect(footer.getByRole('radio', { name: english['settings.english'], exact: true })).toBeChecked();
+  await footer.getByRole('radio', { name: english['settings.spanish'], exact: true }).check();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  await expect(page.getByRole('heading', { level: 1, name: spanish['examples.insulinName'] })).toBeVisible();
+  await assertFits(page);
 });

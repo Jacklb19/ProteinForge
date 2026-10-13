@@ -85,7 +85,7 @@ export function AlignmentPage(): React.JSX.Element {
       <header className="page-head">
         <div className="page-head-text">
           <h1>{title}</h1>
-          <p className="page-meta">{[meta, metaSecond].filter(Boolean).join(' · ')}</p>
+          <p className="page-meta">{[isExampleInput(currentInput) ? t('editor.exampleTag') : '', meta, metaSecond].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="toolbar">
           <button className="button button-secondary" type="button" aria-expanded={projectOpen} aria-controls={PROJECT_PANEL_ID} onClick={() => { setProjectOpen((current) => !current); }}>{t('projects.save')}</button>

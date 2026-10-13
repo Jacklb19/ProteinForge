@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { ROUTES } from '../../shared/navigation';
+import { useAuth } from '../auth/authContext';
 import { AlignmentMap, AlignmentMapKey } from '../alignment/AlignmentMap';
 import { changesInside } from '../alignment/columns';
 import { useExampleAlignment } from '../alignment/examples';
@@ -28,6 +29,7 @@ export function LandingPage(): React.JSX.Element {
   // The bundled example is short and fixed, so its profile is drawn without a worker round trip.
   const profile = useMemo(() => calculateProfile(sequence, DEFAULT_HYDROPATHY_WINDOW), [sequence]);
   const alignment = useExampleAlignment();
+  const auth = useAuth();
   const generator = useGenerator();
   const { result: search, status: searchStatus, run: runSearch } = generator;
   useEffect(() => { if (search === null && searchStatus === 'idle') runSearch(); }, [search, searchStatus, runSearch]);
@@ -114,6 +116,22 @@ export function LandingPage(): React.JSX.Element {
           </div>
         )}
       </section>
+
+      {auth.status === 'anonymous' && (
+        <section className="view" aria-labelledby="view-account">
+          <div className="view-copy">
+            <h2 id="view-account">{t('landing.accountTitle')}</h2>
+            <div className="actions">
+              <Link className="button button-primary" to={ROUTES.signUp}>{t('auth.signUpAction')}</Link>
+              <Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link>
+            </div>
+          </div>
+          <dl className="account-compare">
+            <div><dt>{t('landing.withoutAccount')}</dt><dd>{t('landing.withoutAccountText')}</dd></div>
+            <div data-account="true"><dt>{t('landing.withAccount')}</dt><dd>{t('landing.withAccountText')}</dd></div>
+          </dl>
+        </section>
+      )}
     </main>
   );
 }

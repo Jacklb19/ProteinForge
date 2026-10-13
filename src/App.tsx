@@ -21,10 +21,12 @@ import { SignUpPage } from './features/auth/SignUpPage';
 import { RecoverPage } from './features/auth/RecoverPage';
 import { PreferencesProvider } from './preferences/PreferencesProvider';
 import { usePreferences } from './preferences/usePreferences';
-import { THEMES, THEME_LABEL_KEYS } from './preferences/config';
+import { LOCALE_LABEL_KEYS, THEMES, THEME_LABEL_KEYS } from './preferences/config';
 import { resolveTheme, toggledTheme } from './preferences/theme';
 import { useThemeRevision } from './theme/useThemeRevision';
 import { useTranslation } from './i18n';
+import { LOCALES } from './i18n/config';
+import type { Locale } from './i18n/config';
 import { Icon } from './shared/Icon';
 import { BrandMark } from './shared/BrandMark';
 import { NotFoundPage } from './shared/NotFoundPage';
@@ -53,6 +55,19 @@ function ThemeToggle(): React.JSX.Element {
   );
 }
 
+/** Language for visitors without a session; signed-in visitors set it in Perfil. */
+function LanguageChoice({ locale, onChange }: { locale: Locale; onChange: (locale: Locale) => void }): React.JSX.Element {
+  const { t } = useTranslation();
+  return (
+    <SegmentedControl
+      legend={t('shell.languageLabel')}
+      options={LOCALES.map((value) => ({ value, label: t(LOCALE_LABEL_KEYS[value]) }))}
+      value={locale}
+      onChange={onChange}
+    />
+  );
+}
+
 function SiteNavigation({ label }: { label: string }): React.JSX.Element {
   const { t } = useTranslation();
   return (
@@ -66,7 +81,7 @@ function SiteNavigation({ label }: { label: string }): React.JSX.Element {
 function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
   const { t } = useTranslation();
   const { status } = useAuth();
-  const { theme, setTheme } = usePreferences();
+  const { theme, setTheme, locale, setLocale } = usePreferences();
   const close = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -97,7 +112,9 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
                 value={theme}
                 onChange={setTheme}
               />
-              <Link className="button button-primary button-large button-wide" to={ROUTES.signIn} onClick={onClose}>{t('shell.signIn')}</Link>
+              <LanguageChoice locale={locale} onChange={setLocale} />
+              {status !== 'disabled' && <Link className="button button-primary button-large button-wide" to={ROUTES.signUp} onClick={onClose}>{t('auth.signUpAction')}</Link>}
+              <Link className="button button-secondary button-large button-wide" to={ROUTES.signIn} onClick={onClose}>{t('shell.signIn')}</Link>
             </>}
         </div>
       </div>
@@ -135,7 +152,11 @@ function SiteBar(): React.JSX.Element {
                 <span className="account-link-label">{t('nav.profile')}</span>
               </NavLink>
             )
-            : <><ThemeToggle /><Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link></>}
+            : <>
+              <ThemeToggle />
+              <Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link>
+              {status !== 'disabled' && <Link className="button button-primary only-wide" to={ROUTES.signUp}>{t('auth.signUpAction')}</Link>}
+            </>}
           <button
             ref={toggle}
             className="button button-icon only-narrow"
@@ -156,6 +177,8 @@ function SiteBar(): React.JSX.Element {
 
 function SiteFooter(): React.JSX.Element {
   const { t } = useTranslation();
+  const { status } = useAuth();
+  const { locale, setLocale } = usePreferences();
   return (
     <footer className="site-footer">
       <div className="container site-footer-inner">
@@ -166,6 +189,7 @@ function SiteFooter(): React.JSX.Element {
             {FOOTER_LINKS.map((link) => <li key={link.path}><Link to={link.path}>{t(link.labelKey)}</Link></li>)}
           </ul>
         </nav>
+        {status !== 'signed-in' && <div className="segmented-bare footer-language"><LanguageChoice locale={locale} onChange={setLocale} /></div>}
       </div>
     </footer>
   );

@@ -102,7 +102,7 @@ export function EditorPage(): React.JSX.Element {
     : reference ? t(reference.label)
       : hasInput ? t('editor.ownTitle') : t('editor.emptyTitle');
   const count = residueCount > 0 ? t(residueCount === 1 ? 'editor.residueCountOne' : 'editor.residueCount', { count: formatNumber(residueCount) }) : '';
-  const meta = [source?.accession ?? reference?.accession, annotations?.organism ?? reference?.organism, count, annotations ? t('editor.fullPrecursor') : '']
+  const meta = [text === DEFAULT_EXAMPLE.text ? t('editor.exampleTag') : '', source?.accession ?? reference?.accession, annotations?.organism ?? reference?.organism, count, annotations ? t('editor.fullPrecursor') : '']
     .filter(Boolean).join(' · ');
   const sequencePanelOpen = panel === 'sequence';
   const toggle = (next: Exclude<Panel, null>): void => { setPanel((current) => (current === next ? null : next)); };
