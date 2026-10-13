@@ -1,31 +1,38 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AlignmentResult } from './gotoh';
 import { useTranslation } from '../../i18n';
+import { residueClass } from '../chemistry/config';
 import {
-  ALIGNMENT_MARKS, BLOCK_COLUMNS, BLOCK_OVERSCAN, FALLBACK_BLOCK_HEIGHT_PX, FALLBACK_VIEWPORT_HEIGHT_PX,
+  BLOCK_COLUMNS, BLOCK_COLUMNS_NARROW, BLOCK_OVERSCAN, FALLBACK_BLOCK_HEIGHT_PX, FALLBACK_VIEWPORT_HEIGHT_PX, GAP_CHARACTER,
+  NARROW_BLOCK_QUERY,
 } from './config';
+import { columnKind } from './columns';
 
 function blockHeight(element: HTMLElement): number {
   const value = Number.parseFloat(getComputedStyle(element).getPropertyValue('--height-alignment-block'));
   return Number.isFinite(value) && value > 0 ? value : FALLBACK_BLOCK_HEIGHT_PX;
 }
 
-function highlightedResidues(sequence: string, marks: string): React.JSX.Element[] {
-  return Array.from(sequence, (residue, index) => {
-    const mark = marks[index];
-    const className = mark === ALIGNMENT_MARKS.identical ? 'alignment-identical' : mark === ALIGNMENT_MARKS.similar ? 'alignment-similar' : undefined;
-    return <span key={index} className={className}>{residue}</span>;
-  });
+function columnsPerBlock(): number {
+  return typeof window.matchMedia === 'function' && window.matchMedia(NARROW_BLOCK_QUERY).matches ? BLOCK_COLUMNS_NARROW : BLOCK_COLUMNS;
 }
 
-/** Renders only alignment blocks near the scroll viewport. */
-export function AlignmentBlocks({ result }: { result: AlignmentResult }): React.JSX.Element {
+interface Props {
+  result: AlignmentResult;
+  /** Names shown beside each row; they default to the generic labels of the inputs. */
+  firstName: string;
+  secondName: string;
+}
+
+/** Renders only alignment blocks near the scroll viewport; columns that differ carry their residue chemistry. */
+export function AlignmentBlocks({ result, firstName, secondName }: Props): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const viewport = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [height, setHeight] = useState(FALLBACK_VIEWPORT_HEIGHT_PX);
   const [rowHeight, setRowHeight] = useState(FALLBACK_BLOCK_HEIGHT_PX);
-  const count = Math.ceil(result.columns / BLOCK_COLUMNS);
+  const [perBlock, setPerBlock] = useState(columnsPerBlock);
+  const count = Math.ceil(result.columns / perBlock);
 
   useEffect(() => {
     const element = viewport.current;
@@ -33,6 +40,7 @@ export function AlignmentBlocks({ result }: { result: AlignmentResult }): React.
     const update = () => {
       setHeight(element.clientHeight);
       setRowHeight(blockHeight(element));
+      setPerBlock(columnsPerBlock());
     };
     update();
     const observer = new ResizeObserver(update);
@@ -44,15 +52,23 @@ export function AlignmentBlocks({ result }: { result: AlignmentResult }): React.
   const lastVisible = Math.min(count, Math.ceil((scrollTop + height) / rowHeight) + BLOCK_OVERSCAN);
   const blocks = Array.from({ length: Math.max(0, lastVisible - firstVisible) }, (_, offset) => {
     const index = firstVisible + offset;
-    const start = index * BLOCK_COLUMNS;
-    const end = Math.min(start + BLOCK_COLUMNS, result.columns);
-    const marks = result.marks.slice(start, end);
+    const start = index * perBlock;
+    const end = Math.min(start + perBlock, result.columns);
+    const first = result.alignedFirst.slice(start, end);
+    const second = result.alignedSecond.slice(start, end);
+    const cell = (residue: string): React.JSX.Element => (residue === GAP_CHARACTER
+      ? <span className="residue is-gap">{t('alignment.gapSymbol')}</span>
+      : <span className="residue" data-chem={residueClass(residue)}>{residue}</span>);
     return (
       <div key={index} className="alignment-block" style={{ top: index * rowHeight }}>
-        <p>{t('alignment.columns', { start: formatNumber(start + 1), end: formatNumber(end) })}</p>
-        <pre>{highlightedResidues(result.alignedFirst.slice(start, end), marks)}</pre>
-        <pre aria-hidden="true">{marks}</pre>
-        <pre>{highlightedResidues(result.alignedSecond.slice(start, end), marks)}</pre>
+        <p className="alignment-block-head"><span>{firstName}</span><span>{t('alignment.columns', { start: formatNumber(start + 1), end: formatNumber(end) })}</span></p>
+        <div className="alignment-grid" style={{ '--alignment-columns': perBlock } as React.CSSProperties} aria-hidden="true">
+          {Array.from(first, (residue, column) => (
+            <span key={column} className="alignment-column" data-kind={columnKind(result, start + column)}>{cell(residue)}{cell(second[column] ?? GAP_CHARACTER)}</span>
+          ))}
+        </div>
+        <p className="alignment-block-foot"><span>{secondName}</span></p>
+        <pre className="visually-hidden">{first}{'\n'}{result.marks.slice(start, end)}{'\n'}{second}</pre>
       </div>
     );
   });
