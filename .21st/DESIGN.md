@@ -1,11 +1,12 @@
 # ProteinForge — contexto visual
 
-Dirección actual del 11 de octubre de 2026: laboratorio cercano. Web pública y app con navegación diferenciada; la app empieza en /app con tareas, ejemplo guiado y continuidad del borrador. Superficies marfil/azul profundo, acento verde, titulares Bricolage, interfaz Atkinson y residuos Plex Mono. Tokens en src/design-tokens.css; recursos Figma locales conservados.
+Dirección vigente desde el 12 de octubre de 2026: «ficha de lectura». La referencia completa está en `docs/diseno-visual.md`; el mapa de pantallas, en `docs/pantallas.md`.
 
-Referencias 21st consultadas: First-Run Welcome Screen y Project Empty State. Implementación propia con Icon, BrandMark, PageHeading, SegmentedControl y controles existentes, sin instalar otro framework. La bienvenida distingue guardado localmente implementado de activación remota pendiente.
+- Un solo sitio con la misma barra plana: Inicio, Analizar, Alinear, Diseñar y Biblioteca. Sin sesión, tema e «Iniciar sesión»; con sesión, avatar hacia Perfil. En teléfono, menú como panel superpuesto.
+- Cada pantalla abre con un ejemplo real que se puede reemplazar: insulina humana, humana frente a bovina, una búsqueda resuelta y la estructura 1TRZ.
+- La interfaz va en tinta sobre papel frío. Los únicos tonos son las seis clases químicas de residuo, definidas en `src/design-tokens.css` y `src/features/chemistry/config.ts`.
+- Titulares Bricolage Grotesque, interfaz Atkinson Hyperlegible Next, residuos y cifras IBM Plex Mono.
+- Sin rótulos en mayúsculas, tarjetas con icono, pasos numerados ni barra flotante. El texto habla de proteínas, no de la aplicación.
+- Movimiento: giro lento de la estructura hasta la primera interacción y fundidos cortos; todo respeta «reducir movimiento». Objetivos táctiles de 44 px, foco visible y contraste AA en ambos temas.
 
-Movimiento CSS de entradas, letras, resultados e inclinación ornamental suave; pausa por visibilidad y movimiento reducido. Conservar 44 px, contraste y foco. Resultados reales en Workers/WASM. El ejemplo ornamental no representa una estructura científica. CSV vigente local; API health/me en Ajustes con estados explícitos.
-
-Biblioteca/visor experimental, informes y candidatos reutilizan estas primitivas, superficies con divisores y acciones deliberadas. Motor Mol* bajo demanda, sin autogiro ni precarga. Candidatos comparan métricas medidas y exportan método/semilla; informes se generan localmente. No se confunden ornamentos con coordenadas ni coincidencias de propiedades con validación biológica.
-
-12 oct: navegación pública en cabecera en escritorio, muestra real de insulina en una franja completa, tareas como enlaces amplios con separadores y propiedades agrupadas en una superficie. Cuenta sin ilustración en móvil; Ajustes organiza secciones y controles en columnas en escritorio. Conserva tipografías, logo, tokens, motivos y cálculo existentes. Referencias gratuitas de catálogo 21st: Project Empty State e Interactive Empty State; sin descargar componentes de pago ni generación. El bloqueo inicial de aprobación se resolvió tras autorización expresa: CLI1.17.1 review src --json, 189 archivos, 0 errores/avisos y 40 anotaciones informativas en design-tokens.css (definiciones esperadas, no desviaciones). Revisión estática local, complementada con E2E/visual; no revisión por un modelo remoto ni publicación.
+Las primitivas son propias (`Icon`, `BrandMark`, `SegmentedControl`, `PageHeading`, celdas de residuo, cinta de secuencia, mapa de alineamiento, escenario de estructura). No se instalan componentes externos.
