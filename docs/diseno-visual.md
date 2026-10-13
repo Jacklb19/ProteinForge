@@ -1,6 +1,6 @@
 # Diseño visual vigente
 
-Actualizado el 12 de octubre de 2026. Dirección «ficha de lectura», elegida por el usuario entre dos propuestas maquetadas. Sustituye a «la forja» y a «laboratorio cercano». Se conservan el nombre, el logo y las tres tipografías; todo lo demás cambió.
+Actualizado el 13 de octubre de 2026. Dirección «ficha de lectura», elegida por el usuario entre dos propuestas maquetadas. Sustituye a «la forja» y a «laboratorio cercano». Se conservan el nombre, el logo y las tres tipografías; todo lo demás cambió.
 
 ## Principios
 
@@ -13,9 +13,11 @@ Actualizado el 12 de octubre de 2026. Dirección «ficha de lectura», elegida p
 ## Marco
 
 - Una sola barra plana en todo el sitio: logo (lleva a Inicio), Inicio · Analizar · Alinear · Diseñar · Biblioteca. Arriba se funde con el fondo; al desplazarse toma un velo y un filete.
-- Sin sesión: icono de tema claro/oscuro e «Iniciar sesión», siempre visibles. Con sesión: avatar con la inicial, que lleva a Perfil; el tema pasa a Perfil.
-- Teléfono: marca, «Iniciar sesión» y botón de menú. El menú es un panel superpuesto con los cinco destinos, apariencia e inicio de sesión; se cierra con Escape, con el velo o al elegir destino, y devuelve el foco al botón.
-- Pie: logo, consigna, Privacidad y Condiciones.
+- Sin sesión: icono de tema claro/oscuro, «Iniciar sesión» y «Crear cuenta» como acción principal. Con sesión: avatar con la inicial, que lleva a Perfil; tema e idioma pasan a Perfil.
+- Por debajo de 64rem (tabletas y teléfonos): marca, «Iniciar sesión» y botón de menú. El menú es un panel superpuesto con los cinco destinos, apariencia, idioma, «Crear cuenta» e «Iniciar sesión»; se cierra con Escape, con el velo o al elegir destino, y devuelve el foco al botón.
+- Pie: logo, consigna, Privacidad, Condiciones y, sin sesión, el selector de idioma.
+- Cuenta: la app se usa completa sin sesión. La diferencia se dice donde importa: un tramo al final de Inicio compara «sin cuenta» y «con cuenta», y «Guardar» y la consulta de UniProt ofrecen crear cuenta o iniciar sesión.
+- Ejemplo: la insulina es un ejemplo y se nombra como tal. Las acciones de Inicio son generales («Analizar proteínas», «Comparar proteínas») y la línea bajo el título de Analizar y Alinear dice «Ejemplo» mientras no se cambie.
 - Cabecera de página: título, una línea de datos del sujeto y una sola línea de acciones. Los paneles de «Cambiar secuencia» y «Guardar» se despliegan bajo la cabecera; «Exportar» es un menú.
 
 ## Color y tipografía
@@ -55,10 +57,10 @@ Las anotaciones de tramos y puentes existen solo para las referencias incluidas.
 ## Fuentes de verdad y comprobación
 
 - Tokens: `src/design-tokens.css`; estilos: `src/index.css`.
-- Textos: `src/i18n/es.ts`; rutas y redirecciones: `src/shared/navigation.ts`.
+- Textos: `src/i18n/es.ts` y `src/i18n/en.ts`, siempre los dos en el mismo cambio; `en.ts` está tipado contra `es.ts`. Rutas y redirecciones: `src/shared/navigation.ts`.
 - Opciones y medidas de comportamiento: `config.ts` de cada característica (`chemistry`, `structure`, `alignment`, `descriptors`, `generator`, `landing`).
 - Química de residuos: `features/chemistry/config.ts`, compartida por celdas, leyendas, composición y estructura.
 - Editor superpuesto, FASTA virtualizado, lector, bloques de alineamiento y Workers conservan sus mecanismos.
 - Objetivos táctiles de 44 px, foco visible, teclado, contraste AA y ambos temas. Revisar a 360 y 1280 px.
 
-Límites conocidos: el catálogo en inglés sigue pendiente y marca sus textos; las páginas legales conservan las menciones a proveedores que exige su contenido.
+Límites conocidos: los mensajes que producen los Workers (errores de FASTA, descriptores y perfil) salen en español también con la interfaz en inglés, porque los Workers usan el idioma predeterminado; las páginas legales conservan las menciones a proveedores que exige su contenido.

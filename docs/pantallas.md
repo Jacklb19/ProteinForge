@@ -1,10 +1,10 @@
 # Mapa vigente de pantallas
 
-Actualizado el 12 oct 2026. Un solo sitio con la misma barra en todas las pantallas: Inicio · Analizar · Alinear · Diseñar · Biblioteca. Sin sesión se ofrece «Iniciar sesión»; con sesión, el avatar lleva a Perfil. Rutas en `src/shared/navigation.ts`.
+Actualizado el 13 oct 2026. Un solo sitio con la misma barra en todas las pantallas: Inicio · Analizar · Alinear · Diseñar · Biblioteca. Sin sesión se ofrecen «Iniciar sesión» y «Crear cuenta»; con sesión, el avatar lleva a Perfil. Interfaz en español e inglés. Rutas en `src/shared/navigation.ts`.
 
 | Pantalla | Ruta | Qué muestra al abrir | Estado y límite |
 |---|---|---|---|
-| Inicio | `/` | Estructura real de la insulina (1TRZ) que se gira, su secuencia con tramos y puentes, perfil, comparación con la bovina y candidatos | Todo calculado al cargar; las figuras enlazan a su herramienta |
+| Inicio | `/` | Estructura real de la insulina (1TRZ) que se gira, su secuencia con tramos y puentes, perfil, comparación con la bovina, candidatos y, sin sesión, qué añade una cuenta | Todo calculado al cargar; las figuras enlazan a su herramienta |
 | Analizar | `/analyze` | Insulina humana: secuencia coloreada, perfil, tendencias, propiedades, composición y estructura | Acciones: Cambiar secuencia, Guardar, Exportar, Alinear. Tramos, puentes y estructura solo para referencias anotadas |
 | Alinear | `/alignment` | Humana frente a bovina ya alineadas: conclusión, cifras, mapa y bloques | Gotoh/BLOSUM en WASM con cancelación. La nota sobre la proteína madura solo si la primera secuencia está anotada |
 | Diseñar | `/generate` | Búsqueda con las condiciones iniciales ya resuelta | RF17 local; el método va plegado |
@@ -27,7 +27,7 @@ Direcciones anteriores: `/app` redirige a Analizar y `/settings` a Perfil. `/app
 
 ## Recorridos
 
-- **Sin cuenta:** Inicio muestra la proteína; «Analizar la insulina» o «Compararla con otra» abren la herramienta con el ejemplo cargado; desde ahí se reemplaza por una secuencia propia. Todo funciona sin sesión salvo guardar proyectos y consultar UniProt.
+- **Sin cuenta:** Inicio muestra la proteína de ejemplo; «Analizar proteínas» o «Comparar proteínas» abren la herramienta con el ejemplo cargado; desde ahí se reemplaza por una secuencia propia. Todo funciona sin sesión salvo guardar proyectos y consultar UniProt; el trabajo dura lo que dura la visita. Tema e idioma se cambian desde la barra, el menú y el pie.
 - **Con cuenta:** tras iniciar sesión se vuelve a Analizar o a la pantalla que pidió la sesión. Los proyectos se abren, renombran y eliminan desde Perfil.
 
 Los borradores viven en memoria durante la visita. El último proyecto guardado se recupera por un identificador local de cuenta; no se guardan secuencias en el almacenamiento del navegador.
