@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
-import { Icon } from '../../shared/Icon';
+import { PROVIDER_MARKS } from '../../shared/designAssets';
 import { ROUTES } from '../../shared/navigation';
 import { AuthFrame } from './AuthFrame';
 import { destinationAfterSignIn } from './destination';
@@ -52,8 +52,8 @@ export function SignInPage(): React.JSX.Element {
           {serverError ? t(serverError) : auth.redirectError ? t('auth.errorRedirect', { code: auth.redirectError }) : ''}
         </p>
         <div className="auth-actions">
-          <button className="button button-primary button-wide" type="submit" disabled={disabled}>
-            {busy ? t('auth.working') : t('auth.signInAction')}<Icon name="arrow" />
+          <button className="button button-primary button-large button-wide" type="submit" disabled={disabled}>
+            {busy ? t('auth.working') : t('auth.signInAction')}
           </button>
           <Link className="inline-link" to={ROUTES.recover}>{t('auth.forgot')}</Link>
         </div>
@@ -63,7 +63,7 @@ export function SignInPage(): React.JSX.Element {
           <span className="auth-divider" aria-hidden="true">{t('auth.or')}</span>
           {OAUTH_PROVIDERS.map((provider) => {
             const url = auth.authorizeUrl(provider.id);
-            return url ? <a key={provider.id} className="button button-secondary button-wide" href={url}>{t(provider.labelKey)}</a> : null;
+            return url ? <a key={provider.id} className="button button-secondary button-large button-wide" href={url}><img className="provider-mark" src={PROVIDER_MARKS[provider.id]} alt="" aria-hidden="true" />{t(provider.labelKey)}</a> : null;
           })}
         </div>
       )}

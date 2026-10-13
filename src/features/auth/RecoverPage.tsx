@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
-import { Icon } from '../../shared/Icon';
 import { AFTER_SIGN_IN_ROUTE, ROUTES } from '../../shared/navigation';
 import { AuthFrame } from './AuthFrame';
 import { useAuth } from './authContext';
@@ -55,8 +54,8 @@ function RequestForm(): React.JSX.Element {
           {serverError ? t(serverError) : sent ? t('auth.recoverSent') : auth.redirectError ? t('auth.errorRedirect', { code: auth.redirectError }) : ''}
         </p>
         <div className="auth-actions">
-          <button className="button button-primary button-wide" type="submit" disabled={disabled}>
-            {busy ? t('auth.working') : t('auth.recoverAction')}<Icon name="mail" />
+          <button className="button button-primary button-large button-wide" type="submit" disabled={disabled}>
+            {busy ? t('auth.working') : t('auth.recoverAction')}
           </button>
         </div>
       </form>
@@ -96,8 +95,8 @@ function ResetForm(): React.JSX.Element {
         <PasswordField id="reset-confirm" label={t('auth.confirmPassword')} value={confirm} onChange={setConfirm} autoComplete="new-password" errorKey={errors.confirm} disabled={busy} />
         <p className="status-message" data-state={serverError ? 'error' : 'idle'} role="status" aria-live="polite">{serverError ? t(serverError) : ''}</p>
         <div className="auth-actions">
-          <button className="button button-primary button-wide" type="submit" disabled={busy}>
-            {busy ? t('auth.working') : t('auth.resetAction')}<Icon name="check" />
+          <button className="button button-primary button-large button-wide" type="submit" disabled={busy}>
+            {busy ? t('auth.working') : t('auth.resetAction')}
           </button>
         </div>
       </form>

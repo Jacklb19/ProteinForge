@@ -10,7 +10,7 @@ import { SignUpPage } from './SignUpPage';
 import { RecoverPage } from './RecoverPage';
 import { SESSION_STORAGE_KEY } from './config';
 import { spanish } from '../../i18n/es';
-import { ROUTES } from '../../shared/navigation';
+import { AFTER_SIGN_IN_ROUTE, ROUTES } from '../../shared/navigation';
 
 const settings = { url: 'https://project.supabase.co', anonKey: 'public-key' };
 const session = { accessToken: 'access', refreshToken: 'refresh', expiresAt: Math.floor(Date.now() / 1000) + 3600, user: { id: 'user-1', email: 'ana@example.org' } };
@@ -30,7 +30,7 @@ function mockApi(overrides: Partial<AuthApi> = {}): AuthApi {
 }
 
 function Destination(): React.JSX.Element {
-  return <p>{spanish['workspace.nav']}</p>;
+  return <p>{spanish['nav.analyze']}</p>;
 }
 
 function renderAt(path: string, api: AuthApi | undefined, children: ReactNode, configured = true): void {
@@ -41,7 +41,7 @@ function renderAt(path: string, api: AuthApi | undefined, children: ReactNode, c
           <Route path={ROUTES.signIn} element={<SignInPage />} />
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />
-          <Route path={ROUTES.workspace} element={<Destination />} />
+          <Route path={AFTER_SIGN_IN_ROUTE} element={<Destination />} />
           {children}
         </Routes>
       </MemoryRouter>
@@ -63,8 +63,8 @@ describe('identity screens', () => {
     window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ ...session, expiresAt: Math.floor(Date.now() / 1000) + 1 }));
     const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>().mockResolvedValue(Response.json({ access_token: 'renewed-access', refresh_token: 'renewed-refresh', expires_in: 3600, user: session.user }));
     vi.stubGlobal('fetch', fetchMock);
-    render(<AuthProvider><MemoryRouter initialEntries={[ROUTES.signIn]}><Routes><Route path={ROUTES.signIn} element={<SignInPage />} /><Route path={ROUTES.workspace} element={<Destination />} /></Routes></MemoryRouter></AuthProvider>);
-    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
+    render(<AuthProvider><MemoryRouter initialEntries={[ROUTES.signIn]}><Routes><Route path={ROUTES.signIn} element={<SignInPage />} /><Route path={AFTER_SIGN_IN_ROUTE} element={<Destination />} /></Routes></MemoryRouter></AuthProvider>);
+    await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toContain('grant_type=refresh_token');
     expect(JSON.parse(window.localStorage.getItem(SESSION_STORAGE_KEY) ?? 'null')).toMatchObject({ accessToken: 'renewed-access' });
@@ -90,13 +90,18 @@ describe('identity screens', () => {
     expect(vi.mocked(api.signIn)).toHaveBeenCalledWith('ana@example.org', 'wrong-password');
   });
 
-  it('signs in, stores the session and continues to the workbench', async () => {
+  it('signs in, stores the session and continues to the analysis screen', async () => {
     const api = mockApi();
     renderAt(ROUTES.signIn, api, null);
+    expect(AFTER_SIGN_IN_ROUTE).toBe(ROUTES.analyze);
+    expect(screen.getByRole('heading', { level: 1, name: spanish['auth.signInTitle'] })).toBeInTheDocument();
+    const provider = screen.getByRole('link', { name: spanish['auth.continueGoogle'] });
+    expect(provider).toHaveAttribute('href', 'https://project.supabase.co/auth/v1/authorize?provider=google');
+    expect(provider.querySelector('img.provider-mark')).toHaveAttribute('alt', '');
     fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'ana@example.org' } });
     fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'secret-password' } });
     fireEvent.click(screen.getByRole('button', { name: spanish['auth.signInAction'] }));
-    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
     expect(JSON.parse(window.localStorage.getItem(SESSION_STORAGE_KEY) ?? 'null')).toEqual(session);
   });
 
@@ -137,7 +142,7 @@ describe('identity screens', () => {
     fireEvent.change(screen.getByLabelText(spanish['auth.newPassword']), { target: { value: 'another-password' } });
     fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'another-password' } });
     act(() => { fireEvent.click(screen.getByRole('button', { name: spanish['auth.resetAction'] })); });
-    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
     expect(vi.mocked(api.updatePassword)).toHaveBeenCalledWith(access, 'another-password');
   });
 
@@ -145,7 +150,7 @@ describe('identity screens', () => {
     window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ ...session, expiresAt: Math.floor(Date.now() / 1000) + 10 }));
     const api = mockApi();
     renderAt(ROUTES.signIn, api, null);
-    await waitFor(() => { expect(screen.getByText(spanish['workspace.nav'])).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
     expect(vi.mocked(api.refresh)).toHaveBeenCalledWith('refresh');
   });
 });

@@ -1,3 +1,5 @@
+import { DEFAULT_EXAMPLE } from '../editor/examples';
+import { EXAMPLE_ALIGNMENT_INPUT } from '../alignment/examples';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../auth/authContext';
@@ -64,7 +66,11 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     controller.current = operation;
     locked.current = Boolean(user && client);
     const id = user ? lastProject(user) : null;
-    const canRestore = !sequence.text && !alignment.first && !alignment.second;
+    // The last project resumes only over untouched drafts: empty, or still the examples the application opens with.
+    const sequenceUntouched = !sequence.text || sequence.text === DEFAULT_EXAMPLE.text;
+    const alignmentUntouched = (!alignment.first && !alignment.second)
+      || (alignment.first === EXAMPLE_ALIGNMENT_INPUT.first && alignment.second === EXAMPLE_ALIGNMENT_INPUT.second);
+    const canRestore = sequenceUntouched && alignmentUntouched;
     queueMicrotask(() => { setState({ ...EMPTY, owner: user, busy: Boolean(user && client) }); });
     if (user && client) {
       void (async () => {

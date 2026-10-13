@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
-import { Icon } from '../../shared/Icon';
 import { AFTER_SIGN_IN_ROUTE, ROUTES } from '../../shared/navigation';
 import { AuthFrame } from './AuthFrame';
 import { useAuth } from './authContext';
@@ -55,8 +54,8 @@ export function SignUpPage(): React.JSX.Element {
           {serverError ? t(serverError) : confirmationSent ? t('auth.signedUpConfirm') : ''}
         </p>
         <div className="auth-actions">
-          <button className="button button-primary button-wide" type="submit" disabled={disabled}>
-            {busy ? t('auth.working') : t('auth.signUpAction')}<Icon name="arrow" />
+          <button className="button button-primary button-large button-wide" type="submit" disabled={disabled}>
+            {busy ? t('auth.working') : t('auth.signUpAction')}
           </button>
         </div>
       </form>
