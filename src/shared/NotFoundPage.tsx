@@ -9,7 +9,7 @@ export function NotFoundPage(): React.JSX.Element {
   return (
     <main className="page not-found-page">
       <PageHeading titleKey="notFound.title" introduction="notFound.text" />
-      <div className="hero-actions">
+      <div className="actions">
         <Link className="button button-primary" to={ROUTES.analyze}>{t('notFound.action')}</Link>
         <Link className="button button-secondary" to={ROUTES.home}>{t('notFound.home')}</Link>
       </div>

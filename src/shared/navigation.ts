@@ -1,54 +1,46 @@
 import type { TranslationKey } from '../i18n';
-import type { IconName } from './Icon';
 
 /** Application paths; every link and route reads them from here. */
 export const ROUTES = {
   home: '/',
-  workspace: '/app',
   analyze: '/analyze',
   alignment: '/alignment',
-  settings: '/settings',
+  generate: '/generate',
+  library: '/library',
+  profile: '/profile',
   signIn: '/sign-in',
   signUp: '/sign-up',
   recover: '/recover',
   privacy: '/privacy',
   terms: '/terms',
-  library: '/library',
-  generate: '/generate',
+  /** Former addresses kept as redirects; `workspace` is also the registered OAuth return address. */
+  workspace: '/app',
+  settings: '/settings',
 } as const;
 
-/** Workspace destinations in display order; the public website has its own section links. */
-export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; icon: IconName; end: boolean }[] = [
-  { path: ROUTES.workspace, labelKey: 'workspace.nav', icon: 'home', end: true },
-  { path: ROUTES.analyze, labelKey: 'nav.analyze', icon: 'sequence', end: false },
-  { path: ROUTES.alignment, labelKey: 'nav.alignment', icon: 'alignment', end: false },
-  { path: ROUTES.settings, labelKey: 'nav.settings', icon: 'settings', end: false },
+/** The same destinations on every page, in display order. */
+export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; end: boolean }[] = [
+  { path: ROUTES.home, labelKey: 'nav.home', end: true },
+  { path: ROUTES.analyze, labelKey: 'nav.analyze', end: false },
+  { path: ROUTES.alignment, labelKey: 'nav.alignment', end: false },
+  { path: ROUTES.generate, labelKey: 'nav.generate', end: false },
+  { path: ROUTES.library, labelKey: 'nav.library', end: false },
 ];
-export const WORKSPACE_PATHS: readonly string[] = [...NAVIGATION_ITEMS.map((item) => item.path), ROUTES.library, ROUTES.generate];
 
-export const PUBLIC_SECTIONS = {
-  product: 'product',
-  flow: 'how-it-works',
-  criterion: 'scientific-criterion',
-} as const;
-
-export const PUBLIC_NAVIGATION: readonly { id: string; labelKey: TranslationKey }[] = [
-  { id: PUBLIC_SECTIONS.product, labelKey: 'landing.productLink' },
-  { id: PUBLIC_SECTIONS.flow, labelKey: 'landing.flowLink' },
+/** Former addresses and where they lead now. */
+export const REDIRECTS: readonly { from: string; to: string }[] = [
+  { from: ROUTES.workspace, to: ROUTES.analyze },
+  { from: ROUTES.settings, to: ROUTES.profile },
 ];
 
 /** Secondary links shown in the page footer. */
 export const FOOTER_LINKS: readonly { path: string; labelKey: TranslationKey }[] = [
   { path: ROUTES.privacy, labelKey: 'nav.privacy' },
   { path: ROUTES.terms, labelKey: 'nav.terms' },
-  { path: ROUTES.settings, labelKey: 'nav.settings' },
-];
-
-/** Public source repositories; the footer links to them. */
-export const REPOSITORY_LINKS: readonly { url: string; labelKey: TranslationKey }[] = [
-  { url: 'https://github.com/Jacklb19/ProteinForge', labelKey: 'footer.frontendRepository' },
-  { url: 'https://github.com/Jacklb19/Protein_Back', labelKey: 'footer.backendRepository' },
 ];
 
 /** Where a visitor lands after signing in, unless a protected page sent them to sign in. */
-export const AFTER_SIGN_IN_ROUTE = ROUTES.workspace;
+export const AFTER_SIGN_IN_ROUTE = ROUTES.analyze;
+
+/** Vertical scroll, in CSS pixels, after which the bar takes its veil. */
+export const BAR_VEIL_SCROLL_PX = 4;

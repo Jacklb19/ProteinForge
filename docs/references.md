@@ -1,6 +1,6 @@
 # Biblioteca y estructuras experimentales
 
-Implementación local del 12 oct 2026 en `/library`, accesible desde Mi espacio y Analizar. Catálogo inicial de tres secuencias completas P01308/P00698/P13569 (110/147/1480 residuos), usando los FASTA ya incluidos. Conserva accession y SV conocido (1/1/3); versión de entrada y fecha desconocidas son null. No es el catálogo de 30–50 dominios InterPro/Pfam ni ensamblado de fragmentos. Una cabecera FASTA arbitraria no certifica procedencia.
+Implementación local del 12 oct 2026 en `/library`, accesible desde la barra y desde Analizar. Catálogo de cuatro secuencias completas P01308/P01317/P00698/P13569 (110/105/147/1480 residuos), usando los FASTA ya incluidos. Conserva accession y SV conocido (1/1/3); versión de entrada y fecha desconocidas son null. No es el catálogo de 30–50 dominios InterPro/Pfam ni ensamblado de fragmentos. Una cabecera FASTA arbitraria no certifica procedencia.
 
 UniProt se consulta manualmente con cuenta y API configuradas. El backend valida el JWT, limita consultas y valida la anotación; no comparte tokens ni secuencias del editor con UniProt. Detalle: secuencia exacta, organismo, estado revisado, versiones, fecha, función en idioma original y referencias PDB. El cliente confirma antes de reemplazar un borrador. La procedencia se conserva en proyectos/informes mientras la secuencia sea exacta; editar la retira. [Contrato backend](../../backend/docs/uniprot.md).
 

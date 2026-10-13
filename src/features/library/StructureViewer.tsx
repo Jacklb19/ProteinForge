@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { PluginContext } from 'molstar/lib/mol-plugin/context';
 import { useTranslation } from '../../i18n';
 import { useThemeRevision } from '../../theme/useThemeRevision';
 import { CAMERA_ROTATION_RADIANS, CAMERA_ZOOM_FACTOR, MAX_STRUCTURE_BYTES, STRUCTURE_DOWNLOAD_URL, STRUCTURE_TIMEOUT_MS } from './config';
 
-/** A small Spanish control surface over Mol*. Only real public BinaryCIF is rendered. */
-export default function StructureViewer({ pdbId }: { pdbId: string }): React.JSX.Element {
+interface Props {
+  pdbId: string;
+  /** Shown until the viewer is ready; with it, a failed download stays quiet instead of reporting an error. */
+  placeholder?: ReactNode;
+}
+
+/** A small control surface over Mol*. Only real public BinaryCIF is rendered. */
+export default function StructureViewer({ pdbId, placeholder }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const themeRevision = useThemeRevision();
   const container = useRef<HTMLDivElement>(null);
@@ -41,7 +48,7 @@ export default function StructureViewer({ pdbId }: { pdbId: string }): React.JSX
         await instance.init();
         if (!isCurrent()) return;
         if (!await instance.initViewerAsync(surface, target)) throw new Error('WebGL unavailable');
-        instance.canvas3d?.setProps({ renderer: { backgroundColor: Color.fromHexStyle(getComputedStyle(target).getPropertyValue('--bg-raised').trim()) } });
+        instance.canvas3d?.setProps({ renderer: { backgroundColor: Color.fromHexStyle(getComputedStyle(target).getPropertyValue('--bg-subtle').trim()) } });
         const data = await instance.builders.data.rawData({ data: new Uint8Array(bytes), label: pdbId });
         const trajectory = await instance.builders.structure.parseTrajectory(data, 'mmcif');
         const model = await instance.builders.structure.createModel(trajectory);
@@ -75,7 +82,7 @@ export default function StructureViewer({ pdbId }: { pdbId: string }): React.JSX
     const instance = plugin.current; const target = container.current;
     if (!instance || !target) return;
     void import('./molstarRuntime').then(({ Color }) => {
-      if (plugin.current === instance) instance.canvas3d?.setProps({ renderer: { backgroundColor: Color.fromHexStyle(getComputedStyle(target).getPropertyValue('--bg-raised').trim()) } });
+      if (plugin.current === instance) instance.canvas3d?.setProps({ renderer: { backgroundColor: Color.fromHexStyle(getComputedStyle(target).getPropertyValue('--bg-subtle').trim()) } });
     });
   }, [themeRevision]);
 
@@ -94,14 +101,15 @@ export default function StructureViewer({ pdbId }: { pdbId: string }): React.JSX
     const camera = plugin.current?.canvas3d?.camera;
     if (camera) camera.setState({ radius: Math.max(0.1, camera.getSnapshot().radius * (inward ? CAMERA_ZOOM_FACTOR : 1 / CAMERA_ZOOM_FACTOR)) }, 0);
   }
+  const covered = placeholder !== undefined && state !== 'ready';
   return <div className="structure-viewer">
-    <div className="structure-canvas" ref={container} role="img" tabIndex={0} aria-label={t('library.viewerLabel', { id: pdbId })} aria-describedby="structure-instructions" onKeyDown={(event) => {
+    <div className="structure-frame">{covered && placeholder}<div className="structure-canvas" data-ready={!covered} ref={container} role="img" tabIndex={0} aria-label={t('library.viewerLabel', { id: pdbId })} aria-describedby="structure-instructions" onKeyDown={(event) => {
       if (state !== 'ready') return;
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); rotate(event.key === 'ArrowLeft' ? -1 : 1); }
       if (event.key === '+' || event.key === '-') { event.preventDefault(); zoom(event.key === '+'); }
-    }}><canvas ref={canvas} aria-hidden="true" /></div>
-    <p className="status-message" role="status" data-state={state === 'error' ? 'error' : undefined}>{t(state === 'loading' ? 'library.viewerLoading' : state === 'ready' ? 'library.viewerReady' : 'library.viewerError')}</p>
-    <div className="hero-actions">
+    }}><canvas ref={canvas} aria-hidden="true" /></div></div>
+    <p className={covered ? 'visually-hidden' : 'status-message'} role="status" data-state={state === 'error' && !covered ? 'error' : undefined}>{t(state === 'loading' ? 'library.viewerLoading' : state === 'ready' ? 'library.viewerReady' : 'library.viewerError')}</p>
+    <div className="actions" hidden={covered}>
       <button className="button button-secondary" type="button" disabled={state !== 'ready'} onClick={() => { rotate(-1); }}>{t('library.rotateLeft')}</button>
       <button className="button button-secondary" type="button" disabled={state !== 'ready'} onClick={() => { rotate(1); }}>{t('library.rotateRight')}</button>
       <button className="button button-secondary" type="button" disabled={state !== 'ready'} onClick={() => { zoom(true); }}>{t('library.zoomIn')}</button>
@@ -109,7 +117,7 @@ export default function StructureViewer({ pdbId }: { pdbId: string }): React.JSX
       <button className="button button-secondary" type="button" disabled={state !== 'ready'} onClick={() => { plugin.current?.canvas3d?.requestCameraReset({ durationMs: 0 }); }}>{t('library.resetView')}</button>
       {state === 'error' && <button className="button button-primary" type="button" onClick={() => { setAttempt((value) => value + 1); }}>{t('library.retry')}</button>}
     </div>
-    <p id="structure-instructions" className="field-help">{t('library.viewerInstructions')}</p>
+    <p id="structure-instructions" className="field-help" hidden={covered}>{t('library.viewerInstructions')}</p>
     <p className="field-help">{t('library.viewerScope')}</p>
   </div>;
 }

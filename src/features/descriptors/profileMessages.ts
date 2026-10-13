@@ -8,6 +8,10 @@ export interface ChartStyle {
   surface: string;
   text: string;
   curve: string;
+  /** Fill colors of the area above and below zero, and their opacity. */
+  above: string;
+  below: string;
+  areaOpacity: number;
   reference: string;
   font: string;
   margin: number;

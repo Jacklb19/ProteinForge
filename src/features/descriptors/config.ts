@@ -57,3 +57,13 @@ export const DESCRIPTOR_FIELDS: readonly {
   { key: 'aliphaticIndex', labelKey: 'descriptors.aliphaticIndex', methodKey: 'descriptors.aliphaticIndexMethod', helpKey: 'guide.aliphatic', format: TWO_DECIMALS },
   { key: 'gravy', labelKey: 'descriptors.gravy', methodKey: 'descriptors.gravyMethod', helpKey: 'guide.gravy', format: THREE_DECIMALS },
 ];
+
+/** Static profile sketch: viewBox height, inner inset and spacing of the position labels. */
+export const SKETCH_HEIGHT_UNITS = 100;
+export const SKETCH_INSET_UNITS = 5;
+export const SKETCH_POSITION_STEP = 10;
+
+/** Chou–Fasman propensity range mapped onto the opacity of the tendency strips. */
+export const PROPENSITY_STRIP_FLOOR = 0.55;
+export const PROPENSITY_STRIP_SPAN = 1;
+export const STRIP_MINIMUM_OPACITY = 0.08;

@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { spanish } from '../src/i18n/es';
-import { interfaceFamily, interfaceFonts } from './helpers';
+import { interfaceFamily, interfaceFonts, message, openSequenceEditor, residueReader, sequencePanelToggle } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
 
 const sequence = 'MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN';
@@ -16,9 +16,12 @@ for (const width of [360, 1280]) {
       await page.evaluate(() => document.fonts.ready);
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
-      const input = page.getByRole('textbox', { name: /secuencia de aminoácidos/i });
-      await input.fill(sequence);
-      const reader = page.getByRole('group', { name: /Secuencia numerada/ });
+      // The page opens on the bundled insulin with its editor closed; the panel holds the overlaid editor.
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['examples.insulinName']);
+      await expect(page.locator('#sequence-panel')).toHaveCount(0);
+      const input = await openSequenceEditor(page);
+      await expect(input).toHaveValue(sequence);
+      const reader = residueReader(page);
       await expect(reader).toBeVisible();
       // Interface figures are tabular through `font-variant-numeric`, as the descriptor values use them.
       const widths = await page.evaluate(async (fonts) => {
@@ -70,7 +73,7 @@ for (const width of [360, 1280]) {
         await input.fill(`${sequence.repeat(12)}?`);
         await expect(input).toHaveAttribute('aria-invalid', 'true');
         await expect(page.locator('.invalid-residue')).toHaveText('?');
-        await expect(page.getByText('Los resultados están desactualizados. Corrige las posiciones inválidas para recalcular.')).toBeVisible();
+        await expect(page.getByText(spanish['descriptors.invalid'])).toBeVisible();
         const geometry = await page.evaluate(() => {
           const textarea = document.querySelector<HTMLTextAreaElement>('#sequence-input');
           const overlay = document.querySelector<HTMLElement>('.editor-highlight');
@@ -98,7 +101,7 @@ for (const width of [360, 1280]) {
       await expect(input).toHaveValue(sequence);
       if (!fallback) await page.screenshot({ path: `artifacts/editor-fasta-${String(width)}.png`, fullPage: true });
       await page.locator('#fasta-file').setInputFiles({ name: 'invalid.fasta', mimeType: 'text/plain', buffer: Buffer.from('missing header') });
-      await expect(page.locator('.fasta-panel [role="status"]')).toContainText('Error:');
+      await expect(page.locator('.fasta-panel [role="status"]')).toContainText(message('fasta.error', { message: '' }));
       expect(errors).toEqual([]);
     });
   }
@@ -107,14 +110,33 @@ for (const width of [360, 1280]) {
 test('editor empty and scientific warning states remain accessible', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 });
   await page.goto(ROUTES.analyze);
-  await expect(page.getByRole('heading', { name: spanish['editor.emptyTitle'] })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Probar con insulina humana' })).toBeVisible();
-  await page.getByRole('textbox', { name: /secuencia de aminoácidos/i }).fill('ACX');
-  await expect(page.getByText(/Se necesitan al menos 9 residuos/)).toBeVisible();
-  await expect(page.getByText(/1 residuo U, O, B, Z o X excluido/)).toBeVisible();
-  await page.getByRole('radio', { name: '19' }).check();
-  await expect(page.getByText(/Se necesitan al menos 19 residuos/)).toBeVisible();
+  const title = page.getByRole('heading', { level: 1 });
+  await expect(title).toHaveText(spanish['examples.insulinName']);
+  // The example opens with one residue chosen, so the linked views show what a selection does.
+  await expect(residueReader(page).locator('[data-position="96"]')).toHaveClass(/is-selected/);
+  await expect(page.locator('#reader-readout')).toContainText(message('profile.readerBridge', { position: 31 }));
+  const input = await openSequenceEditor(page);
+  await page.getByRole('button', { name: spanish['editor.clear'], exact: true }).click();
+  await expect(title).toHaveText(spanish['editor.emptyTitle']);
+  await expect(page.locator('.page-meta')).toHaveText(spanish['editor.emptyText']);
+  await expect(input).toHaveValue('');
+  await expect(sequencePanelToggle(page)).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.analysis-columns')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: spanish['projects.save'], exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: spanish['editor.toAlignment'], exact: true })).toHaveCount(0);
+  const restore = page.getByRole('button', { name: spanish['editor.restoreExample'] });
+  await expect(restore).toBeVisible();
+  await input.fill('ACX');
+  await expect(title).toHaveText(spanish['editor.ownTitle']);
+  await expect(page.getByText(message('profile.tooShort', { count: 9 }))).toBeVisible();
+  await expect(page.getByText(message('descriptors.excludedOne', { count: 1 }))).toBeVisible();
+  await page.getByRole('radio', { name: '19', exact: true }).check();
+  await expect(page.getByText(message('profile.tooShort', { count: 19 }))).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-feedback').trim())).toBe('0ms');
   await page.screenshot({ path: 'artifacts/editor-empty-short.png', fullPage: true });
+  await restore.click();
+  await expect(title).toHaveText(spanish['examples.insulinName']);
+  await expect(page.locator('#sequence-panel')).toHaveCount(0);
+  await expect(residueReader(page).locator('[data-position="96"]')).toHaveClass(/is-selected/);
 });

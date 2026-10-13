@@ -64,19 +64,24 @@ try {
     face.family.replaceAll('"', '') === family && face.status === 'loaded'), chartFamily)).toBe(true);
   process.stdout.write(`${chartFamily} loaded in the profile worker after offline reload.\n`);
   await page.goto(baseURL + route('alignment'));
-  await page.getByRole('textbox', { name: 'Primera secuencia' }).fill('ACDEFGHIK');
-  await page.getByRole('textbox', { name: 'Segunda secuencia' }).fill('ACDEFGHIK');
-  await page.getByRole('button', { name: 'Alinear' }).click();
-  await page.getByRole('heading', { name: 'Resultado del alineamiento' }).waitFor();
+  // The page opens with the example already aligned; a second pair proves the workers also answer new input offline.
+  await page.locator('.verdict').waitFor();
+  await page.locator('#alignment-first').fill('ACDEFGHIK');
+  await page.locator('#alignment-second').fill('ACDEFGHIK');
+  await page.getByRole('button', { name: 'Alinear', exact: true }).click();
+  await expect(page.locator('.verdict')).toContainText('9 de 9');
   if (!await page.evaluate(() => crossOriginIsolated)) throw new Error('Offline navigation lost cross-origin isolation.');
   process.stdout.write('Offline navigation, alignment workers, and cross-origin isolation verified.\n');
   await page.goto(baseURL + route('generate'));
   await page.getByLabel('Evaluaciones por método').fill('100');
   await page.getByRole('button', { name: 'Buscar y comparar' }).click();
   await page.getByRole('heading', { name: 'Candidatos y comparación' }).waitFor();
+  await expect(page.getByText('100 evaluaciones por método')).toBeVisible();
   await page.getByRole('button', { name: 'Analizar candidato' }).first().click();
-  await page.locator('.analysis-ready').waitFor();
-  await page.getByText('Exportar informe', { exact: true }).click();
+  // The editor already holds the example, so replacing it is confirmed.
+  await page.getByRole('button', { name: 'Reemplazar borrador' }).click();
+  await page.locator('.descriptor-panel .property').first().waitFor();
+  await page.locator('summary', { hasText: 'Exportar' }).click();
   const reportDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Informe PDF', exact: true }).click();
   const report = await reportDownload;

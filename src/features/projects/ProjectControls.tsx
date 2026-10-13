@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { ROUTES } from '../../shared/navigation';
-import { Icon } from '../../shared/Icon';
 import { useAuth } from '../auth/authContext';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 import { useProjects } from './projectContext';
@@ -26,11 +25,11 @@ function SaveForm({ descriptors }: { descriptors?: DescriptorState }): React.JSX
   return <>
     <form className="project-save-form" onSubmit={(event) => { event.preventDefault(); void projects.save(name, descriptors); }}>
       <div className="field"><label htmlFor="project-name">{t('projects.name')}</label><input className="text-input" id="project-name" value={name} onChange={(event) => { setName(event.target.value); }} required maxLength={MAX_PROJECT_NAME_LENGTH} disabled={projects.busy} placeholder={t('projects.namePlaceholder')} /></div>
-      <button type="submit" className="button button-primary" disabled={projects.busy || !name.trim()}><Icon name="book" />{t(projects.active ? 'projects.update' : 'projects.create')}</button>
+      <button type="submit" className="button button-primary" disabled={projects.busy || !name.trim()}>{t(projects.active ? 'projects.update' : 'projects.create')}</button>
       {projects.active && <button type="button" className="button button-secondary" disabled={projects.busy || !name.trim()} onClick={() => { void projects.save(name, descriptors, true); }}>{t('projects.saveCopy')}</button>}
     </form>
-    {projects.active && <div className="project-state"><span className="availability-dot" /><p>{t(projects.dirty ? 'projects.unsaved' : 'projects.upToDate', { name: projects.active.name })}</p><button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { setReloadPending(true); }}>{t('projects.reload')}</button><button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { projects.detach(); }}>{t('projects.detach')}</button></div>}
-    {reloadPending && projects.active && <div className="project-confirm" role="group" aria-label={t('projects.reload')}><p>{t('projects.replaceWarning')}</p><div className="hero-actions"><button className="button button-secondary" type="button" onClick={() => { setReloadPending(false); }}>{t('projects.cancel')}</button><button className="button button-primary" type="button" disabled={projects.busy} onClick={() => { if (projects.active) void projects.open(projects.active.id).then((opened) => { if (opened) setReloadPending(false); }); }}>{t('projects.confirmOpen')}</button></div></div>}
+    {projects.active && <div className="project-state"><p>{t(projects.dirty ? 'projects.unsaved' : 'projects.upToDate', { name: projects.active.name })}</p><button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { setReloadPending(true); }}>{t('projects.reload')}</button><button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { projects.detach(); }}>{t('projects.detach')}</button></div>}
+    {reloadPending && projects.active && <div className="project-confirm" role="group" aria-label={t('projects.reload')}><p>{t('projects.replaceWarning')}</p><div className="actions"><button className="button button-secondary" type="button" onClick={() => { setReloadPending(false); }}>{t('projects.cancel')}</button><button className="button button-primary" type="button" disabled={projects.busy} onClick={() => { if (projects.active) void projects.open(projects.active.id).then((opened) => { if (opened) setReloadPending(false); }); }}>{t('projects.confirmOpen')}</button></div></div>}
   </>;
 }
 
@@ -39,8 +38,8 @@ export function ProjectControls({ descriptors }: { descriptors?: DescriptorState
   const { t } = useTranslation();
   const auth = useAuth();
   const projects = useProjects();
-  return <section className="project-toolbar" aria-labelledby="project-toolbar-title">
-    <div className="section-header"><h2 id="project-toolbar-title">{t('projects.workTitle')}</h2><Link className="inline-link" to={`${ROUTES.workspace}#projects`}>{t('projects.listLink')}<Icon name="arrow" /></Link></div>
-    {auth.status === 'loading' ? <p className="field-help">{t('projects.sessionLoading')}</p> : auth.status !== 'signed-in' ? <p className="field-help">{t('projects.signInHelp')} <Link className="inline-link" to={ROUTES.signIn}>{t('shell.signIn')}</Link></p> : !projects.enabled ? <p className="notice">{t('projects.config')}</p> : <><p className="field-help">{t('projects.saveHelp')}</p><SaveForm key={`${projects.active?.id ?? 'new'}:${projects.active?.name ?? ''}`} descriptors={descriptors} /><ProjectFeedback /></>}
-  </section>;
+  return <>
+    <h2 id="project-panel-title" className="visually-hidden">{t('projects.workTitle')}</h2>
+    {auth.status === 'loading' ? <p className="field-help">{t('projects.sessionLoading')}</p> : auth.status !== 'signed-in' ? <div className="project-empty"><p>{t('projects.signInHelp')}</p><div className="actions"><Link className="button button-primary" to={ROUTES.signUp}>{t('auth.signUpAction')}</Link><Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link></div></div> : !projects.enabled ? <p className="notice">{t('projects.config')}</p> : <><SaveForm key={`${projects.active?.id ?? 'new'}:${projects.active?.name ?? ''}`} descriptors={descriptors} /><p className="field-help">{t('projects.saveHelp')} <Link className="inline-link" to={ROUTES.profile}>{t('projects.listLink')}</Link></p><ProjectFeedback /></>}
+  </>;
 }

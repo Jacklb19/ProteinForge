@@ -1,34 +1,40 @@
 /*
  * Design tokens. Light values are declared first; each color has a `--dark-` twin
  * that the dark theme maps onto the same semantic name.
- * Identity: the approved ProteinForge workbench. Quiet surfaces and one ink accent,
- * and two chain colors reserved for residues: amber for hydrophobic, cyan for hydrophilic.
+ * Identity: the interface is drawn in ink on a cool paper; every hue belongs to the
+ * chemistry of residues (hydrophobic, polar, acidic, basic, glycine/proline, cysteine).
  */
 :root {
-  --bg-canvas: #f7f6f2;
-  --dark-bg-canvas: #101722;
-  --bg-subtle: #eaf0ed;
-  --dark-bg-subtle: #1d2c3b;
+  --bg-canvas: #f3f5f6;
+  --dark-bg-canvas: #0d131e;
+  --bg-subtle: #e9edef;
+  --dark-bg-subtle: #172030;
   --bg-raised: #ffffff;
-  --dark-bg-raised: #162131;
-  --bg-selected: #d9e9e3;
-  --dark-bg-selected: #27483f;
-  --bg-accent-soft: #e4eeea;
-  --dark-bg-accent-soft: #1c332f;
+  --dark-bg-raised: #141c2a;
+  --bg-selected: #dbe2e8;
+  --dark-bg-selected: #26344a;
+  --bg-accent-soft: #e9edef;
+  --dark-bg-accent-soft: #172030;
+  --bg-veil: #f3f5f6e6;
+  --dark-bg-veil: #0d131ee6;
+  --bg-scrim: #0b101899;
+  --dark-bg-scrim: #000000a6;
   --text-primary: #121826;
-  --dark-text-primary: #eef2ff;
-  --text-secondary: #525e62;
-  --dark-text-secondary: #acc0c9;
+  --dark-text-primary: #edf1f7;
+  --text-secondary: #4a5663;
+  --dark-text-secondary: #a3b2c2;
   --text-on-accent: #ffffff;
-  --dark-text-on-accent: #101722;
-  --border-strong: #718181;
-  --dark-border-strong: #7c96a0;
-  --border-subtle: #dce4df;
-  --dark-border-subtle: #304454;
-  --accent-brand: #12615f;
-  --dark-accent-brand: #8fe0cc;
-  --accent-brand-hover: #0e4c4c;
-  --dark-accent-brand-hover: #b6f4e1;
+  --dark-text-on-accent: #0d131e;
+  --border-strong: #76838f;
+  --dark-border-strong: #6b7c92;
+  --border-subtle: #d6dde2;
+  --dark-border-subtle: #263244;
+  --accent-brand: #121826;
+  --dark-accent-brand: #edf1f7;
+  --accent-brand-hover: #2a3447;
+  --dark-accent-brand-hover: #ffffff;
+  --focus-ring: #2458e6;
+  --dark-focus-ring: #9db8ff;
   --status-error: #b3261e;
   --dark-status-error: #ff8f86;
   --status-error-subtle: #fdeceb;
@@ -37,44 +43,77 @@
   --dark-status-success: #86efac;
   --status-success-subtle: #e2f5e9;
   --dark-status-success-subtle: #143524;
-  --chain-hydrophobic: #d97706;
-  --dark-chain-hydrophobic: #fbbf24;
-  --chain-hydrophilic: #0e7490;
-  --dark-chain-hydrophilic: #67e8f9;
+  --residue-hydrophobic: #d97a06;
+  --dark-residue-hydrophobic: #f6a52b;
+  --residue-hydrophobic-soft: #fde6bf;
+  --dark-residue-hydrophobic-soft: #50360f;
+  --residue-polar: #0f8a7c;
+  --dark-residue-polar: #3fd0bd;
+  --residue-polar-soft: #c9eee6;
+  --dark-residue-polar-soft: #10403b;
+  --residue-acidic: #cf3a2b;
+  --dark-residue-acidic: #ff8a7d;
+  --residue-acidic-soft: #fbd3ce;
+  --dark-residue-acidic-soft: #55211d;
+  --residue-basic: #2f5fe0;
+  --dark-residue-basic: #7da2ff;
+  --residue-basic-soft: #d4e0fd;
+  --dark-residue-basic-soft: #1d3066;
+  --residue-special: #7d6bc4;
+  --dark-residue-special: #b7a6f5;
+  --residue-special-soft: #e5dffa;
+  --dark-residue-special-soft: #322a60;
+  --residue-cysteine: #c9a400;
+  --dark-residue-cysteine: #ffd83a;
+  --residue-cysteine-soft: #f7e88c;
+  --dark-residue-cysteine-soft: #524708;
+  --residue-text: #121826;
+  --dark-residue-text: #f4f6fa;
   --shadow-color: #12182614;
   --dark-shadow-color: #00000080;
-  --glow-color: #25345324;
-  --dark-glow-color: #eef2ff24;
   --transparent: transparent;
-  --focus-ring: var(--accent-brand);
   --chart-line: var(--text-primary);
   --chart-reference: var(--border-strong);
+  --chart-above: var(--residue-hydrophobic);
+  --chart-below: var(--residue-basic);
+  --opacity-chart-area: 0.55;
 
   --font-ui: 'Atkinson Hyperlegible Next', 'Atkinson Fallback', 'Segoe UI', sans-serif;
   --font-display: 'Bricolage Grotesque', 'Atkinson Hyperlegible Next', 'Segoe UI', sans-serif;
   --font-sequence: 'IBM Plex Mono', 'Plex Mono Fallback', 'Plex Courier Fallback', monospace;
+  --font-size-micro: 0.6875rem;
   --font-size-caption: 0.75rem;
+  --font-size-note: 0.8125rem;
   --font-size-small: 0.875rem;
+  --font-size-nav: 0.9375rem;
   --font-size-base: 1rem;
   --font-size-lead: 1.125rem;
   --font-size-section: 1.375rem;
   --font-size-title: 2rem;
-  --font-size-title-compact: 1.625rem;
-  --font-size-display: clamp(2.625rem, 1.375rem + 3.5vw, 4.25rem);
-  --font-size-stat: 1.5rem;
+  --font-size-title-compact: 1.6875rem;
+  --font-size-display: clamp(2.125rem, 1.25rem + 2.8vw, 3.375rem);
+  --font-size-verdict: clamp(1.75rem, 1.2rem + 1.7vw, 2.5rem);
+  --font-size-stat: 1.625rem;
+  --font-size-stat-compact: 1.25rem;
   --font-size-sequence: 0.875rem;
+  --font-size-residue: 0.9375rem;
+  --font-size-residue-compact: 0.8125rem;
   --font-size-chart: 0.8125rem;
+  --font-size-brand: 1.25rem;
+  --font-size-menu: 1.375rem;
   --font-weight-regular: 400;
   --font-weight-strong: 600;
   --line-height-base: 1.5;
   --line-height-heading: 1.2;
-  --line-height-display: 1.09;
-  --letter-spacing-display: -0.02em;
-  --letter-spacing-eyebrow: 0.12em;
+  --line-height-display: 1.06;
+  --line-height-tight: 1;
+  --letter-spacing-display: -0.015em;
   --letter-spacing-sequence: 0;
   --tab-size-sequence: 4;
 
   --space-none: 0;
+  --space-hairline: 1px;
+  --space-3xs: 0.1875rem;
   --space-2xs: 0.25rem;
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
@@ -85,90 +124,94 @@
   --space-3xl: 4rem;
   --space-4xl: 6rem;
 
+  --radius-cell: 0.1875rem;
   --radius-control: 0.625rem;
-  --radius-surface: 1rem;
+  --radius-surface: 0.875rem;
+  --radius-sheet: 1.125rem;
   --radius-pill: 999px;
   --border-width: 1px;
   --border-width-indicator: 2px;
+  --border-width-residue: 3px;
   --outline-width-focus: 3px;
   --outline-offset-focus: 2px;
   --shadow-floating: 0 1px 2px var(--shadow-color), 0 8px 24px var(--shadow-color);
-  --shadow-raised: 0 1px 1px var(--shadow-color), 0 2px 8px var(--shadow-color);
-  --shadow-glow: 0 0 0 6px var(--glow-color);
+  --shadow-raised: 0 0 0 1px var(--border-subtle);
 
   --duration-feedback: 120ms;
   --duration-enter: 320ms;
-  --duration-orbit: 24s;
-  --scene-turn: 6deg;
-  --scene-tilt: -2deg;
-  --scene-perspective: 70rem;
-  --height-welcome: 18rem;
-  --width-welcome-scene: 25rem;
-  --width-welcome-scene-mobile: 8rem;
-  --size-task-symbol: 3rem;
-  --size-residue-sample: 2.5rem;
-  --size-availability-dot: 0.5rem;
-  --font-size-welcome: clamp(2rem, 1.5rem + 2vw, 3.125rem);
-  --duration-ambient: 6s;
-  --duration-draw: 1600ms;
   --duration-none: 0ms;
   --ease-feedback: ease-out;
   --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --stagger-step: 70ms;
-  --reveal-offset: 8px;
-  --lift-hover: -2px;
+  --blur-veil: 10px;
 
   --size-touch: 44px;
-  --size-icon: 1.25rem;
-  --size-icon-tab: 1.5rem;
-  --size-mark: 2rem;
-  --size-mark-hero: 3rem;
-  --size-bead: 1.75rem;
+  --size-control: 3rem;
+  --size-icon: 1.375rem;
+  --size-mark: 1.875rem;
   --size-avatar: 2rem;
-  --stroke-icon: 1.5px;
-  --height-top-bar: 3.5rem;
-  --height-tab-bar: 4rem;
+  --size-avatar-large: 4rem;
+  --size-swatch: 0.75rem;
+  --stroke-icon: 1.6px;
+  --height-bar: 4.25rem;
   --width-full: 100%;
   --width-content: 76rem;
-  --width-input-column: 26rem;
   --width-copy: 65ch;
-  --width-settings: 44rem;
-  --width-form: 30rem;
-  --width-hero-art: 36rem;
-  --width-hero-copy: 35.25rem;
-  --width-hero-lead: 30.625rem;
-  --height-hero: 32rem;
-  --space-hero-block: 1.5rem;
-  --height-scene: 22rem;
-  --space-dock: 5.5rem;
-  --space-header: 3.5rem;
-  --radius-dock: 0.875rem;
-  --font-size-brand: 1.25rem;
+  --width-lead: 34ch;
+  --width-reading: 47.5rem;
+  --width-form: 26rem;
+  --width-rail: 20rem;
+  --width-row-label: 12.5rem;
+  --width-hero-action: 13rem;
+  --width-track-label: 6rem;
+  --width-setting-copy: 14rem;
+  --hatch-line: 2px;
+  --hatch-step: 4px;
+  --dash-grid: 2 4;
+  --ratio-hero-copy: 1fr;
+  --ratio-hero-stage: 1.12fr;
+  --ratio-view-copy: 1fr;
+  --ratio-view-figure: 2fr;
 
-  --height-editor: 14rem;
-  --height-alignment-input: 10rem;
+  --height-editor: 11rem;
+  --height-alignment-input: 5.5rem;
   --height-fasta-list: 16.5rem;
   --height-fasta-row-default: 44px;
   --height-fasta-row: var(--height-fasta-row-default);
-  --height-hydropathy-chart: 16rem;
-  --height-reader-line: 2.75rem;
-  --height-reader-viewport: 16rem;
-  --width-reader-position: 6ch;
-  --height-alignment-viewport: 22.5rem;
+  --height-hydropathy-chart: 15rem;
+  --height-hydropathy-sketch: 12.5rem;
+  --height-reader-line: 3.5rem;
+  --height-reader-viewport: 14.5rem;
+  --height-alignment-viewport: 26rem;
+  --height-alignment-block: 104px;
   --height-structure-viewer: 28rem;
-  --height-alignment-block: 112px;
+  --height-stage-hero: 28.75rem;
+  --height-stage-rail: 15rem;
+  --height-stage-caption: 3.75rem;
+  --height-stage-caption-compact: 3.5rem;
   --height-progress: 0.375rem;
-  --height-hero-art: 22rem;
-  --height-helix-scene: 26rem;
+  --height-ribbon-cell: 1.875rem;
+  --height-ribbon-bare: 1.125rem;
+  --height-ribbon-arcs: 2.125rem;
+  --height-map: 1.75rem;
+  --height-strip: 0.875rem;
+  --height-composition: 0.875rem;
+  --height-candidate-cell: 1.5rem;
+  --width-residue-cell: 1.375rem;
+  --height-residue-cell: 1.875rem;
+  --height-alignment-cell: 1.625rem;
+  --width-project-strip: 4.5rem;
+  --height-project-strip: 1.375rem;
   --space-chart-inner: 36px;
-  --border-width-chart-line: 2px;
+  --border-width-chart-line: 1.6px;
   --border-width-chart-reference: 1px;
   --filter-stale: grayscale(1);
+  --opacity-strip-floor: 0.08;
 
   --layer-base: 0;
   --layer-overlay: 1;
   --layer-navigation: 2;
-  --decoration-offset: 0.2em;
+  --layer-sheet: 3;
+  --decoration-offset: 0.25em;
 }
 
 :root[data-theme='dark'] {
@@ -178,6 +221,8 @@
   --bg-raised: var(--dark-bg-raised);
   --bg-selected: var(--dark-bg-selected);
   --bg-accent-soft: var(--dark-bg-accent-soft);
+  --bg-veil: var(--dark-bg-veil);
+  --bg-scrim: var(--dark-bg-scrim);
   --text-primary: var(--dark-text-primary);
   --text-secondary: var(--dark-text-secondary);
   --text-on-accent: var(--dark-text-on-accent);
@@ -185,14 +230,25 @@
   --border-subtle: var(--dark-border-subtle);
   --accent-brand: var(--dark-accent-brand);
   --accent-brand-hover: var(--dark-accent-brand-hover);
+  --focus-ring: var(--dark-focus-ring);
   --status-error: var(--dark-status-error);
   --status-error-subtle: var(--dark-status-error-subtle);
   --status-success: var(--dark-status-success);
   --status-success-subtle: var(--dark-status-success-subtle);
-  --chain-hydrophobic: var(--dark-chain-hydrophobic);
-  --chain-hydrophilic: var(--dark-chain-hydrophilic);
+  --residue-hydrophobic: var(--dark-residue-hydrophobic);
+  --residue-hydrophobic-soft: var(--dark-residue-hydrophobic-soft);
+  --residue-polar: var(--dark-residue-polar);
+  --residue-polar-soft: var(--dark-residue-polar-soft);
+  --residue-acidic: var(--dark-residue-acidic);
+  --residue-acidic-soft: var(--dark-residue-acidic-soft);
+  --residue-basic: var(--dark-residue-basic);
+  --residue-basic-soft: var(--dark-residue-basic-soft);
+  --residue-special: var(--dark-residue-special);
+  --residue-special-soft: var(--dark-residue-special-soft);
+  --residue-cysteine: var(--dark-residue-cysteine);
+  --residue-cysteine-soft: var(--dark-residue-cysteine-soft);
+  --residue-text: var(--dark-residue-text);
   --shadow-color: var(--dark-shadow-color);
-  --glow-color: var(--dark-glow-color);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -203,6 +259,8 @@
     --bg-raised: var(--dark-bg-raised);
     --bg-selected: var(--dark-bg-selected);
     --bg-accent-soft: var(--dark-bg-accent-soft);
+    --bg-veil: var(--dark-bg-veil);
+    --bg-scrim: var(--dark-bg-scrim);
     --text-primary: var(--dark-text-primary);
     --text-secondary: var(--dark-text-secondary);
     --text-on-accent: var(--dark-text-on-accent);
@@ -210,31 +268,52 @@
     --border-subtle: var(--dark-border-subtle);
     --accent-brand: var(--dark-accent-brand);
     --accent-brand-hover: var(--dark-accent-brand-hover);
+    --focus-ring: var(--dark-focus-ring);
     --status-error: var(--dark-status-error);
     --status-error-subtle: var(--dark-status-error-subtle);
     --status-success: var(--dark-status-success);
     --status-success-subtle: var(--dark-status-success-subtle);
-    --chain-hydrophobic: var(--dark-chain-hydrophobic);
-    --chain-hydrophilic: var(--dark-chain-hydrophilic);
+    --residue-hydrophobic: var(--dark-residue-hydrophobic);
+    --residue-hydrophobic-soft: var(--dark-residue-hydrophobic-soft);
+    --residue-polar: var(--dark-residue-polar);
+    --residue-polar-soft: var(--dark-residue-polar-soft);
+    --residue-acidic: var(--dark-residue-acidic);
+    --residue-acidic-soft: var(--dark-residue-acidic-soft);
+    --residue-basic: var(--dark-residue-basic);
+    --residue-basic-soft: var(--dark-residue-basic-soft);
+    --residue-special: var(--dark-residue-special);
+    --residue-special-soft: var(--dark-residue-special-soft);
+    --residue-cysteine: var(--dark-residue-cysteine);
+    --residue-cysteine-soft: var(--dark-residue-cysteine-soft);
+    --residue-text: var(--dark-residue-text);
     --shadow-color: var(--dark-shadow-color);
-    --glow-color: var(--dark-glow-color);
   }
 }
 
 :root[data-theme='light'] { color-scheme: light; }
 
-/* Compact input on phones so results and the example stay close to the fold. */
+/* Phones: denser cells and a shorter bar. */
 @media (max-width: 47.99rem) {
-  :root { --height-editor: 9rem; --height-hero-art: 15rem; --height-helix-scene: 18rem; }
+  :root {
+    --height-bar: 3.75rem;
+    --height-editor: 9rem;
+    --height-stage-hero: 23rem;
+    --height-stage-caption: 6rem;
+    --height-reader-viewport: 25rem;
+    --height-ribbon-cell: 1.375rem;
+    --width-residue-cell: 0.9375rem;
+    --height-residue-cell: 1.75rem;
+    --font-size-residue: var(--font-size-residue-compact);
+    --height-alignment-cell: 1.5rem;
+    --width-track-label: 4rem;
+    --height-hydropathy-chart: 13rem;
+    --height-alignment-input: 7rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-feedback: var(--duration-none);
     --duration-enter: var(--duration-none);
-    --duration-ambient: var(--duration-none);
-    --duration-draw: var(--duration-none);
-    --stagger-step: var(--duration-none);
-    --reveal-offset: 0px;
   }
 }
