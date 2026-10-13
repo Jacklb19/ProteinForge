@@ -10,6 +10,7 @@ import { signedInFixture } from '../../test/authFixture';
 import { spanish } from '../../i18n/es';
 import { ROUTES } from '../../shared/navigation';
 import type { UniProtEntry } from './libraryApi';
+import { REFERENCE_CATALOG } from './catalog';
 
 vi.mock('./StructureViewer', () => ({ default: ({ pdbId }: { pdbId: string }) => <output data-testid="viewer">{pdbId}</output> }));
 const entry: UniProtEntry = { accession: 'P01308', name: 'Insulin', organism: 'Homo sapiens', reviewed: true, length: 3, sequence: 'ACD', entryVersion: 284, sequenceVersion: 1, retrievedAt: '2026-10-12T08:00:00Z', function: 'Public annotation', structures: [{ id: '1TRZ', method: 'X-ray', resolution: '1.60 A', chains: 'A=1-3' }] };
@@ -21,15 +22,22 @@ it('queries public references on demand, validates provenance and imports after 
   const user = userEvent.setup(); const fetcher = vi.fn().mockImplementation((url: string) => Promise.resolve(new Response(JSON.stringify(url.includes('/search?') ? { items: [entry], limit: 10, truncated: true, retrievedAt: entry.retrievedAt } : entry), { status: 200 })));
   vi.stubGlobal('fetch', fetcher); renderPage();
   expect(fetcher).not.toHaveBeenCalled();
+  // The page opens on the measured structure of the bundled example.
+  await waitFor(() => { expect(screen.getByTestId('viewer')).toHaveTextContent('1TRZ'); });
+  expect(screen.getByLabelText(spanish['library.structureChoose'])).toHaveValue('1TRZ');
+  expect(fetcher).not.toHaveBeenCalled();
   await user.type(screen.getByLabelText(spanish['library.query']), ' human');
   await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
   await screen.findByRole('button', { name: spanish['library.openEntry'].replace('{{id}}', 'P01308') });
   expect(screen.getByText(spanish['library.truncated'], { exact: false })).toBeVisible();
   await user.click(screen.getByRole('button', { name: spanish['library.openEntry'].replace('{{id}}', 'P01308') }));
   await screen.findByText('Public annotation');
+  // Opening another entry leaves the viewer closed until one of its structures is chosen.
+  expect(screen.queryByTestId('viewer')).not.toBeInTheDocument();
+  expect(screen.getByLabelText(spanish['library.structureChoose'])).toHaveValue('');
   await user.selectOptions(screen.getByLabelText(spanish['library.structureChoose']), '1TRZ');
   await waitFor(() => { expect(screen.getByTestId('viewer')).toHaveTextContent('1TRZ'); });
-  await user.click(screen.getByRole('button', { name: spanish['library.closeViewer'] }));
+  await user.selectOptions(screen.getByLabelText(spanish['library.structureChoose']), spanish['library.structurePlaceholder']);
   expect(screen.queryByTestId('viewer')).not.toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'existing draft' }));
   await user.click(within(screen.getByRole('article')).getByRole('button', { name: spanish['library.load'] }));
@@ -54,6 +62,7 @@ it('aborts cancelled lookups, ignores their late response and displays real prov
 it('keeps bundled references usable without identity or a configured API', async () => {
   const user = userEvent.setup(); const rendered = renderPage(false);
   expect(screen.queryByRole('button', { name: spanish['library.search'] })).not.toBeInTheDocument();
+  expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(REFERENCE_CATALOG.map((reference) => spanish[reference.label]));
   await user.click(screen.getAllByRole('button', { name: spanish['library.load'] })[0] ?? screen.getByRole('button', { name: 'existing draft' }));
   expect(screen.getByTestId('draft')).toHaveTextContent('MALWMR');
   rendered.unmount(); vi.stubEnv('VITE_API_BASE_URL', ''); renderPage();
