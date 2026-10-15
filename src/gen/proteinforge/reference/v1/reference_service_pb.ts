@@ -239,7 +239,7 @@ export const GetEntryResponseSchema: GenMessage<GetEntryResponse> = /*@__PURE__*
  * Public UniProt annotations through the API. Only the text query or accession is sent
  * to UniProt; the caller's token never leaves the API and no editor sequence is sent.
  * Requires a valid bearer token (UNAUTHENTICATED otherwise).
- * 
+ *
  * Error codes: INVALID_ARGUMENT (query syntax or accession format), NOT_FOUND (unknown entry),
  * UNAVAILABLE / DEADLINE_EXCEEDED (UniProt limited or unreachable).
  * Equivalent REST routes: GET /v1/uniprot/search and GET /v1/uniprot/{accession}.

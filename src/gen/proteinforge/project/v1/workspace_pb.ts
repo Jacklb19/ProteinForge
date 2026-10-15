@@ -19,7 +19,7 @@ export const file_proteinforge_project_v1_workspace: GenFile = /*@__PURE__*/
  * descriptors and the current comparison. Mirrors the validated JSON workspace of
  * app/projects.py (schemaVersion 1). Results are stored only when they match their inputs;
  * the API rejects stale or inconsistent snapshots with INVALID_ARGUMENT.
- * 
+ *
  * Alphabet: sequences use the 20 standard residues plus U, O, B, Z and X, uppercase.
  *
  * @generated from message proteinforge.project.v1.Workspace

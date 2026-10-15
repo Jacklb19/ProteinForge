@@ -517,12 +517,12 @@ export const StructureFormatSchema: GenEnum<StructureFormat> = /*@__PURE__*/
  * (docs/design-lab-roadmap.md in the frontend repository). It will change once the first
  * real run (shape -> sequence -> prediction) measures what the chosen tools produce;
  * v1alpha1 signals that no compatibility is promised yet.
- * 
+ *
  * Two hops share this contract:
  * - API <-> design executor (GPU machine or notebook): native gRPC over HTTP/2.
  * - Browser <-> API: Connect or gRPC-Web, where server streaming is available but client
  *   and bidirectional streaming are not.
- * 
+ *
  * A designed sequence, a predicted structure and a demonstrated function are different
  * results; nothing in these messages claims biological activity.
  *

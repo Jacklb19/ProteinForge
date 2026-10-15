@@ -97,7 +97,7 @@ export const GetMeResponseSchema: GenMessage<GetMeResponse> = /*@__PURE__*/
 
 /**
  * Service status and the identity behind a session.
- * 
+ *
  * Authentication: requests carry the Supabase access token in the `Authorization: Bearer <token>`
  * header (gRPC metadata). The API validates it against Supabase Auth; no secret is stored locally.
  * Equivalent REST routes: GET /v1/health and GET /v1/me.
