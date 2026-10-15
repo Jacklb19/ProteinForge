@@ -28,9 +28,9 @@ class MockTileWorker {
   constructor() { MockTileWorker.instances.push(this); }
   postMessage(request: TileRequestMessage): void {
     queueMicrotask(() => {
-      this.onmessage?.(new MessageEvent('message', { data: { id: request.id - 1, error: 'Old response' } }));
+      this.onmessage?.(new MessageEvent('message', { data: { id: request.id - 1, error: { key: 'errors.tileFailed' } } }));
       const response: TileResponseMessage = MockTileWorker.fail
-        ? { id: request.id, error: 'Tile failure' }
+        ? { id: request.id, error: { key: 'errors.tileFailed' } }
         : { id: request.id, tile: calculateTile(request.tile) };
       this.onmessage?.(new MessageEvent('message', { data: response }));
     });
@@ -95,7 +95,7 @@ describe('alignment coordinating worker', () => {
     const context = await initialize(true);
     MockTileWorker.fail = true;
     send(context, { type: 'start', id: 5, first: 'A'.repeat(520), second: 'A'.repeat(520), matrix: 'BLOSUM62', mode: 'global' });
-    await waitFor(() => { expect(context.postMessage).toHaveBeenCalledWith({ type: 'error', id: 5, message: 'Tile failure' }); });
+    await waitFor(() => { expect(context.postMessage).toHaveBeenCalledWith({ type: 'error', id: 5, message: { key: 'errors.tileFailed' } }); });
     for (const instance of MockTileWorker.instances) expect(instance.terminate).toHaveBeenCalledOnce();
   });
 });

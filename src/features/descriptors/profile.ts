@@ -1,8 +1,7 @@
 import { HYDROPATHY } from './descriptors';
-import { translate } from '../../i18n/translate';
 import { HYDROPATHY_WINDOWS } from './config';
 import type { HydropathyWindow } from './config';
-import { WORKER_LOCALE } from '../../i18n/config';
+import { LocalizedRangeError } from '../../i18n/localized';
 
 /** Supported Kyte–Doolittle windows, excluding incomplete edge windows. */
 export type { HydropathyWindow } from './config';
@@ -16,10 +15,10 @@ export interface ProfilePoint {
 /** Calculates equally weighted complete-window means as ProtScale does. */
 export function calculateProfile(sequence: string, windowSize: HydropathyWindow): ProfilePoint[] {
   if (sequence.length === 0 || /[^ACDEFGHIKLMNPQRSTVWYUOBZX]/.test(sequence)) {
-    throw new RangeError(translate(WORKER_LOCALE, 'errors.invalidResidues'));
+    throw new LocalizedRangeError('errors.invalidResidues');
   }
   if (!HYDROPATHY_WINDOWS.includes(windowSize)) {
-    throw new RangeError(translate(WORKER_LOCALE, 'errors.invalidWindow', { windows: HYDROPATHY_WINDOWS.join(', ') }));
+    throw new LocalizedRangeError('errors.invalidWindow', { windows: HYDROPATHY_WINDOWS.join(', ') });
   }
   if (sequence.length < windowSize) return [];
 

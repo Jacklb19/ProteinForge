@@ -1,3 +1,4 @@
+import type { LocalizedText } from '../../i18n/localized';
 import type { ProfilePoint, HydropathyWindow } from './profile';
 import type { ResiduePropensity } from './chouFasman';
 import type { Locale } from '../../i18n/config';
@@ -37,4 +38,4 @@ export type ProfileRequest =
 /** Returns the full profile to the main thread for the accessible table. */
 export type ProfileResponse =
   | { id: number; points: ProfilePoint[]; propensities: ResiduePropensity[]; error?: never }
-  | { id: number; error: string; points?: never; propensities?: never };
+  | { id: number; error: LocalizedText; points?: never; propensities?: never };

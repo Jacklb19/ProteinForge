@@ -458,7 +458,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'errors.emptyFastaHeader': 'The header on line {{line}} is empty.',
   'errors.missingFastaHeader': 'A FASTA header was expected before line {{line}}.',
   'errors.emptyFastaEntry': 'The entry “{{header}}” contains no sequence.',
-  'errors.fastaLimit': 'The file exceeds the {{limit}} limit.',
+  'errors.fastaLimit': 'The file exceeds the {{limit}} MB limit.',
   'errors.invalidFasta': 'Invalid FASTA file.',
   'errors.fastaRead': 'The FASTA file could not be read.',
   'shell.menu': 'Menu',

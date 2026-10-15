@@ -1,3 +1,4 @@
+import type { LocalizedText } from '../../i18n/localized';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FastaEntry } from './fasta';
 import { resolveRowHeight } from './rowHeight';
@@ -15,15 +16,15 @@ interface Props {
 type FastaMessage =
   | { type: 'entries'; entries: FastaEntry[] }
   | { type: 'complete' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: LocalizedText };
 
 /** Loads FASTA in a worker and virtualizes the available entries. */
 export function FastaLoader({ onSelect }: Props): React.JSX.Element {
-  const { t, formatNumber, formatUnit } = useTranslation();
+  const { t, formatNumber, formatUnit, localize } = useTranslation();
   const [entries, setEntries] = useState<FastaEntry[]>([]);
   const [fileName, setFileName] = useState('');
   const [statusKey, setStatusKey] = useState<TranslationKey | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<LocalizedText | null>(null);
   const [selection, setSelection] = useState<number | null>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [dimensions, setDimensions] = useState({ row: 0, list: 0 });
@@ -150,7 +151,7 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
         <button className="button button-secondary" type="button" onClick={() => { fileInput.current?.click(); }}><Icon name="upload" />{t('fasta.chooseFile')}</button>
         <span className="field-help">{fileName ? t('fasta.selectedFile', { name: fileName }) : t('fasta.fileLabel', { limit: formatUnit(MAX_FASTA_MEGABYTES, 'megabyte') })}</span>
       </div>
-      <p className="status-message" data-state={statusKey === 'fasta.reading' ? 'calculating' : statusKey && ERROR_STATUSES.includes(statusKey) ? 'error' : 'idle'} role="status" aria-live="polite">{statusKey ? [t(statusKey, { message: errorMessage }), entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''].filter(Boolean).join(' ') : ''}</p>
+      <p className="status-message" data-state={statusKey === 'fasta.reading' ? 'calculating' : statusKey && ERROR_STATUSES.includes(statusKey) ? 'error' : 'idle'} role="status" aria-live="polite">{statusKey ? [t(statusKey, { message: errorMessage ? localize(errorMessage) : '' }), entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''].filter(Boolean).join(' ') : ''}</p>
       {entries.length > 0 && (
         <div
           ref={list}

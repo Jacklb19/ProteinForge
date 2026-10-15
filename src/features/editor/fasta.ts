@@ -1,6 +1,5 @@
 import { validateSequence } from './sequence';
-import { translate } from '../../i18n/translate';
-import { WORKER_LOCALE, languageTags } from '../../i18n/config';
+import { LocalizedError } from '../../i18n/localized';
 
 export interface FastaEntry {
   number: number;
@@ -44,7 +43,7 @@ export class FastaParser {
     this.pendingLine = '';
     if (this.header !== null) entries.push(this.closeEntry());
     if (entries.length === 0 && this.entryNumber === 0) {
-      throw new Error(translate(WORKER_LOCALE, 'errors.emptyFasta'));
+      throw new LocalizedError('errors.emptyFasta');
     }
     return entries;
   }
@@ -53,14 +52,14 @@ export class FastaParser {
     this.lineNumber += 1;
     if (line.startsWith('>')) {
       const newHeader = line.slice(1).trim();
-      if (!newHeader) throw new Error(translate(WORKER_LOCALE, 'errors.emptyFastaHeader', { line: new Intl.NumberFormat(languageTags[WORKER_LOCALE]).format(this.lineNumber) }));
+      if (!newHeader) throw new LocalizedError('errors.emptyFastaHeader', { line: this.lineNumber });
       const previous = this.header === null ? null : this.closeEntry();
       this.header = newHeader;
       return previous;
     }
     if (!line.trim()) return null;
     if (this.header === null) {
-      throw new Error(translate(WORKER_LOCALE, 'errors.missingFastaHeader', { line: new Intl.NumberFormat(languageTags[WORKER_LOCALE]).format(this.lineNumber) }));
+      throw new LocalizedError('errors.missingFastaHeader', { line: this.lineNumber });
     }
     this.parts.push(line);
     return null;
@@ -69,7 +68,7 @@ export class FastaParser {
   private closeEntry(): FastaEntry {
     const sequence = this.parts.join('').replace(/[a-z]/g, (character) => character.toUpperCase()).replace(/\*$/, '');
     if (!sequence) {
-      throw new Error(translate(WORKER_LOCALE, 'errors.emptyFastaEntry', { header: this.header ?? '' }));
+      throw new LocalizedError('errors.emptyFastaEntry', { header: this.header ?? '' });
     }
     this.entryNumber += 1;
     const entry = {

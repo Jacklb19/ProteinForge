@@ -1,3 +1,4 @@
+import type { TranslationKey } from '../../i18n/translate';
 import { createContext } from 'react';
 import { useRequiredContext } from '../../shared/useRequiredContext';
 import type { AlignmentMode, MatrixName } from './config';
@@ -18,7 +19,7 @@ export interface AlignmentDraftState {
   mode: AlignmentMode;
   result: AlignmentResult | null;
   resultInput: AlignmentInput | null;
-  warnings: string[];
+  warnings: TranslationKey[];
 }
 
 /** Alignment inputs and last result, kept in memory while the visitor moves between tools. */

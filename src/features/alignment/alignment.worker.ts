@@ -2,10 +2,9 @@
 
 import { alignInTiles, TILE_SIZE } from './wavefront';
 import { calculateWasmTile, initializeAlignmentWasm } from './wasm';
-import { translate } from '../../i18n/translate';
 import type { TileRequest, TileResult } from './tile';
 import type { AlignmentRequest, AlignmentResponse, TileResponseMessage, TileRequestMessage } from './messages';
-import { WORKER_LOCALE } from '../../i18n/config';
+import { LocalizedError, localizedFailure } from '../../i18n/localized';
 
 const context = self as DedicatedWorkerGlobalScope;
 let active: { id: number; isCancelled: boolean } | null = null;
@@ -14,10 +13,10 @@ function executeTile(worker: Worker, tile: TileRequest, id: number): Promise<Til
   return new Promise((resolve, reject) => {
     worker.onmessage = (event: MessageEvent<TileResponseMessage>) => {
       if (event.data.id !== id) return;
-      if ('error' in event.data) reject(new Error(event.data.error));
+      if ('error' in event.data) reject(new LocalizedError(event.data.error.key, event.data.error.variables));
       else resolve(event.data.tile);
     };
-    worker.onerror = () => { reject(new Error(translate(WORKER_LOCALE, 'errors.workerStopped'))); };
+    worker.onerror = () => { reject(new LocalizedError('errors.workerStopped')); };
     const request: TileRequestMessage = { id, tile };
     worker.postMessage(request);
   });
@@ -29,7 +28,7 @@ async function executeInPool(workers: Worker[], requests: TileRequest[], id: num
     const batch = requests.slice(start, start + workers.length);
     const calculated = await Promise.all(batch.map((tile, index) => {
       const worker = workers[index];
-      if (!worker) throw new Error(translate(WORKER_LOCALE, 'errors.missingTileWorker'));
+      if (!worker) throw new LocalizedError('errors.missingTileWorker');
       return executeTile(worker, tile, id);
     }));
     responses.push(...calculated);
@@ -44,7 +43,7 @@ context.onmessage = (event: MessageEvent<AlignmentRequest>) => {
     return;
   }
   if (active) {
-    const response: AlignmentResponse = { type: 'error', id: request.id, message: translate(WORKER_LOCALE, 'errors.alignmentActive') };
+    const response: AlignmentResponse = { type: 'error', id: request.id, message: { key: 'errors.alignmentActive' } };
     context.postMessage(response);
     return;
   }
@@ -80,7 +79,7 @@ context.onmessage = (event: MessageEvent<AlignmentRequest>) => {
   }).catch((error: unknown) => {
     const response: AlignmentResponse = task.isCancelled
       ? { type: 'cancelled', id: task.id }
-      : { type: 'error', id: task.id, message: error instanceof Error ? error.message : translate(WORKER_LOCALE, 'alignment.workerError') };
+      : { type: 'error', id: task.id, message: localizedFailure(error, 'alignment.workerError') };
     context.postMessage(response);
   }).finally(() => {
     workers.forEach((worker) => { worker.terminate(); });

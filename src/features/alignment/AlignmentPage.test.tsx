@@ -163,7 +163,7 @@ describe('alignment interface', () => {
     act(() => { worker().onmessage?.(new MessageEvent('message', { data: { type: 'cancelled', id: 1 } })); });
     expect(screen.getByRole('status')).toHaveTextContent(spanish['alignment.cancelled']);
     fireEvent.click(screen.getByRole('button', { name: spanish['alignment.start'] }));
-    act(() => { worker().onmessage?.(new MessageEvent('message', { data: { type: 'error', id: 2, message: 'Failure' } })); });
+    act(() => { worker().onmessage?.(new MessageEvent('message', { data: { type: 'error', id: 2, message: { key: 'alignment.workerError' } } })); });
     expect(screen.getByRole('status')).toHaveTextContent(spanish['alignment.workerError']);
     act(() => { worker().onerror?.(); });
     expect(screen.getByRole('button', { name: spanish['alignment.start'] })).toBeEnabled();

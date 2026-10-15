@@ -8,7 +8,6 @@ import { ApiError } from '../api/apiClient';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { SCORING_SUBSTITUTIONS } from '../alignment/config';
-import { useTranslation } from '../../i18n';
 import { createProjectApi } from './projectApi';
 import type { ProjectApi } from './projectApi';
 import type { Project, ProjectSummary } from './contracts';
@@ -37,7 +36,6 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const alignment = useAlignmentDraft();
   const { setText, setProfileWindow, setSource } = sequence;
   const { update } = alignment;
-  const { t } = useTranslation();
   const [configuredApi] = useState(() => { const url = readApiBaseUrl(); return url ? createProjectApi(url) : null; });
   const client = api === undefined ? configuredApi : api;
   const user = auth.status === 'signed-in' ? auth.session?.user.id ?? null : null;
@@ -53,9 +51,9 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     setProfileWindow(project.workspace.profileWindow);
     setSource(project.workspace.source ?? null);
     const restored = project.workspace.alignment;
-    const warnings = SCORING_SUBSTITUTIONS.filter(({ residue }) => restored.first.includes(residue) || restored.second.includes(residue)).map(({ warningKey }) => t(warningKey));
+    const warnings = SCORING_SUBSTITUTIONS.filter(({ residue }) => restored.first.includes(residue) || restored.second.includes(residue)).map(({ warningKey }) => warningKey);
     update({ ...restored, resultInput: restored.result ? { first: restored.first, second: restored.second, matrix: restored.matrix, mode: restored.mode } : null, warnings });
-  }, [setText, setProfileWindow, setSource, update, t]);
+  }, [setText, setProfileWindow, setSource, update]);
 
   // Initial restore runs once per owner. Token refresh does not replace an edited workspace.
   useEffect(() => {

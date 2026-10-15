@@ -1,9 +1,8 @@
 /// <reference lib="webworker" />
 
 import { calculateDescriptors } from './descriptors';
-import { translate } from '../../i18n/translate';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
-import { WORKER_LOCALE } from '../../i18n/config';
+import { localizedFailure } from '../../i18n/localized';
 
 const context = self as DedicatedWorkerGlobalScope;
 
@@ -15,7 +14,7 @@ context.onmessage = (event: MessageEvent<DescriptorRequest>) => {
   } catch (error) {
     const response: DescriptorResponse = {
       id,
-      error: error instanceof Error ? error.message : translate(WORKER_LOCALE, 'descriptors.error'),
+      error: localizedFailure(error, 'descriptors.error'),
     };
     context.postMessage(response);
   }

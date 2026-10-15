@@ -1,11 +1,10 @@
 import { initialBoundary, calculateTile } from './tile';
-import { translate } from '../../i18n/translate';
 import type { TileResult, TileRequest } from './tile';
 import { buildResult, normalizeForAlignment } from './gotoh';
 import type { MatrixName, AlignmentMode, AlignmentResult } from './gotoh';
 
 import { MAX_ALIGNMENT_RESIDUES, TILE_SIZE } from './config';
-import { WORKER_LOCALE, languageTags } from '../../i18n/config';
+import { LocalizedError, LocalizedRangeError } from '../../i18n/localized';
 
 export { MAX_ALIGNMENT_RESIDUES, TILE_SIZE } from './config';
 
@@ -27,7 +26,7 @@ export async function alignInTiles(
   const a = normalizeForAlignment(first).sequence;
   const b = normalizeForAlignment(second).sequence;
   if (a.length > MAX_ALIGNMENT_RESIDUES || b.length > MAX_ALIGNMENT_RESIDUES) {
-    throw new RangeError(translate(WORKER_LOCALE, 'errors.alignmentLimit', { count: new Intl.NumberFormat(languageTags[WORKER_LOCALE]).format(MAX_ALIGNMENT_RESIDUES) }));
+    throw new LocalizedRangeError('errors.alignmentLimit', { count: MAX_ALIGNMENT_RESIDUES });
   }
   const rows = Math.ceil(a.length / TILE_SIZE);
   const columns = Math.ceil(b.length / TILE_SIZE);
@@ -49,21 +48,21 @@ export async function alignInTiles(
       const width = Math.min(TILE_SIZE, b.length - column);
       const top = rowIndex === 0 ? initialBoundary(width) : results[rowIndex - 1]?.[columnIndex]?.bottom;
       const left = columnIndex === 0 ? initialBoundary(height) : results[rowIndex]?.[columnIndex - 1]?.right;
-      if (!top || !left) throw new Error(translate(WORKER_LOCALE, 'errors.missingBoundary'));
+      if (!top || !left) throw new LocalizedError('errors.missingBoundary');
       batch.push({ row, column, height, width, first: a, second: b, matrix: options.matrix,
         mode: options.mode, top, left, trace: buffer });
     }
     for (const result of await execute(batch)) {
       const rowIndex = Math.floor(result.row / TILE_SIZE);
       const columnIndex = Math.floor(result.column / TILE_SIZE);
-      if (!results[rowIndex]) throw new Error(translate(WORKER_LOCALE, 'errors.invalidBlockIndex'));
+      if (!results[rowIndex]) throw new LocalizedError('errors.invalidBlockIndex');
       results[rowIndex][columnIndex] = result;
       if (result.best.score > best.score) best = result.best;
       processed += Math.min(TILE_SIZE, a.length - result.row) * Math.min(TILE_SIZE, b.length - result.column);
     }
     options.onProgress?.(processed / (a.length * b.length));
     await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
-    if (options.isCancelled?.()) throw new Error(translate(WORKER_LOCALE, 'alignment.cancelled'));
+    if (options.isCancelled?.()) throw new LocalizedError('alignment.cancelled');
   }
   return buildResult(a, b, options.matrix, options.mode, new Uint8Array(buffer), best);
 }

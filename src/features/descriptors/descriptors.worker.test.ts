@@ -23,6 +23,6 @@ describe('descriptor worker', () => {
     expect(first.id).toBe(1);
     expect(first.result?.length).toBe(4);
     expect(second.id).toBe(2);
-    expect(second.error).toMatch(/aminoácidos estándar/i);
+    expect(second.error).toEqual({ key: 'errors.standardResidues' });
   });
 });

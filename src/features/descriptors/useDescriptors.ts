@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { translate } from '../../i18n/translate';
 import { splitStandardResidues, validateSequence } from '../editor/sequence';
 import type { Descriptors } from './descriptors';
 import type { DescriptorResponse, DescriptorRequest } from './messages';
-import { WORKER_LOCALE } from '../../i18n/config';
+import type { LocalizedText } from '../../i18n/localized';
 
 /** Visible state of the latest calculation and its input. */
 export interface DescriptorState {
   result: Descriptors | null;
   status: 'empty' | 'calculating' | 'current' | 'invalid' | 'error';
-  error: string | null;
+  error: LocalizedText | null;
   excluded: number;
 }
 
 interface ReceivedResult { sequence: string; data: Descriptors }
-interface ReceivedError { sequence: string; message: string }
+interface ReceivedError { sequence: string; message: LocalizedText }
 
 /** Keeps one worker and discards results from earlier editor revisions. */
 export function useDescriptors(text: string): DescriptorState {
@@ -22,7 +21,7 @@ export function useDescriptors(text: string): DescriptorState {
   const residues = useMemo(() => splitStandardResidues(validation.sequence), [validation.sequence]);
   const [lastResult, setLastResult] = useState<ReceivedResult | null>(null);
   const [currentError, setCurrentError] = useState<ReceivedError | null>(null);
-  const [workerError, setWorkerError] = useState<string | null>(null);
+  const [workerError, setWorkerError] = useState<LocalizedText | null>(null);
   const worker = useRef<Worker | null>(null);
   const latestRequest = useRef(0);
   const sentSequence = useRef('');
@@ -38,13 +37,11 @@ export function useDescriptors(text: string): DescriptorState {
           setCurrentError({ sequence: sentSequence.current, message: response.error });
           return;
         }
-        if (response.result) {
-          setLastResult({ sequence: sentSequence.current, data: response.result });
-        }
+        setLastResult({ sequence: sentSequence.current, data: response.result });
       };
-      instance.onerror = () => { setWorkerError(translate(WORKER_LOCALE, 'errors.descriptorWorkerStopped')); };
+      instance.onerror = () => { setWorkerError({ key: 'errors.descriptorWorkerStopped' }); };
     } catch {
-      queueMicrotask(() => { setWorkerError(translate(WORKER_LOCALE, 'errors.descriptorWorkerStart')); });
+      queueMicrotask(() => { setWorkerError({ key: 'errors.descriptorWorkerStart' }); });
     }
     return () => {
       worker.current?.terminate();

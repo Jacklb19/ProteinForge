@@ -1,9 +1,9 @@
 import type { ChartStyle } from './profileMessages';
-import { translate } from '../../i18n/translate';
 import type { ProfilePoint, HydropathyWindow } from './profile';
 import { PROFILE_AXIS_FORMAT, PROFILE_MINIMUM_HALF_RANGE, PROFILE_REFERENCE_LINES } from './config';
 import { profileX } from './chartGeometry';
-import { WORKER_LOCALE, languageTags } from '../../i18n/config';
+import { languageTags } from '../../i18n/config';
+import { LocalizedError } from '../../i18n/localized';
 
 /** Scientific reference lines accompanying the curve. */
 export function referencesForWindow(windowSize: HydropathyWindow): number[] {
@@ -21,7 +21,7 @@ export function drawProfile(
   style: ChartStyle,
 ): void {
   const context = canvas.getContext('2d');
-  if (!context) throw new Error(translate(WORKER_LOCALE, 'errors.canvasContext'));
+  if (!context) throw new LocalizedError('errors.canvasContext');
   const numberFormat = new Intl.NumberFormat(languageTags[style.locale]);
   const axisFormat = new Intl.NumberFormat(languageTags[style.locale], PROFILE_AXIS_FORMAT);
   canvas.width = Math.max(1, Math.round(width * scale));

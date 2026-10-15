@@ -6,5 +6,3 @@ export const DEFAULT_LOCALE: Locale = 'es';
 /** BCP 47 tags used for number and date formatting. */
 export const languageTags: Record<Locale, string> = { es: 'es-CO', en: 'en-US' };
 
-/** Workers do not receive the visitor's locale; their messages use the default catalog. */
-export const WORKER_LOCALE: Locale = DEFAULT_LOCALE;

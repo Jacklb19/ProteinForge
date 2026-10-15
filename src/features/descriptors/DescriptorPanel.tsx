@@ -4,7 +4,7 @@ import { useTranslation } from '../../i18n';
 
 /** Displays the descriptors with a short reading of each one and marks stale results. */
 export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.Element {
-  const { t, formatNumber } = useTranslation();
+  const { t, formatNumber, localize } = useTranslation();
   const { result, status, error, excluded } = data;
   const stale = result !== null && status !== 'current';
   return (
@@ -14,7 +14,7 @@ export function DescriptorPanel({ data }: { data: DescriptorState }): React.JSX.
       <p className="status-message" data-state={status} role="status" aria-live="polite">
         {status === 'invalid' && t('descriptors.invalid')}
         {status === 'calculating' && t('descriptors.calculating')}
-        {status === 'error' && (error ? t('descriptors.workerMessage', { message: error }) : t('descriptors.error'))}
+        {status === 'error' && (error ? t('descriptors.workerMessage', { message: localize(error) }) : t('descriptors.error'))}
         {status === 'empty' && (excluded > 0 ? t('descriptors.noStandard') : t('descriptors.empty'))}
       </p>
       {result && (

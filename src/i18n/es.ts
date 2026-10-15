@@ -456,7 +456,7 @@ export const spanish = {
   'errors.emptyFastaHeader': 'La cabecera de la línea {{line}} está vacía.',
   'errors.missingFastaHeader': 'Se esperaba una cabecera FASTA antes de la línea {{line}}.',
   'errors.emptyFastaEntry': 'La entrada «{{header}}» no contiene secuencia.',
-  'errors.fastaLimit': 'El archivo supera el límite de {{limit}}.',
+  'errors.fastaLimit': 'El archivo supera el límite de {{limit}} MB.',
   'errors.invalidFasta': 'Archivo FASTA inválido.',
   'errors.fastaRead': 'No se pudo leer el archivo FASTA.',
   'shell.menu': 'Menú',

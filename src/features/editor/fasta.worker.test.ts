@@ -49,7 +49,7 @@ describe('fasta.worker', () => {
     await context.onmessage?.(new MessageEvent('message', { data: file }));
     expect(context.postMessage).toHaveBeenCalledWith({
       type: 'error',
-      message: 'El archivo supera el límite de 5 MB.',
+      message: { key: 'errors.fastaLimit', variables: { limit: 5 } },
     });
   });
 
@@ -58,7 +58,7 @@ describe('fasta.worker', () => {
     await context.onmessage?.(new MessageEvent('message', { data: fileWithStream('AC\n') }));
     expect(context.postMessage).toHaveBeenCalledWith({
       type: 'error',
-      message: expect.stringContaining('cabecera FASTA') as string,
+      message: { key: 'errors.missingFastaHeader', variables: { line: 1 } },
     });
   });
 });

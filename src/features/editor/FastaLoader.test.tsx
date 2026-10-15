@@ -7,7 +7,7 @@ import { WorkspaceProviders } from '../../test/WorkspaceProviders';
 type WorkerMessage =
   | { type: 'entries'; entries: FastaEntry[] }
   | { type: 'complete' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: { key: string; variables?: Record<string, string | number> } };
 
 function setupWorker(): Array<{
   path: string;
@@ -153,8 +153,8 @@ describe('FastaLoader', () => {
     });
     const worker = fastaWorker(instances);
     act(() => {
-      worker?.onmessage?.(new MessageEvent('message', { data: { type: 'error', message: 'Formato inválido.' } }));
+      worker?.onmessage?.(new MessageEvent('message', { data: { type: 'error', message: { key: 'errors.emptyFastaHeader', variables: { line: 1200 } } } }));
     });
-    expect(screen.getByText(/Error: Formato inválido/i)).toBeInTheDocument();
+    expect(screen.getByText(/La cabecera de la línea 1\.200 está vacía/)).toBeInTheDocument();
   });
 });

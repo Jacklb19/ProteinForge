@@ -1,10 +1,10 @@
 import blosum from './fixtures/blosum.json';
-import { translate } from '../../i18n/translate';
 import {
   ALIGNMENT_MARKS, ALIGNMENT_MODES, DEFAULT_MATRIX, DEFAULT_MODE, GAP_CHARACTER, GAP_EXTEND, GAP_OPEN, MATRIX_NAMES,
 } from './config';
 import type { AlignmentMode, MatrixName } from './config';
-import { WORKER_LOCALE } from '../../i18n/config';
+import { LocalizedError, LocalizedRangeError } from '../../i18n/localized';
+import type { TranslationKey } from '../../i18n/translate';
 
 export type { AlignmentMode, MatrixName } from './config';
 
@@ -43,15 +43,15 @@ const Y = 2;
 const STOP = 3;
 
 /** Maps selenocysteine and pyrrolysine only for alignment scoring. */
-export function normalizeForAlignment(sequence: string): { sequence: string; warnings: string[] } {
-  const warnings: string[] = [];
-  if (sequence.includes('U')) warnings.push(translate(WORKER_LOCALE, 'alignment.warningU'));
-  if (sequence.includes('O')) warnings.push(translate(WORKER_LOCALE, 'alignment.warningO'));
+export function normalizeForAlignment(sequence: string): { sequence: string; warnings: TranslationKey[] } {
+  const warnings: TranslationKey[] = [];
+  if (sequence.includes('U')) warnings.push('alignment.warningU');
+  if (sequence.includes('O')) warnings.push('alignment.warningO');
   const normalized = sequence.replaceAll('U', 'C').replaceAll('O', 'K');
   if (Array.from(normalized).some((residue) => !ALPHABET.includes(residue))) {
-    throw new RangeError(translate(WORKER_LOCALE, 'errors.invalidAlignmentResidues'));
+    throw new LocalizedRangeError('errors.invalidAlignmentResidues');
   }
-  if (normalized.length === 0) throw new RangeError(translate(WORKER_LOCALE, 'errors.emptyAlignment'));
+  if (normalized.length === 0) throw new LocalizedRangeError('errors.emptyAlignment');
   return { sequence: normalized, warnings };
 }
 
@@ -141,7 +141,7 @@ export async function alignSequences(
   const matrix = options.matrix ?? DEFAULT_MATRIX;
   const mode = options.mode ?? DEFAULT_MODE;
   if (!MATRIX_NAMES.includes(matrix) || !ALIGNMENT_MODES.includes(mode)) {
-    throw new RangeError(translate(WORKER_LOCALE, 'errors.invalidAlignmentParameters'));
+    throw new LocalizedRangeError('errors.invalidAlignmentParameters');
   }
   const a = normalizeForAlignment(first).sequence;
   const b = normalizeForAlignment(second).sequence;
@@ -207,7 +207,7 @@ export async function alignSequences(
     if (i % 64 === 0 || i === a.length) {
       options.onProgress?.(i / a.length);
       await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
-      if (options.isCancelled?.()) throw new Error(translate(WORKER_LOCALE, 'alignment.cancelled'));
+      if (options.isCancelled?.()) throw new LocalizedError('alignment.cancelled');
     }
   }
 

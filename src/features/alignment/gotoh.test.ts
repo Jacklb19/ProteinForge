@@ -27,7 +27,7 @@ describe('Gotoh with BLOSUM matrices', () => {
   it('converts U and O and scores B, Z, and X directly', () => {
     expect(normalizeForAlignment('UOBZX')).toEqual({
       sequence: 'CKBZX',
-      warnings: ['U se puntúa como C.', 'O se puntúa como K.'],
+      warnings: ['alignment.warningU', 'alignment.warningO'],
     });
     expect(() => normalizeForAlignment('AC-')).toThrow(RangeError);
   });
