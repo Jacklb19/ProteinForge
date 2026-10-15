@@ -57,6 +57,14 @@ Abre https://protein-back.vercel.app/v1/health. La respuesta esperada es:
 
 `identity: true` solo confirma presencia de configuración. No demuestra acceso de una cuenta válida. `/v1/me` sin sesión responde 401; la raíz `/` puede responder 404 porque no hay ruta de inicio en la API. Si aparece un acceso a Vercel en vez de JSON, revisa la protección del despliegue: la API debe ser accesible a los usuarios de la web. Si hay un error de función, revisa Build Logs/Runtime Logs antes de cambiar variables o dependencias.
 
+La web usa la API por gRPC-Web. Para comprobar los servicios RPC sin navegador, la misma llamada de estado por el protocolo Connect (JSON):
+
+```bash
+curl -s -X POST -H "Content-Type: application/json" -d "{}" https://protein-back.vercel.app/proteinforge.account.v1.AccountService/GetStatus
+```
+
+Respuesta esperada: `{"status":"ok","version":"0.1.0","identityConfigured":true}`. Si responde 404, el despliegue aún no incluye los servicios gRPC.
+
 ## 4. Actualizar el frontend existente
 
 No crees otro proyecto para el frontend. En el proyecto que publica https://protein-forge.vercel.app/, abre **Settings → Environment Variables** y configura **Production**:

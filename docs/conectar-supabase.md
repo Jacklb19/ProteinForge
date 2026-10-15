@@ -61,7 +61,7 @@ Correo/contraseña puede probarse primero; Google requiere configuración de pro
 
 1. Health del backend responde con identidad configurada.
 2. Registro, confirmación y entrada permiten llegar a `/app`.
-3. En Ajustes aparece «Tu cuenta está conectada y su identidad ha sido verificada», después de comprobar `/v1/me` y el mismo ID de usuario.
+3. En Ajustes aparece «Tu cuenta está conectada y su identidad ha sido verificada», después de comprobar la identidad con `AccountService/GetMe` (gRPC-Web) y el mismo ID de usuario.
 4. Cierre de sesión, recuperación y nuevo acceso conservan sus estados correctos; se comprueba Google cuando esté configurado.
 
 Los cálculos y CSV continúan funcionando sin cuenta. Identidad verificada todavía no equivale a guardar proyectos. El siguiente bloque es concretar e implementar CRUD sobre el esquema existente y comprobar RLS en PostgreSQL antes de aplicar migraciones remotas.
