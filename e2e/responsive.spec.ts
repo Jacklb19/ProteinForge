@@ -14,6 +14,8 @@ async function serveStructure(page: Page): Promise<void> {
 }
 
 test('the site bar fits every primary destination on wide screens and phones', async ({ page }) => {
+  // Thirty page and theme combinations: allow the longer budget slower runners need.
+  test.slow();
   await serveStructure(page);
   for (const width of [360, 1920, 2560]) {
     await page.setViewportSize({ width, height: 1080 });

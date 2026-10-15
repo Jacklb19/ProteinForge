@@ -1,5 +1,18 @@
 import { spawn } from 'node:child_process';
-import { createServer } from 'vite';
+import { createServer, loadEnv } from 'vite';
+
+// Every API and identity request in the suite is answered by route mocks. When a checkout has no
+// .env (CI, a fresh clone), these placeholder public values enable the signed-in flows; the
+// reserved .invalid domain guarantees that an unmocked request can never reach a real service.
+const E2E_PUBLIC_ENV = {
+  VITE_SUPABASE_URL: 'https://e2e-project.supabase.invalid',
+  VITE_SUPABASE_ANON_KEY: 'e2e-public-anon-key',
+  VITE_API_BASE_URL: 'https://api.e2e.invalid',
+};
+const configured = loadEnv('development', process.cwd(), 'VITE_');
+for (const [name, value] of Object.entries(E2E_PUBLIC_ENV)) {
+  if (!configured[name]?.trim()) process.env[name] = value;
+}
 
 // The port is configurable; when it is busy Vite moves to the next free one and the URL is passed on.
 const host = process.env.E2E_HOST ?? '127.0.0.1';
