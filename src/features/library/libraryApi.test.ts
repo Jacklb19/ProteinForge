@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { annotatedCoverage, entrySchema } from './libraryApi';
+import { describe, expect, it, vi } from 'vitest';
+import { GetEntryResponseSchema, SearchEntriesRequestSchema, SearchEntriesResponseSchema } from '../../gen/proteinforge/reference/v1/reference_service_pb';
+import { timestampFromIso } from '../api/timestamps';
+import { GRPC_CODES, grpcWebError, grpcWebRequest, grpcWebResponse } from '../../test/grpcWeb';
+import { annotatedCoverage, createLibraryApi, entrySchema } from './libraryApi';
 import { REFERENCE_CATALOG } from './catalog';
 import { validateSequence } from '../editor/sequence';
 
@@ -21,5 +24,24 @@ describe('reference integrity', () => {
     expect(entrySchema.safeParse(record).success).toBe(true);
     expect(entrySchema.safeParse({ ...record, sequence: 'AC' }).success).toBe(false);
     expect(entrySchema.safeParse({ ...record, structures: [{ ...record.structures[0], id: '../../private' }] }).success).toBe(false);
+  });
+});
+
+describe('reference transport', () => {
+  it('searches and opens entries through ReferenceService with the session', async () => {
+    const retrieveTime = timestampFromIso('2026-10-12T08:00:00Z');
+    const summary = { accession: 'P01308', name: 'Insulin', organism: 'Homo sapiens', length: 3, reviewed: true };
+    const fetcher = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>()
+      .mockResolvedValueOnce(grpcWebResponse(SearchEntriesResponseSchema, { entries: [summary], limit: 10, truncated: false, retrieveTime }))
+      .mockResolvedValueOnce(grpcWebResponse(GetEntryResponseSchema, { entry: { summary, sequence: 'ACD', entryVersion: 284, sequenceVersion: 1, retrieveTime, structures: [{ id: '1TRZ', method: 'X-ray', chains: 'A=1-3' }] } }))
+      .mockResolvedValueOnce(grpcWebError(GRPC_CODES.invalidArgument, 'uniprot-accession'));
+    const api = createLibraryApi('https://api.example', fetcher);
+    const signal = new AbortController().signal;
+    expect(await api.search('insulin', 'user-token', signal)).toEqual({ items: [summary], limit: 10, truncated: false, retrievedAt: '2026-10-12T08:00:00Z' });
+    expect(grpcWebRequest(SearchEntriesRequestSchema, fetcher.mock.calls[0]?.[1]?.body as Uint8Array).query).toBe('insulin');
+    expect(await api.detail('P01308', 'user-token', signal)).toMatchObject({ sequence: 'ACD', function: null, structures: [{ id: '1TRZ', resolution: null, chains: 'A=1-3' }] });
+    expect(fetcher.mock.calls[1]?.[0]).toBe('https://api.example/proteinforge.reference.v1.ReferenceService/GetEntry');
+    await expect(api.detail('nope', 'user-token', signal)).rejects.toMatchObject({ code: 'validation' });
+    await expect(api.search('insulin', '', signal)).rejects.toMatchObject({ code: 'session' });
   });
 });

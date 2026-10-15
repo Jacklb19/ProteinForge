@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { API_ENDPOINTS, API_TIMEOUT_MS } from './config';
+import { AccountService } from '../../gen/proteinforge/account/v1/account_service_pb';
+import { callOptions, createRpcClient, rpc } from './rpc';
 
 const healthSchema = z.object({ status: z.literal('ok'), version: z.string().min(1), identity: z.boolean() });
 const identitySchema = z.object({ id: z.string().min(1), email: z.string() });
-const problemSchema = z.object({ requestId: z.string().max(64).optional(), type: z.string().optional() });
 export type ApiErrorCode = 'network' | 'timeout' | 'cancelled' | 'session' | 'unavailable' | 'invalid-response' | 'unknown' | 'conflict' | 'not-found' | 'validation' | 'schema' | 'forbidden';
 
 /** Only safe categories and correlation IDs reach the UI; response details are never shown or logged. */
@@ -18,56 +18,25 @@ export interface ProteinForgeApi {
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
-/** Token-bearing requests target only the configured API; local analyses remain local. */
-export function createApiTransport(baseUrl: string, fetchImplementation: FetchLike = fetch) {
-  return async function request(path: string, signal?: AbortSignal, token?: string, options: { method?: string; body?: unknown } = {}): Promise<unknown> {
-    const controller = new AbortController();
-    const cancel = () => { controller.abort('cancelled'); };
-    signal?.addEventListener('abort', cancel, { once: true });
-    if (signal?.aborted) cancel();
-    const timer = setTimeout(() => { controller.abort('timeout'); }, API_TIMEOUT_MS);
-    try {
-      const headers: Record<string, string> = { Accept: 'application/json', 'X-Request-Id': crypto.randomUUID() };
-      if (token) headers.Authorization = `Bearer ${token}`;
-      if (options.body !== undefined) headers['Content-Type'] = 'application/json';
-      const response = await fetchImplementation(`${baseUrl}${path}`, { method: options.method ?? 'GET', body: options.body === undefined ? undefined : JSON.stringify(options.body), headers, signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error' });
-      if (response.status === 204) return null;
-      let data: unknown;
-      try { data = await response.json(); } catch {
-        if (!response.ok) throw new ApiError(response.status === 401 ? 'session' : 'unavailable');
-        throw new ApiError('invalid-response');
-      }
-      if (!response.ok) {
-        const problem = problemSchema.safeParse(data);
-        const code: ApiErrorCode = response.status === 401 ? 'session' : response.status === 409 ? 'conflict' : response.status === 404 ? 'not-found' : response.status === 422 ? 'validation' : response.status === 403 ? 'forbidden' : problem.success && problem.data.type?.endsWith('/projects-schema-unavailable') ? 'schema' : response.status >= 500 ? 'unavailable' : 'unknown';
-        throw new ApiError(code, problem.success ? problem.data.requestId : undefined);
-      }
-      return data;
-    } catch (error) {
-      if (controller.signal.aborted) throw new ApiError(controller.signal.reason === 'timeout' ? 'timeout' : 'cancelled');
-      if (error instanceof ApiError) throw error;
-      throw new ApiError('network');
-    } finally {
-      clearTimeout(timer);
-      signal?.removeEventListener('abort', cancel);
-    }
-  };
+/** Validates a decoded message against the client contract before it reaches the interface. */
+export function validated<T>(schema: z.ZodType<T>, value: unknown): T {
+  const parsed = schema.safeParse(value);
+  if (!parsed.success) throw new ApiError('invalid-response');
+  return parsed.data;
 }
 
-export function createProteinForgeApi(baseUrl: string, fetchImplementation: FetchLike = fetch): ProteinForgeApi {
-  const request = createApiTransport(baseUrl, fetchImplementation);
-
+/** Account calls through AccountService; local analyses remain local. */
+export function createProteinForgeApi(baseUrl: string, fetchImplementation?: FetchLike): ProteinForgeApi {
+  const client = createRpcClient(AccountService, baseUrl, fetchImplementation);
   return {
     async health(signal) {
-      const parsed = healthSchema.safeParse(await request(API_ENDPOINTS.health, signal));
-      if (!parsed.success) throw new ApiError('invalid-response');
-      return parsed.data;
+      const status = await rpc(() => client.getStatus({}, callOptions(signal)));
+      return validated(healthSchema, { status: status.status, version: status.version, identity: status.identityConfigured });
     },
     async me(token, signal) {
       if (!token.trim()) throw new ApiError('session');
-      const parsed = identitySchema.safeParse(await request(API_ENDPOINTS.me, signal, token));
-      if (!parsed.success) throw new ApiError('invalid-response');
-      return parsed.data;
+      const identity = await rpc(() => client.getMe({}, callOptions(signal, token)));
+      return validated(identitySchema, { id: identity.id, email: identity.email });
     },
   };
 }

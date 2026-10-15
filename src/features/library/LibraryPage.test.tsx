@@ -11,15 +11,21 @@ import { spanish } from '../../i18n/es';
 import { ROUTES } from '../../shared/navigation';
 import type { UniProtEntry } from './libraryApi';
 import { REFERENCE_CATALOG } from './catalog';
+import { GetEntryResponseSchema, SearchEntriesResponseSchema } from '../../gen/proteinforge/reference/v1/reference_service_pb';
+import { timestampFromIso } from '../api/timestamps';
+import { grpcWebResponse } from '../../test/grpcWeb';
 
 vi.mock('./StructureViewer', () => ({ default: ({ pdbId }: { pdbId: string }) => <output data-testid="viewer">{pdbId}</output> }));
 const entry: UniProtEntry = { accession: 'P01308', name: 'Insulin', organism: 'Homo sapiens', reviewed: true, length: 3, sequence: 'ACD', entryVersion: 284, sequenceVersion: 1, retrievedAt: '2026-10-12T08:00:00Z', function: 'Public annotation', structures: [{ id: '1TRZ', method: 'X-ray', resolution: '1.60 A', chains: 'A=1-3' }] };
+const summary = (value: UniProtEntry) => ({ accession: value.accession, name: value.name, organism: value.organism, length: value.length, reviewed: value.reviewed });
+const searchResponse = (truncated: boolean) => grpcWebResponse(SearchEntriesResponseSchema, { entries: [summary(entry)], limit: 10, truncated, retrieveTime: timestampFromIso(entry.retrievedAt) });
+const entryResponse = (value: UniProtEntry) => grpcWebResponse(GetEntryResponseSchema, { entry: { summary: summary(value), sequence: value.sequence, entryVersion: value.entryVersion, sequenceVersion: value.sequenceVersion, retrieveTime: timestampFromIso(value.retrievedAt), function: value.function ?? undefined, structures: value.structures.map((item) => ({ id: item.id, method: item.method, resolution: item.resolution ?? undefined, chains: item.chains ?? undefined })) } });
 function Draft() { const draft = useSequenceDraft(); return <><output data-testid="draft">{draft.text}|{draft.source?.accession}</output><button onClick={() => { draft.setText('EEE'); }}>existing draft</button></>; }
 function renderPage(signedIn = true) { return render(<MemoryRouter initialEntries={[ROUTES.library]}><AuthContext.Provider value={signedIn ? signedInFixture : { ...signedInFixture, status: 'anonymous', session: null }}><SequenceDraftProvider><Routes><Route path={ROUTES.library} element={<><LibraryPage /><Draft /></>} /><Route path={ROUTES.analyze} element={<Draft />} /></Routes></SequenceDraftProvider></AuthContext.Provider></MemoryRouter>); }
 beforeEach(() => { vi.stubEnv('VITE_API_BASE_URL', 'http://127.0.0.1:8000'); });
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 it('queries public references on demand, validates provenance and imports after deliberate draft replacement', async () => {
-  const user = userEvent.setup(); const fetcher = vi.fn().mockImplementation((url: string) => Promise.resolve(new Response(JSON.stringify(url.includes('/search?') ? { items: [entry], limit: 10, truncated: true, retrievedAt: entry.retrievedAt } : entry), { status: 200 })));
+  const user = userEvent.setup(); const fetcher = vi.fn().mockImplementation((url: string) => Promise.resolve(url.endsWith('/SearchEntries') ? searchResponse(true) : entryResponse(entry)));
   vi.stubGlobal('fetch', fetcher); renderPage();
   expect(fetcher).not.toHaveBeenCalled();
   // The page opens on the measured structure of the bundled example.
@@ -53,7 +59,7 @@ it('aborts cancelled lookups, ignores their late response and displays real prov
   const fetcher = vi.fn().mockReturnValue(new Promise<Response>((done) => { resolve = done; })); vi.stubGlobal('fetch', fetcher);
   renderPage(); await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
   await user.click(screen.getByRole('button', { name: spanish['projects.cancel'] }));
-  await act(async () => { resolve(new Response(JSON.stringify({ items: [entry], limit: 10, truncated: false, retrievedAt: entry.retrievedAt }), { status: 200 })); await Promise.resolve(); });
+  await act(async () => { resolve(searchResponse(false)); await Promise.resolve(); });
   expect(screen.queryByRole('button', { name: spanish['library.openEntry'].replace('{{id}}', 'P01308') })).not.toBeInTheDocument();
   fetcher.mockResolvedValue(new Response('service unavailable', { status: 503 }));
   await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
@@ -69,7 +75,7 @@ it('keeps bundled references usable without identity or a configured API', async
   expect(screen.getByText(spanish['library.config'])).toBeVisible();
 });
 it('rejects a detail whose sequence does not match its declared length', async () => {
-  const user = userEvent.setup(); vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ items: [entry], limit: 10, truncated: false, retrievedAt: entry.retrievedAt }))).mockResolvedValueOnce(new Response(JSON.stringify({ ...entry, sequence: 'AC' }))));
+  const user = userEvent.setup(); vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(searchResponse(false)).mockResolvedValueOnce(entryResponse({ ...entry, sequence: 'AC' })));
   renderPage(); await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
   await user.click(await screen.findByRole('button', { name: spanish['library.openEntry'].replace('{{id}}', 'P01308') }));
   await screen.findByText(spanish['library.error']); expect(screen.queryByText('Public annotation')).not.toBeInTheDocument();

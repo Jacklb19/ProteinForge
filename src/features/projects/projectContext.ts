@@ -8,7 +8,7 @@ export interface ProjectContextValue {
   enabled: boolean;
   active: Project | null;
   items: ProjectSummary[];
-  nextOffset: number | null;
+  nextPageToken: string | null;
   dirty: boolean;
   busy: boolean;
   error: ApiError | null;

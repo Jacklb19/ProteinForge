@@ -36,7 +36,7 @@ export function ProjectLibrary(): React.JSX.Element {
           else void open(project);
         }}>{t('projects.open')}</button><button className="button button-quiet" type="button" disabled={projects.busy} aria-label={t('projects.renameNamed', { name: project.name })} onClick={() => { setName(project.name); setIntent({ action: 'rename', project }); }}>{t('projects.rename')}</button><button className="button button-quiet" type="button" disabled={projects.busy} aria-label={t('projects.deleteNamed', { name: project.name })} onClick={() => { setIntent({ action: 'delete', project }); }}>{t('projects.delete')}</button></div>
       </li>)}</ul>
-      <div className="actions">{projects.nextOffset !== null && <button className="button button-secondary" disabled={projects.busy} type="button" onClick={() => { void projects.refresh(true); }}>{t('projects.more')}</button>}<button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { void projects.refresh(); }}>{t('projects.refresh')}</button></div>
+      <div className="actions">{projects.nextPageToken !== null && <button className="button button-secondary" disabled={projects.busy} type="button" onClick={() => { void projects.refresh(true); }}>{t('projects.more')}</button>}<button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { void projects.refresh(); }}>{t('projects.refresh')}</button></div>
       <p className="field-help">{t('projects.libraryHelp')}</p>
       {intent && <form className="project-confirm" aria-label={t(`projects.${intent.action === 'delete' ? 'delete' : intent.action === 'rename' ? 'rename' : 'open'}`)} onSubmit={(event) => {
         event.preventDefault();
