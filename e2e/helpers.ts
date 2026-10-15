@@ -8,6 +8,8 @@ import { translate } from '../src/i18n/translate';
 import type { TranslationKey, TranslationVariables } from '../src/i18n/translate';
 import { readAuthSettings, SESSION_STORAGE_KEY } from '../src/features/auth/config';
 import { RESIDUES_PER_BLOCK } from '../src/features/descriptors/config';
+import { ListProjectsResponseSchema } from '../src/gen/proteinforge/project/v1/project_service_pb';
+import { fulfillRpc, fulfillRpcError, GRPC_CODES, isRpc, rpcMethod } from './rpc';
 
 const tokens = readFileSync('src/design-tokens.css', 'utf8');
 const manifest = JSON.parse(readFileSync('public/fonts/provenance.json', 'utf8')) as {
@@ -57,12 +59,10 @@ export async function storeSession(page: Page, account: { id: string; email: str
 /** Signs in with an account that owns no projects; API and identity requests never leave the machine. */
 export async function signInWithEmptyAccount(page: Page): Promise<void> {
   await storeSession(page);
-  await page.route('**/v1/**', (route) => {
-    const url = new URL(route.request().url());
-    if (url.pathname.includes('/auth/')) return route.fulfill({ status: 200, json: {} });
-    if (url.pathname.endsWith('/projects')) return route.fulfill({ json: { items: [], nextOffset: null } });
-    return route.fulfill({ status: 404, json: { status: 404 } });
-  });
+  await page.route('**/auth/v1/**', (route) => route.fulfill({ status: 200, json: {} }));
+  await page.route(isRpc, (route) => rpcMethod(route) === 'ProjectService/ListProjects'
+    ? fulfillRpc(route, ListProjectsResponseSchema, {})
+    : fulfillRpcError(route, GRPC_CODES.unimplemented, 'unimplemented'));
 }
 
 const themeLabels = { system: spanish['settings.system'], light: spanish['settings.light'], dark: spanish['settings.dark'] } as const;
