@@ -41,7 +41,7 @@ npm run build:wasm
 npm run check:wasm
 ```
 
-Eliminar el `.gitignore` que wasm-pack genera dentro de `rust/alignment/pkg/` antes de confirmar el paquete. CI lo reconstruye y compara. `target/` no se versiona.
+`build:wasm` reasigna la ruta de Cargo a `/cargo`, porque el binario guarda rutas de origen. El paquete que se versiona se construye en Linux, como en CI: `npm run build:wasm:linux` (Docker con `node:24`, Rust 1.91.1 y wasm-pack 0.15.0; quita el `.gitignore` generado). Una construcción en Windows funciona pero escribe rutas con `\` y no coincide byte a byte. CI reconstruye y compara. `target/` no se versiona.
 
 `scripts/generate_alignment_references.py` regenera fixtures con Biopython fijado en `requirements-reference.txt`; es una herramienta científica del frontend, no el backend. `node scripts/benchmark-alignment.mjs` compara ambos núcleos y escribe resultados locales en `artifacts/`.
 

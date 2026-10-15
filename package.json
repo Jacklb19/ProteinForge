@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:wasm": "wasm-pack build rust/alignment --target web --out-dir pkg",
+    "build:wasm": "node scripts/build-wasm.mjs",
+    "build:wasm:linux": "node scripts/build-wasm-linux.mjs",
     "check:wasm": "node scripts/verify-wasm.mjs",
     "check:pwa": "node scripts/check-pwa.mjs",
     "preview": "vite preview",
