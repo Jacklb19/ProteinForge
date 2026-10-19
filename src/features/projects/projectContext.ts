@@ -3,6 +3,7 @@ import { useRequiredContext } from '../../shared/useRequiredContext';
 import type { ApiError } from '../api/apiClient';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 import type { Project, ProjectSummary } from './contracts';
+import type { ProjectQuery } from './config';
 
 export interface ProjectContextValue {
   enabled: boolean;
@@ -12,11 +13,13 @@ export interface ProjectContextValue {
   dirty: boolean;
   busy: boolean;
   error: ApiError | null;
-  notice: 'saved' | 'opened' | 'deleted' | null;
-  refresh(more?: boolean): Promise<boolean>;
-  open(id: string): Promise<boolean>;
+  notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null;
+  listing: ProjectQuery;
+  refresh(more?: boolean, query?: ProjectQuery): Promise<boolean>;
+  open(id: string): Promise<Project | null>;
   save(name: string, descriptors?: DescriptorState, copy?: boolean): Promise<boolean>;
   rename(project: ProjectSummary, name: string): Promise<boolean>;
+  duplicate(project: ProjectSummary, name: string): Promise<boolean>;
   remove(project: ProjectSummary): Promise<boolean>;
   detach(): void;
 }

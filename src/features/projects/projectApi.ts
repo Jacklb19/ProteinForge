@@ -1,8 +1,9 @@
-import { ProjectService } from '../../gen/proteinforge/project/v1/project_service_pb';
+import { ProjectOrder, ProjectService } from '../../gen/proteinforge/project/v1/project_service_pb';
 import { ApiError, validated } from '../api/apiClient';
 import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { timestampFromIso } from '../api/timestamps';
-import { PROJECT_PAGE_SIZE } from './config';
+import { DEFAULT_PROJECT_QUERY, PROJECT_PAGE_SIZE } from './config';
+import type { ProjectQuery } from './config';
 import { projectListSchema, projectSchema } from './contracts';
 import type { Project, ProjectWrite } from './contracts';
 import { projectDocument, summaryDocument, workspaceMessage } from './rpcMapping';
@@ -18,8 +19,9 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
   }
   // Arrow properties: callers pass these operations around without binding.
   return {
-    list: async (token: string, pageToken = '', signal?: AbortSignal) => {
-      const response = await rpc(() => client.listProjects({ pageSize: PROJECT_PAGE_SIZE, pageToken }, callOptions(signal, session(token))));
+    list: async (token: string, pageToken = '', signal?: AbortSignal, listing: ProjectQuery = DEFAULT_PROJECT_QUERY) => {
+      const response = await rpc(() => client.listProjects({ pageSize: PROJECT_PAGE_SIZE, pageToken, query: listing.query.trim(), order: listing.order === 'name' ? ProjectOrder.NAME : ProjectOrder.RECENT }, callOptions(signal, session(token))));
+      if ((listing.query.trim() || listing.order !== DEFAULT_PROJECT_QUERY.order) && !response.queryApplied) throw new ApiError('unavailable');
       return validated(projectListSchema, { items: response.projects.map(summaryDocument), nextPageToken: response.nextPageToken || null });
     },
     open: async (id: string, token: string, signal?: AbortSignal): Promise<Project> => {

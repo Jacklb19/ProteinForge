@@ -78,9 +78,22 @@ export function workspaceDocument(workspace: WorkspaceMessage | undefined): unkn
 }
 
 export function summaryDocument(summary: SummaryMessage | undefined): Record<string, unknown> {
+  const preview = summary?.preview;
+  const alignment = preview?.alignment;
+  const descriptors = preview?.descriptors;
   return {
     id: summary?.id, name: summary?.name, status: summary ? STATUSES[summary.status] : undefined,
     createdAt: isoFromTimestamp(summary?.createTime), updatedAt: isoFromTimestamp(summary?.updateTime),
+    ...(preview ? { preview: {
+      sequenceLength: preview.sequenceLength, sequencePrefix: preview.sequencePrefix, excluded: preview.excluded,
+      descriptors: descriptors ? { massDa: descriptors.massDa, isoelectricPoint: descriptors.isoelectricPoint, instabilityIndex: descriptors.instabilityIndex, aliphaticIndex: descriptors.aliphaticIndex, gravy: descriptors.gravy, length: descriptors.length } : null,
+      source: preview.source ? { origin: nameOf(ORIGINS, preview.source.origin), accession: preview.source.accession } : null,
+      alignment: alignment ? {
+        firstLength: alignment.firstLength, secondLength: alignment.secondLength, firstPrefix: alignment.firstPrefix, secondPrefix: alignment.secondPrefix,
+        matrix: nameOf(MATRICES, alignment.matrix), mode: nameOf(MODES, alignment.mode),
+        result: alignment.result ? { identities: alignment.result.identities, similarities: alignment.result.similarities, columns: alignment.result.columns } : null,
+      } : null,
+    } } : {}),
   };
 }
 

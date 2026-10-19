@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ALIGNMENT_MODES, GAP_EXTEND, GAP_OPEN, MATRIX_NAMES, MAX_ALIGNMENT_RESIDUES } from '../alignment/config';
 import { HYDROPATHY_WINDOWS } from '../descriptors/config';
-import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_NAME_LENGTH, MAX_PROJECT_SEQUENCE_LENGTH } from './config';
+import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_NAME_LENGTH, MAX_PROJECT_SEQUENCE_LENGTH, PROJECT_PREVIEW_RESIDUES } from './config';
 import { sequenceSourceSchema } from '../editor/source';
 
 const sequence = z.string().max(MAX_PROJECT_SEQUENCE_LENGTH).regex(/^[ACDEFGHIKLMNPQRSTVWYUOBZX]*$/);
@@ -21,7 +21,18 @@ export const workspaceSchema = z.object({
   descriptors: z.object({ sequence, excluded: z.number().int().nonnegative(), methodVersion: z.literal(DESCRIPTOR_METHOD_VERSION), result: descriptorResultSchema }).nullable(),
   alignment: z.object({ first: sequence.max(MAX_ALIGNMENT_RESIDUES), second: sequence.max(MAX_ALIGNMENT_RESIDUES), matrix: z.enum(MATRIX_NAMES), mode: z.enum(ALIGNMENT_MODES), result: alignmentResultSchema.nullable() }),
 });
-export const projectSummarySchema = z.object({ id: z.uuid(), name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH), status: z.string(), createdAt: z.iso.datetime({ offset: true }), updatedAt: z.iso.datetime({ offset: true }) });
+const previewPrefix = z.string().max(PROJECT_PREVIEW_RESIDUES).regex(/^[ACDEFGHIKLMNPQRSTVWYUOBZX]*$/);
+const alignmentMetricsSchema = z.object({ identities: z.number().int().nonnegative(), similarities: z.number().int().nonnegative(), columns: z.number().int().positive().max(MAX_ALIGNMENT_RESIDUES * 2) }).refine(value => value.identities <= value.similarities && value.similarities <= value.columns);
+export const projectPreviewSchema = z.object({
+  sequenceLength: z.number().int().nonnegative().max(MAX_PROJECT_SEQUENCE_LENGTH), sequencePrefix: previewPrefix,
+  excluded: z.number().int().nonnegative(), descriptors: descriptorResultSchema.nullable(),
+  source: sequenceSourceSchema.pick({ origin: true, accession: true }).nullable(),
+  alignment: z.object({
+    firstLength: z.number().int().nonnegative().max(MAX_ALIGNMENT_RESIDUES), secondLength: z.number().int().nonnegative().max(MAX_ALIGNMENT_RESIDUES),
+    firstPrefix: previewPrefix, secondPrefix: previewPrefix, matrix: z.enum(MATRIX_NAMES), mode: z.enum(ALIGNMENT_MODES), result: alignmentMetricsSchema.nullable(),
+  }).refine(a => a.firstLength + a.secondLength > 0 && a.firstPrefix.length === Math.min(a.firstLength, PROJECT_PREVIEW_RESIDUES) && a.secondPrefix.length === Math.min(a.secondLength, PROJECT_PREVIEW_RESIDUES) && (!a.result || (a.firstLength > 0 && a.secondLength > 0))).nullable(),
+}).refine(p => p.sequencePrefix.length === Math.min(p.sequenceLength, PROJECT_PREVIEW_RESIDUES) && p.excluded <= p.sequenceLength && (!p.descriptors || p.descriptors.length + p.excluded === p.sequenceLength));
+export const projectSummarySchema = z.object({ id: z.uuid(), name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH), status: z.string(), createdAt: z.iso.datetime({ offset: true }), updatedAt: z.iso.datetime({ offset: true }), preview: projectPreviewSchema.nullable().optional() });
 export const projectSchema = projectSummarySchema.extend({ activeSequence: sequence, workspace: workspaceSchema }).refine((project) => {
   const source = project.workspace.source;
   const descriptors = project.workspace.descriptors;
@@ -43,5 +54,6 @@ export const projectSchema = projectSummarySchema.extend({ activeSequence: seque
 export const projectListSchema = z.object({ items: z.array(projectSummarySchema), nextPageToken: z.string().min(1).nullable() });
 export type Project = z.infer<typeof projectSchema>;
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
+export type ProjectPreview = z.infer<typeof projectPreviewSchema>;
 export type WorkspaceSnapshot = z.infer<typeof workspaceSchema>;
 export interface ProjectWrite { name: string; activeSequence: string; workspace: WorkspaceSnapshot }
