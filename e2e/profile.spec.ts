@@ -15,7 +15,7 @@ test('profile preferences fit both widths and themes with accessible controls', 
     await page.goto(ROUTES.settings);
     await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['account.title']);
-    await expect(page.getByText(spanish['projects.emptyTitle'])).toBeVisible();
+    await expect(page.getByRole('link', { name: spanish['projects.listLink'] })).toHaveAttribute('href', ROUTES.projects);
     for (const theme of ['light', 'dark'] as const) {
       await chooseTheme(page, theme);
       await page.evaluate(() => document.fonts.ready);

@@ -9,6 +9,7 @@ import { EXAMPLE_ALIGNMENT_DRAFT } from './features/alignment/examples';
 import { ProfilePage } from './features/profile/ProfilePage';
 import { LandingPage } from './features/landing/LandingPage';
 import { ProjectProvider } from './features/projects/ProjectProvider';
+import { ProjectsPage } from './features/projects/ProjectsPage';
 import { LibraryPage } from './features/library/LibraryPage';
 import { GeneratorPage } from './features/generator/GeneratorPage';
 import { GeneratorProvider } from './features/generator/GeneratorProvider';
@@ -70,9 +71,10 @@ function LanguageChoice({ locale, onChange }: { locale: Locale; onChange: (local
 
 function SiteNavigation({ label }: { label: string }): React.JSX.Element {
   const { t } = useTranslation();
+  const { status } = useAuth();
   return (
     <nav className="site-nav" aria-label={label}>
-      {NAVIGATION_ITEMS.map((item) => <NavLink key={item.path} to={item.path} end={item.end}>{t(item.labelKey)}</NavLink>)}
+      {NAVIGATION_ITEMS.filter(item => !item.signedInOnly || status === 'signed-in').map((item) => <NavLink key={item.path} to={item.path} end={item.end}>{t(item.labelKey)}</NavLink>)}
     </nav>
   );
 }
@@ -100,7 +102,7 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
           <button ref={close} className="button button-icon" type="button" aria-label={t('shell.closeMenu')} onClick={onClose}><Icon name="close" /></button>
         </div>
         <nav aria-label={t('shell.menu')}>
-          {NAVIGATION_ITEMS.map((item) => <NavLink key={item.path} to={item.path} end={item.end} onClick={onClose}>{t(item.labelKey)}</NavLink>)}
+          {NAVIGATION_ITEMS.filter(item => !item.signedInOnly || status === 'signed-in').map((item) => <NavLink key={item.path} to={item.path} end={item.end} onClick={onClose}>{t(item.labelKey)}</NavLink>)}
         </nav>
         <div className="menu-sheet-end">
           {status === 'signed-in'
@@ -220,6 +222,7 @@ function ApplicationRoutes(): React.JSX.Element {
           <Route path={ROUTES.generate} element={<GeneratorPage />} />
           <Route path={ROUTES.library} element={<LibraryPage />} />
           <Route path={ROUTES.profile} element={<ProfilePage />} />
+          <Route path={ROUTES.projects} element={<ProjectsPage />} />
           <Route path={ROUTES.signIn} element={<SignInPage />} />
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />

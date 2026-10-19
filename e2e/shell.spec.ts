@@ -10,7 +10,7 @@ import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
 import references from '../src/features/descriptors/fixtures/protparam.json' with { type: 'json' };
 
-const destinations = NAVIGATION_ITEMS.map((item) => spanish[item.labelKey]);
+const destinations = NAVIGATION_ITEMS.filter(item => !item.signedInOnly).map((item) => spanish[item.labelKey]);
 
 // The former workspace address now opens Analizar, which starts on the bundled example.
 for (const width of [360, 1280]) {

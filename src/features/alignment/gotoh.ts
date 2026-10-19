@@ -1,4 +1,4 @@
-import blosum from './fixtures/blosum.json';
+import blosum from './fixtures/blosum.json' with { type: 'json' };
 import {
   ALIGNMENT_MARKS, ALIGNMENT_MODES, DEFAULT_MATRIX, DEFAULT_MODE, GAP_CHARACTER, GAP_EXTEND, GAP_OPEN, MATRIX_NAMES,
 } from './config';

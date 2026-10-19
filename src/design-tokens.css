@@ -208,6 +208,11 @@
   --opacity-strip-floor: 0.08;
 
   --layer-base: 0;
+  --project-card-columns: 3;
+  --project-card-columns-medium: 2;
+  --project-card-columns-narrow: 1;
+  --width-project-options: 12rem;
+  --height-project-ribbon: 1.75rem;
   --layer-overlay: 1;
   --layer-navigation: 2;
   --layer-sheet: 3;

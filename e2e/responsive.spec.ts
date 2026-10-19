@@ -19,7 +19,7 @@ test('the site bar fits every primary destination on wide screens and phones', a
   await serveStructure(page);
   for (const width of [360, 1920, 2560]) {
     await page.setViewportSize({ width, height: 1080 });
-    for (const item of NAVIGATION_ITEMS) {
+    for (const item of NAVIGATION_ITEMS.filter(item => !item.signedInOnly)) {
       await page.goto(item.path);
       for (const theme of ['light', 'dark'] as const) {
         await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
@@ -53,7 +53,7 @@ test('the site bar fits every primary destination on wide screens and phones', a
         } else {
           expect(layout.navigationShown).toBe(true);
           await expect(page.getByRole('button', { name: spanish['shell.openMenu'] })).toBeHidden();
-          await expect(page.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(NAVIGATION_ITEMS.map((entry) => spanish[entry.labelKey]));
+          await expect(page.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(NAVIGATION_ITEMS.filter(item => !item.signedInOnly).map((entry) => spanish[entry.labelKey]));
         }
         await assertFits(page);
       }

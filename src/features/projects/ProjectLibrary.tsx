@@ -7,43 +7,55 @@ import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { useProjects } from './projectContext';
 import type { ProjectSummary } from './contracts';
-import { MAX_PROJECT_NAME_LENGTH } from './config';
+import { DEFAULT_PROJECT_QUERY, MAX_PROJECT_NAME_LENGTH, PROJECT_ORDERS, PROJECT_ORDER_KEYS } from './config';
+import type { ProjectQuery } from './config';
 import { ProjectFeedback } from './ProjectControls';
+import { ProjectCard } from './ProjectCard';
+import type { ProjectDestination } from './ProjectCard';
+import { ProjectDialog } from './ProjectDialog';
+import type { ProjectIntent } from './ProjectDialog';
 
-type Intent = { action: 'open' | 'delete' | 'rename'; project: ProjectSummary };
-
-/** A compact list of real owned projects, with deliberate destructive and replacement actions. */
+/** Search and sorting apply to the whole owned collection before paging. */
 export function ProjectLibrary(): React.JSX.Element {
-  const { t, formatDate } = useTranslation();
+  const { t, formatNumber } = useTranslation();
   const projects = useProjects();
   const auth = useAuth();
   const draft = useSequenceDraft();
   const alignment = useAlignmentDraft();
   const navigate = useNavigate();
-  const [intent, setIntent] = useState<Intent | null>(null);
+  const [intent, setIntent] = useState<ProjectIntent | null>(null);
   const [name, setName] = useState('');
-  async function open(project: ProjectSummary): Promise<void> {
-    if (await projects.open(project.id)) { setIntent(null); void navigate(ROUTES.analyze); }
+  const [query, setQuery] = useState<ProjectQuery>(projects.listing);
+  async function open(project: ProjectSummary, destination?: ProjectDestination): Promise<void> {
+    const opened = await projects.open(project.id);
+    if (!opened) return;
+    setIntent(null);
+    const comparisonOnly = !opened.activeSequence && (opened.workspace.alignment.first || opened.workspace.alignment.second);
+    void navigate(destination === 'alignment' || (!destination && comparisonOnly) ? ROUTES.alignment : ROUTES.analyze);
   }
-  return <div id="projects" className="project-library">
-    {auth.status !== 'signed-in' ? <div className="project-empty"><p>{t('projects.signInHelp')}</p><Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link></div> : !projects.enabled ? <p className="notice">{t('projects.config')}</p> : <>
-      <ProjectFeedback />
-      {!projects.busy && !projects.error && projects.items.length === 0 && <div className="project-empty"><div><h3>{t('projects.emptyTitle')}</h3><p>{t('projects.emptyHelp')}</p></div><Link className="button button-secondary" to={ROUTES.analyze}>{t('projects.begin')}</Link></div>}
-      <ul className="project-list">{projects.items.map((project) => <li key={project.id} data-active={project.id === projects.active?.id}>
-        <div className="project-list-copy"><h3>{project.name}</h3><p>{t('projects.updated', { date: formatDate(new Date(project.updatedAt), { dateStyle: 'medium', timeStyle: 'short' }) })}</p>{project.id === projects.active?.id && <span className="field-help">{t(projects.dirty ? 'projects.activeDirty' : 'projects.active')}</span>}</div>
-        <div className="project-list-actions"><button className="button button-secondary" type="button" disabled={projects.busy} aria-label={t('projects.openNamed', { name: project.name })} onClick={() => {
-          if (draft.text || alignment.first || alignment.second) setIntent({ action: 'open', project });
-          else void open(project);
-        }}>{t('projects.open')}</button><button className="button button-quiet" type="button" disabled={projects.busy} aria-label={t('projects.renameNamed', { name: project.name })} onClick={() => { setName(project.name); setIntent({ action: 'rename', project }); }}>{t('projects.rename')}</button><button className="button button-quiet" type="button" disabled={projects.busy} aria-label={t('projects.deleteNamed', { name: project.name })} onClick={() => { setIntent({ action: 'delete', project }); }}>{t('projects.delete')}</button></div>
-      </li>)}</ul>
-      <div className="actions">{projects.nextPageToken !== null && <button className="button button-secondary" disabled={projects.busy} type="button" onClick={() => { void projects.refresh(true); }}>{t('projects.more')}</button>}<button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { void projects.refresh(); }}>{t('projects.refresh')}</button></div>
-      <p className="field-help">{t('projects.libraryHelp')}</p>
-      {intent && <form className="project-confirm" aria-label={t(`projects.${intent.action === 'delete' ? 'delete' : intent.action === 'rename' ? 'rename' : 'open'}`)} onSubmit={(event) => {
-        event.preventDefault();
-        if (intent.action === 'open') void open(intent.project);
-        if (intent.action === 'delete') void projects.remove(intent.project).then((done) => { if (done) setIntent(null); });
-        if (intent.action === 'rename') void projects.rename(intent.project, name).then((done) => { if (done) setIntent(null); });
-      }}><h3>{intent.project.name}</h3>{intent.action === 'rename' ? <div className="field"><label htmlFor="rename-project">{t('projects.name')}</label><input id="rename-project" className="text-input" value={name} onChange={(event) => { setName(event.target.value); }} maxLength={MAX_PROJECT_NAME_LENGTH} required disabled={projects.busy} /></div> : <p>{t(intent.action === 'delete' ? 'projects.deleteWarning' : 'projects.replaceWarning')}</p>}<div className="actions"><button className="button button-secondary" type="button" disabled={projects.busy} onClick={() => { setIntent(null); }}>{t('projects.cancel')}</button><button className={`button ${intent.action === 'delete' ? 'button-danger' : 'button-primary'}`} type="submit" disabled={projects.busy || (intent.action === 'rename' && !name.trim())}>{t(intent.action === 'delete' ? 'projects.confirmDelete' : intent.action === 'rename' ? 'projects.confirmRename' : 'projects.confirmOpen')}</button></div></form>}
-    </>}
-  </div>;
+  function submit(): void {
+    if (!intent) return;
+    if (intent.action === 'open') { void open(intent.project, intent.destination); return; }
+    const result = intent.action === 'delete' ? projects.remove(intent.project) : intent.action === 'rename' ? projects.rename(intent.project, name) : projects.duplicate(intent.project, name);
+    void result.then(done => { if (done) setIntent(null); });
+  }
+  if (auth.status === 'loading') return <p role="status">{t('projects.sessionLoading')}</p>;
+  if (auth.status !== 'signed-in') return <div className="project-empty"><p>{t('projects.signInLibrary')}</p><div className="actions"><Link className="button button-primary" state={{ from: ROUTES.projects }} to={ROUTES.signIn}>{t('shell.signIn')}</Link><Link className="button button-secondary" state={{ from: ROUTES.projects }} to={ROUTES.signUp}>{t('auth.signUpAction')}</Link></div></div>;
+  if (!projects.enabled) return <p className="notice">{t('projects.config')}</p>;
+  return <section id="projects" className="project-library" aria-label={t('projects.title')}>
+    <form className="projects-toolbar" role="search" onSubmit={event => { event.preventDefault(); void projects.refresh(false, query); }}>
+      <div className="projects-search"><label className="visually-hidden" htmlFor="project-search">{t('projects.search')}</label><input id="project-search" type="search" className="text-input" value={query.query} maxLength={MAX_PROJECT_NAME_LENGTH} placeholder={t('projects.search')} onChange={event => { setQuery({ ...query, query: event.target.value }); }} disabled={projects.busy} /><button className="button button-secondary" type="submit" disabled={projects.busy}>{t('projects.searchAction')}</button></div>
+      <label className="visually-hidden" htmlFor="project-order">{t('projects.order')}</label><select id="project-order" className="text-input" value={query.order} disabled={projects.busy} onChange={event => {
+        const order = PROJECT_ORDERS.find(value => value === event.target.value);
+        if (order) { const next = { ...query, order }; setQuery(next); void projects.refresh(false, next); }
+      }}>{PROJECT_ORDERS.map(order => <option key={order} value={order}>{t(PROJECT_ORDER_KEYS[order])}</option>)}</select>
+    </form>
+    {!intent && <ProjectFeedback />}
+    {!projects.busy && !projects.error && projects.items.length === 0 && <div className="project-empty">{projects.listing.query ? <><p>{t('projects.noMatches')}</p><button className="button button-secondary" type="button" onClick={() => { setQuery(DEFAULT_PROJECT_QUERY); void projects.refresh(false, DEFAULT_PROJECT_QUERY); }}>{t('projects.clearSearch')}</button></> : <><div><h2>{t('projects.emptyTitle')}</h2><p>{t('projects.emptyHelp')}</p></div><Link className="button button-secondary" to={ROUTES.analyze}>{t('projects.begin')}</Link></>}</div>}
+    <div className="project-grid" aria-busy={projects.busy}>{projects.items.map(project => <ProjectCard key={project.id} project={project} busy={projects.busy} active={project.id === projects.active?.id} dirty={projects.dirty} onOpen={destination => {
+      if (draft.text || alignment.first || alignment.second) setIntent({ action: 'open', project, destination }); else void open(project, destination);
+    }} onAction={action => { setName(action === 'duplicate' ? t('projects.copyName', { name: project.name }).slice(0, MAX_PROJECT_NAME_LENGTH) : project.name); setIntent({ action, project }); }} />)}</div>
+    <div className="projects-list-footer"><p className="field-help" role="status">{t('projects.loaded', { count: formatNumber(projects.items.length) })}</p><div className="actions">{projects.nextPageToken !== null && <button className="button button-secondary" disabled={projects.busy} type="button" onClick={() => { void projects.refresh(true); }}>{t('projects.more')}</button>}<button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { void projects.refresh(false, projects.listing); }}>{t('projects.refresh')}</button></div></div>
+    {intent && <ProjectDialog intent={intent} name={name} setName={setName} onClose={() => { setIntent(null); }} onSubmit={submit} />}
+  </section>;
 }

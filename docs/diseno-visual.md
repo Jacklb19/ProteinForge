@@ -12,7 +12,7 @@ Actualizado el 13 de octubre de 2026. Dirección «ficha de lectura», elegida p
 
 ## Marco
 
-- Una sola barra plana en todo el sitio: logo (lleva a Inicio), Inicio · Analizar · Alinear · Diseñar · Biblioteca. Arriba se funde con el fondo; al desplazarse toma un velo y un filete.
+- Una sola barra plana en todo el sitio: logo (lleva a Inicio), Inicio · Analizar · Alinear · Diseñar · Biblioteca; con sesión añade Proyectos. Arriba se funde con el fondo; al desplazarse toma un velo y un filete.
 - Sin sesión: icono de tema claro/oscuro, «Iniciar sesión» y «Crear cuenta» como acción principal. Con sesión: avatar con la inicial, que lleva a Perfil; tema e idioma pasan a Perfil.
 - Por debajo de 64rem (tabletas y teléfonos): marca, «Iniciar sesión» y botón de menú. El menú es un panel superpuesto con los cinco destinos, apariencia, idioma, «Crear cuenta» e «Iniciar sesión»; se cierra con Escape, con el velo o al elegir destino, y devuelve el foco al botón.
 - Pie: logo, consigna, Privacidad, Condiciones y, sin sesión, el selector de idioma.
