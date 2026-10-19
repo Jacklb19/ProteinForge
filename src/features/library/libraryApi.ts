@@ -1,6 +1,9 @@
 import { z } from 'zod';
-import { ApiError, createApiTransport } from '../api/apiClient';
-import { UNIPROT_ENDPOINT } from './config';
+import { ReferenceService } from '../../gen/proteinforge/reference/v1/reference_service_pb';
+import type { EntrySummary as EntrySummaryMessage } from '../../gen/proteinforge/reference/v1/reference_service_pb';
+import { ApiError, validated } from '../api/apiClient';
+import { callOptions, createRpcClient, rpc } from '../api/rpc';
+import { isoFromTimestamp } from '../api/timestamps';
 
 export const entrySummarySchema = z.object({ accession: z.string().regex(/^[A-Z0-9]{6,10}$/), name: z.string().min(1).max(2000), organism: z.string().min(1).max(500), length: z.number().int().positive().max(100_000), reviewed: z.boolean() });
 export const pdbReferenceSchema = z.object({ id: z.string().regex(/^[0-9][A-Z0-9]{3}$/), method: z.string(), resolution: z.string().nullable(), chains: z.string().nullable() });
@@ -10,20 +13,31 @@ export type EntrySummary = z.infer<typeof entrySummarySchema>;
 export type UniProtEntry = z.infer<typeof entrySchema>;
 export type PdbReference = z.infer<typeof pdbReferenceSchema>;
 
-export function createLibraryApi(baseUrl: string) {
-  const request = createApiTransport(baseUrl);
+type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
+
+function summaryDocument(summary: EntrySummaryMessage | undefined) {
+  return { accession: summary?.accession, name: summary?.name, organism: summary?.organism, length: summary?.length, reviewed: summary?.reviewed };
+}
+
+/** UniProt references through ReferenceService; the API bounds and validates every query. */
+export function createLibraryApi(baseUrl: string, fetchImplementation?: FetchLike) {
+  const client = createRpcClient(ReferenceService, baseUrl, fetchImplementation);
   return {
     async search(query: string, token: string, signal: AbortSignal) {
       if (!token) throw new ApiError('session');
-      const parsed = searchSchema.safeParse(await request(`${UNIPROT_ENDPOINT}/search?query=${encodeURIComponent(query)}`, signal, token));
-      if (!parsed.success) throw new ApiError('invalid-response');
-      return parsed.data;
+      const response = await rpc(() => client.searchEntries({ query }, callOptions(signal, token)));
+      return validated(searchSchema, { items: response.entries.map(summaryDocument), limit: response.limit, truncated: response.truncated, retrievedAt: isoFromTimestamp(response.retrieveTime) });
     },
     async detail(accession: string, token: string, signal: AbortSignal) {
       if (!token) throw new ApiError('session');
-      const parsed = entrySchema.safeParse(await request(`${UNIPROT_ENDPOINT}/${encodeURIComponent(accession)}`, signal, token));
-      if (!parsed.success || parsed.data.accession !== accession) throw new ApiError('invalid-response');
-      return parsed.data;
+      const { entry } = await rpc(() => client.getEntry({ accession }, callOptions(signal, token)));
+      const parsed = validated(entrySchema, {
+        ...summaryDocument(entry?.summary), sequence: entry?.sequence, entryVersion: entry?.entryVersion, sequenceVersion: entry?.sequenceVersion,
+        retrievedAt: isoFromTimestamp(entry?.retrieveTime), function: entry?.function ?? null,
+        structures: entry?.structures.map((item) => ({ id: item.id, method: item.method, resolution: item.resolution ?? null, chains: item.chains ?? null })),
+      });
+      if (parsed.accession !== accession) throw new ApiError('invalid-response');
+      return parsed;
     },
   };
 }

@@ -28,6 +28,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check generated RPC code is current
+        run: |
+          npx buf generate
+          git add --intent-to-add src/gen
+          git diff --exit-code src/gen
+
       - name: Check types
         run: npm run typecheck
 

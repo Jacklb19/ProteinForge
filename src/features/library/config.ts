@@ -1,4 +1,3 @@
-export const UNIPROT_ENDPOINT = '/v1/uniprot';
 export const UNIPROT_QUERY_MAX_LENGTH = 200;
 export const UNIPROT_DEFAULT_QUERY = 'accession:P01308';
 export const UNIPROT_URL = 'https://www.uniprot.org/uniprotkb/';

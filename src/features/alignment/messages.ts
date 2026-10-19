@@ -1,3 +1,4 @@
+import type { LocalizedText } from '../../i18n/localized';
 import type { TileRequest, TileResult } from './tile';
 import type { MatrixName, AlignmentMode, AlignmentResult } from './gotoh';
 
@@ -10,8 +11,8 @@ export type AlignmentResponse =
   | { type: 'progress'; id: number; fraction: number }
   | { type: 'result'; id: number; result: AlignmentResult }
   | { type: 'cancelled'; id: number }
-  | { type: 'error'; id: number; message: string };
+  | { type: 'error'; id: number; message: LocalizedText };
 
 /** Internal protocol for parallel tiles. */
 export interface TileRequestMessage { id: number; tile: TileRequest }
-export type TileResponseMessage = { id: number; tile: TileResult } | { id: number; error: string };
+export type TileResponseMessage = { id: number; tile: TileResult } | { id: number; error: LocalizedText };

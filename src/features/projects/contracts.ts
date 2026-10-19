@@ -40,7 +40,7 @@ export const projectSchema = projectSummarySchema.extend({ activeSequence: seque
   }
   return true;
 });
-export const projectListSchema = z.object({ items: z.array(projectSummarySchema), nextOffset: z.number().int().nonnegative().nullable() });
+export const projectListSchema = z.object({ items: z.array(projectSummarySchema), nextPageToken: z.string().min(1).nullable() });
 export type Project = z.infer<typeof projectSchema>;
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 export type WorkspaceSnapshot = z.infer<typeof workspaceSchema>;

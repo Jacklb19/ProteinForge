@@ -8,7 +8,6 @@ import { ApiError } from '../api/apiClient';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { SCORING_SUBSTITUTIONS } from '../alignment/config';
-import { useTranslation } from '../../i18n';
 import { createProjectApi } from './projectApi';
 import type { ProjectApi } from './projectApi';
 import type { Project, ProjectSummary } from './contracts';
@@ -17,8 +16,8 @@ import { ProjectContext } from './projectContext';
 import { captureWorkspace, workspaceInputKey } from './snapshot';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 
-interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextOffset: number | null; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | null }
-const EMPTY: State = { owner: null, active: null, items: [], nextOffset: null, busy: false, error: null, notice: null };
+interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | null }
+const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, busy: false, error: null, notice: null };
 
 function remember(owner: string, id: string | null): void {
   try {
@@ -37,7 +36,6 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const alignment = useAlignmentDraft();
   const { setText, setProfileWindow, setSource } = sequence;
   const { update } = alignment;
-  const { t } = useTranslation();
   const [configuredApi] = useState(() => { const url = readApiBaseUrl(); return url ? createProjectApi(url) : null; });
   const client = api === undefined ? configuredApi : api;
   const user = auth.status === 'signed-in' ? auth.session?.user.id ?? null : null;
@@ -53,9 +51,9 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     setProfileWindow(project.workspace.profileWindow);
     setSource(project.workspace.source ?? null);
     const restored = project.workspace.alignment;
-    const warnings = SCORING_SUBSTITUTIONS.filter(({ residue }) => restored.first.includes(residue) || restored.second.includes(residue)).map(({ warningKey }) => t(warningKey));
+    const warnings = SCORING_SUBSTITUTIONS.filter(({ residue }) => restored.first.includes(residue) || restored.second.includes(residue)).map(({ warningKey }) => warningKey);
     update({ ...restored, resultInput: restored.result ? { first: restored.first, second: restored.second, matrix: restored.matrix, mode: restored.mode } : null, warnings });
-  }, [setText, setProfileWindow, setSource, update, t]);
+  }, [setText, setProfileWindow, setSource, update]);
 
   // Initial restore runs once per owner. Token refresh does not replace an edited workspace.
   useEffect(() => {
@@ -75,11 +73,11 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     if (user && client) {
       void (async () => {
         try {
-          const listing = await client.list(token, 0, operation.signal);
+          const listing = await client.list(token, '', operation.signal);
           const project = id && canRestore ? await client.open(id, token, operation.signal) : null;
           if (epoch !== generation.current) return;
           if (project) restore(project);
-          setState({ ...EMPTY, owner: user, active: project, items: listing.items, nextOffset: listing.nextOffset, notice: project ? 'opened' : null });
+          setState({ ...EMPTY, owner: user, active: project, items: listing.items, nextPageToken: listing.nextPageToken, notice: project ? 'opened' : null });
         } catch (error) {
           if (epoch !== generation.current) return;
           const failure = error instanceof ApiError ? error : new ApiError('unknown');
@@ -124,12 +122,12 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
 
   const dirty = Boolean(current.active && workspaceInputKey(sequence.text, alignment, sequence.profileWindow) !== workspaceInputKey(current.active.activeSequence, current.active.workspace.alignment, current.active.workspace.profileWindow));
   const value = {
-    enabled: client !== null, active: current.active, items: current.items, nextOffset: current.nextOffset,
+    enabled: client !== null, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
     busy: current.busy, error: current.error, notice: current.notice, dirty,
     refresh(more = false) { return run(async (service, signal) => {
-      const listing = await service.list(token, more ? current.nextOffset ?? 0 : 0, signal);
+      const listing = await service.list(token, more ? current.nextPageToken ?? '' : '', signal);
       if (signal.aborted) return;
-      setState((value) => ({ ...value, items: more ? [...value.items, ...listing.items.filter((item) => !value.items.some((existing) => item.id === existing.id))] : listing.items, nextOffset: listing.nextOffset }));
+      setState((value) => ({ ...value, items: more ? [...value.items, ...listing.items.filter((item) => !value.items.some((existing) => item.id === existing.id))] : listing.items, nextPageToken: listing.nextPageToken }));
     }); },
     open(id: string) { return run(async (service, signal) => {
       const project = await service.open(id, token, signal);

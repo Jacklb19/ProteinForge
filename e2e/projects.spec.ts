@@ -1,36 +1,53 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import type { Project, ProjectWrite } from '../src/features/projects/contracts';
+import type { Project, ProjectWrite, WorkspaceSnapshot } from '../src/features/projects/contracts';
+import { workspaceDocument, workspaceMessage } from '../src/features/projects/rpcMapping';
+import { isoFromTimestamp, timestampFromIso } from '../src/features/api/timestamps';
+import { GetMeResponseSchema, GetStatusResponseSchema } from '../src/gen/proteinforge/account/v1/account_service_pb';
+import {
+  CreateProjectRequestSchema, CreateProjectResponseSchema, DeleteProjectResponseSchema, GetProjectResponseSchema,
+  ListProjectsResponseSchema, ProjectStatus, UpdateProjectRequestSchema, UpdateProjectResponseSchema,
+} from '../src/gen/proteinforge/project/v1/project_service_pb';
 import { PROJECT_POINTER_PREFIX } from '../src/features/projects/config';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
 import { alignmentInputs, assertFits, message, navigationLink, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT } from './helpers';
+import { fulfillRpc, fulfillRpcError, GRPC_CODES, isRpc, rpcMethod, rpcRequest } from './rpc';
 
 const ID = '00000000-0000-4000-8000-000000000010';
 const USER = TEST_ACCOUNT.id;
-const DATE = '2026-10-12T08:00:00.123456+00:00';
+const DATE = '2026-10-12T08:00:00.123456Z';
 const saved: Project = { id: ID, name: 'Insulina', activeSequence: 'ACDEFGHIKLMNPQRSTVWY', status: 'draft', createdAt: DATE, updatedAt: DATE, workspace: { schemaVersion: 1, profileWindow: 19, descriptors: null, alignment: { first: 'ACD', second: 'ACE', matrix: 'BLOSUM80', mode: 'local', result: null } } };
+
+/** Domain project as the messages the API sends. */
+function projectMessage(project: Project) {
+  return {
+    summary: { id: project.id, name: project.name, status: ProjectStatus.DRAFT, createTime: timestampFromIso(project.createdAt), updateTime: timestampFromIso(project.updatedAt) },
+    activeSequence: project.activeSequence, workspace: workspaceMessage(project.workspace),
+  };
+}
 
 async function mockProjects(page: Page, initial: Project | null = null) {
   let project = initial; let version = 0; let conflict = false;
   const writes: ProjectWrite[] = [];
   await storeSession(page);
-  await page.route('**/v1/**', async (route) => {
-    const request = route.request(); const url = new URL(request.url());
-    if (url.pathname.endsWith('/health')) return route.fulfill({ json: { status: 'ok', version: '0.1.0', identity: true } });
-    if (url.pathname.endsWith('/me')) return route.fulfill({ json: { id: USER, email: TEST_ACCOUNT.email } });
-    expect(request.headers().authorization).toBe(`Bearer ${TEST_ACCOUNT.accessToken}`);
-    if (request.method() === 'GET' && url.pathname.endsWith('/projects')) return route.fulfill({ json: { items: project ? [{ id: project.id, name: project.name, status: project.status, createdAt: project.createdAt, updatedAt: project.updatedAt }] : [], nextOffset: null } });
-    if (request.method() === 'GET') return route.fulfill({ status: project ? 200 : 404, json: project ?? { status: 404 } });
-    if (request.method() === 'DELETE') { project = null; return route.fulfill({ status: 204 }); }
-    if (conflict && request.method() === 'PUT') return route.fulfill({ status: 409, json: { type: 'https://proteinforge.invalid/problems/project-conflict', requestId: 'e2e-conflict' } });
-    const payload = request.postDataJSON() as ProjectWrite & { expectedUpdatedAt?: string };
-    if (request.method() === 'PUT') expect(payload.expectedUpdatedAt).toBe(project?.updatedAt);
-    const { name, activeSequence, workspace } = payload;
-    writes.push({ name, activeSequence, workspace });
-    project = { ...saved, name, activeSequence, workspace, updatedAt: `2026-10-12T08:00:${String(++version).padStart(2, '0')}.123456+00:00` };
-    return route.fulfill({ status: request.method() === 'POST' ? 201 : 200, json: project });
+  await page.route(isRpc, async (route) => {
+    const method = rpcMethod(route);
+    if (method === 'AccountService/GetStatus') return fulfillRpc(route, GetStatusResponseSchema, { status: 'ok', version: '0.1.0', identityConfigured: true });
+    if (method === 'AccountService/GetMe') return fulfillRpc(route, GetMeResponseSchema, { id: USER, email: TEST_ACCOUNT.email });
+    expect(route.request().headers().authorization).toBe(`Bearer ${TEST_ACCOUNT.accessToken}`);
+    if (method === 'ProjectService/ListProjects') return fulfillRpc(route, ListProjectsResponseSchema, { projects: project ? [projectMessage(project).summary] : [] });
+    if (method === 'ProjectService/GetProject') return project ? fulfillRpc(route, GetProjectResponseSchema, { project: projectMessage(project) }) : fulfillRpcError(route, GRPC_CODES.notFound, 'not-found');
+    if (method === 'ProjectService/DeleteProject') { project = null; return fulfillRpc(route, DeleteProjectResponseSchema, {}); }
+    if (conflict && method === 'ProjectService/UpdateProject') return fulfillRpcError(route, GRPC_CODES.aborted, 'project-conflict', 'e2e-conflict');
+    const update = method === 'ProjectService/UpdateProject';
+    const request = update ? rpcRequest(route, UpdateProjectRequestSchema) : rpcRequest(route, CreateProjectRequestSchema);
+    if (update) expect(isoFromTimestamp(rpcRequest(route, UpdateProjectRequestSchema).expectedUpdateTime)).toBe(project?.updatedAt);
+    const write = { name: request.name, activeSequence: request.activeSequence, workspace: workspaceDocument(request.workspace) as WorkspaceSnapshot };
+    writes.push(write);
+    project = { ...saved, ...write, updatedAt: `2026-10-12T08:00:${String(++version).padStart(2, '0')}.123456Z` };
+    return fulfillRpc(route, update ? UpdateProjectResponseSchema : CreateProjectResponseSchema, { project: projectMessage(project) });
   });
   return { writes, setConflict: () => { conflict = true; }, current: () => project };
 }

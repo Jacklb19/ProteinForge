@@ -6,7 +6,8 @@ import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import { calculateProfile } from './profile';
 import { calculatePropensities } from './chouFasman';
 import type { ProfilePoint, HydropathyWindow } from './profile';
-import { WORKER_LOCALE } from '../../i18n/config';
+import { DEFAULT_LOCALE } from '../../i18n/config';
+import { localizedFailure } from '../../i18n/localized';
 import { CHART_FONT, fontUrl } from '../../theme/fonts';
 
 const context = self as DedicatedWorkerGlobalScope;
@@ -26,7 +27,7 @@ function initializeChartFont(): void {
     }
   }).catch(() => {
     // Keep calculated data available if the font cannot load or redraw.
-    console.warn(translate(WORKER_LOCALE, 'errors.chartFontLoad'));
+    console.warn(translate(DEFAULT_LOCALE, 'errors.chartFontLoad'));
   });
 }
 
@@ -66,7 +67,7 @@ context.onmessage = (event: MessageEvent<ProfileRequest>) => {
   } catch (error) {
     const response: ProfileResponse = {
       id: request.id,
-      error: error instanceof Error ? error.message : translate(WORKER_LOCALE, 'errors.profileFailed'),
+      error: localizedFailure(error, 'errors.profileFailed'),
     };
     context.postMessage(response);
   }

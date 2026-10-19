@@ -4,6 +4,10 @@ import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
+import { timestampFromIso } from '../src/features/api/timestamps';
+import { ListProjectsResponseSchema } from '../src/gen/proteinforge/project/v1/project_service_pb';
+import { GetEntryRequestSchema, GetEntryResponseSchema, SearchEntriesRequestSchema, SearchEntriesResponseSchema } from '../src/gen/proteinforge/reference/v1/reference_service_pb';
+import { fulfillRpc, isRpc, rpcMethod, rpcRequest } from './rpc';
 import { assertFits, message, openExportMenu, openSequenceEditor, storeSession } from './helpers';
 
 const fixture = (accession: string): string => readFileSync(`src/features/descriptors/fixtures/${accession}.fasta`, 'utf8').split(/\r?\n/).slice(1).join('');
@@ -29,16 +33,22 @@ async function serveStructure(page: Page): Promise<{ downloads: () => number }> 
 /** Signs in and answers UniProt requests with one entry, checking that only the query travels. */
 async function serveUniProt(page: Page, entry: typeof reference): Promise<void> {
   await storeSession(page, ACCOUNT);
-  await page.route('**/v1/projects**', (route) => route.fulfill({ json: { items: [], nextOffset: null } }));
-  await page.route('**/v1/uniprot/**', (route) => {
+  await page.route(isRpc, (route) => {
+    const method = rpcMethod(route);
+    if (method === 'ProjectService/ListProjects') return fulfillRpc(route, ListProjectsResponseSchema, {});
     expect(route.request().headers().authorization).toBe(`Bearer ${ACCOUNT.accessToken}`);
-    expect(route.request().postData()).toBeNull();
-    const url = new URL(route.request().url());
-    if (url.pathname.endsWith('/search')) {
-      expect(url.searchParams.get('query')).toBe('accession:P01308');
-      return route.fulfill({ json: { items: [{ accession: entry.accession, name: entry.name, organism: entry.organism, length: entry.length, reviewed: entry.reviewed }], limit: 10, truncated: false, retrievedAt: entry.retrievedAt } });
+    const summary = { accession: entry.accession, name: entry.name, organism: entry.organism, length: entry.length, reviewed: entry.reviewed };
+    const retrieveTime = timestampFromIso(entry.retrievedAt);
+    if (method === 'ReferenceService/SearchEntries') {
+      // Only the query travels: no sequence or project data.
+      expect(rpcRequest(route, SearchEntriesRequestSchema).query).toBe('accession:P01308');
+      return fulfillRpc(route, SearchEntriesResponseSchema, { entries: [summary], limit: 10, truncated: false, retrieveTime });
     }
-    return route.fulfill({ json: entry });
+    expect(rpcRequest(route, GetEntryRequestSchema).accession).toBe(entry.accession);
+    return fulfillRpc(route, GetEntryResponseSchema, { entry: {
+      summary, sequence: entry.sequence, entryVersion: entry.entryVersion, sequenceVersion: entry.sequenceVersion, retrieveTime, function: entry.function,
+      structures: entry.structures.map((item) => ({ id: item.id, method: item.method, resolution: item.resolution, chains: item.chains })),
+    } });
   });
 }
 

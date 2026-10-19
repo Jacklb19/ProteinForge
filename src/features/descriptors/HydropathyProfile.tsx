@@ -13,8 +13,7 @@ import { positionAtX, profileX, windowRange } from './chartGeometry';
 import { ResidueReader } from './ResidueReader';
 import { useTranslation } from '../../i18n';
 import { useThemeRevision } from '../../theme/useThemeRevision';
-import { translate } from '../../i18n/translate';
-import { WORKER_LOCALE } from '../../i18n/config';
+import type { LocalizedText } from '../../i18n/localized';
 import { SegmentedControl } from '../../shared/SegmentedControl';
 import { ChemistryLegend } from '../chemistry/ChemistryLegend';
 import { SequenceRibbon } from '../chemistry/SequenceRibbon';
@@ -43,13 +42,13 @@ interface Props {
 
 /** The sequence, its profile drawn off the main thread and the per-residue tendencies, linked by one selection. */
 export function HydropathyProfile({ text, windowSize: controlledWindow, onWindowChange, selected: controlledSelected, onSelect, annotations = null }: Props): React.JSX.Element {
-  const { t, formatNumber, locale } = useTranslation();
+  const { t, formatNumber, locale, localize } = useTranslation();
   const themeRevision = useThemeRevision();
   const [localWindow, setLocalWindow] = useState<HydropathyWindow>(DEFAULT_HYDROPATHY_WINDOW);
   const windowSize = controlledWindow ?? localWindow;
   const setWindowSize = onWindowChange ?? setLocalWindow;
   const [profile, setProfile] = useState<ReceivedProfile | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LocalizedText | null>(null);
   const [page, setPage] = useState(0);
   const [localSelected, setLocalSelected] = useState<number | null>(null);
   const selected = controlledSelected === undefined ? localSelected : controlledSelected;
@@ -78,13 +77,13 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
         setProfile({
           sequence: sentSequence.current,
           windowSize: sentWindow.current,
-          points: event.data.points ?? [],
-          propensities: event.data.propensities ?? [],
+          points: event.data.points,
+          propensities: event.data.propensities,
         });
         setPage(0);
         setError(null);
       };
-      instance.onerror = () => { setError(translate(WORKER_LOCALE, 'profile.workerError')); };
+      instance.onerror = () => { setError({ key: 'profile.workerError' }); };
 
       const canvas = document.createElement('canvas');
       canvas.className = 'hydropathy-chart';
@@ -101,7 +100,7 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
         instance.postMessage(message, [transferred]);
       }
     } catch {
-      queueMicrotask(() => { setError(translate(WORKER_LOCALE, 'profile.startError')); });
+      queueMicrotask(() => { setError({ key: 'profile.startError' }); });
     }
     return () => {
       worker.current?.terminate();
@@ -262,7 +261,7 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
           {tooShort && t('profile.tooShort', { count: formatNumber(windowSize) })}
           {!invalid && !tooShort && validation.sequence.length === 0 && t('profile.empty')}
           {!invalid && !tooShort && validation.sequence.length > 0 && !current && !error && t('profile.calculating')}
-          {error && !invalid && t('profile.workerMessage', { message: error })}
+          {error && !invalid && t('profile.workerMessage', { message: localize(error) })}
           {chartUnavailable && current && !tooShort && t('profile.unavailable')}
         </p>
         <div

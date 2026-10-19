@@ -1,31 +1,67 @@
 import { describe, expect, it, vi } from 'vitest';
+import {
+  CreateProjectRequestSchema, CreateProjectResponseSchema, DeleteProjectRequestSchema, DeleteProjectResponseSchema,
+  GetProjectResponseSchema, ListProjectsRequestSchema, ListProjectsResponseSchema, ProjectStatus, UpdateProjectRequestSchema, UpdateProjectResponseSchema,
+} from '../../gen/proteinforge/project/v1/project_service_pb';
+import { AlignmentMode, SubstitutionMatrix } from '../../gen/proteinforge/project/v1/workspace_pb';
+import { timestampFromIso } from '../api/timestamps';
+import { GRPC_CODES, grpcWebError, grpcWebRequest, grpcWebResponse } from '../../test/grpcWeb';
+import { PROJECT_PAGE_SIZE } from './config';
 import { createProjectApi } from './projectApi';
-import { PROJECT_ENDPOINT } from './config';
 
-const payload = { name: 'Study', activeSequence: 'ACD', workspace: { schemaVersion: 1, profileWindow: 9, descriptors: null, alignment: { first: '', second: '', matrix: 'BLOSUM62', mode: 'global', result: null } } } as const;
-const stored = { ...payload, id: '00000000-0000-4000-8000-000000000010', status: 'draft', createdAt: '2026-10-12T08:00:00.123456+00:00', updatedAt: '2026-10-12T08:00:00.123456+00:00' };
+type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
+const SERVICE = 'https://api.example/proteinforge.project.v1.ProjectService';
+const UPDATED = '2026-10-12T08:00:00.123456Z';
+const payload = { name: 'Study', activeSequence: 'ACD', workspace: { schemaVersion: 1, profileWindow: 9, descriptors: null, alignment: { first: 'ACD', second: 'ACD', matrix: 'BLOSUM62', mode: 'global', result: null } } } as const;
+const summary = { id: '00000000-0000-4000-8000-000000000010', name: 'Study', status: ProjectStatus.DRAFT, createTime: timestampFromIso(UPDATED), updateTime: timestampFromIso(UPDATED) };
+const message = { summary, activeSequence: 'ACD', workspace: { schemaVersion: 1, profileWindow: 9, alignment: { first: 'ACD', second: 'ACD', matrix: SubstitutionMatrix.BLOSUM62, mode: AlignmentMode.GLOBAL } } };
+
+function body(fetcher: ReturnType<typeof vi.fn<Fetcher>>, call: number) {
+  return fetcher.mock.calls[call]?.[1]?.body as Uint8Array;
+}
+
 describe('project transport', () => {
   it('uses bearer requests, preserves microseconds, and sends the expected revision on update/delete', async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json(stored)).mockResolvedValueOnce(Response.json(stored)).mockResolvedValueOnce(new Response(null, { status: 204 }));
+    const fetcher = vi.fn<Fetcher>()
+      .mockResolvedValueOnce(grpcWebResponse(CreateProjectResponseSchema, { project: message }))
+      .mockResolvedValueOnce(grpcWebResponse(UpdateProjectResponseSchema, { project: message }))
+      .mockResolvedValueOnce(grpcWebResponse(DeleteProjectResponseSchema, {}));
     const api = createProjectApi('https://api.example', fetcher);
-    expect((await api.save(payload, 'user-token')).updatedAt).toBe(stored.updatedAt);
-    await api.save(payload, 'user-token', stored);
-    await api.remove(stored.id, stored.updatedAt, 'user-token');
-    expect(fetcher.mock.calls[0]?.[0]).toBe(`https://api.example${PROJECT_ENDPOINT}`);
-    expect(fetcher.mock.calls[0]?.[1]).toMatchObject({ method: 'POST', credentials: 'omit', redirect: 'error', headers: { Authorization: 'Bearer user-token' } });
-    const body = fetcher.mock.calls[1]?.[1]?.body;
-    if (typeof body !== 'string') throw new Error('Missing JSON request body');
-    expect(JSON.parse(body)).toMatchObject({ expectedUpdatedAt: stored.updatedAt });
-    expect(fetcher.mock.calls[2]?.[0]).toEqual(expect.stringContaining(encodeURIComponent(stored.updatedAt)));
-    expect(fetcher.mock.calls[2]?.[1]?.method).toBe('DELETE');
+    const saved = await api.save(payload, 'user-token');
+    expect(saved).toMatchObject({ id: summary.id, status: 'draft', updatedAt: UPDATED, workspace: { alignment: { matrix: 'BLOSUM62', mode: 'global', result: null }, source: null, descriptors: null } });
+    await api.save(payload, 'user-token', saved);
+    await api.remove(saved.id, saved.updatedAt, 'user-token');
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([`${SERVICE}/CreateProject`, `${SERVICE}/UpdateProject`, `${SERVICE}/DeleteProject`]);
+    expect(fetcher.mock.calls[0]?.[1]).toMatchObject({ method: 'POST', credentials: 'omit', redirect: 'error' });
+    expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get('Authorization')).toBe('Bearer user-token');
+    const created = grpcWebRequest(CreateProjectRequestSchema, body(fetcher, 0));
+    expect(created.workspace?.alignment?.matrix).toBe(SubstitutionMatrix.BLOSUM62);
+    const update = grpcWebRequest(UpdateProjectRequestSchema, body(fetcher, 1));
+    expect(update.expectedUpdateTime?.nanos).toBe(123_456_000);
+    expect(grpcWebRequest(DeleteProjectRequestSchema, body(fetcher, 2)).expectedUpdateTime?.nanos).toBe(123_456_000);
   });
+
+  it('pages with opaque tokens', async () => {
+    const fetcher = vi.fn<Fetcher>()
+      .mockResolvedValueOnce(grpcWebResponse(ListProjectsResponseSchema, { projects: [summary], nextPageToken: 'next' }))
+      .mockResolvedValueOnce(grpcWebResponse(ListProjectsResponseSchema, { projects: [] }));
+    const api = createProjectApi('https://api.example', fetcher);
+    expect(await api.list('user-token')).toMatchObject({ items: [{ id: summary.id, updatedAt: UPDATED }], nextPageToken: 'next' });
+    expect(await api.list('user-token', 'next')).toEqual({ items: [], nextPageToken: null });
+    expect(grpcWebRequest(ListProjectsRequestSchema, body(fetcher, 0))).toMatchObject({ pageSize: PROJECT_PAGE_SIZE, pageToken: '' });
+    expect(grpcWebRequest(ListProjectsRequestSchema, body(fetcher, 1)).pageToken).toBe('next');
+  });
+
   it('separates schema unavailability and conflict from successful persistence', async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ type: 'https://proteinforge.invalid/problems/projects-schema-unavailable' }, { status: 503 })).mockResolvedValueOnce(Response.json({ detail: 'private data' }, { status: 409 })).mockResolvedValueOnce(Response.json({ ...stored, workspace: { schemaVersion: 99 } }));
+    const fetcher = vi.fn<Fetcher>()
+      .mockResolvedValueOnce(grpcWebError(GRPC_CODES.failedPrecondition, 'projects-schema-unavailable'))
+      .mockResolvedValueOnce(grpcWebError(GRPC_CODES.aborted, 'project-conflict'))
+      .mockResolvedValueOnce(grpcWebResponse(GetProjectResponseSchema, { project: { ...message, workspace: { schemaVersion: 99 } } }));
     const api = createProjectApi('https://api.example', fetcher);
     await expect(api.list('user-token')).rejects.toMatchObject({ code: 'schema' });
-    await expect(api.save(payload, 'user-token', stored)).rejects.toMatchObject({ code: 'conflict', message: 'conflict' });
-    await expect(api.open(stored.id, 'user-token')).rejects.toMatchObject({ code: 'invalid-response' });
-    await expect(api.remove(stored.id, stored.updatedAt, '')).rejects.toMatchObject({ code: 'session' });
+    await expect(api.save(payload, 'user-token', { id: summary.id, updatedAt: UPDATED })).rejects.toMatchObject({ code: 'conflict', message: 'conflict' });
+    await expect(api.open(summary.id, 'user-token')).rejects.toMatchObject({ code: 'invalid-response' });
+    await expect(api.remove(summary.id, UPDATED, '')).rejects.toMatchObject({ code: 'session' });
     expect(fetcher).toHaveBeenCalledTimes(3);
   });
 });

@@ -1,3 +1,4 @@
+import type { LocalizedText } from '../../i18n/localized';
 import type { Descriptors } from './descriptors';
 
 /** Calculation request sent to the persistent worker. */
@@ -9,4 +10,4 @@ export interface DescriptorRequest {
 /** Tagged response so calculations from earlier edits can be discarded. */
 export type DescriptorResponse =
   | { id: number; result: Descriptors; error?: never }
-  | { id: number; error: string; result?: never };
+  | { id: number; error: LocalizedText; result?: never };

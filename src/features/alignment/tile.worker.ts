@@ -1,9 +1,8 @@
 /// <reference lib="webworker" />
 
 import { calculateWasmTile, initializeAlignmentWasm } from './wasm';
-import { translate } from '../../i18n/translate';
 import type { TileRequestMessage, TileResponseMessage } from './messages';
-import { WORKER_LOCALE } from '../../i18n/config';
+import { localizedFailure } from '../../i18n/localized';
 
 const context = self as DedicatedWorkerGlobalScope;
 
@@ -19,7 +18,7 @@ context.onmessage = async (event: MessageEvent<TileRequestMessage>) => {
   } catch (error) {
     const response: TileResponseMessage = {
       id: event.data.id,
-      error: error instanceof Error ? error.message : translate(WORKER_LOCALE, 'errors.tileFailed'),
+      error: localizedFailure(error, 'errors.tileFailed'),
     };
     context.postMessage(response);
   }

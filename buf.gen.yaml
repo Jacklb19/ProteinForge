@@ -1,0 +1,14 @@
+# Browser stubs from the backend contracts, pinned to a backend commit. Regenerate with:
+# npx buf generate   (update ref after a contract change in Protein_Back)
+version: v2
+clean: true
+inputs:
+  - git_repo: https://github.com/Jacklb19/Protein_Back.git
+    ref: 6c3ff437a50fda04de3dbb8601f4ee0638d6cf1e
+    subdir: proto
+plugins:
+  - local: protoc-gen-es
+    out: src/gen
+    opt:
+      - target=ts
+      - import_extension=none

@@ -53,7 +53,7 @@ export function AlignmentPage(): React.JSX.Element {
     }
     const nextWarnings = SCORING_SUBSTITUTIONS
       .filter(({ residue }) => a.sequence.includes(residue) || b.sequence.includes(residue))
-      .map(({ warningKey }) => t(warningKey));
+      .map(({ warningKey }) => warningKey);
     update({ warnings: nextWarnings, result: null, resultInput: null });
     setMessage(startWorker(currentInput) ? '' : t('alignment.workerStartError'));
   }
@@ -137,7 +137,7 @@ export function AlignmentPage(): React.JSX.Element {
         <div className="status-message" data-state={message || failure ? 'error' : status} role="status" aria-live="polite">
           {message || failure || (status === 'running' && t('alignment.running', { percent: formatNumber(worker.progress, PROGRESS_FORMAT) })) || (status === 'cancelled' && t('alignment.cancelled'))}
         </div>
-        {warnings.map((warning) => <p className="notice" key={warning} role="note">{warning}</p>)}
+        {warnings.map((warning) => <p className="notice" key={warning} role="note">{t(warning)}</p>)}
       </section>
 
       {result && (

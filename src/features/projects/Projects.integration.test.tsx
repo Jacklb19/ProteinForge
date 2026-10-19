@@ -19,7 +19,7 @@ import { ROUTES } from '../../shared/navigation';
 import { spanish } from '../../i18n/es';
 
 const project: Project = { id: '00000000-0000-4000-8000-000000000010', name: 'Study', activeSequence: 'ACD', status: 'draft', createdAt: '2026-10-12T08:00:00.123456Z', updatedAt: '2026-10-12T08:00:00.123456Z', workspace: { schemaVersion: 1, profileWindow: 9, descriptors: null, source: null, alignment: { first: '', second: '', matrix: 'BLOSUM62', mode: 'global', result: null } } };
-function service(): ProjectApi { return { list: vi.fn().mockResolvedValue({ items: [project], nextOffset: null }), open: vi.fn().mockResolvedValue(project), save: vi.fn().mockImplementation((write: Project) => Promise.resolve({ ...project, ...write })), remove: vi.fn().mockResolvedValue(undefined) }; }
+function service(): ProjectApi { return { list: vi.fn().mockResolvedValue({ items: [project], nextPageToken: null }), open: vi.fn().mockResolvedValue(project), save: vi.fn().mockImplementation((write: Project) => Promise.resolve({ ...project, ...write })), remove: vi.fn().mockResolvedValue(undefined) }; }
 function Draft() { const draft = useSequenceDraft(); return <input aria-label="draft" value={draft.text} onChange={(event) => { draft.setText(event.target.value); }} />; }
 /** Stands in for the screens the profile page leads to, and shows where a redirect came from. */
 function Destination({ name }: { name: string }) { const location = useLocation(); const from = (location.state as { from?: string } | null)?.from; return <p data-testid="destination">{name}{from ? ` from ${from}` : ''}</p>; }
@@ -80,7 +80,7 @@ it('confirms replacement, rename and delete, preserving the local draft after de
   await screen.findByText(spanish['projects.emptyTitle']); expect(screen.getByLabelText('draft')).toHaveValue('ACD');
 });
 it('recovers from a conflict, rejects a rename of an unseen revision and deduplicates pagination', async () => {
-  const user = userEvent.setup(); const api = service(); api.list = vi.fn().mockResolvedValueOnce({ items: [project], nextOffset: 30 }).mockResolvedValue({ items: [project], nextOffset: null });
+  const user = userEvent.setup(); const api = service(); api.list = vi.fn().mockResolvedValueOnce({ items: [project], nextPageToken: 'next-page' }).mockResolvedValue({ items: [project], nextPageToken: null });
   api.open = vi.fn().mockResolvedValue({ ...project, updatedAt: '2026-10-12T09:00:00Z' });
   renderPage(api); await user.click(await screen.findByRole('button', { name: spanish['projects.more'] }));
   await waitFor(() => { expect(within(library()).getAllByRole('heading', { name: 'Study' })).toHaveLength(1); });
@@ -106,7 +106,7 @@ it('shows account/configuration states and lets an empty library recover from a 
   expect(screen.getAllByText(spanish['projects.sessionLoading'])).toHaveLength(2); expect(screen.queryByTestId('destination')).not.toBeInTheDocument(); rendered.unmount();
   rendered = renderPage(null); expect(screen.getAllByText(spanish['projects.config'])).toHaveLength(2);
   expect(within(library()).getByText(spanish['projects.config'])).toBeVisible(); rendered.unmount();
-  const api = service(); api.list = vi.fn().mockRejectedValueOnce(new ApiError('schema', 'trace-id')).mockResolvedValue({ items: [], nextOffset: null });
+  const api = service(); api.list = vi.fn().mockRejectedValueOnce(new ApiError('schema', 'trace-id')).mockResolvedValue({ items: [], nextPageToken: null });
   renderPage(api); await waitFor(() => { expect(within(library()).getByRole('status')).toHaveTextContent('trace-id'); });
   await user.click(screen.getByRole('button', { name: spanish['projects.refresh'] })); await screen.findByText(spanish['projects.emptyTitle']);
 });
