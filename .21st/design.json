@@ -30,19 +30,19 @@
     "colors": {
       "--bg-canvas": {
         "source": "src/design-tokens.css",
-        "value": "#f7f6f2"
+        "value": "#f3f5f6"
       },
       "--dark-bg-canvas": {
         "source": "src/design-tokens.css",
-        "value": "#101722"
+        "value": "#0d131e"
       },
       "--bg-subtle": {
         "source": "src/design-tokens.css",
-        "value": "#eaf0ed"
+        "value": "#e9edef"
       },
       "--dark-bg-subtle": {
         "source": "src/design-tokens.css",
-        "value": "#1d2c3b"
+        "value": "#172030"
       },
       "--bg-raised": {
         "source": "src/design-tokens.css",
@@ -50,23 +50,23 @@
       },
       "--dark-bg-raised": {
         "source": "src/design-tokens.css",
-        "value": "#162131"
+        "value": "#141c2a"
       },
       "--bg-selected": {
         "source": "src/design-tokens.css",
-        "value": "#d9e9e3"
+        "value": "#dbe2e8"
       },
       "--dark-bg-selected": {
         "source": "src/design-tokens.css",
-        "value": "#27483f"
+        "value": "#26344a"
       },
       "--bg-accent-soft": {
         "source": "src/design-tokens.css",
-        "value": "#e4eeea"
+        "value": "#e9edef"
       },
       "--dark-bg-accent-soft": {
         "source": "src/design-tokens.css",
-        "value": "#1c332f"
+        "value": "#172030"
       },
       "--text-primary": {
         "source": "src/design-tokens.css",
@@ -74,15 +74,15 @@
       },
       "--dark-text-primary": {
         "source": "src/design-tokens.css",
-        "value": "#eef2ff"
+        "value": "#edf1f7"
       },
       "--text-secondary": {
         "source": "src/design-tokens.css",
-        "value": "#525e62"
+        "value": "#4a5663"
       },
       "--dark-text-secondary": {
         "source": "src/design-tokens.css",
-        "value": "#acc0c9"
+        "value": "#a3b2c2"
       },
       "--text-on-accent": {
         "source": "src/design-tokens.css",
@@ -90,39 +90,39 @@
       },
       "--dark-text-on-accent": {
         "source": "src/design-tokens.css",
-        "value": "#101722"
+        "value": "#0d131e"
       },
       "--border-strong": {
         "source": "src/design-tokens.css",
-        "value": "#718181"
+        "value": "#76838f"
       },
       "--dark-border-strong": {
         "source": "src/design-tokens.css",
-        "value": "#7c96a0"
+        "value": "#6b7c92"
       },
       "--border-subtle": {
         "source": "src/design-tokens.css",
-        "value": "#dce4df"
+        "value": "#d6dde2"
       },
       "--dark-border-subtle": {
         "source": "src/design-tokens.css",
-        "value": "#304454"
+        "value": "#263244"
       },
       "--accent-brand": {
         "source": "src/design-tokens.css",
-        "value": "#12615f"
+        "value": "#121826"
       },
       "--dark-accent-brand": {
         "source": "src/design-tokens.css",
-        "value": "#8fe0cc"
+        "value": "#edf1f7"
       },
       "--accent-brand-hover": {
         "source": "src/design-tokens.css",
-        "value": "#0e4c4c"
+        "value": "#2a3447"
       },
       "--dark-accent-brand-hover": {
         "source": "src/design-tokens.css",
-        "value": "#b6f4e1"
+        "value": "#ffffff"
       },
       "--status-error": {
         "source": "src/design-tokens.css",
@@ -224,7 +224,8 @@
     "2026-10-11: public SaaS website and working app have distinct navigation; sign-in and registration stay visible",
     "2026-10-11: restrained motion and feedback, including a quiet ornamental turn that pauses off screen",
     "2026-10-11: user requests a friendly app: /app task welcome, warm ivory/deep navy surfaces, green accent, guided example, descriptor explanations and meaningful CSS motion; no scientific algorithm changes.",
-    "2026-10-12: preserve identity; desktop public masthead, full computed sample strip, task dividers, grouped metrics and coherent library/report/candidate tools; Mol* stays demand-loaded."
+    "2026-10-12: preserve identity; desktop public masthead, full computed sample strip, task dividers, grouped metrics and coherent library/report/candidate tools; Mol* stays demand-loaded.",
+    "2026-10-19: user selected A, Sequence collection: dedicated Projects route, three-column scientific preview cards on desktop, one column on phones, flat existing navigation and chemistry-only color."
   ],
   "evidence": [
     {

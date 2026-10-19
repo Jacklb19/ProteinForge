@@ -8,11 +8,10 @@ import { ROUTES } from '../../shared/navigation';
 import { SegmentedControl } from '../../shared/SegmentedControl';
 import { useAuth } from '../auth/authContext';
 import { SUPPORT_EMAIL_URL } from '../legal/config';
-import { ProjectLibrary } from '../projects/ProjectLibrary';
 
 type PasswordState = 'idle' | 'sending' | 'sent' | 'error';
 
-/** Everything that belongs to the person rather than to one protein: projects, account, appearance, language and data. */
+/** Account, appearance, language and data preferences; the project collection has its own screen. */
 export function ProfilePage(): React.JSX.Element {
   const { t } = useTranslation();
   const { locale, theme, setLocale, setTheme } = usePreferences();
@@ -41,7 +40,7 @@ export function ProfilePage(): React.JSX.Element {
 
       <section className="profile-row" aria-labelledby="project-library-title">
         <h2 id="project-library-title">{t('projects.title')}</h2>
-        <div className="profile-row-body"><ProjectLibrary /></div>
+        <div className="profile-row-body"><p>{t('projects.profileHelp')}</p><Link className="inline-link" to={ROUTES.projects}>{t('projects.listLink')}</Link></div>
       </section>
 
       <section className="profile-row" aria-labelledby="account-title">

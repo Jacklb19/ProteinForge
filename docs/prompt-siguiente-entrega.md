@@ -1,96 +1,75 @@
-# Prompt de continuación autónoma — ProteinForge
+# Prompt del siguiente sprint — ProteinForge
 
-> Relevo histórico de la entrega terminada. El acuerdo posterior del 12 oct prioriza el [laboratorio didáctico](design-lab-roadmap.md) y el [plan vigente](plan-desarrollo.md): un caso real pequeño y después interfaz 3D de creación/modificación. No repetir la entrega visual completa ni asumir ESM Atlas obligatorio. Push de dev autorizado solo con autoría exclusiva del propietario; merge, gastos y migraciones remotas siguen fuera de esa autorización.
-
-Copia desde «Eres el agente…» hasta el final en la siguiente conversación. Este prompt encarga trabajo; no solo planificación. El usuario revisará el resultado en la mañana.
+> Escrito el 19 oct 2026, después de publicar gRPC en producción. Sustituye al relevo anterior (consultable en el historial de Git). Copia desde «Eres el agente…» hasta el final en una conversación nueva.
 
 ---
 
-Eres el agente de desarrollo de ProteinForge. Continúa el proyecto existente, trabajando de forma sostenida y autónoma. Primero mejora la experiencia visual completa; después continúa implementando funcionalidades reales. Toma decisiones técnicas correctas, conserva lo útil y entrega el mayor avance coherente y verificado que puedas. No termines después de presentar un plan ni después de una sola mejora superficial.
+Eres el agente de desarrollo de ProteinForge. Continúa el proyecto existente con trabajo real y verificado: no termines tras presentar un plan ni tras una mejora superficial. Este sprint tiene un objetivo principal (sección propia de Proyectos con tarjetas y vistas previas) y dos secundarios (correo de confirmación y deuda pendiente).
 
-## 1. Contexto obligatorio
+## 1. Contexto
 
-Workspace Windows/PowerShell:
-`C:\Users\josel\Desktop\U\semestre7\ProgramacionAWeb\ProteinForge`.
+Workspace Windows: `C:\Users\josel\Desktop\U\semestre7\ProgramacionAWeb\ProteinForge`. La carpeta no tiene Git; contiene dos repositorios independientes:
+- `frontend/` ([Jacklb19/ProteinForge](https://github.com/Jacklb19/ProteinForge)): React 19, TypeScript estricto, Vite, Workers, Rust/WASM. Producción: https://protein-forge.vercel.app (se publica desde `main`).
+- `backend/` ([Jacklb19/Protein_Back](https://github.com/Jacklb19/Protein_Back)): FastAPI + servicios gRPC (connectrpc), Supabase. Producción: https://protein-back.vercel.app (desde `main`).
 
-La carpeta contenedora no tiene Git. Contiene dos repositorios independientes:
-- `frontend/`: React, TypeScript estricto, Vite, Workers y Rust/WASM. Web pública y app SaaS. Publicada por el usuario en https://protein-forge.vercel.app/.
-- `backend/`: FastAPI, Supabase Auth y migraciones. Publicado por el usuario en https://protein-back.vercel.app/.
+Lee antes de editar: `AGENTS.md` (raíz y de cada repo), `docs/PROGRESS.md` de ambos (entradas del 15 al 19 oct), `frontend/docs/grpc.md`, `frontend/docs/pantallas.md`, `frontend/docs/diseno-visual.md`, `frontend/docs/projects.md`, `backend/docs/api.md` y las migraciones de `backend/supabase/migrations/`. Revisa `git status`, rama y log en ambos.
 
-Lee primero:
-1. `AGENTS.md` común si existe, `frontend/AGENTS.md` y `backend/AGENTS.md`.
-2. `docs/PROGRESS.md` de ambos repositorios; resumen y entradas recientes, sin confundir historia con estado vigente.
-3. Frontend: `docs/definicion-proyecto.md`, `docs/plan-desarrollo.md`, `docs/decisiones.md`, `docs/pantallas.md`, `docs/diseno-visual.md` y `.21st/DESIGN.md`/`design.json`.
-4. Backend: `README.md`, `docs/arquitectura.md`, `docs/api.md`, código y migraciones pertinentes.
-5. Las guías `docs/despliegue-vercel.md`, `docs/conectar-supabase.md` y `docs/google-oauth-publicacion.md` cuando afectes cuenta o configuración.
+Estado vigente (verificado el 19 oct):
+- La web habla con la API **solo por gRPC-Web** (`src/features/api/rpc.ts`, código generado en `src/gen/` desde `backend/proto` con `buf.gen.yaml`, ref fija al commit del backend). El backend sirve `AccountService`, `ProjectService` y `ReferenceService` por gRPC-Web, Connect y gRPC nativo, y **conserva REST** (requisito del profesor). `DesignService` (`v1alpha1`) es un borrador sin implementar.
+- Producción probada por el usuario con su cuenta: guardar, abrir, renombrar y borrar proyectos y la búsqueda UniProt funcionan.
+- Supabase: migraciones `20260928`, `20261012` y `20261019_backfill_profiles` aplicadas por el usuario. Cada proyecto pertenece a una fila de `profiles`.
+- CI en verde en ambos repos (frontend: tipos, lint, unitarias, build, E2E; WASM reproducible; backend: pruebas + `buf lint` + código generado al día).
+- Los proyectos hoy se listan dentro de **Perfil** (`src/features/projects/ProjectLibrary.tsx`), como una lista simple.
 
-Inspecciona status, rama, log y diff antes de editar. No hagas fetch/pull para «ponerte al día» por iniciativa propia. No copies decisiones específicas de NeuroMelody: aquí no hay entrenamiento WESAD, flujo clínico, modelo clasificador propio ni protocolo de terapeuta. npm funciona; no asumas instalaciones o fallos de herramientas de otro proyecto.
+## 2. Reglas que no se negocian
 
-## 2. Autonomía autorizada
+1. **Autoría:** en commits, merges y GitHub solo aparece el propietario (Jacklb19). Nunca líneas `Co-Authored-By`, menciones a agentes o IA. Verifica autor, committer y trailers antes de cada push.
+2. **Ramas:** trabaja en `dev` de cada repo. Push a `dev` autorizado. **Merge a `main` (= producción) solo cuando el usuario lo diga explícitamente.**
+3. **Interfaz bilingüe:** cada texto visible se escribe en español (`src/i18n/es.ts`) y en inglés (`src/i18n/en.ts`) en el mismo cambio.
+4. **Interfaz con aprobación previa:** antes de escribir código de interfaz, presenta **dos propuestas en maquetas PNG** (capturas reales a 360 px y 1280 px, tema claro y oscuro) y espera a que el usuario elija. Sin aprobación no hay código de UI.
+5. **Sin valores fijos en el código:** límites, tamaños, rutas, URLs y opciones viven en módulos `config.ts`, tokens de `design-tokens.css` o i18n, tanto en frontend como en backend.
+6. **Dependencias nuevas:** solo con visto bueno del usuario y versión fija.
+7. **Contratos:** los `.proto` viven en el backend. Cambios solo compatibles (campos nuevos con números nuevos; nunca renumerar ni cambiar tipos). `buf lint` y `buf breaking` contra `main` deben pasar; después regenera Python (`backend`) y TypeScript (`frontend`, actualizando la `ref` de `buf.gen.yaml`).
+8. **Accesibilidad y diseño:** contraste AA, objetivos de 44 px, foco visible, sin desbordamiento horizontal a 360 px, movimiento reducido respetado. Dirección visual: mostrar proteínas, no la app; nada de aspecto de plantilla de IA.
+9. **Seguridad:** nunca `service_role` ni secretos en el cliente o en commits; no imprimas `.env`. Errores con códigos estables, sin devolver datos del usuario.
 
-El usuario estará ausente y revisará en la mañana. No le pidas confirmaciones rutinarias, elección de variantes, validaciones visuales, revisión de cada bloque ni permiso para continuar. Decide detalles reversibles de diseño, organización, implementación, dependencias necesarias y contratos compatibles con el esquema existente. Documenta el motivo y las suposiciones relevantes. Esta autorización actual prevalece sobre instrucciones locales anteriores que pidan preguntar por esas decisiones rutinarias.
+## 3. Objetivo principal — sección «Proyectos»
 
-Si falta información, elige una opción conservadora dentro del alcance aprobado y sigue. Si una tarea requiere credenciales, acciones remotas, consentimiento de un usuario real o una capacidad que no puedes verificar, registra el bloqueo y avanza con otro bloque independiente. No conviertas la falta de Google/SMTP o de una sesión real en una razón para dejar de desarrollar toda la aplicación. Tampoco finjas que están verificados.
+El usuario pide: *los proyectos no deben estar en Perfil sino en su propia sección, bonitos, con tarjetas y vistas previas.*
 
-Esta autonomía no autoriza gastos, cambiar la arquitectura aprobada sin necesidad, destruir datos, eludir controles de seguridad, aplicar migraciones remotas, modificar cuentas Google/Supabase/Vercel ni publicar. Cumple cualquier permiso obligatorio de la plataforma; si una acción no está permitida, elige una alternativa local. No crees otras conversaciones ni programes automatizaciones para sustituir el trabajo de esta tarea.
+**Alcance:**
+- Nueva sección y ruta propias (por ejemplo `/projects`) en la barra principal y en el menú del móvil, visibles con sesión; sin sesión, una invitación clara a iniciar sesión o crear cuenta. Perfil conserva cuenta, preferencias y datos, con un enlace a Proyectos en lugar de la lista.
+- **Tarjetas** con vista previa del contenido científico real, sin inventar datos. Candidatas (decide con las maquetas):
+  - cinta de secuencia en miniatura coloreada por química (reutiliza `SequenceRibbon`/`chemistry`),
+  - longitud, masa, pI y GRAVY guardados,
+  - si hay comparación: identidad y similitud en %, matriz y modo,
+  - origen (catálogo / UniProt + accesión) y fecha de actualización relativa y localizada.
+- Acciones por tarjeta: abrir (en Analizar o Alinear según el contenido), renombrar, duplicar (crear copia), borrar con confirmación deliberada. Conserva el control de concurrencia (`expected_update_time`, conflicto → `ABORTED`).
+- Búsqueda por nombre y orden (recientes / nombre), estado vacío útil, estados de carga y error con las categorías existentes de `ApiError`, paginación con `nextPageToken`.
+- Responsive (rejilla de tarjetas en escritorio, una columna en móvil), ambos temas, teclado completo.
 
-## 3. Primero: producto premium con identidad propia
+**Datos para la vista previa:** hoy `ListProjects` devuelve solo `ProjectSummary` (id, nombre, estado, fechas). Elige y justifica una opción:
+- (a) añadir a `ProjectSummary` un mensaje `ProjectPreview` ligero (longitud, masa, pI, GRAVY, identidad, origen y quizá unas decenas de residuos para la cinta), calculado en el servidor desde el snapshot guardado. Cambio compatible del contrato y una consulta/RPC en Supabase que no traiga el snapshot completo; o
+- (b) que el cliente pida cada proyecto con `GetProject` (más tráfico, más sencillo).
+Recomendación por defecto: (a), sin enviar secuencias completas en la lista. Si requiere una migración nueva, escríbela idempotente con RLS y pruebas en PostgreSQL local (`backend/scripts/test-postgres.ps1`), y **pide al usuario que la aplique**: no apliques migraciones remotas.
 
-Revisa la web pública y el recorrido dentro de la app. Implementa mejoras, no te limites a describir defectos. Prioriza coherencia y claridad en Inicio, Mi espacio, análisis, alineamiento, acceso/registro/recuperación y Ajustes. Privacidad y condiciones deben seguir siendo públicas y legibles.
+**Proceso obligatorio:** auditoría breve → dos propuestas en maqueta → elección del usuario → plan corto → implementación → capturas reales y lista de comprobación → actualizar `docs/pantallas.md`, `docs/projects.md` y `PROGRESS.md`.
 
-La esencia es explorar proteínas: secuencias, residuos, perfiles, comparación y un banco de trabajo científico comprensible. Usa lenguaje cotidiano y explicaciones cerca de las acciones. El visitante debe entender qué puede hacer, cómo empezar y qué significa su resultado. Mantén separada la presentación pública de la app.
+## 4. Objetivos secundarios
 
-Busca una SaaS premium: tipografía cuidada, jerarquía clara, espaciado preciso, composición deliberada, superficies consistentes, estados completos y detalles de interacción. Conserva el logo, las fuentes locales Bricolage/Atkinson/Plex, los tokens y la dirección marfil/azul profundo con verde, salvo ajustes pequeños justificados. No rediseñes todo por preferencia genérica ni llenes la interfaz de tarjetas.
+1. **Correo de confirmación que no llega.** El usuario configuró un SMTP propio en Supabase, pero el correo no llega. No tienes acceso a su proyecto de Supabase: guía al usuario para revisar Supabase → Logs → Auth (errores SMTP como `535`), los datos de Gmail (host `smtp.gmail.com`, puerto 465/587, contraseña de aplicación, remitente igual al usuario), los límites de envío y las URLs de redirección. Documenta el resultado en `frontend/docs/conectar-supabase.md`. Nunca pidas ni manejes contraseñas.
+2. **Deuda pendiente si sobra tiempo:**
+   - El laboratorio de diseño (`docs/design-lab-roadmap.md`) necesita primero una prueba real de cálculo (forma → secuencia → predicción) y maquetas aprobadas; no escribas su interfaz sin ellas.
+   - `DesignService` sigue en borrador; no lo implementes sin esa prueba.
 
-Da vida con animaciones fluidas y discretas: transiciones, entradas, estados de cálculo y respuesta a acciones. Respeta movimiento reducido, pausa elementos fuera de pantalla y evita bucles pesados o animaciones que dificulten leer. Reutiliza CSS y mecanismos existentes antes de introducir librerías.
+## 5. Verificación antes de entregar
 
-Decoración vinculada al producto mediante recursos existentes, SVG propios, perfiles reales y motivos de secuencias. No uses imágenes generadas por IA ni adornos de apariencia genérica: auroras, brillos excesivos, blobs, gradientes gratuitos, frases vacías o paneles con datos inventados. No confundas un motivo ornamental con una estructura molecular real. No inventes testimonios, usuarios, métricas ni capacidades para dar apariencia de SaaS.
+- Frontend: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, `npm run check:pwa`, E2E afectadas con `E2E_PORT=5190 E2E_WORKERS=1 node scripts/run-e2e.mjs …` (no edites `src/` mientras corren). Los mocks E2E de la API usan el formato gRPC-Web real (`e2e/rpc.ts`, `src/test/grpcWeb.ts`).
+- Backend: `python -m unittest discover -s tests`; con contrato nuevo, `buf lint`, `buf breaking`, `buf generate` y pruebas RPC en `tests/test_rpc.py`.
+- Si cambias el paquete WASM: `npm run build:wasm:linux` (Docker), nunca la compilación de Windows.
+- CI remota en verde tras el push (lee los runs con la API pública de GitHub; `gh` no está instalado).
+- Prueba en navegador real (panel integrado) con capturas a 360 y 1280 px en ambos temas.
 
-Usa los skills de frontend/21st aplicables y componentes del proyecto. Ya existe autorización para enviar código/contexto del proyecto a 21st, nunca secretos o datos privados. No compres créditos ni uses generación de pago. No aplaces la implementación esperando que el usuario elija una propuesta.
+## 6. Entrega
 
-Termina una mejora visual coherente de todo el recorrido y pasa a funcionalidad. No gastes toda la sesión moviendo píxeles, generando opciones o repitiendo capturas.
-
-## 4. Después: capacidades reales, en orden útil
-
-Estado de partida: editor/FASTA, descriptores/perfil en Workers, Gotoh/BLOSUM en WASM, borradores en memoria, CSV local, cuenta REST de Supabase, cliente health/me y páginas legales están implementados. El backend tiene health/me, cinco tablas previstas y auditoría RLS estática. No hay CRUD de proyectos implementado. Los despliegues respondieron health/CORS; eso no demuestra una sesión válida ni seguridad PostgreSQL. SMTP/Google han sido configurados por el usuario o están en proceso: comprueba el estado disponible sin pedirle una demostración. No supongas que faltan `.env`: existen y se leen sin mostrar sus valores.
-
-1. **Proyectos personales como prioridad funcional.** Implementa guardar, listar, abrir, renombrar, actualizar y eliminar sobre los contratos previstos y el esquema existente. Elige payloads y validaciones coherentes en ambos repositorios y documéntalos. Autoriza por propietario, usa RLS real para acceso a datos y conserva concurrencia optimista con 409. Integra resultados actuales y reanudación tras recargar. No guardes resultados desactualizados ni anuncies persistencia inexistente. Comprueba aislamiento entre usuarios con PostgreSQL/Supabase local si está disponible; un mock o una inspección de SQL no demuestra RLS. Si falta infraestructura local, prepara el código y las pruebas reproducibles, registra el límite y sigue con tareas independientes. No uses service_role para saltarte las políticas de recursos del usuario.
-2. **Datos y estructura experimental.** Avanza con catálogo trazable, UniProt y visor Mol* bajo demanda según decisiones existentes. Usa datos públicos reales, referencias, cobertura y estados de error. Mantén la procedencia de estructuras experimentales/predichas. No inventes coordenadas 3D.
-3. **Informes reproducibles.** Amplía exportación local, PDF, perfil/alineamiento y métodos cuando corresponda, sin perder el CSV vigente ni enviar datos por sorpresa.
-4. **Generación, predicción e interpretación.** Continúa solo sobre el alcance de RF-17/RF-18 y el asistente definido. Puedes elegir decisiones de implementación revisables y parámetros configurables, respaldados por referencias. No inventes requisitos científicos ni promesas biológicas para resolver una ambigüedad. Mantén generador y asistente separados; la predicción externa requiere consentimiento explícito, validación, procedencia, caché y fallos reales. Si ese bloque depende de una decisión científica/servicio que no puedes justificar, desarrolla otro bloque autorizado y deja una propuesta concreta pendiente.
-
-Completa recorridos verticales útiles antes de abrir muchos módulos a medias. Actualiza privacidad/condiciones cuando cambie de verdad el tratamiento de datos. No marques «terminado» un entregable que necesita base remota aún no migrada o pruebas pendientes.
-
-## 5. Buenas prácticas
-
-Código, comentarios, nombres y commits en inglés; interfaz y documentación en español. Textos en `src/i18n/es.ts`; el catálogo inglés actual deriva de él y está marcado como pendiente: no inventes una estructura de traducción distinta. Usa tokens CSS, constantes/configuración por característica y componentes comunes.
-
-TypeScript estricto, responsabilidades claras, validación en límites, errores explícitos, cancelación de peticiones y prevención de estados desactualizados. Cómputo pesado en Workers/WASM. Conserva virtualización, fuentes/canvas, editor superpuesto, algoritmos, cancelación, PWA y COOP/COEP. Dependencias nuevas solo cuando sean necesarias, gratuitas, con versión fija y lockfile; consulta fuentes oficiales, explica el motivo en docs y evita cambiar de stack.
-
-No expongas `.env`, tokens, contraseñas, secuencias privadas o claves de servidor en logs, commits, prompts externos ni variables `VITE_`. No rebajes CORS/CSP/RLS para hacer que una prueba pase. No apliques migraciones a Supabase remoto. No actives planes de pago ni pidas tarjeta.
-
-## 6. Pruebas necesarias, sin exceso
-
-Durante el trabajo, ejecuta lint/tipos y pruebas enfocadas en los módulos afectados. Añade pruebas para riesgo real: propiedad/autorización/RLS, contratos, resultados científicos, persistencia, conflictos y regresiones importantes. No escribas pruebas que solo reproduzcan textos, constantes o detalles internos, ni suites para cada cambio de estilo.
-
-Revisa las pantallas afectadas a 360/1280 px, claro/oscuro, foco/teclado, contraste, controles de 44 px y movimiento reducido. E2E solo para recorridos cambiados; usa una muestra proporcional, no una matriz enorme de combinaciones redundantes. PWA solo cuando cambien recursos, Workers o caché. No debilites umbrales ni aumentes tiempos para ocultar fallos.
-
-Al cerrar cada bloque sustancial verifica lo pertinente; la batería compartida completa y build una vez al cierre global cuando corresponda. Repite únicamente tras nuevos cambios, fallos o dudas concretas. Backend usa `.venv/Scripts/python.exe -m unittest discover -s tests -v`, no pytest. Runtime objetivo 3.14; entorno local previamente probado con 3.13, no certifiques una versión que no ejecutaste. Frontend usa los scripts npm existentes. Conserva evidencia real y distingue simulación, comprobación local y comprobación remota.
-
-## 7. Git y limpieza
-
-Trabaja por defecto en `dev` de cada repositorio. Puedes crear una rama local corta desde `dev` solo si una modificación arriesgada necesita aislamiento; no crees una rama por cada bloque ni muevas trabajo ajeno. Mantén `main` como versión estable y no hagas merges ni reescribas historia.
-
-Haz commits pequeños y completos por intención: UI, capacidad funcional, contratos/migraciones, documentación. Revisa diff y verificaciones antes de cada commit. Usa Conventional Commits en inglés, sin firma, coautoría ni referencias a IA. No juntes cambios ajenos ni ocultes trabajo incompleto en un commit que diga «finished».
-
-**Nunca hagas push, despliegues, merges remotos, force push ni cambios de configuración remota.** Las ramas y commits son locales; el usuario decidirá publicarlos. No versiones builds, dependencias, artefactos, datos grandes o secretos. Respeta la excepción WASM generada y las exclusiones locales de AGENTS/progreso.
-
-El usuario autoriza eliminar ramas locales fusionadas y sobrantes. Antes comprueba que sean ancestros de `dev`, que no estén activas ni usadas por un worktree y que no sean `main`/`dev`. Usa eliminación segura (`git branch -d`), nunca fuerza. Si solo quedan las ramas necesarias, consérvalas. No borres `.env`, evidencias útiles ni cambios ajenos para aparentar limpieza. Al finalizar deja limpios los árboles versionados mediante commits coherentes del trabajo completado.
-
-## 8. Relevo y cierre
-
-Actualiza el progreso local de ambos repositorios cuando los afectes; conserva historia y mantén un resumen vigente. Actualiza decisiones, pantallas, API y plan según los cambios reales. No fuerces archivos locales excluidos al índice.
-
-Al finalizar informa: capacidades terminadas, decisiones tomadas, commits por repositorio, verificaciones reales, límites/bloqueos y el siguiente trabajo prioritario. La revisión del usuario será en la mañana; no cierres con preguntas rutinarias ni pidas validación para seguir. Si hay una acción externa pendiente, entrega sus pasos concretos sin ejecutarla.
-
-Empieza leyendo el contexto, resume brevemente el objetivo y ejecuta la mejora visual. Cuando esté coherente, continúa con los proyectos personales y el resto del trabajo autorizado. Prioriza implementación comprobable y sostenida sobre planificación, pruebas repetidas o documentación de capacidades que aún no existen.
+Commits pequeños en inglés. Push a `dev` en ambos repos tras verificar la autoría. Al terminar, resume en español: qué cambió, cómo se verificó, qué quedó pendiente y qué decisiones necesita el usuario (por ejemplo, aplicar una migración o autorizar el merge a `main`).

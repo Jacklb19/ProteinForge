@@ -10,3 +10,5 @@ Dirección vigente desde el 12 de octubre de 2026: «ficha de lectura». La refe
 - Movimiento: giro lento de la estructura hasta la primera interacción y fundidos cortos; todo respeta «reducir movimiento». Objetivos táctiles de 44 px, foco visible y contraste AA en ambos temas.
 
 Las primitivas son propias (`Icon`, `BrandMark`, `SegmentedControl`, `PageHeading`, celdas de residuo, cinta de secuencia, mapa de alineamiento, escenario de estructura). No se instalan componentes externos.
+
+19 oct 2026: el propietario eligió A «Colección de secuencias» para Proyectos. Ruta propia y navegación con sesión, tres tarjetas en escritorio y una columna móvil. Cada tarjeta muestra prefijos químicos y resultados guardados, nunca evidencia científica inventada. Perfil conserva preferencias y enlaza a la colección. Acciones deliberadas y diálogos con foco contenido/restaurado; color y fuentes siguen los tokens vigentes.

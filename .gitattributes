@@ -1,0 +1,2 @@
+# Generated contracts are reproducible across Windows and Linux checkouts.
+src/gen/** text eol=lf

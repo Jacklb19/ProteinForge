@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   CreateProjectRequestSchema, CreateProjectResponseSchema, DeleteProjectRequestSchema, DeleteProjectResponseSchema,
-  GetProjectResponseSchema, ListProjectsRequestSchema, ListProjectsResponseSchema, ProjectStatus, UpdateProjectRequestSchema, UpdateProjectResponseSchema,
+  GetProjectResponseSchema, ListProjectsRequestSchema, ListProjectsResponseSchema, ProjectOrder, ProjectStatus, UpdateProjectRequestSchema, UpdateProjectResponseSchema,
 } from '../../gen/proteinforge/project/v1/project_service_pb';
 import { AlignmentMode, SubstitutionMatrix } from '../../gen/proteinforge/project/v1/workspace_pb';
 import { timestampFromIso } from '../api/timestamps';
@@ -21,6 +21,31 @@ function body(fetcher: ReturnType<typeof vi.fn<Fetcher>>, call: number) {
 }
 
 describe('project transport', () => {
+  it('requests global search/order and distinguishes a saved zero from missing scientific evidence', async () => {
+    const fetcher = vi.fn<Fetcher>().mockResolvedValue(grpcWebResponse(ListProjectsResponseSchema, { queryApplied: true, projects: [{ ...summary, preview: {
+      sequenceLength: 3, sequencePrefix: 'ACD', excluded: 0,
+      descriptors: { massDa: 307, isoelectricPoint: 5, instabilityIndex: 1, aliphaticIndex: 1, gravy: 0, length: 3 },
+      alignment: { firstLength: 3, secondLength: 3, firstPrefix: 'ACD', secondPrefix: 'ACE', matrix: SubstitutionMatrix.BLOSUM62, mode: AlignmentMode.GLOBAL },
+    } }] }));
+    const listing = await createProjectApi('https://api.example', fetcher).list('user-token', '', undefined, { query: ' Study ', order: 'name' });
+    expect(grpcWebRequest(ListProjectsRequestSchema, body(fetcher, 0))).toMatchObject({ query: 'Study', order: ProjectOrder.NAME });
+    expect(listing.items[0]?.preview?.descriptors?.gravy).toBe(0);
+    expect(listing.items[0]?.preview?.alignment?.result).toBeNull();
+    expect(listing.items[0]?.preview?.source).toBeNull();
+  });
+  it('does not present a legacy unfiltered response as a successful global search', async () => {
+    const fetcher = vi.fn<Fetcher>().mockResolvedValue(grpcWebResponse(ListProjectsResponseSchema, { projects: [summary] }));
+    await expect(createProjectApi('https://api.example', fetcher).list('user-token', '', undefined, { query: 'missing', order: 'recent' })).rejects.toMatchObject({ code: 'unavailable' });
+  });
+  it('rejects prefixes that exceed the declared sequence and inconsistent conservation counts', async () => {
+    for (const preview of [
+      { sequenceLength: 3, sequencePrefix: 'ACDE', excluded: 0 },
+      { sequenceLength: 0, excluded: 0, alignment: { firstLength: 3, secondLength: 3, firstPrefix: 'ACD', secondPrefix: 'ACE', matrix: SubstitutionMatrix.BLOSUM62, mode: AlignmentMode.GLOBAL, result: { identities: 3, similarities: 2, columns: 3 } } },
+    ]) {
+      const fetcher = vi.fn<Fetcher>().mockResolvedValue(grpcWebResponse(ListProjectsResponseSchema, { projects: [{ ...summary, preview }] }));
+      await expect(createProjectApi('https://api.example', fetcher).list('user-token')).rejects.toMatchObject({ code: 'invalid-response' });
+    }
+  });
   it('uses bearer requests, preserves microseconds, and sends the expected revision on update/delete', async () => {
     const fetcher = vi.fn<Fetcher>()
       .mockResolvedValueOnce(grpcWebResponse(CreateProjectResponseSchema, { project: message }))

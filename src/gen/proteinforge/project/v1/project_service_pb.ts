@@ -6,7 +6,7 @@ import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobu
 import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { Workspace } from "./workspace_pb";
+import type { AlignmentMode, DescriptorResult, SourceOrigin, SubstitutionMatrix, Workspace } from "./workspace_pb";
 import { file_proteinforge_project_v1_workspace } from "./workspace_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proteinforge/project/v1/project_service.proto.
  */
 export const file_proteinforge_project_v1_project_service: GenFile = /*@__PURE__*/
-  fileDesc("Ci1wcm90ZWluZm9yZ2UvcHJvamVjdC92MS9wcm9qZWN0X3NlcnZpY2UucHJvdG8SF3Byb3RlaW5mb3JnZS5wcm9qZWN0LnYxIsQBCg5Qcm9qZWN0U3VtbWFyeRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjYKBnN0YXR1cxgDIAEoDjImLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTdGF0dXMSLwoLY3JlYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3VwZGF0ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKTAQoHUHJvamVjdBI4CgdzdW1tYXJ5GAEgASgLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFN1bW1hcnkSFwoPYWN0aXZlX3NlcXVlbmNlGAIgASgJEjUKCXdvcmtzcGFjZRgDIAEoCzIiLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLldvcmtzcGFjZSI8ChNMaXN0UHJvamVjdHNSZXF1ZXN0EhEKCXBhZ2Vfc2l6ZRgBIAEoBRISCgpwYWdlX3Rva2VuGAIgASgJImoKFExpc3RQcm9qZWN0c1Jlc3BvbnNlEjkKCHByb2plY3RzGAEgAygLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFN1bW1hcnkSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJIh8KEUdldFByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJIkcKEkdldFByb2plY3RSZXNwb25zZRIxCgdwcm9qZWN0GAEgASgLMiAucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdCJ0ChRDcmVhdGVQcm9qZWN0UmVxdWVzdBIMCgRuYW1lGAEgASgJEhcKD2FjdGl2ZV9zZXF1ZW5jZRgCIAEoCRI1Cgl3b3Jrc3BhY2UYAyABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2UiSgoVQ3JlYXRlUHJvamVjdFJlc3BvbnNlEjEKB3Byb2plY3QYASABKAsyIC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0IroBChRVcGRhdGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRI4ChRleHBlY3RlZF91cGRhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDAoEbmFtZRgDIAEoCRIXCg9hY3RpdmVfc2VxdWVuY2UYBCABKAkSNQoJd29ya3NwYWNlGAUgASgLMiIucHJvdGVpbmZvcmdlLnByb2plY3QudjEuV29ya3NwYWNlIkoKFVVwZGF0ZVByb2plY3RSZXNwb25zZRIxCgdwcm9qZWN0GAEgASgLMiAucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdCJcChREZWxldGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRI4ChRleHBlY3RlZF91cGRhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiFwoVRGVsZXRlUHJvamVjdFJlc3BvbnNlKkkKDVByb2plY3RTdGF0dXMSHgoaUFJPSkVDVF9TVEFUVVNfVU5TUEVDSUZJRUQQABIYChRQUk9KRUNUX1NUQVRVU19EUkFGVBABMr4ECg5Qcm9qZWN0U2VydmljZRJwCgxMaXN0UHJvamVjdHMSLC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5MaXN0UHJvamVjdHNSZXF1ZXN0Gi0ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuTGlzdFByb2plY3RzUmVzcG9uc2UiA5ACARJqCgpHZXRQcm9qZWN0EioucHJvdGVpbmZvcmdlLnByb2plY3QudjEuR2V0UHJvamVjdFJlcXVlc3QaKy5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5HZXRQcm9qZWN0UmVzcG9uc2UiA5ACARJuCg1DcmVhdGVQcm9qZWN0Ei0ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQ3JlYXRlUHJvamVjdFJlcXVlc3QaLi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5DcmVhdGVQcm9qZWN0UmVzcG9uc2USbgoNVXBkYXRlUHJvamVjdBItLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlVwZGF0ZVByb2plY3RSZXF1ZXN0Gi4ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuVXBkYXRlUHJvamVjdFJlc3BvbnNlEm4KDURlbGV0ZVByb2plY3QSLS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZWxldGVQcm9qZWN0UmVxdWVzdBouLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkRlbGV0ZVByb2plY3RSZXNwb25zZWIGcHJvdG8z", [file_google_protobuf_timestamp, file_proteinforge_project_v1_workspace]);
+  fileDesc("Ci1wcm90ZWluZm9yZ2UvcHJvamVjdC92MS9wcm9qZWN0X3NlcnZpY2UucHJvdG8SF3Byb3RlaW5mb3JnZS5wcm9qZWN0LnYxIv4BCg5Qcm9qZWN0U3VtbWFyeRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjYKBnN0YXR1cxgDIAEoDjImLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTdGF0dXMSLwoLY3JlYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3VwZGF0ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI4CgdwcmV2aWV3GAYgASgLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFByZXZpZXcimAIKDlByb2plY3RQcmV2aWV3EhcKD3NlcXVlbmNlX2xlbmd0aBgBIAEoBRIXCg9zZXF1ZW5jZV9wcmVmaXgYAiABKAkSPgoLZGVzY3JpcHRvcnMYAyABKAsyKS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZXNjcmlwdG9yUmVzdWx0EkMKCWFsaWdubWVudBgEIAEoCzIwLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RBbGlnbm1lbnRQcmV2aWV3Ej0KBnNvdXJjZRgFIAEoCzItLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTb3VyY2VQcmV2aWV3EhAKCGV4Y2x1ZGVkGAYgASgFIqgCChdQcm9qZWN0QWxpZ25tZW50UHJldmlldxIUCgxmaXJzdF9sZW5ndGgYASABKAUSFQoNc2Vjb25kX2xlbmd0aBgCIAEoBRIUCgxmaXJzdF9wcmVmaXgYAyABKAkSFQoNc2Vjb25kX3ByZWZpeBgEIAEoCRI7CgZtYXRyaXgYBSABKA4yKy5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5TdWJzdGl0dXRpb25NYXRyaXgSNAoEbW9kZRgGIAEoDjImLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkFsaWdubWVudE1vZGUSQAoGcmVzdWx0GAcgASgLMjAucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdEFsaWdubWVudE1ldHJpY3MiVAoXUHJvamVjdEFsaWdubWVudE1ldHJpY3MSEgoKaWRlbnRpdGllcxgBIAEoBRIUCgxzaW1pbGFyaXRpZXMYAiABKAUSDwoHY29sdW1ucxgDIAEoBSJgChRQcm9qZWN0U291cmNlUHJldmlldxI1CgZvcmlnaW4YASABKA4yJS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Tb3VyY2VPcmlnaW4SEQoJYWNjZXNzaW9uGAIgASgJIpMBCgdQcm9qZWN0EjgKB3N1bW1hcnkYASABKAsyJy5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0U3VtbWFyeRIXCg9hY3RpdmVfc2VxdWVuY2UYAiABKAkSNQoJd29ya3NwYWNlGAMgASgLMiIucHJvdGVpbmZvcmdlLnByb2plY3QudjEuV29ya3NwYWNlIoEBChNMaXN0UHJvamVjdHNSZXF1ZXN0EhEKCXBhZ2Vfc2l6ZRgBIAEoBRISCgpwYWdlX3Rva2VuGAIgASgJEg0KBXF1ZXJ5GAMgASgJEjQKBW9yZGVyGAQgASgOMiUucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdE9yZGVyIoEBChRMaXN0UHJvamVjdHNSZXNwb25zZRI5Cghwcm9qZWN0cxgBIAMoCzInLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTdW1tYXJ5EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCRIVCg1xdWVyeV9hcHBsaWVkGAMgASgIIh8KEUdldFByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJIkcKEkdldFByb2plY3RSZXNwb25zZRIxCgdwcm9qZWN0GAEgASgLMiAucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdCJ0ChRDcmVhdGVQcm9qZWN0UmVxdWVzdBIMCgRuYW1lGAEgASgJEhcKD2FjdGl2ZV9zZXF1ZW5jZRgCIAEoCRI1Cgl3b3Jrc3BhY2UYAyABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2UiSgoVQ3JlYXRlUHJvamVjdFJlc3BvbnNlEjEKB3Byb2plY3QYASABKAsyIC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0IroBChRVcGRhdGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRI4ChRleHBlY3RlZF91cGRhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDAoEbmFtZRgDIAEoCRIXCg9hY3RpdmVfc2VxdWVuY2UYBCABKAkSNQoJd29ya3NwYWNlGAUgASgLMiIucHJvdGVpbmZvcmdlLnByb2plY3QudjEuV29ya3NwYWNlIkoKFVVwZGF0ZVByb2plY3RSZXNwb25zZRIxCgdwcm9qZWN0GAEgASgLMiAucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdCJcChREZWxldGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRI4ChRleHBlY3RlZF91cGRhdGVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiFwoVRGVsZXRlUHJvamVjdFJlc3BvbnNlKkkKDVByb2plY3RTdGF0dXMSHgoaUFJPSkVDVF9TVEFUVVNfVU5TUEVDSUZJRUQQABIYChRQUk9KRUNUX1NUQVRVU19EUkFGVBABKl8KDFByb2plY3RPcmRlchIdChlQUk9KRUNUX09SREVSX1VOU1BFQ0lGSUVEEAASGAoUUFJPSkVDVF9PUkRFUl9SRUNFTlQQARIWChJQUk9KRUNUX09SREVSX05BTUUQAjK+BAoOUHJvamVjdFNlcnZpY2UScAoMTGlzdFByb2plY3RzEiwucHJvdGVpbmZvcmdlLnByb2plY3QudjEuTGlzdFByb2plY3RzUmVxdWVzdBotLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkxpc3RQcm9qZWN0c1Jlc3BvbnNlIgOQAgESagoKR2V0UHJvamVjdBIqLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkdldFByb2plY3RSZXF1ZXN0GisucHJvdGVpbmZvcmdlLnByb2plY3QudjEuR2V0UHJvamVjdFJlc3BvbnNlIgOQAgESbgoNQ3JlYXRlUHJvamVjdBItLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkNyZWF0ZVByb2plY3RSZXF1ZXN0Gi4ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQ3JlYXRlUHJvamVjdFJlc3BvbnNlEm4KDVVwZGF0ZVByb2plY3QSLS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5VcGRhdGVQcm9qZWN0UmVxdWVzdBouLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlVwZGF0ZVByb2plY3RSZXNwb25zZRJuCg1EZWxldGVQcm9qZWN0Ei0ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuRGVsZXRlUHJvamVjdFJlcXVlc3QaLi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZWxldGVQcm9qZWN0UmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_timestamp, file_proteinforge_project_v1_workspace]);
 
 /**
  * @generated from message proteinforge.project.v1.ProjectSummary
@@ -48,6 +48,13 @@ export type ProjectSummary = Message<"proteinforge.project.v1.ProjectSummary"> &
    * @generated from field: google.protobuf.Timestamp update_time = 5;
    */
   updateTime?: Timestamp | undefined;
+
+  /**
+   * Optional for compatibility with older servers and stored projects.
+   *
+   * @generated from field: proteinforge.project.v1.ProjectPreview preview = 6;
+   */
+  preview?: ProjectPreview | undefined;
 };
 
 /**
@@ -56,6 +63,158 @@ export type ProjectSummary = Message<"proteinforge.project.v1.ProjectSummary"> &
  */
 export const ProjectSummarySchema: GenMessage<ProjectSummary> = /*@__PURE__*/
   messageDesc(file_proteinforge_project_v1_project_service, 0);
+
+/**
+ * Saved evidence only. An absent result was not calculated or does not match its inputs.
+ *
+ * @generated from message proteinforge.project.v1.ProjectPreview
+ */
+export type ProjectPreview = Message<"proteinforge.project.v1.ProjectPreview"> & {
+  /**
+   * @generated from field: int32 sequence_length = 1;
+   */
+  sequenceLength: number;
+
+  /**
+   * At most 40 residues from the beginning; not a complete sequence representation.
+   *
+   * @generated from field: string sequence_prefix = 2;
+   */
+  sequencePrefix: string;
+
+  /**
+   * @generated from field: proteinforge.project.v1.DescriptorResult descriptors = 3;
+   */
+  descriptors?: DescriptorResult | undefined;
+
+  /**
+   * Present when either comparison input is nonempty, even without a calculated result.
+   *
+   * @generated from field: proteinforge.project.v1.ProjectAlignmentPreview alignment = 4;
+   */
+  alignment?: ProjectAlignmentPreview | undefined;
+
+  /**
+   * @generated from field: proteinforge.project.v1.ProjectSourcePreview source = 5;
+   */
+  source?: ProjectSourcePreview | undefined;
+
+  /**
+   * Nonstandard residues omitted from descriptor calculation.
+   *
+   * @generated from field: int32 excluded = 6;
+   */
+  excluded: number;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.ProjectPreview.
+ * Use `create(ProjectPreviewSchema)` to create a new message.
+ */
+export const ProjectPreviewSchema: GenMessage<ProjectPreview> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 1);
+
+/**
+ * @generated from message proteinforge.project.v1.ProjectAlignmentPreview
+ */
+export type ProjectAlignmentPreview = Message<"proteinforge.project.v1.ProjectAlignmentPreview"> & {
+  /**
+   * @generated from field: int32 first_length = 1;
+   */
+  firstLength: number;
+
+  /**
+   * @generated from field: int32 second_length = 2;
+   */
+  secondLength: number;
+
+  /**
+   * Bounded prefixes, as for the active sequence.
+   *
+   * @generated from field: string first_prefix = 3;
+   */
+  firstPrefix: string;
+
+  /**
+   * @generated from field: string second_prefix = 4;
+   */
+  secondPrefix: string;
+
+  /**
+   * @generated from field: proteinforge.project.v1.SubstitutionMatrix matrix = 5;
+   */
+  matrix: SubstitutionMatrix;
+
+  /**
+   * @generated from field: proteinforge.project.v1.AlignmentMode mode = 6;
+   */
+  mode: AlignmentMode;
+
+  /**
+   * Absent until a matching alignment has been saved.
+   *
+   * @generated from field: proteinforge.project.v1.ProjectAlignmentMetrics result = 7;
+   */
+  result?: ProjectAlignmentMetrics | undefined;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.ProjectAlignmentPreview.
+ * Use `create(ProjectAlignmentPreviewSchema)` to create a new message.
+ */
+export const ProjectAlignmentPreviewSchema: GenMessage<ProjectAlignmentPreview> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 2);
+
+/**
+ * @generated from message proteinforge.project.v1.ProjectAlignmentMetrics
+ */
+export type ProjectAlignmentMetrics = Message<"proteinforge.project.v1.ProjectAlignmentMetrics"> & {
+  /**
+   * @generated from field: int32 identities = 1;
+   */
+  identities: number;
+
+  /**
+   * @generated from field: int32 similarities = 2;
+   */
+  similarities: number;
+
+  /**
+   * @generated from field: int32 columns = 3;
+   */
+  columns: number;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.ProjectAlignmentMetrics.
+ * Use `create(ProjectAlignmentMetricsSchema)` to create a new message.
+ */
+export const ProjectAlignmentMetricsSchema: GenMessage<ProjectAlignmentMetrics> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 3);
+
+/**
+ * Provenance of exactly the saved active sequence, without that sequence.
+ *
+ * @generated from message proteinforge.project.v1.ProjectSourcePreview
+ */
+export type ProjectSourcePreview = Message<"proteinforge.project.v1.ProjectSourcePreview"> & {
+  /**
+   * @generated from field: proteinforge.project.v1.SourceOrigin origin = 1;
+   */
+  origin: SourceOrigin;
+
+  /**
+   * @generated from field: string accession = 2;
+   */
+  accession: string;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.ProjectSourcePreview.
+ * Use `create(ProjectSourcePreviewSchema)` to create a new message.
+ */
+export const ProjectSourcePreviewSchema: GenMessage<ProjectSourcePreview> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 4);
 
 /**
  * @generated from message proteinforge.project.v1.Project
@@ -84,7 +243,7 @@ export type Project = Message<"proteinforge.project.v1.Project"> & {
  * Use `create(ProjectSchema)` to create a new message.
  */
 export const ProjectSchema: GenMessage<Project> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 1);
+  messageDesc(file_proteinforge_project_v1_project_service, 5);
 
 /**
  * @generated from message proteinforge.project.v1.ListProjectsRequest
@@ -103,6 +262,18 @@ export type ListProjectsRequest = Message<"proteinforge.project.v1.ListProjectsR
    * @generated from field: string page_token = 2;
    */
   pageToken: string;
+
+  /**
+   * Literal case-insensitive substring of the name, at most 120 characters.
+   *
+   * @generated from field: string query = 3;
+   */
+  query: string;
+
+  /**
+   * @generated from field: proteinforge.project.v1.ProjectOrder order = 4;
+   */
+  order: ProjectOrder;
 };
 
 /**
@@ -110,7 +281,7 @@ export type ListProjectsRequest = Message<"proteinforge.project.v1.ListProjectsR
  * Use `create(ListProjectsRequestSchema)` to create a new message.
  */
 export const ListProjectsRequestSchema: GenMessage<ListProjectsRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 2);
+  messageDesc(file_proteinforge_project_v1_project_service, 6);
 
 /**
  * @generated from message proteinforge.project.v1.ListProjectsResponse
@@ -127,6 +298,14 @@ export type ListProjectsResponse = Message<"proteinforge.project.v1.ListProjects
    * @generated from field: string next_page_token = 2;
    */
   nextPageToken: string;
+
+  /**
+   * True when query/order were applied to the whole collection. Older servers omit this;
+   * clients must not mistake an unfiltered legacy response for successful search.
+   *
+   * @generated from field: bool query_applied = 3;
+   */
+  queryApplied: boolean;
 };
 
 /**
@@ -134,7 +313,7 @@ export type ListProjectsResponse = Message<"proteinforge.project.v1.ListProjects
  * Use `create(ListProjectsResponseSchema)` to create a new message.
  */
 export const ListProjectsResponseSchema: GenMessage<ListProjectsResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 3);
+  messageDesc(file_proteinforge_project_v1_project_service, 7);
 
 /**
  * @generated from message proteinforge.project.v1.GetProjectRequest
@@ -151,7 +330,7 @@ export type GetProjectRequest = Message<"proteinforge.project.v1.GetProjectReque
  * Use `create(GetProjectRequestSchema)` to create a new message.
  */
 export const GetProjectRequestSchema: GenMessage<GetProjectRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 4);
+  messageDesc(file_proteinforge_project_v1_project_service, 8);
 
 /**
  * @generated from message proteinforge.project.v1.GetProjectResponse
@@ -168,7 +347,7 @@ export type GetProjectResponse = Message<"proteinforge.project.v1.GetProjectResp
  * Use `create(GetProjectResponseSchema)` to create a new message.
  */
 export const GetProjectResponseSchema: GenMessage<GetProjectResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 5);
+  messageDesc(file_proteinforge_project_v1_project_service, 9);
 
 /**
  * @generated from message proteinforge.project.v1.CreateProjectRequest
@@ -195,7 +374,7 @@ export type CreateProjectRequest = Message<"proteinforge.project.v1.CreateProjec
  * Use `create(CreateProjectRequestSchema)` to create a new message.
  */
 export const CreateProjectRequestSchema: GenMessage<CreateProjectRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 6);
+  messageDesc(file_proteinforge_project_v1_project_service, 10);
 
 /**
  * @generated from message proteinforge.project.v1.CreateProjectResponse
@@ -212,7 +391,7 @@ export type CreateProjectResponse = Message<"proteinforge.project.v1.CreateProje
  * Use `create(CreateProjectResponseSchema)` to create a new message.
  */
 export const CreateProjectResponseSchema: GenMessage<CreateProjectResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 7);
+  messageDesc(file_proteinforge_project_v1_project_service, 11);
 
 /**
  * @generated from message proteinforge.project.v1.UpdateProjectRequest
@@ -251,7 +430,7 @@ export type UpdateProjectRequest = Message<"proteinforge.project.v1.UpdateProjec
  * Use `create(UpdateProjectRequestSchema)` to create a new message.
  */
 export const UpdateProjectRequestSchema: GenMessage<UpdateProjectRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 8);
+  messageDesc(file_proteinforge_project_v1_project_service, 12);
 
 /**
  * @generated from message proteinforge.project.v1.UpdateProjectResponse
@@ -268,7 +447,7 @@ export type UpdateProjectResponse = Message<"proteinforge.project.v1.UpdateProje
  * Use `create(UpdateProjectResponseSchema)` to create a new message.
  */
 export const UpdateProjectResponseSchema: GenMessage<UpdateProjectResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 9);
+  messageDesc(file_proteinforge_project_v1_project_service, 13);
 
 /**
  * @generated from message proteinforge.project.v1.DeleteProjectRequest
@@ -290,7 +469,7 @@ export type DeleteProjectRequest = Message<"proteinforge.project.v1.DeleteProjec
  * Use `create(DeleteProjectRequestSchema)` to create a new message.
  */
 export const DeleteProjectRequestSchema: GenMessage<DeleteProjectRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 10);
+  messageDesc(file_proteinforge_project_v1_project_service, 14);
 
 /**
  * @generated from message proteinforge.project.v1.DeleteProjectResponse
@@ -303,7 +482,7 @@ export type DeleteProjectResponse = Message<"proteinforge.project.v1.DeleteProje
  * Use `create(DeleteProjectResponseSchema)` to create a new message.
  */
 export const DeleteProjectResponseSchema: GenMessage<DeleteProjectResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_project_service, 11);
+  messageDesc(file_proteinforge_project_v1_project_service, 15);
 
 /**
  * @generated from enum proteinforge.project.v1.ProjectStatus
@@ -327,6 +506,36 @@ export const ProjectStatusSchema: GenEnum<ProjectStatus> = /*@__PURE__*/
   enumDesc(file_proteinforge_project_v1_project_service, 0);
 
 /**
+ * @generated from enum proteinforge.project.v1.ProjectOrder
+ */
+export enum ProjectOrder {
+  /**
+   * @generated from enum value: PROJECT_ORDER_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Most recently updated first, then UUID descending.
+   *
+   * @generated from enum value: PROJECT_ORDER_RECENT = 1;
+   */
+  RECENT = 1,
+
+  /**
+   * Case-insensitive name ascending, then UUID ascending.
+   *
+   * @generated from enum value: PROJECT_ORDER_NAME = 2;
+   */
+  NAME = 2,
+}
+
+/**
+ * Describes the enum proteinforge.project.v1.ProjectOrder.
+ */
+export const ProjectOrderSchema: GenEnum<ProjectOrder> = /*@__PURE__*/
+  enumDesc(file_proteinforge_project_v1_project_service, 1);
+
+/**
  * Projects owned by the person behind the bearer token. Supabase receives the user's own
  * token, so PostgreSQL row-level security decides ownership; another owner's project is
  * indistinguishable from a missing one (NOT_FOUND).
@@ -344,7 +553,7 @@ export const ProjectStatusSchema: GenEnum<ProjectStatus> = /*@__PURE__*/
  */
 export const ProjectService: GenService<{
   /**
-   * Most recently updated first; summaries carry no sequences.
+   * Search all owned projects. Previews carry bounded prefixes, never full snapshots.
    *
    * @generated from rpc proteinforge.project.v1.ProjectService.ListProjects
    */

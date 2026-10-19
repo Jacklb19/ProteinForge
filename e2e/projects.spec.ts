@@ -52,7 +52,7 @@ async function mockProjects(page: Page, initial: Project | null = null) {
   return { writes, setConflict: () => { conflict = true; }, current: () => project };
 }
 
-/** Project list of Perfil. */
+/** Dedicated project collection. */
 function projectLibrary(page: Page): Locator {
   return page.getByRole('region', { name: spanish['projects.title'] });
 }
@@ -79,28 +79,34 @@ test('owned project saves current calculations and resumes after reload', async 
   await expect((await openProjectPanel(page)).getByRole('textbox', { name: spanish['projects.name'] })).toHaveValue('Estudio inicial');
 });
 
-test('the profile lists owned projects, renames and deletes them deliberately', async ({ page }) => {
+test('the profile links to the project collection, which renames and deletes deliberately', async ({ page }) => {
   const data = await mockProjects(page, { ...saved, name: 'Estudio inicial' });
   await page.goto(ROUTES.analyze);
   await page.getByRole('link', { name: message('shell.account', { email: TEST_ACCOUNT.email }) }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
+  await expect(page.locator('.project-grid')).toHaveCount(0);
+  await page.getByRole('link', { name: spanish['projects.listLink'] }).click();
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.projects}$`));
   const library = projectLibrary(page);
-  await expect(library.getByRole('heading', { level: 2, name: spanish['projects.title'] })).toBeVisible();
-  await expect(library.locator('.project-list')).toContainText('Estudio inicial');
+  await expect(page.getByRole('heading', { level: 1, name: spanish['projects.title'] })).toBeVisible();
+  await expect(library.locator('.project-grid')).toContainText('Estudio inicial');
+  await library.getByLabel(message('projects.actionsNamed', { name: 'Estudio inicial' })).click();
   await library.getByRole('button', { name: message('projects.renameNamed', { name: 'Estudio inicial' }) }).click();
-  await library.getByRole('textbox', { name: spanish['projects.name'] }).fill('Estudio revisado');
-  await library.getByRole('button', { name: spanish['projects.confirmRename'] }).click();
-  await expect(library.locator('.project-list')).toContainText('Estudio revisado');
+  await page.getByRole('dialog').getByRole('textbox', { name: spanish['projects.name'] }).fill('Estudio revisado');
+  await page.getByRole('dialog').getByRole('button', { name: spanish['projects.confirmRename'] }).click();
+  await expect(library.locator('.project-grid')).toContainText('Estudio revisado');
   expect(data.writes.at(-1)?.name).toBe('Estudio revisado');
   expect(data.writes.at(-1)?.activeSequence).toBe(saved.activeSequence);
   await library.getByRole('button', { name: spanish['projects.refresh'], exact: true }).click();
-  await expect(library.locator('.project-list')).toContainText('Estudio revisado');
+  await expect(library.locator('.project-grid')).toContainText('Estudio revisado');
+  await library.getByLabel(message('projects.actionsNamed', { name: 'Estudio revisado' })).click();
   await library.getByRole('button', { name: message('projects.deleteNamed', { name: 'Estudio revisado' }) }).click();
   await expect(page.getByText(spanish['projects.deleteWarning'])).toBeVisible();
-  await library.getByRole('button', { name: spanish['projects.cancel'], exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: spanish['projects.cancel'], exact: true }).click();
   expect(data.current()).not.toBeNull();
+  await library.getByLabel(message('projects.actionsNamed', { name: 'Estudio revisado' })).click();
   await library.getByRole('button', { name: message('projects.deleteNamed', { name: 'Estudio revisado' }) }).click();
-  await library.getByRole('button', { name: spanish['projects.confirmDelete'], exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: spanish['projects.confirmDelete'], exact: true }).click();
   await expect(library.locator('.project-feedback')).toContainText(spanish['projects.deleted']);
   await expect(page.getByText(spanish['projects.emptyTitle'])).toBeVisible();
   expect(data.current()).toBeNull();
@@ -108,11 +114,11 @@ test('the profile lists owned projects, renames and deletes them deliberately', 
 
 test('a conflict keeps edits, and opening a project restores profile and comparison parameters', async ({ page }) => {
   const data = await mockProjects(page, saved);
-  await page.goto(ROUTES.profile);
+  await page.goto(ROUTES.projects);
   await projectLibrary(page).getByRole('button', { name: message('projects.openNamed', { name: saved.name }) }).click();
   // The visit already holds the bundled example, so replacing it is confirmed first.
   await expect(page.getByText(spanish['projects.replaceWarning'])).toBeVisible();
-  await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.projects}$`));
   await page.getByRole('button', { name: spanish['projects.confirmOpen'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
   await expect(await openSequenceEditor(page)).toHaveValue(saved.activeSequence);
@@ -143,8 +149,8 @@ for (const width of [360, 1280]) {
     await mockProjects(page, saved);
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto(ROUTES.profile);
-    await expect(page.locator('.project-list')).toContainText(saved.name);
+    await page.goto(ROUTES.projects);
+    await expect(page.locator('.project-grid')).toContainText(saved.name);
     for (const theme of ['light', 'dark']) {
       await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
       await assertFits(page);

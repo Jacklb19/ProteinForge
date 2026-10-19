@@ -8,6 +8,7 @@ export const ROUTES = {
   generate: '/generate',
   library: '/library',
   profile: '/profile',
+  projects: '/projects',
   signIn: '/sign-in',
   signUp: '/sign-up',
   recover: '/recover',
@@ -19,12 +20,13 @@ export const ROUTES = {
 } as const;
 
 /** The same destinations on every page, in display order. */
-export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; end: boolean }[] = [
+export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; end: boolean; signedInOnly?: boolean }[] = [
   { path: ROUTES.home, labelKey: 'nav.home', end: true },
   { path: ROUTES.analyze, labelKey: 'nav.analyze', end: false },
   { path: ROUTES.alignment, labelKey: 'nav.alignment', end: false },
   { path: ROUTES.generate, labelKey: 'nav.generate', end: false },
   { path: ROUTES.library, labelKey: 'nav.library', end: false },
+  { path: ROUTES.projects, labelKey: 'nav.projects', end: false, signedInOnly: true },
 ];
 
 /** Former addresses and where they lead now. */

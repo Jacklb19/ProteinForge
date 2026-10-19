@@ -11,13 +11,14 @@ import { SCORING_SUBSTITUTIONS } from '../alignment/config';
 import { createProjectApi } from './projectApi';
 import type { ProjectApi } from './projectApi';
 import type { Project, ProjectSummary } from './contracts';
-import { PROJECT_POINTER_PREFIX } from './config';
+import { DEFAULT_PROJECT_QUERY, PROJECT_POINTER_PREFIX } from './config';
+import type { ProjectQuery } from './config';
 import { ProjectContext } from './projectContext';
 import { captureWorkspace, workspaceInputKey } from './snapshot';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 
-interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | null }
-const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, busy: false, error: null, notice: null };
+interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null }
+const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, listing: DEFAULT_PROJECT_QUERY, busy: false, error: null, notice: null };
 
 function remember(owner: string, id: string | null): void {
   try {
@@ -121,40 +122,69 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   }
 
   const dirty = Boolean(current.active && workspaceInputKey(sequence.text, alignment, sequence.profileWindow) !== workspaceInputKey(current.active.activeSequence, current.active.workspace.alignment, current.active.workspace.profileWindow));
+  async function relist(service: ProjectApi, signal: AbortSignal): Promise<void> {
+    try {
+      const listing = await service.list(token, '', signal, current.listing);
+      if (!signal.aborted) setState(value => ({ ...value, items: listing.items, nextPageToken: listing.nextPageToken }));
+    } catch (error) {
+      // A completed write stays completed even when refreshing the list fails. Never invite a blind create retry.
+      if (!signal.aborted) setState(value => ({ ...value, error: error instanceof ApiError ? error : new ApiError('unknown') }));
+    }
+  }
   const value = {
     enabled: client !== null, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
-    busy: current.busy, error: current.error, notice: current.notice, dirty,
-    refresh(more = false) { return run(async (service, signal) => {
-      const listing = await service.list(token, more ? current.nextPageToken ?? '' : '', signal);
+    busy: current.busy, error: current.error, notice: current.notice, dirty, listing: current.listing,
+    refresh(more = false, query: ProjectQuery = current.listing) { return run(async (service, signal) => {
+      const selected = more ? current.listing : { ...query, query: query.query.trim() };
+      if (!more) setState(value => ({ ...value, items: [], nextPageToken: null, listing: selected }));
+      const listing = await service.list(token, more ? current.nextPageToken ?? '' : '', signal, selected);
       if (signal.aborted) return;
       setState((value) => ({ ...value, items: more ? [...value.items, ...listing.items.filter((item) => !value.items.some((existing) => item.id === existing.id))] : listing.items, nextPageToken: listing.nextPageToken }));
     }); },
-    open(id: string) { return run(async (service, signal) => {
+    async open(id: string): Promise<Project | null> {
+      let opened: Project | null = null;
+      const done = await run(async (service, signal) => {
       const project = await service.open(id, token, signal);
       if (signal.aborted) return;
       restore(project); if (user) remember(user, project.id);
+      opened = project;
       setState((value) => ({ ...value, active: project, notice: 'opened' }));
-    }); },
+      });
+      return done ? opened : null;
+    },
     save(name: string, descriptors?: DescriptorState, copy = false) { return run(async (service, signal) => {
       const snapshot = captureWorkspace(sequence.text, alignment, sequence.profileWindow, descriptors, current.active, sequence.source);
       const project = await service.save({ ...snapshot, name: name.trim() }, token, copy ? undefined : current.active ?? undefined, signal);
       if (signal.aborted) return;
       if (user) remember(user, project.id);
       setState((value) => ({ ...value, active: project, notice: 'saved', items: [project, ...value.items.filter((item) => item.id !== project.id)] }));
+      await relist(service, signal);
     }); },
     rename(project: ProjectSummary, name: string) { return run(async (service, signal) => {
       const stored = await service.open(project.id, token, signal);
+      signal.throwIfAborted();
       if (stored.updatedAt !== project.updatedAt) throw new ApiError('conflict');
       if (current.active?.id === project.id && current.active.updatedAt !== stored.updatedAt) throw new ApiError('conflict');
       const updated = await service.save({ name: name.trim(), activeSequence: stored.activeSequence, workspace: stored.workspace }, token, project, signal);
       if (signal.aborted) return;
       setState((value) => ({ ...value, active: value.active?.id === project.id ? { ...value.active, name: updated.name, updatedAt: updated.updatedAt } : value.active, items: value.items.map((item) => item.id === project.id ? updated : item), notice: 'saved' }));
+      await relist(service, signal);
+    }); },
+    duplicate(project: ProjectSummary, name: string) { return run(async (service, signal) => {
+      const stored = await service.open(project.id, token, signal);
+      if (signal.aborted) return;
+      if (stored.updatedAt !== project.updatedAt) throw new ApiError('conflict');
+      await service.save({ name: name.trim(), activeSequence: stored.activeSequence, workspace: stored.workspace }, token, undefined, signal);
+      signal.throwIfAborted();
+      setState(value => ({ ...value, notice: 'duplicated' }));
+      await relist(service, signal);
     }); },
     remove(project: ProjectSummary) { return run(async (service, signal) => {
       await service.remove(project.id, project.updatedAt, token, signal);
       if (signal.aborted) return;
       if (current.active?.id === project.id && user) remember(user, null);
       setState((value) => ({ ...value, active: value.active?.id === project.id ? null : value.active, items: value.items.filter((item) => item.id !== project.id), notice: 'deleted' }));
+      await relist(service, signal);
     }); },
     detach() { if (locked.current) return; if (user) remember(user, null); setState((value) => ({ ...value, active: null, error: null, notice: null })); },
   };

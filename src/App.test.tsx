@@ -22,8 +22,8 @@ describe('App', () => {
 
     const navigation = screen.getByRole('navigation', { name: spanish['nav.main'] });
     const links = within(navigation).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual(NAVIGATION_ITEMS.map((item) => spanish[item.labelKey]));
-    expect(links.map((link) => link.getAttribute('href'))).toEqual(NAVIGATION_ITEMS.map((item) => item.path));
+    expect(links.map((link) => link.textContent)).toEqual(NAVIGATION_ITEMS.filter(item => !item.signedInOnly).map((item) => spanish[item.labelKey]));
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(NAVIGATION_ITEMS.filter(item => !item.signedInOnly).map((item) => item.path));
 
     expect(screen.getByRole('link', { name: spanish['landing.analyzeAction'] })).toHaveAttribute('href', ROUTES.analyze);
     expect(screen.getByRole('link', { name: spanish['landing.compareAction'] })).toHaveAttribute('href', ROUTES.alignment);
