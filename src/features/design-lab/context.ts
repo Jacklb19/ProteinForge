@@ -10,6 +10,10 @@ export interface LabState {
   selectVariant: (id: string) => void; selectResidue: (index: number) => void;
   substitute: (aa: string) => void; protect: () => void; undo: () => void; restore: () => void;
   save: () => void;
+  revision: number;
+  document: () => Promise<Uint8Array<ArrayBuffer> | null>;
+  openDocument: (bytes: ArrayBuffer, sha256: string) => Promise<number | null>;
+  markSaved: (fingerprint: string) => void;
 }
 export const LabContext = createContext<LabState | null>(null);
 export function useLab(): LabState { const state=useContext(LabContext); if(!state)throw new Error('Missing laboratory provider'); return state; }

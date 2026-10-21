@@ -26,7 +26,7 @@ export interface LabImportResult {
 export interface LabProgress { completed: number; total: number }
 export type LabRequest =
   | { id: number; type: 'example' }
-  | { id: number; type: 'import'; bytes: ArrayBuffer }
+  | { id: number; type: 'import'; bytes: ArrayBuffer; expectedSha256?: string }
   | { id: number; type: 'export'; archive: ArrayBuffer | null; state: LabSavedState };
 export type LabResponse =
   | { id: number; type: 'progress'; progress: LabProgress }

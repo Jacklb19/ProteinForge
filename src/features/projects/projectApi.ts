@@ -1,4 +1,5 @@
-import { ProjectOrder, ProjectService } from '../../gen/proteinforge/project/v1/project_service_pb';
+import { ProjectOrder, ProjectService, CreateProjectRequestSchema, UpdateProjectRequestSchema } from '../../gen/proteinforge/project/v1/project_service_pb';
+import { create, toBinary } from '@bufbuild/protobuf';
 import { ApiError, validated } from '../api/apiClient';
 import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { timestampFromIso } from '../api/timestamps';
@@ -31,6 +32,8 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
     save: async (payload: ProjectWrite, token: string, active?: { id: string; updatedAt: string }, signal?: AbortSignal): Promise<Project> => {
       const options = callOptions(signal, session(token));
       const fields = { name: payload.name, activeSequence: payload.activeSequence, workspace: workspaceMessage(payload.workspace) };
+      const length=active?toBinary(UpdateProjectRequestSchema,create(UpdateProjectRequestSchema,{...fields,id:active.id,expectedUpdateTime:timestampFromIso(active.updatedAt)})).byteLength:toBinary(CreateProjectRequestSchema,create(CreateProjectRequestSchema,fields)).byteLength;
+      if(length>2_000_000)throw new ApiError(payload.workspace.laboratory?'laboratory-size':'validation');
       const { project } = await rpc(async () => active
         ? client.updateProject({ ...fields, id: active.id, expectedUpdateTime: timestampFromIso(active.updatedAt) }, options)
         : client.createProject(fields, options));

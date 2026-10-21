@@ -1,5 +1,7 @@
 # Laboratorio didáctico de diseño de proteínas
 
+Cierre local del 21 oct: [persistencia del laboratorio en Proyectos](laboratory-projects.md) aprobada e implementada en ambos repositorios, con pruebas de API y PostgreSQL real local. Publicación y migración remota pendientes de autorización específica. Las etapas siguientes conservan el historial.
+
 Acuerdo inicial del 12 de octubre de 2026. [Estado actual](plan-desarrollo.md), [generador](candidates.md) y [visor](references.md). Los apartados inferiores conservan el plan y consultas originales; consultar primero las actualizaciones.
 
 Continuación del 21 oct: [restricciones ejecutadas en Colab y verificadas](design-lab-constraints.md). El laboratorio exporta JSON v2 y cuaderno, importa el resultado condicionado y conserva sus protecciones. Se presenta la [propuesta de guardado en Proyectos](laboratory-projects-proposal.md), todavía sin implementar contratos/migraciones de nube. El resto de la actualización inicial del día se conserva como historia.

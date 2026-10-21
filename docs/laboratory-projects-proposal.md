@@ -1,6 +1,6 @@
 # Guardar el laboratorio en Proyectos · propuesta
 
-Preparada el 21 oct 2026 después del [recorrido condicionado real](design-lab-constraints.md). Aprobada explícitamente por el propietario el 21 oct 2026: «Sí, implementar esta propuesta». Autoriza implementación y verificación locales de ambos repositorios; excluye publicación y migraciones remotas. Implementación en curso.
+Preparada el 21 oct 2026 después del [recorrido condicionado real](design-lab-constraints.md). Aprobada explícitamente por el propietario el 21 oct 2026: «Sí, implementar esta propuesta». Autoriza implementación y verificación locales de ambos repositorios; excluye publicación y migraciones remotas. Implementación local terminada; [contrato, comprobaciones y activación pendiente](laboratory-projects.md).
 
 ## Experiencia propuesta
 

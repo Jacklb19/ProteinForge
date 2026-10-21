@@ -1,6 +1,6 @@
 import { DEFAULT_EXAMPLE } from '../editor/examples';
 import { EXAMPLE_ALIGNMENT_INPUT } from '../alignment/examples';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../auth/authContext';
 import { readApiBaseUrl } from '../api/config';
@@ -16,6 +16,9 @@ import type { ProjectQuery } from './config';
 import { ProjectContext } from './projectContext';
 import { captureWorkspace, workspaceInputKey } from './snapshot';
 import type { DescriptorState } from '../descriptors/useDescriptors';
+import { LabContext } from '../design-lab/context';
+import { draftFingerprint } from '../design-lab/state';
+import { sha256 } from '../design-lab/zip';
 
 interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null }
 const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, listing: DEFAULT_PROJECT_QUERY, busy: false, error: null, notice: null };
@@ -33,6 +36,10 @@ function lastProject(owner: string): string | null {
 /** Holds no private sequence in browser storage. On reload, retrieves the last project with the user's JWT. */
 export function ProjectProvider({ children, api }: { children: ReactNode; api?: ProjectApi | null }): React.JSX.Element {
   const auth = useAuth();
+  const lab = useContext(LabContext);
+  const [labBinding,setLabBinding]=useState<{owner:string;project:Project;revision:number}|null>(null);
+  const labCurrent=useRef(lab);
+  useEffect(()=>{labCurrent.current=lab;},[lab]);
   const sequence = useSequenceDraft();
   const alignment = useAlignmentDraft();
   const { setText, setProfileWindow, setSource } = sequence;
@@ -46,6 +53,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const generation = useRef(0);
   const locked = useRef(false);
   const current = state.owner === user ? state : EMPTY;
+  const laboratory = labBinding?.owner===user && labBinding.revision===lab?.revision ? labBinding.project : null;
 
   const restore = useCallback((project: Project) => {
     setText(project.activeSequence);
@@ -132,6 +140,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     }
   }
   const value = {
+    laboratory,
     enabled: client !== null, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
     busy: current.busy, error: current.error, notice: current.notice, dirty, listing: current.listing,
     refresh(more = false, query: ProjectQuery = current.listing) { return run(async (service, signal) => {
@@ -141,11 +150,23 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       if (signal.aborted) return;
       setState((value) => ({ ...value, items: more ? [...value.items, ...listing.items.filter((item) => !value.items.some((existing) => item.id === existing.id))] : listing.items, nextPageToken: listing.nextPageToken }));
     }); },
-    async open(id: string): Promise<Project | null> {
+    async open(id: string, destination?: 'laboratory'): Promise<Project | null> {
       let opened: Project | null = null;
       const done = await run(async (service, signal) => {
       const project = await service.open(id, token, signal);
       if (signal.aborted) return;
+      if(destination==='laboratory'){
+        const snapshot=project.workspace.laboratory;
+        if(!snapshot || !lab)throw new ApiError('validation');
+        signal.addEventListener('abort',lab.cancel,{once:true});
+        let revision:number|null;
+        try{revision=await lab.openDocument(new TextEncoder().encode(snapshot.documentJson).buffer,snapshot.documentSha256);}
+        finally{signal.removeEventListener('abort',lab.cancel);}
+        signal.throwIfAborted();
+        if(revision===null)throw new ApiError('validation');
+        if(user)setLabBinding({owner:user,project,revision}); opened=project;
+        setState(value=>({...value,notice:'opened'})); return;
+      }
       restore(project); if (user) remember(user, project.id);
       opened = project;
       setState((value) => ({ ...value, active: project, notice: 'opened' }));
@@ -160,6 +181,21 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       setState((value) => ({ ...value, active: project, notice: 'saved', items: [project, ...value.items.filter((item) => item.id !== project.id)] }));
       await relist(service, signal);
     }); },
+    saveLaboratory(name:string,copy=false){return run(async(service,signal)=>{
+      if(!lab?.dataset)throw new ApiError('validation');
+      const fingerprint=draftFingerprint(lab.drafts), revision=lab.revision;
+      const bytes=await lab.document(); signal.throwIfAborted();
+      if(!bytes)throw new ApiError('validation');
+      if(bytes.byteLength>1_000_000)throw new ApiError('laboratory-size');
+      const laboratory={schemaVersion:1 as const,documentJson:new TextDecoder().decode(bytes),documentSha256:await sha256(bytes)};
+      const base=value.laboratory;
+      const workspace={...(base?.workspace ?? {profileWindow:9 as const,descriptors:null,source:null,alignment:{first:'',second:'',matrix:'BLOSUM62' as const,mode:'global' as const,result:null}}),schemaVersion:2 as const,laboratory};
+      const project=await service.save({name:name.trim(),activeSequence:base?.activeSequence ?? lab.drafts[lab.activeId]?.sequence ?? '',workspace},token,copy?undefined:base??undefined,signal);
+      signal.throwIfAborted();
+      if(project.workspace.laboratory?.documentSha256!==laboratory.documentSha256 || project.workspace.laboratory.documentJson!==laboratory.documentJson)throw new ApiError('invalid-response');
+      if(labCurrent.current?.revision===revision){if(user)setLabBinding({owner:user,project,revision});labCurrent.current.markSaved(fingerprint);}
+      setState(v=>({...v,notice:'saved'})); await relist(service,signal);
+    });},
     rename(project: ProjectSummary, name: string) { return run(async (service, signal) => {
       const stored = await service.open(project.id, token, signal);
       signal.throwIfAborted();
@@ -167,6 +203,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       if (current.active?.id === project.id && current.active.updatedAt !== stored.updatedAt) throw new ApiError('conflict');
       const updated = await service.save({ name: name.trim(), activeSequence: stored.activeSequence, workspace: stored.workspace }, token, project, signal);
       if (signal.aborted) return;
+      setLabBinding(binding=>binding?.project.id===updated.id?{...binding,project:updated}:binding);
       setState((value) => ({ ...value, active: value.active?.id === project.id ? { ...value.active, name: updated.name, updatedAt: updated.updatedAt } : value.active, items: value.items.map((item) => item.id === project.id ? updated : item), notice: 'saved' }));
       await relist(service, signal);
     }); },
@@ -183,6 +220,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       await service.remove(project.id, project.updatedAt, token, signal);
       if (signal.aborted) return;
       if (current.active?.id === project.id && user) remember(user, null);
+      setLabBinding(binding=>binding?.project.id===project.id?null:binding);
       setState((value) => ({ ...value, active: value.active?.id === project.id ? null : value.active, items: value.items.filter((item) => item.id !== project.id), notice: 'deleted' }));
       await relist(service, signal);
     }); },

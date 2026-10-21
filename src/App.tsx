@@ -247,7 +247,7 @@ export function App(): React.JSX.Element {
         <SequenceDraftProvider initial={DEFAULT_EXAMPLE}>
           <AlignmentDraftProvider initial={EXAMPLE_ALIGNMENT_DRAFT}>
             <BrowserRouter>
-              <ProjectProvider><GeneratorProvider><LabProvider><ApplicationRoutes /></LabProvider></GeneratorProvider></ProjectProvider>
+              <LabProvider><ProjectProvider><GeneratorProvider><ApplicationRoutes /></GeneratorProvider></ProjectProvider></LabProvider>
             </BrowserRouter>
           </AlignmentDraftProvider>
         </SequenceDraftProvider>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
@@ -12,10 +12,12 @@ import { authErrorKey } from './errors';
 import { PasswordField, TextField } from './fields';
 import { fieldErrors, signInSchema } from './validation';
 import type { FieldErrors } from './validation';
+import { LabContext } from '../design-lab/context';
 
 export function SignInPage(): React.JSX.Element {
   const { t } = useTranslation();
   const auth = useAuth();
+  const lab=useContext(LabContext);
   const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,7 +45,7 @@ export function SignInPage(): React.JSX.Element {
     <AuthFrame
       title={t('auth.signInTitle')}
       intro={t('auth.signInIntro')}
-      footer={<><span>{t('auth.noAccount')}</span><Link className="inline-link" to={ROUTES.signUp}>{t('auth.signUpAction')}</Link></>}
+      footer={<><span>{t('auth.noAccount')}</span><Link className="inline-link" state={{from:destinationAfterSignIn(location.state)}} to={ROUTES.signUp}>{t('auth.signUpAction')}</Link></>}
     >
       <form className="auth-form" noValidate onSubmit={submit}>
         <TextField id="sign-in-email" type="email" label={t('auth.email')} value={email} onChange={setEmail} autoComplete="email" errorKey={errors.email} disabled={disabled} />
@@ -60,6 +62,7 @@ export function SignInPage(): React.JSX.Element {
       </form>
       {auth.status !== 'disabled' && OAUTH_PROVIDERS.length > 0 && (
         <div className="auth-providers">
+          {lab?.dataset && <div><p id="oauth-lab-help" className="field-help">{t('lab.oauthHelp')}</p><button type="button" className="button button-secondary" disabled={lab.status==='loading'||lab.status==='exporting'} onClick={lab.save}>{t('lab.saveFile')}</button></div>}
           <span className="auth-divider" aria-hidden="true">{t('auth.or')}</span>
           {OAUTH_PROVIDERS.map((provider) => {
             const url = auth.authorizeUrl(provider.id);

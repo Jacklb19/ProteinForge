@@ -23,7 +23,7 @@ const saved: Project = { id: ID, name: 'Insulina', activeSequence: 'ACDEFGHIKLMN
 /** Domain project as the messages the API sends. */
 function projectMessage(project: Project) {
   return {
-    summary: { id: project.id, name: project.name, status: ProjectStatus.DRAFT, createTime: timestampFromIso(project.createdAt), updateTime: timestampFromIso(project.updatedAt) },
+    summary: { id: project.id, name: project.name, status: ProjectStatus.DRAFT, createTime: timestampFromIso(project.createdAt), updateTime: timestampFromIso(project.updatedAt), ...(project.workspace.laboratory ? {preview:{sequenceLength:project.activeSequence.length,sequencePrefix:project.activeSequence.slice(0,40),hasLaboratory:true,laboratoryVariants:Object.keys((JSON.parse(project.workspace.laboratory.documentJson) as {state:{drafts:object}}).state.drafts).length}}:{}) },
     activeSequence: project.activeSequence, workspace: workspaceMessage(project.workspace),
   };
 }
@@ -49,7 +49,7 @@ async function mockProjects(page: Page, initial: Project | null = null) {
     project = { ...saved, ...write, updatedAt: `2026-10-12T08:00:${String(++version).padStart(2, '0')}.123456Z` };
     return fulfillRpc(route, update ? UpdateProjectResponseSchema : CreateProjectResponseSchema, { project: projectMessage(project) });
   });
-  return { writes, setConflict: () => { conflict = true; }, current: () => project };
+  return { writes, setConflict: () => { conflict = true; }, clearConflict:()=>{conflict=false;}, corrupt:()=>{if(project?.workspace.laboratory)project={...project,workspace:{...project.workspace,laboratory:{...project.workspace.laboratory,documentSha256:'0'.repeat(64)}}};}, current: () => project };
 }
 
 /** Dedicated project collection. */
@@ -182,3 +182,100 @@ for (const width of [360, 1280]) {
     }
   });
 }
+
+test('laboratory projects keep drafts, conflicts, atomic imports and independent analysis binding', async ({ page }) => {
+  const api=await mockProjects(page,saved);
+  // The analysis editor already belongs to a different project.
+  await page.addInitScript(({prefix,user,id})=>{localStorage.setItem(prefix+user,id);},{prefix:PROJECT_POINTER_PREFIX,user:USER,id:ID});
+  await page.goto(ROUTES.laboratory);
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
+  await page.getByRole('button',{name:spanish['lab.protect'],exact:true}).click();
+  await page.getByRole('button',{name:spanish['lab.saveProject'],exact:true}).click();
+  let dialog=page.getByRole('dialog');
+  await expect(dialog.getByRole('button',{name:spanish['projects.create'],exact:true})).toBeVisible();
+  await dialog.getByLabel(spanish['projects.name']).fill('Laboratorio guardado');
+  await dialog.getByRole('button',{name:spanish['projects.create'],exact:true}).click();
+  await expect(dialog).toHaveCount(0);
+  expect(api.writes).toHaveLength(1);
+  const lab=api.current()?.workspace.laboratory;
+  expect(lab).toBeTruthy();
+  const {createHash}=await import('node:crypto');
+  expect(createHash('sha256').update(lab?.documentJson??'').digest('hex')).toBe(lab?.documentSha256);
+  expect(api.writes[0]?.workspace.schemaVersion).toBe(2);
+  const document=JSON.parse(lab?.documentJson??'{}') as {state:{activeId:string;selected:number;drafts:Record<string,{sequence:string;protectedPositions:number[]}>}};
+  expect(Object.keys(document.state.drafts)).toHaveLength(3);
+  expect(document.state.drafts[document.state.activeId].protectedPositions).toEqual([0]);
+  await page.getByRole('button',{name:spanish['lab.unprotect'],exact:true}).click();
+  await page.getByRole('combobox',{name:spanish['lab.replaceWith']}).selectOption('A');
+  await page.getByRole('button',{name:spanish['lab.applyReplacement'],exact:true}).click();
+  api.setConflict();
+  await page.getByRole('button',{name:spanish['lab.saveProject'],exact:true}).click();
+  dialog=page.getByRole('dialog');
+  await dialog.getByRole('button',{name:spanish['projects.update'],exact:true}).click();
+  await expect(dialog.getByText(spanish['projects.conflict'],{exact:false})).toBeVisible();
+  await expect(dialog.getByRole('button',{name:spanish['projects.saveCopy'],exact:true})).toBeEnabled();
+  api.clearConflict();
+  await dialog.getByRole('button',{name:spanish['projects.saveCopy'],exact:true}).click();
+  await expect(dialog).toHaveCount(0);
+  // A failed import keeps the current project binding and its drafts.
+  await page.locator('input[type=file]').setInputFiles({name:'corrupt.json',mimeType:'application/json',buffer:Buffer.from('{}')});
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.getByRole('button',{name:spanish['lab.saveProject'],exact:true}).click();
+  await expect(page.getByRole('dialog').getByRole('button',{name:spanish['projects.update'],exact:true})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await navigationLink(page,spanish['nav.projects']).click();
+  await projectLibrary(page).getByRole('button',{name:spanish['projects.refresh'],exact:true}).click();
+  const card=projectLibrary(page).getByRole('article',{name:'Laboratorio guardado'});
+  await expect(card.getByRole('button',{name:'Abrir laboratorio de Laboratorio guardado'})).toBeVisible();
+  await card.getByRole('button',{name:'Abrir laboratorio de Laboratorio guardado'}).click();
+  await expect(page).toHaveURL(new RegExp(ROUTES.laboratory+'$'));
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
+  await expect(page.getByRole('button',{name:spanish['lab.protect'],exact:true})).toBeVisible();
+  await expect(page.locator('.lab-table tbody tr').first()).toContainText(spanish['lab.draftState']);
+  await page.reload();
+  await navigationLink(page,spanish['nav.projects']).click();
+  await projectLibrary(page).getByRole('button',{name:'Abrir laboratorio de Laboratorio guardado'}).click();
+  await expect(page).toHaveURL(new RegExp(ROUTES.laboratory+'$'));
+  await expect(page.locator('.lab-table tbody tr').first()).toContainText(spanish['lab.draftState']);
+  // Reopening a self-contained cloud document goes through the Worker hash check.
+  api.corrupt();
+  await navigationLink(page,spanish['nav.projects']).click();
+  await projectLibrary(page).getByRole('button',{name:'Abrir laboratorio de Laboratorio guardado'}).click();
+  await expect(page).toHaveURL(new RegExp(ROUTES.projects+'$'));
+  await expect(projectLibrary(page).getByText(spanish['projects.validation'],{exact:true})).toBeVisible();
+});
+
+for(const width of [360,1280])test(`laboratory project form ${String(width)}px supports keyboard, themes and AA`,async({page})=>{
+  await mockProjects(page);
+  await page.setViewportSize({width,height:900});
+  await page.goto(ROUTES.laboratory);
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
+  const button=page.getByRole('button',{name:spanish['lab.saveProject'],exact:true});
+  for(const theme of ['light','dark']){
+    await page.evaluate(value=>{document.documentElement.dataset.theme=value;},theme);
+    await button.click();
+    const dialog=page.getByRole('dialog');
+    await dialog.getByLabel(spanish['projects.name']).fill('Ubiquitina');
+    await assertFits(page);
+    expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+    const targets=await dialog.locator('button,input').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return{width:r.width,height:r.height};}));
+    expect(targets.every(target=>target.width>=44&&target.height>=44)).toBe(true);
+    await page.screenshot({path:`artifacts/laboratory-project-${String(width)}-${theme}.png`,fullPage:true});
+    await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(button).toBeFocused();
+  }
+});
+
+test('laboratory drafts survive internal access routes and offer a file before external sign-in',async({page})=>{
+  await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
+  await page.getByRole('button',{name:spanish['lab.protect'],exact:true}).click();
+  await page.getByRole('button',{name:spanish['lab.saveProject'],exact:true}).click();
+  await page.getByRole('dialog').getByRole('link',{name:spanish['shell.signIn'],exact:true}).click();
+  await expect(page).toHaveURL(new RegExp(ROUTES.signIn+'$'));
+  await expect(page.getByText(spanish['lab.oauthHelp'],{exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:spanish['lab.saveFile'],exact:true})).toBeEnabled();
+  await page.getByRole('main').getByRole('link',{name:spanish['auth.signUpAction'],exact:true}).click();
+  await page.getByRole('main').getByRole('link',{name:spanish['auth.signInAction'],exact:true}).click();
+  await navigationLink(page,spanish['nav.generate']).click();
+  await page.getByRole('link',{name:spanish['lab.openLaboratory'],exact:true}).click();
+  await expect(page.getByRole('button',{name:spanish['lab.unprotect'],exact:true})).toBeVisible();
+});

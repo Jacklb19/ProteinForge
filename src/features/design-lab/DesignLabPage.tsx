@@ -10,6 +10,7 @@ import { downloadLabFile } from './download';
 import { draftDocument, tracePdb } from './presentation';
 import { LabViewer } from './LabViewer';
 import { LabSequence } from './LabSequence';
+import { LabProjectControls } from './LabProjectControls';
 function ReplaceDialog({ onClose, onConfirm, returnFocus }: {
     onClose: () => void;
     onConfirm: () => void;
@@ -49,7 +50,7 @@ export function DesignLabPage(): React.JSX.Element {
     return <main className="page lab-page">
     <Link className="lab-breadcrumb" to={ROUTES.generate}>{t('lab.backToGenerator')}</Link>
     <PageHeading titleKey={dataset ? 'lab.title' : 'lab.pageTitle'} titleVariables={{ reference: headingName }} introduction={dataset ? 'lab.introduction' : 'lab.emptyIntroduction'} introductionVariables={{ reference: dataset?.reference.id ?? '', chain: dataset?.reference.chain ?? '', length: dataset?.reference.sequence.length ?? 0 }}>
-      <button ref={openButton} type="button" className="button button-secondary" disabled={busy} onClick={() => { file.current?.click(); }}>{t('lab.openFile')}</button><button type="button" className="button button-primary" disabled={!dataset || busy} onClick={lab.save}>{t('lab.saveFile')}</button>
+      <button ref={openButton} type="button" className="button button-secondary" disabled={busy} onClick={() => { file.current?.click(); }}>{t('lab.openFile')}</button><button type="button" className="button button-secondary" disabled={!dataset || busy} onClick={lab.save}>{t('lab.saveFile')}</button><LabProjectControls/>
     </PageHeading>
     <input ref={file} type="file" accept=".zip,.json,application/zip,application/json" hidden aria-label={t('lab.openFile')} onChange={event => { const selected = event.currentTarget.files?.[0]; event.currentTarget.value = ''; if (selected)
         open(selected); }}/>

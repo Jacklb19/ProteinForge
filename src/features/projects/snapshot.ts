@@ -19,7 +19,8 @@ export function captureWorkspace(text: string, draft: AlignmentDraftState, profi
   const input = { first: first.sequence, second: second.sequence, matrix: draft.matrix, mode: draft.mode };
   const previous = saved?.workspace.descriptors;
   const snapshot = {
-    schemaVersion: 1, profileWindow,
+    schemaVersion: saved?.workspace.laboratory ? 2 : 1, profileWindow,
+    ...(saved?.workspace.laboratory ? { laboratory: saved.workspace.laboratory } : {}),
     source: source?.sequence === active.sequence ? source : null,
     descriptors: descriptors?.status === 'current' && descriptors.result ? { sequence: active.sequence, excluded: descriptors.excluded, methodVersion: DESCRIPTOR_METHOD_VERSION, result: descriptors.result } : !descriptors && previous?.sequence === active.sequence ? previous : null,
     alignment: { ...input, result: draft.result && draft.resultInput && !isStaleResult(draft.resultInput, input) ? draft.result : null },

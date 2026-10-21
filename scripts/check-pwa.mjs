@@ -102,7 +102,7 @@ try {
   await page.getByRole('button', { name: 'Crear sustitución', exact: true }).click();
   await expect(page.locator('.lab-draft-empty')).toBeVisible();
   const laboratoryDownload = page.waitForEvent('download');
-  await page.locator('.page-heading-actions button').last().click();
+  await page.getByRole('button', { name: 'Guardar archivo del laboratorio', exact: true }).click();
   const laboratory = await laboratoryDownload;
   if (await laboratory.failure()) throw new Error('Offline laboratory workspace export failed.');
   process.stdout.write('Offline laboratory Worker, example, editing and workspace export verified.\n');

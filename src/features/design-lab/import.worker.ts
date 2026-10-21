@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { LabError } from './config';
+import { sha256 } from './zip';
 import { loadExample } from './validate';
 import { exportWorkspace, importLab } from './workspace';
 import type { LabRequest, LabResponse } from './types';
@@ -8,6 +9,7 @@ const send = (response: LabResponse, transfer: Transferable[] = []): void => { s
 self.onmessage = (event: MessageEvent<LabRequest>): void => {
   const request = event.data;
   void (async () => {
+    if (request.type === 'import' && request.expectedSha256 && await sha256(new Uint8Array(request.bytes)) !== request.expectedSha256) throw new LabError('hash');
     if (request.type === 'export') {
       const bytes = await exportWorkspace(request.archive,request.state); send({id:request.id,type:'export',bytes},[bytes.buffer]); return;
     }

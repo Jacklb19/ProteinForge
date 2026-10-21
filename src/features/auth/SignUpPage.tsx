@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
-import { AFTER_SIGN_IN_ROUTE, ROUTES } from '../../shared/navigation';
+import { ROUTES } from '../../shared/navigation';
+import { destinationAfterSignIn } from './destination';
 import { AuthFrame } from './AuthFrame';
 import { useAuth } from './authContext';
 import { PASSWORD_MIN_LENGTH } from './config';
@@ -16,6 +17,7 @@ type Field = 'email' | 'password' | 'confirm';
 export function SignUpPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const auth = useAuth();
+  const location=useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -25,7 +27,7 @@ export function SignUpPage(): React.JSX.Element {
   const [busy, setBusy] = useState(false);
   const disabled = auth.status !== 'anonymous' || busy || confirmationSent;
 
-  if (auth.status === 'signed-in') return <Navigate to={AFTER_SIGN_IN_ROUTE} replace />;
+  if (auth.status === 'signed-in') return <Navigate to={destinationAfterSignIn(location.state)} replace />;
 
   const submit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -44,7 +46,7 @@ export function SignUpPage(): React.JSX.Element {
     <AuthFrame
       title={t('auth.signUpTitle')}
       intro={t('auth.signUpIntro', { count: formatNumber(PASSWORD_MIN_LENGTH) })}
-      footer={<><span>{t('auth.hasAccount')}</span><Link className="inline-link" to={ROUTES.signIn}>{t('auth.signInAction')}</Link></>}
+      footer={<><span>{t('auth.hasAccount')}</span><Link className="inline-link" state={{from:destinationAfterSignIn(location.state)}} to={ROUTES.signIn}>{t('auth.signInAction')}</Link></>}
     >
       <form className="auth-form" noValidate onSubmit={submit}>
         <TextField id="sign-up-email" type="email" label={t('auth.email')} value={email} onChange={setEmail} autoComplete="email" errorKey={errors.email} disabled={disabled} />

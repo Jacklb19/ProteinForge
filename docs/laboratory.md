@@ -1,6 +1,6 @@
 # Laboratorio · Mesa de estructura
 
-Implementación local del 21 oct 2026 de la dirección A y el [plan aprobado](design-lab-proposal.md). Ruta `/generate/lab`, accesible desde Diseñar. Español/inglés, temas claro/oscuro y controles por teclado. No requiere cuenta ni envía archivos o secuencias a servicios externos.
+Implementación local del 21 oct 2026 de la dirección A y el [plan aprobado](design-lab-proposal.md). Ruta `/generate/lab`, accesible desde Diseñar. Español/inglés, temas claro/oscuro y controles por teclado. La apertura, edición y archivo local no requieren cuenta. Guardar en Proyecto es una acción explícita con sesión, que envía el documento a la cuenta del propietario.
 
 ## Recorrido
 
@@ -9,7 +9,7 @@ Implementación local del 21 oct 2026 de la dirección A y el [plan aprobado](de
 - Proteger/liberar y sustituir posiciones, deshacer hasta 50 acciones y restaurar la secuencia original. Cada variante conserva un borrador independiente al cambiar de muestra o ruta. El lector está acotado a 120 residuos; no necesita virtualización para ese límite.
 - Una sustitución retira figura, pLDDT, pTM y RMSD del borrador y deshabilita exportación estructural. Recuperar la secuencia original recupera su resultado. Proteger posiciones no modifica una ejecución histórica.
 - Descargar el borrador JSON v2 y el cuaderno de Colab. El borrador marca `constraintStatus: not-executed` hasta ejecutarse; [el recorrido condicionado comprobado](design-lab-constraints.md) consume el archivo y valida todas las muestras y su repetición. Solo las posiciones protegidas quedan fijas; otras pueden cambiar. Cargarlo en Colab envía su secuencia a ese entorno, por acción expresa.
-- Guardar y reabrir un archivo completo del laboratorio. Reemplazar trabajo modificado pide confirmación; un error o cancelación conserva el conjunto anterior. Hay aviso al salir con cambios. No se guarda automáticamente en navegador ni en Proyectos.
+- Guardar y reabrir un archivo completo del laboratorio. Reemplazar trabajo modificado pide confirmación; un error o cancelación conserva el conjunto anterior. Hay aviso al salir con cambios. El guardado es explícito: descargar archivo o Guardar en Proyecto. No hay almacenamiento automático de secuencias en el navegador.
 
 ## Ejemplo y procedencia
 
@@ -31,7 +31,7 @@ Luego valida manifiestos y hashes, procedencia/configuración, selección previa
 
 JSON `kind: proteinforge-laboratory`, `schemaVersion: 1`. `source` referencia el ejemplo versionado o incorpora el ZIP original en Base64 con SHA-256. `state` conserva variante activa, posición seleccionada y, para cada variante, secuencia y posiciones protegidas de base cero. Deshacer es temporal; no se serializa el historial. No se confía en coordenadas o métricas serializadas: se relee la fuente y se revalida íntegramente en Worker al abrir y guardar. El borrador exportado por separado usa posiciones de cadena de base uno con claves explícitas.
 
-No se cambian contratos protobuf, API o Supabase. Persistir resultados dentro de Proyectos tiene [propuesta separada](laboratory-projects-proposal.md) con propiedad/RLS, concurrencia, tamaño y migración antes de implementarla. La ejecución condicionada manual ya está comprobada; siguen pendientes predicción nueva desde la app y diseño de forma nueva.
+El [guardado en Proyectos aprobado](laboratory-projects.md) ya está implementado localmente: Workspace v2, sobre JSON/SHA, 1 MB, vinculación independiente del editor, apertura validada, concurrencia y migración local. La activación remota queda pendiente. La ejecución condicionada manual ya está comprobada; siguen pendientes predicción nueva desde la app y diseño de forma nueva.
 
 ## Verificación reproducible
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { LabContext } from './context';
 import type { LabState } from './context';
@@ -7,7 +7,7 @@ import type { LabErrorCode } from './config';
 import type { LabDataset, LabDraft, LabProgress, LabRequest, LabResponse, LabSavedState } from './types';
 import { draftFingerprint, initialDrafts, replaceResidue, restoreSequence, toggleProtection, undoDraft } from './state';
 import { downloadLabFile } from './download';
-/** In-memory drafts survive navigation. Saving is an explicit local file download, independent of an account. */
+/** In-memory drafts survive navigation; files and explicit project snapshots share Worker validation. */
 export function LabProvider({ children }: {
     children: ReactNode;
 }): React.JSX.Element {
@@ -16,17 +16,24 @@ export function LabProvider({ children }: {
     const [status, setStatus] = useState<LabState['status']>('idle'), [error, setError] = useState<LabErrorCode | null>(null), [progress, setProgress] = useState<LabProgress | null>(null);
     const [dirty, setDirty] = useState(false), [exported, setExported] = useState(false);
     const savedFingerprint=useRef('');
+    const currentDrafts=useRef(drafts);
+    useLayoutEffect(()=>{currentDrafts.current=drafts;},[drafts]);
+    const [revision, setRevision] = useState(0), revisionRef = useRef(0);
+    const pending = useRef<((result: { bytes?: Uint8Array<ArrayBuffer>; revision: number } | null) => void) | null>(null);
     const worker = useRef<Worker | null>(null), requestId = useRef(0), timer = useRef<ReturnType<typeof setTimeout> | null>(null), archive = useRef<ArrayBuffer | null>(null);
-    const stop = useCallback(() => { requestId.current++; worker.current?.terminate(); worker.current = null; if (timer.current)
+    const stop = useCallback(() => { pending.current?.(null); pending.current=null; requestId.current++; worker.current?.terminate(); worker.current = null; if (timer.current)
         clearTimeout(timer.current); timer.current = null; }, []);
     useEffect(() => stop, [stop]);
     useEffect(() => { if (!dirty)
         return; const warn = (event: BeforeUnloadEvent): void => { event.preventDefault(); }; window.addEventListener('beforeunload', warn); return () => { window.removeEventListener('beforeunload', warn); }; }, [dirty]);
     const fail = useCallback((code: LabErrorCode, id: number) => { if (id !== requestId.current)
         return; stop(); setStatus('error'); setError(code); setProgress(null); }, [stop]);
-    const launch = useCallback((request: LabRequest) => {
+    const launch = useCallback((request: LabRequest, download = true) => {
+        let settle: (result: { bytes?: Uint8Array<ArrayBuffer>; revision: number } | null) => void = () => {};
+        const completion = new Promise<{ bytes?: Uint8Array<ArrayBuffer>; revision: number } | null>(resolve => { settle=resolve; });
+        pending.current=settle;
         if (request.id !== requestId.current)
-            return;
+            { settle(null); return completion; }
         try {
             const instance = new Worker(new URL('./import.worker.ts', import.meta.url), { type: 'module' });
             worker.current = instance;
@@ -46,10 +53,13 @@ export function LabProvider({ children }: {
                 if (response.type === 'export') {
                     if(request.type!=='export'){fail('worker',request.id);return;}
                     try {
-                        downloadLabFile(response.bytes, C.workspaceFilename, 'application/json');
-                        savedFingerprint.current=draftFingerprint(request.state.drafts);
-                        setDirty(false);
-                        setExported(true);
+                        if(download){
+                            downloadLabFile(response.bytes, C.workspaceFilename, 'application/json');
+                            savedFingerprint.current=draftFingerprint(request.state.drafts);
+                            setDirty(false);
+                            setExported(true);
+                        }
+                        settle({bytes:response.bytes,revision:revisionRef.current}); pending.current=null;
                     }
                     catch {
                         fail('worker', request.id);
@@ -67,6 +77,8 @@ export function LabProvider({ children }: {
                     setSelected(result.saved?.selected ?? 0);
                     setDirty(false);
                     setExported(false);
+                    revisionRef.current++; setRevision(revisionRef.current);
+                    settle({revision:revisionRef.current}); pending.current=null;
                 }
                 stop();
                 setStatus('ready');
@@ -79,9 +91,10 @@ export function LabProvider({ children }: {
         catch {
             fail('worker', request.id);
         }
+        return completion;
     }, [fail, stop]);
     const begin = useCallback((exporting = false) => { stop(); setStatus(exporting ? 'exporting' : 'loading'); setError(null); setProgress(null); return requestId.current; }, [stop]);
-    const openExample = useCallback(() => { launch({ id: begin(), type: 'example' }); }, [begin, launch]);
+    const openExample = useCallback(() => { void launch({ id: begin(), type: 'example' }); }, [begin, launch]);
     const openFile = useCallback((file: File) => {
         const id = begin();
         if (file.size > C.maximumWorkspaceBytes) {
@@ -89,7 +102,7 @@ export function LabProvider({ children }: {
             return;
         }
         void file.arrayBuffer().then(bytes => { if (id === requestId.current)
-            launch({ id, type: 'import', bytes }); }).catch(() => { fail('schema', id); });
+            void launch({ id, type: 'import', bytes }); }).catch(() => { fail('schema', id); });
     }, [begin, fail, launch]);
     const cancel = useCallback(() => { stop(); setStatus('cancelled'); setProgress(null); setError(null); }, [stop]);
     const selectVariant = useCallback((id: string) => { if (dataset?.variants.some(variant => variant.id === id)) {
@@ -120,8 +133,18 @@ export function LabProvider({ children }: {
         if (!dataset || status === 'loading' || status === 'exporting')
             return;
         const state: LabSavedState = { activeId, selected, drafts: Object.fromEntries(Object.entries(drafts).map(([id, draft]) => [id, { sequence: draft.sequence, protectedPositions: draft.protectedPositions }])) };
-        launch({ id: begin(true), type: 'export', archive: archive.current, state });
+        void launch({ id: begin(true), type: 'export', archive: archive.current, state });
     }, [dataset, status, activeId, selected, drafts, launch, begin]);
-    const value = useMemo(() => ({ dataset, drafts, activeId, selected, status, error, progress, dirty, exported, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save }), [dataset, drafts, activeId, selected, status, error, progress, dirty, exported, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save]);
+    const document = useCallback(async () => {
+        if(!dataset || status==='loading' || status==='exporting')return null;
+        const state:LabSavedState={activeId,selected,drafts:Object.fromEntries(Object.entries(drafts).map(([id,draft])=>[id,{sequence:draft.sequence,protectedPositions:draft.protectedPositions}]))};
+        return (await launch({id:begin(true),type:'export',archive:archive.current,state},false))?.bytes ?? null;
+    },[dataset,status,activeId,selected,drafts,launch,begin]);
+    const openDocument=useCallback(async(bytes:ArrayBuffer,sha256:string)=>{
+        if(bytes.byteLength>1_000_000)return null;
+        return (await launch({id:begin(),type:'import',bytes,expectedSha256:sha256}))?.revision ?? null;
+    },[begin,launch]);
+    const markSaved=useCallback((fingerprint:string)=>{savedFingerprint.current=fingerprint;setDirty(draftFingerprint(currentDrafts.current)!==fingerprint);},[]);
+    const value = useMemo(() => ({ dataset, drafts, activeId, selected, status, error, progress, dirty, exported, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save, revision,document,openDocument,markSaved }), [dataset, drafts, activeId, selected, status, error, progress, dirty, exported, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save,revision,document,openDocument,markSaved]);
     return <LabContext.Provider value={value}>{children}</LabContext.Provider>;
 }
