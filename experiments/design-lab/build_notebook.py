@@ -8,6 +8,20 @@ SOURCE = Path(__file__).resolve().parent
 DESTINATION = SOURCE.parents[1] / "notebooks" / "proteinforge-design-lab.ipynb"
 
 
+def demo_draft():
+    fixture = json.loads((SOURCE.parents[1] / "src/features/design-lab/fixtures/ubiquitin.json").read_text())
+    reference, sample = fixture["reference"], fixture["samples"][0]
+    sequence = sample["sequence"][:1] + "R" + sample["sequence"][2:]
+    return {"kind": "proteinforge-design-draft", "schemaVersion": 2, "sequence": sequence,
+            "source": {"referenceId": reference["id"], "referenceChain": reference["chain"],
+                       "referenceSequence": reference["sequence"], "variantSequence": sample["sequence"],
+                       "variantKeys": sample["keys"], "variantSequenceSha256": sample["sequenceSha256"], "sample": 1},
+            "structureStatus": "requires-new-prediction", "constraintStatus": "not-executed",
+            "protectedPositions": [{"chainPosition": position, "residue": sequence[position - 1],
+                                    "referenceKey": reference["keys"][position - 1],
+                                    "predictionKey": sample["keys"][position - 1]} for position in (2, 7, 42)]}
+
+
 def cell(kind, source, name):
     value = {"cell_type": kind, "id": name, "metadata": {"id": name}, "source": source.strip().splitlines(keepends=True)}
     if kind == "code":
@@ -20,6 +34,8 @@ def build():
     config = (SOURCE / "config.json").read_text(encoding="utf-8")
     requirements = (SOURCE / "requirements-colab.txt").read_text(encoding="utf-8")
     campaign = (SOURCE / "campaign.py").read_text(encoding="utf-8")
+    constraints = (SOURCE / "constraints.py").read_text(encoding="utf-8")
+    demo = json.dumps(demo_draft(), ensure_ascii=False, indent=2)
     setup = '''
 #@title Preparar el entorno de Colab / Prepare the Colab environment
 import importlib.util
@@ -49,6 +65,7 @@ RUN.mkdir()
 (RUN / "experiment.py").write_text(PROGRAM_TEXT, encoding="utf-8")
 (RUN / "requirements-colab.txt").write_text(REQUIREMENTS_TEXT, encoding="utf-8")
 (RUN / "campaign.py").write_text(CAMPAIGN_TEXT, encoding="utf-8")
+(RUN / "constraints.py").write_text(CONSTRAINTS_TEXT, encoding="utf-8")
 ENV = WORK / "venv"
 # Managed Debian runtimes may omit ensurepip; inherit their existing pip instead.
 subprocess.run([sys.executable, "-m", "venv", "--without-pip", "--system-site-packages", str(ENV)], check=True)
@@ -77,7 +94,7 @@ def run_stage(name):
 print("Environment ready. No private sequence or Drive mount is used.")
 '''
     setup = ('#@title Preparar el entorno de Colab / Prepare the Colab environment\n'
-             + f"PROGRAM_TEXT = {program!r}\nCONFIG_TEXT = {config!r}\nREQUIREMENTS_TEXT = {requirements!r}\nCAMPAIGN_TEXT = {campaign!r}\n" + setup.strip())
+             + f"PROGRAM_TEXT = {program!r}\nCONFIG_TEXT = {config!r}\nREQUIREMENTS_TEXT = {requirements!r}\nCAMPAIGN_TEXT = {campaign!r}\nCONSTRAINTS_TEXT = {constraints!r}\nDEMO_DRAFT_TEXT = {demo!r}\n" + setup.strip())
     cells = [
         cell("markdown", """
 # ProteinForge — ensayo de rediseño / sequence redesign experiment
@@ -97,6 +114,39 @@ Versiones y hashes de entradas fijados; Torch/CUDA/GPU del entorno se registran.
 Fuentes / Sources: [ProteinMPNN](https://github.com/dauparas/ProteinMPNN), [ESMFold](https://huggingface.co/facebook/esmfold_v1), [Transformers ESM](https://huggingface.co/docs/transformers/en/model_doc/esm), [1UBQ](https://www.rcsb.org/structure/1UBQ), [Colab FAQ](https://research.google.com/colaboratory/faq.html).
 """, "introduction"),
         cell("code", setup, "setup"),
+        cell("markdown", """
+## Posiciones protegidas opcionales / Optional fixed positions
+
+Antes de preparar la referencia, elige `none` (ensayo original), `public-demo` (borrador público: R2, F7, R42) o `upload` (archivo JSON v2 descargado del laboratorio). La demo cambia T2 a R y lo protege: no debe copiar Q2 de la referencia experimental. / Before preparing the reference, choose none, public-demo (R2/F7/R42), or upload a laboratory draft v2. The demo changes T2 to R and fixes it; the experimental reference's Q2 must not replace it.
+
+`upload` envía el archivo que elijas a este entorno de Google Colab. Usa solo datos que tengas autorización para procesar allí. No se montará Drive. Máximo 64 KiB, misma referencia/longitud y al menos una posición libre. Solo las posiciones protegidas quedan fijadas; las demás pueden cambiar. / Upload sends the selected file to this Google Colab runtime. Use only authorized data; no Drive mount. Maximum 64 KiB, matching reference/length and at least one free position. Only protected positions are fixed; other residues may change.
+
+La generación verifica todas las muestras y la repetición; empaquetar vuelve a verificar las posiciones. Un fallo no se presenta como ejecución restringida correcta. / Every sample and repeated run is checked, then checked again before packaging. Failed constraints cannot be reported as successful.
+""", "constraints-notes"),
+        cell("code", '''
+DRAFT_MODE = "none"  # none | public-demo | upload
+if DRAFT_MODE not in ("none", "public-demo", "upload"):
+    raise ValueError("Unknown draft mode")
+if DRAFT_MODE != "none":
+    import hashlib
+    if DRAFT_MODE == "public-demo":
+        draft_bytes = DEMO_DRAFT_TEXT.encode("utf-8")
+    else:
+        from google.colab import files
+        uploaded_drafts = files.upload()
+        if len(uploaded_drafts) != 1:
+            raise ValueError("Select exactly one laboratory draft JSON file")
+        draft_bytes = next(iter(uploaded_drafts.values()))
+    if len(draft_bytes) > 65536:
+        raise ValueError("Draft exceeds 64 KiB")
+    draft_path = RUN / "design-draft.json"
+    if draft_path.exists() or (RUN / "provenance.json").exists():
+        raise RuntimeError("Start a fresh setup before changing constraints; previous evidence is preserved")
+    draft_path.write_bytes(draft_bytes)
+    CONFIG["design"]["constraints"] = {"draftSha256": hashlib.sha256(draft_bytes).hexdigest()}
+    (RUN / "config.json").write_text(json.dumps(CONFIG, indent=2) + "\\n", encoding="utf-8")
+    print("Draft recorded. Protected positions will be validated before generation.")
+''', "constraints"),
         cell("markdown", """
 ## Referencia e integridad / Reference and integrity
 Descarga solo datos públicos y archivos oficiales con revisión y SHA-256 fijados. Valida la cadena y todos los átomos del esqueleto. / Download public data and pinned official files; validate the chain and complete backbone atoms.
@@ -121,7 +171,7 @@ print(json.dumps({key: prediction_summary[key] for key in
 ## Comparar y descargar / Compare and download
 RMSD de Cα tras superposición rígida sin reflexión, sin excluir residuos. No comparar como si ambas secuencias fueran idénticas: cada posición corresponde al esqueleto de referencia usado para diseñar. El ZIP excluye pesos/cachés y se reabre para verificar sus hashes. / Cα RMSD after rigid superposition without reflection or residue exclusion. Positional correspondence comes from the design backbone, not from identical sequences. Weights and caches are excluded; the ZIP is reopened and its hashes checked.
 
-Si una etapa falla, ejecuta esta última celda para descargar evidencia parcial: figurará **incomplete**, sin inventar resultados. ProteinForge todavía no importa automáticamente este paquete. / If a stage fails, run this final cell to export partial evidence marked incomplete. ProteinForge does not yet import this bundle automatically.
+Si una etapa falla, ejecuta esta última celda para descargar evidencia parcial: figurará **incomplete**, sin inventar resultados. Abre el ZIP completo en Diseñar → Laboratorio para validarlo e inspeccionarlo. / If a stage fails, run this final cell to export partial evidence marked incomplete. Open a completed ZIP in Design → Laboratory for validation and inspection.
 """, "download-notes"),
         cell("code", '''
 run_stage("package")

@@ -2,7 +2,7 @@ import { LAB_CONFIG as C } from './config';
 import type { LabDataset, LabDraft, LabDraftSnapshot, LabSavedState } from './types';
 
 export function initialDrafts(dataset: LabDataset, saved: LabSavedState | null): Record<string,LabDraft> {
-  return Object.fromEntries(dataset.variants.map(variant => [variant.id,{ ...(saved?.drafts[variant.id] ?? {sequence:variant.sequence,protectedPositions:[]}),history:[] }]));
+  return Object.fromEntries(dataset.variants.map(variant => [variant.id,{ ...(saved?.drafts[variant.id] ?? {sequence:variant.sequence,protectedPositions:variant.constraints?.protectedPositions??[]}),history:[] }]));
 }
 export function draftFingerprint(drafts:Record<string,LabDraftSnapshot>):string {
   return JSON.stringify(Object.keys(drafts).sort().map(id=>[id,drafts[id]?.sequence,[...(drafts[id]?.protectedPositions??[])].sort((a,b)=>a-b)]));

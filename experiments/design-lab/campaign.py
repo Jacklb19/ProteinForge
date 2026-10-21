@@ -29,7 +29,10 @@ def run(root, python):
         case_config = json.loads(json.dumps(config))
         case_config["design"]["selectedSample"] = sample
         (case / "config.json").write_text(json.dumps(case_config, indent=2) + "\n")
-        for name in ("experiment.py", "requirements-colab.txt", "installation-report.json"):
+        names = ["experiment.py", "constraints.py", "requirements-colab.txt", "installation-report.json"]
+        if config["design"].get("constraints") is not None:
+            names.append("design-draft.json")
+        for name in names:
             shutil.copyfile(root / name, case / name)
         for stage in ("prepare", "design", "predict", "package"):
             print(f"Sample {sample}/3 | {stage}", flush=True)

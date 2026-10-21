@@ -10,6 +10,7 @@ export interface LabVariant {
   /** Imported original PDB, never reconstructed from the Cα preview. */
   pdb: string | null;
   model: string; revision: string; designRevision: string;
+  constraints?: {draftSha256:string;seedSequence:string;protectedPositions:number[]};
 }
 export interface LabDataset {
   id: string; source: 'example' | 'import'; reference: LabReference; variants: LabVariant[];

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ensure, LAB_CONFIG as C, LabError , required } from './config';
 import { parseFasta, parsePdb, superpose } from './geometry';
+import {verifyLabConstraints} from './constraints';
 import { readZip, safePath, sha256 } from './zip';
 import type { ExpansionBudget } from './zip';
 import type { LabDataset, LabImportResult, LabProgress, LabReference, LabVariant } from './types';
@@ -10,7 +11,7 @@ const sequence = z.string().min(3).max(C.maximumResidues).regex(/^[ACDEFGHIKLMNP
 const point = z.tuple([z.number(), z.number(), z.number()]);
 const keys = z.array(z.object({ chain: z.string().length(1), number: z.number().int(), insertion: z.string().regex(/^[A-Za-z]?$/) })).max(C.maximumResidues);
 const referenceSchema = z.object({ id: z.string().regex(/^[a-zA-Z0-9_-]{1,24}$/), chain: z.string().regex(/^[A-Za-z0-9]$/), sequence, sha256: hash, url: z.string().startsWith('https://').max(300) });
-const designSchema = z.object({ revision: z.literal(C.mpnnRevision), model: z.literal('v_48_020'), seed: z.number().int().nonnegative(), samples: z.number().int().min(1).max(C.maximumVariants), selectedSample: z.number().int().min(1).max(C.maximumVariants), temperature: z.number().positive().max(10), maxLength: z.number().int().min(3).max(C.maximumResidues) });
+const designSchema = z.object({ revision: z.literal(C.mpnnRevision), model: z.literal('v_48_020'), seed: z.number().int().nonnegative(), samples: z.number().int().min(1).max(C.maximumVariants), selectedSample: z.number().int().min(1).max(C.maximumVariants), temperature: z.number().positive().max(10), maxLength: z.number().int().min(3).max(C.maximumResidues), constraints:z.object({draftSha256:hash}).strict().optional() });
 const predictionConfig = z.object({ model: z.literal(C.foldingModel), revision: z.literal(C.foldingRevision) });
 const configSchema = z.object({ schemaVersion: z.literal(1), reference: referenceSchema, design: designSchema, prediction: predictionConfig });
 const manifestSchema = z.object({ schemaVersion: z.literal(1), status: z.enum(['completed','incomplete']), files: z.array(z.object({ path: z.string(), bytes: z.number().int().nonnegative().max(C.maximumEntryBytes), sha256: hash })).max(C.maximumEntries) });
@@ -92,7 +93,8 @@ async function validateCase(files: Map<string, Uint8Array>, budget: ExpansionBud
     const sequences = parseFasta(text(files, 'design/seqs/reference.fa'));
     const repeat = parseFasta(text(files, 'design-repeat/seqs/reference.fa'));
     const design = decode(files.get('design-summary.json'), designSummarySchema);
-    ensure(JSON.stringify(sequences) === JSON.stringify(repeat) && sequences.length === config.design.samples + 1 && sequences[0] === reference.sequence && sequences[candidate.sample] === candidate.sequence && JSON.stringify(design.candidates.map(item => item.sequence)) === JSON.stringify(sequences.slice(1)), 'sequence');
+    ensure(JSON.stringify(sequences) === JSON.stringify(repeat) && sequences.length === config.design.samples + 1 && sequences.every(value=>value.length===reference.sequence.length) && sequences[candidate.sample] === candidate.sequence && JSON.stringify(design.candidates.map(item => item.sequence)) === JSON.stringify(sequences.slice(1)), 'sequence');
+    const constraints=await verifyLabConstraints(files,config.design.constraints,{id:config.reference.id,chain:config.reference.chain,sequence:reference.sequence,keys:reference.keys,ca:reference.ca},sequences,config.design.samples);
     ensure(parseFasta(text(files, 'candidate.fasta')).join() === candidate.sequence && parseFasta(text(files, 'reference.fasta')).join() === reference.sequence, 'sequence');
     const fit = superpose(reference.ca, model.ca);
     const comparison = decode(files.get('comparison.json'), z.object({ residuesCompared: z.number().int(), caRmsdAngstrom: z.number().nonnegative() }));
@@ -100,7 +102,7 @@ async function validateCase(files: Map<string, Uint8Array>, budget: ExpansionBud
     await verifyPae(files.get('predicted-aligned-error.npz'), model.ca.length, budget);
     return {
         reference: { id: config.reference.id, chain: config.reference.chain, sequence: reference.sequence, keys: reference.keys, ca: reference.ca },
-        variant: { id: digest, sample: candidate.sample, sequence: candidate.sequence, keys: model.keys, ca: model.ca, alignedCa: fit.aligned, plddt: prediction.caPlddt, meanPlddt: prediction.meanCaPlddt, ptm: prediction.ptm, rmsd: fit.rmsd, identicalPositions: Array.from(candidate.sequence).filter((aa, i) => aa === reference.sequence[i]).length, pdb: text(files, 'prediction.pdb'), model: prediction.model, revision: prediction.revision, designRevision: config.design.revision }, sequences,
+        variant: { id: digest, sample: candidate.sample, sequence: candidate.sequence, keys: model.keys, ca: model.ca, alignedCa: fit.aligned, plddt: prediction.caPlddt, meanPlddt: prediction.meanCaPlddt, ptm: prediction.ptm, rmsd: fit.rmsd, identicalPositions: Array.from(candidate.sequence).filter((aa, i) => aa === reference.sequence[i]).length, pdb: text(files, 'prediction.pdb'), model: prediction.model, revision: prediction.revision, designRevision: config.design.revision, ...(constraints?{constraints}:{}) }, sequences,
     };
 }
 const campaignSchema = z.object({ status: z.literal('completed'), sameGeneratedSequenceSet: z.literal(true), samples: z.array(z.object({ sample: z.number().int().min(1).max(C.maximumVariants), sequence, sequenceSha256: hash, meanCaPlddt: z.number().min(0).max(100), ptm: z.number().min(0).max(1), caRmsdAngstrom: z.number().nonnegative(), archive: z.string(), archiveBytes: z.number().int().positive().max(C.maximumArchiveBytes), archiveSha256: hash })).min(1).max(C.maximumVariants) });

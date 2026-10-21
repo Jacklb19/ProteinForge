@@ -1,5 +1,7 @@
 # Primer ensayo en Colab
 
+Actualización del 21 oct: [posiciones protegidas ejecutadas y verificadas](design-lab-constraints.md), con borrador v2, cuaderno descargable desde la app y ZIP condicionado reabierto en el laboratorio. El flujo original sin restricciones sigue disponible; no se ejecutan modelos en Windows.
+
 Preparado el 20 oct 2026. [Cuaderno](../notebooks/proteinforge-design-lab.ipynb), [fuentes del ensayo](../experiments/design-lab/) y [alcance del laboratorio](design-lab-roadmap.md).
 
 **Ensayo completo recuperado y verificado:** [resultados, mediciones y límites](design-lab-first-run.md). La generación y predicción se ejecutaron realmente en Colab; la fuente final corrige la exportación de pTM escalar. Las notas de incidencia inferiores describen el recorrido, no el estado final.

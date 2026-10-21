@@ -3,6 +3,7 @@ import {beforeAll,beforeEach,describe,expect,it,vi} from 'vitest';
 import {MemoryRouter} from 'react-router-dom';
 import {LocaleProvider} from '../../i18n';
 import {spanish as es} from '../../i18n/es';
+import {translate} from '../../i18n/translate';
 import {LabContext} from './context';
 import type {LabState} from './context';
 import {DesignLabPage} from './DesignLabPage';
@@ -21,6 +22,14 @@ beforeEach(()=>{vi.mocked(downloadLabFile).mockReset();});
 function value():LabState{return {dataset:example.dataset,drafts:initialDrafts(example.dataset,null),activeId:required(example.dataset.variants[0]).id,selected:0,status:'ready',error:null,progress:null,dirty:false,exported:false,openExample:vi.fn(),openFile:vi.fn(),cancel:vi.fn(),selectVariant:vi.fn(),selectResidue:vi.fn(),substitute:vi.fn(),protect:vi.fn(),undo:vi.fn(),restore:vi.fn(),save:vi.fn()};}
 function page(state:LabState,locale:'es'|'en'='es') {return render(<MemoryRouter><LocaleProvider locale={locale}><LabContext.Provider value={state}><DesignLabPage/></LabContext.Provider></LocaleProvider></MemoryRouter>);}
 describe('approved structure workbench',()=>{
+  it('distinguishes historical executed constraints from protection prepared for the next redesign',()=>{
+    const state=value(),dataset=required(state.dataset);
+    state.dataset={...dataset,variants:dataset.variants.map((variant,index)=>index===0?{...variant,constraints:{draftSha256:'0'.repeat(64),seedSequence:variant.sequence,protectedPositions:[1]}}:variant)};
+    state.drafts=initialDrafts(state.dataset,null);state.selected=1;page(state);
+    expect(screen.getByText(translate('es','lab.executedConstraints',{count:1}))).toBeVisible();
+    expect(screen.queryByText(es['lab.editScope'])).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:es['lab.unprotect']})).toBeVisible();
+  });
   it('opens the three actual variants, synchronizes selection and supports keyboard and reference overlay',()=>{
     const state=value(),view=page(state);expect(screen.getByRole('heading',{level:1})).toHaveTextContent('Variantes de ubiquitina');expect(screen.getAllByRole('row')).toHaveLength(4);
     fireEvent.click(screen.getByRole('button',{name:'pick structure residue'}));expect(state.selectResidue).toHaveBeenCalledWith(1);

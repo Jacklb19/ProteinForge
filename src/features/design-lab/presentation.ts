@@ -25,8 +25,9 @@ export function tracePdb(variant: LabVariant): string {
     return lines.join('\n') + '\nTER\nEND\n';
 }
 export function draftDocument(reference: LabReference, variant: LabVariant, draft: LabDraftSnapshot): object {
-    return { kind: 'proteinforge-design-draft', schemaVersion: 1, sequence: draft.sequence,
-        source: { referenceId: reference.id, referenceChain: reference.chain, variantSequenceSha256: variant.id, sample: variant.sample },
+    return { kind: 'proteinforge-design-draft', schemaVersion: 2, sequence: draft.sequence,
+        source: { referenceId: reference.id, referenceChain: reference.chain, referenceSequence: reference.sequence,
+            variantSequence: variant.sequence, variantKeys: variant.keys, variantSequenceSha256: variant.id, sample: variant.sample },
         structureStatus: draft.sequence === variant.sequence ? 'associated-result' : 'requires-new-prediction',
         constraintStatus: 'not-executed',
         protectedPositions: draft.protectedPositions.map(index => ({ chainPosition: index + 1, residue: draft.sequence[index], referenceKey: reference.keys[index], predictionKey: variant.keys[index] })),

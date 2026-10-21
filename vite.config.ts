@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { translate } from './src/i18n/translate';
 import { DEFAULT_LOCALE } from './src/i18n/config';
 import { FONT_FILES, fontUrl } from './src/theme/fonts';
+import {LAB_CONFIG} from './src/features/design-lab/config';
 
 const tokens = readFileSync(new URL('./src/design-tokens.css', import.meta.url), 'utf8');
 /** First declaration of a design token, which holds the light theme value. */
@@ -22,6 +23,19 @@ const fontPreloads = FONT_FILES.filter((font) => font.preload)
   .join('\n    ');
 const appIcon = readFileSync(new URL('./src/shared/app-icon.svg', import.meta.url), 'utf8')
   .replaceAll('{{surface}}', surface).replaceAll('{{accent}}', accent).replaceAll('{{stroke}}', stroke);
+
+/** Serve the same reviewed, output-free notebook in development and in the production assets. */
+const laboratoryNotebook:Plugin={
+  name:'laboratory-notebook',
+  configureServer(server){
+    server.middlewares.use(LAB_CONFIG.colabNotebookPath,(_request,response)=>{
+      response.setHeader('Content-Type','application/x-ipynb+json');
+      response.setHeader('Content-Disposition','attachment; filename="proteinforge-design-lab.ipynb"');
+      response.end(readFileSync(new URL('.'+LAB_CONFIG.colabNotebookPath,import.meta.url)));
+    });
+  },
+  generateBundle(){this.emitFile({type:'asset',fileName:LAB_CONFIG.colabNotebookPath.slice(1),source:readFileSync(new URL('.'+LAB_CONFIG.colabNotebookPath,import.meta.url))});},
+};
 
 /** Resolve standalone icon colors and initial metadata from the shared catalog. */
 const applicationIdentity: Plugin = {
@@ -47,7 +61,7 @@ const applicationIdentity: Plugin = {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), applicationIdentity, VitePWA({
+  plugins: [react(), applicationIdentity, laboratoryNotebook, VitePWA({
     registerType: 'prompt',
     injectRegister: 'script',
     manifest: {
@@ -62,7 +76,7 @@ export default defineConfig({
       icons: [{ src: '/app-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
     },
     workbox: {
-      globPatterns: ['**/*.{js,css,html,svg,wasm,woff2}'],
+      globPatterns: ['**/*.{js,css,html,svg,wasm,woff2,ipynb}'],
       // Experimental structures stay online and demand-loaded; do not precache the large viewer engine.
       globIgnores: ['**/molstarRuntime-*.js'],
       navigateFallback: 'index.html',

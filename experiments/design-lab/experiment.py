@@ -22,6 +22,8 @@ import traceback
 import urllib.request
 import zipfile
 
+from constraints import constraint_report, prepare_constraints, verify_constraints
+
 
 RESIDUES = dict(zip(
     "ALA ARG ASN ASP CYS GLN GLU GLY HIS ILE LEU LYS MET PHE PRO SER THR TRP TYR VAL".split(),
@@ -248,6 +250,7 @@ def prepare(root: Path, config: dict):
     reference_config = config["reference"]
     download(reference_config["url"], source, reference_config["sha256"], config["download"])
     reference = parse_pdb(source.read_text(), reference_config["chain"], reference_config["sequence"])
+    prepare_constraints(root, config, reference)
     (root / "reference.pdb").write_text(reference["pdb"], encoding="ascii")
     (root / "reference.fasta").write_text(f">{reference_config['id']} chain {reference_config['chain']} experimental reference\n{reference['sequence']}\n")
     write_json(root / "reference.json", {key: value for key, value in reference.items() if key != "pdb"})
@@ -266,6 +269,10 @@ def design(root: Path, config: dict):
     design_config = config["design"]
     source = root / "downloads" / "ProteinMPNN"
     reference = read_json(root / "reference.json")
+    if design_config.get("constraints") is not None:
+        write_json(root / "constraints-validation.json", {"status": "incomplete"})
+    complete_reference = parse_pdb((root / "reference.pdb").read_text(), config["reference"]["chain"], reference["sequence"])
+    draft = prepare_constraints(root, config, complete_reference)
     outputs = []
     for run_name in ("design", "design-repeat"):
         command = [sys.executable, str(source / "protein_mpnn_run.py"),
@@ -276,6 +283,11 @@ def design(root: Path, config: dict):
                    "--num_seq_per_target", str(design_config["samples"]), "--batch_size", "1",
                    "--sampling_temp", str(design_config["temperature"]),
                    "--max_length", str(design_config["maxLength"]), "--save_score", "1"]
+        if draft is not None:
+            start = command.index("--pdb_path")
+            del command[start:start + 4]
+            command.extend(["--jsonl_path", str(root / "design-input.jsonl"),
+                            "--fixed_positions_jsonl", str(root / "fixed-positions.jsonl")])
         write_json(root / "commands" / f"{run_name}.json", command)
         with measurement(root, run_name, config["measurement"]["sampleSeconds"]):
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -283,13 +295,15 @@ def design(root: Path, config: dict):
             print(result.stdout, flush=True)
             result.check_returncode()
         entries = parse_fasta((root / run_name / "seqs" / "reference.fa").read_text())
-        if entries[0]["sequence"] != reference["sequence"]:
+        if entries[0]["sequence"] != (draft["sequence"] if draft else reference["sequence"]):
             raise ValueError("ProteinMPNN reference sequence mismatch")
         candidates = entries[1:]
         if len(candidates) != design_config["samples"]:
             raise ValueError("Unexpected number of generated samples")
         if any(len(item["sequence"]) != len(reference["sequence"]) for item in candidates):
             raise ValueError("Candidate length mismatch")
+        if draft:
+            verify_constraints(draft, candidates)
         outputs.append(candidates)
     if [item["sequence"] for item in outputs[0]] != [item["sequence"] for item in outputs[1]]:
         raise RuntimeError("Repeated ProteinMPNN generation did not reproduce the sequences")
@@ -301,6 +315,8 @@ def design(root: Path, config: dict):
     write_json(root / "candidate.json", candidate)
     (root / "candidate.fasta").write_text(f">ProteinForge sample {index + 1}; generated, not experimentally validated\n{candidate['sequence']}\n")
     write_json(root / "design-summary.json", {"candidates": outputs[0], "repeatSequencesEqual": True})
+    if draft:
+        write_json(root / "constraints-validation.json", constraint_report(draft, config))
     print("Candidate selected by fixed sample index; repeat sequence check passed", flush=True)
 
 
@@ -314,6 +330,10 @@ def predict(root: Path, config: dict):
     prediction = config["prediction"]
     candidate = read_json(root / "candidate.json")
     sequence = candidate["sequence"]
+    reference = parse_pdb((root / "reference.pdb").read_text(), config["reference"]["chain"], config["reference"]["sequence"])
+    draft = prepare_constraints(root, config, reference)
+    if draft:
+        verify_constraints(draft, [candidate])
     torch.manual_seed(prediction["seed"])
     torch.cuda.manual_seed_all(prediction["seed"])
     torch.backends.cudnn.benchmark = False
@@ -381,7 +401,24 @@ def package(root: Path, config: dict):
     write_json(root / "validation.json", validations)
     if not missing:
         reference = parse_pdb((root / "reference.pdb").read_text(), config["reference"]["chain"], config["reference"]["sequence"])
+        draft = prepare_constraints(root, config, reference)
+        if draft:
+            first = parse_fasta((root / "design/seqs/reference.fa").read_text())
+            repeat = parse_fasta((root / "design-repeat/seqs/reference.fa").read_text())
+            if [entry["sequence"] for entry in first] != [entry["sequence"] for entry in repeat] or first[0]["sequence"] != draft["sequence"]:
+                raise ValueError("Constrained design repetition mismatch")
+            if len(first) != config["design"]["samples"] + 1:
+                raise ValueError("Constrained sample count mismatch")
+            verify_constraints(draft, first[1:])
+            if [entry["sequence"] for entry in first[1:]] != [entry["sequence"] for entry in read_json(root / "design-summary.json")["candidates"]]:
+                raise ValueError("Constrained design summary mismatch")
+            if read_json(root / "constraints-validation.json") != constraint_report(draft, config):
+                raise ValueError("Constraint execution report mismatch")
         candidate = read_json(root / "candidate.json")
+        if draft:
+            verify_constraints(draft, [candidate])
+            if candidate["sequence"] != first[config["design"]["selectedSample"]]["sequence"]:
+                raise ValueError("Constrained sample selection mismatch")
         recorded_prediction = read_json(root / "prediction.json")
         sequence_hash = hashlib.sha256(candidate["sequence"].encode("ascii")).hexdigest()
         if sequence_hash != candidate["sequenceSha256"] or sequence_hash != recorded_prediction["sequenceSha256"] or recorded_prediction["sequence"] != candidate["sequence"]:

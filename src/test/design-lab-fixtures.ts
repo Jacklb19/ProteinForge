@@ -57,6 +57,28 @@ export async function caseArchive(files:Map<string,Uint8Array>):Promise<Uint8Arr
   const entries=await Promise.all([...files].map(async([path,bytes])=>({path,bytes:bytes.length,sha256:await sha256(bytes)})));
   files.set('result-manifest.json',encode({schemaVersion:1,status:'completed',files:entries}));return zipFixture([...files]);
 }
+export async function constrainedCaseFiles():Promise<Map<string,Uint8Array>> {
+  const files=await caseFiles(),keys=[1,2,3].map(number=>({chain:'A',number,insertion:''}));
+  const entry={chainPosition:2,residue:'R',referenceKey:keys[1],predictionKey:keys[1]};
+  const draft={kind:'proteinforge-design-draft',schemaVersion:2,sequence:'ARA',source:{referenceId:'TEST',referenceChain:'A',referenceSequence:'AAA',variantSequence:'AAA',variantSequenceSha256:await sha256(new TextEncoder().encode('AAA')),variantKeys:keys,sample:1},structureStatus:'requires-new-prediction',constraintStatus:'not-executed',protectedPositions:[entry]};
+  files.set('design-draft.json',encode(draft));
+  const digest=await sha256(required(files.get('design-draft.json')));
+  const configuration=JSON.parse(new TextDecoder().decode(required(files.get('config.json')))) as {design:Record<string,unknown>};
+  configuration.design.constraints={draftSha256:digest};files.set('config.json',encode(configuration));
+  mutateJson(files,'provenance.json',{design:configuration.design});mutateJson(files,'environment.json',{configSha256:await sha256(required(files.get('config.json')))});
+  const candidateHash=await sha256(new TextEncoder().encode('ARA'));
+  mutateJson(files,'candidate.json',{sequence:'ARA',sequenceSha256:candidateHash});mutateJson(files,'prediction.json',{sequence:'ARA',sequenceSha256:candidateHash});
+  files.set('prediction.pdb',new TextEncoder().encode(testPdb('ARA')));files.set('candidate.fasta',new TextEncoder().encode('>candidate\nARA\n'));
+  for(const run of ['design','design-repeat']){
+    files.set(`${run}/seqs/reference.fa`,new TextEncoder().encode('>seed\nARA\n>sample\nARA\n'));
+    files.set(`commands/${run}.json`,encode(['python','protein_mpnn_run.py','--jsonl_path','/run/design-input.jsonl','--fixed_positions_jsonl','/run/fixed-positions.jsonl']));
+  }
+  mutateJson(files,'design-summary.json',{candidates:[{sequence:'ARA'}]});
+  files.set('design-input.jsonl',encode({name:'reference',num_of_chains:1,seq:'ARA',seq_chain_A:'ARA',coords_chain_A:{N_chain_A:points,CA_chain_A:points,C_chain_A:points,O_chain_A:points}}));
+  files.set('fixed-positions.jsonl',encode({reference:{A:[2]}}));
+  files.set('constraints-validation.json',encode({status:'executed',draftSha256:digest,seedSequence:'ARA',protectedPositions:[entry],samplesCheckedPerRun:1,runsChecked:2,allProtectedPositionsPreserved:true}));
+  return files;
+}
 export function mutateJson(files:Map<string,Uint8Array>,name:string,changes:Record<string,unknown>):void {
   const value=JSON.parse(new TextDecoder().decode(required(files.get(name)))) as Record<string,unknown>;files.set(name,encode({...value,...changes}));
 }
