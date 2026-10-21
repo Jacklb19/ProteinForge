@@ -1,6 +1,6 @@
 # Estado y siguiente trabajo
 
-**Cierre local del 21 oct:** [laboratorio en Proyectos implementado](laboratory-projects.md) con formulario aprobado, archivo completo/resultados/borradores, reapertura en Worker y conflictos/copia. Backend con Workspace v2, API/protobuf y migración idempotente, guardia contra clientes antiguos y RLS local comprobados. Falta autorizar activación/publicación y aplicar únicamente la migración nueva; no implica inferencia desde la app ni forma de novo. Las actualizaciones inferiores conservan las etapas anteriores.
+**Cierre local del 21 oct:** [laboratorio en Proyectos implementado](laboratory-projects.md) con formulario aprobado, archivo completo/resultados/borradores, reapertura en Worker y conflictos/copia. Backend con Workspace v2, API/protobuf y migración idempotente, guardia contra clientes antiguos y RLS local comprobados. El propietario confirma el 21 oct que aplicó la migración nueva; falta autorizar publicación y verificar producción; no implica inferencia desde la app ni forma de novo. Las actualizaciones inferiores conservan las etapas anteriores.
 
 **Continuación del 21 oct:** [rediseño condicionado comprobado](design-lab-constraints.md) en Colab T4; tres muestras y repetición conservan R2/F7/R42. Borrador v2 y cuaderno descargables desde el laboratorio; importación y archivo local conservan las restricciones ejecutadas. Sigue la [propuesta de guardado en Proyectos](laboratory-projects-proposal.md), con contrato/migración separados antes de implementar; inferencia desde la app y forma de novo pendientes.
 

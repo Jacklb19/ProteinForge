@@ -1,6 +1,6 @@
 # Laboratorio en Proyectos
 
-Implementado localmente el 21 oct 2026 tras la [aprobación del contrato y formulario](laboratory-projects-proposal.md). La interfaz conserva A · Mesa de estructura. Guardar es explícito: un archivo portable sin cuenta o un Proyecto de la cuenta autenticada. Esta entrega no está publicada ni aplica SQL remoto.
+Implementado localmente el 21 oct 2026 tras la [aprobación del contrato y formulario](laboratory-projects-proposal.md). La interfaz conserva A · Mesa de estructura. Guardar es explícito: un archivo portable sin cuenta o un Proyecto de la cuenta autenticada. Esta entrega no está publicada. El 21 oct el propietario confirmó que aplicó la migración nueva; es evidencia declarada, sin inspección ni ejecución de SQL remoto por nuestra parte.
 
 ## Uso y conservación
 
@@ -26,6 +26,6 @@ Frontend: 326 unitarias en 61 archivos, cobertura 84,67 % statements /73,67 % br
 
 Backend: 43 pruebas API y 12 SQL ejecutadas aparte en PostgreSQL 18 temporal localhost; aislamiento de dos propietarios/anónimo, creación/reapertura/rename/copia/borrado, guardia antigua sin escrituras parciales, tamaño/hash, idempotencia y concurrencia. REST y gRPC-Web binario conservan exactamente el sobre; Buf lint/breaking contra main correctos. Python local 3.13.14; objetivo de despliegue 3.14 no repetido. No equivale a JWT/PostgREST remoto.
 
-Nueva migración: `backend/supabase/migrations/20261021000000_laboratory_projects.sql` del repositorio backend. Está preparada y probada localmente. Tras autorización específica futura: aplicar **solo esa migración**, publicar backend antes de frontend y comprobar sesión real/dos propietarios/dos pestañas. Las migraciones anteriores ya estaban aplicadas según el propietario; no repetir la inicial. `buf.gen.yaml` fija el commit backend local nuevo; para regenerar sin publicarlo usar `npx buf generate ../backend/proto`. El comando por remoto requiere que ese commit se publique primero.
+Nueva migración: `backend/supabase/migrations/20261021000000_laboratory_projects.sql` del repositorio backend. Está probada localmente y el propietario confirma que ya la aplicó el 21 oct. No volver a ejecutarla. Tras autorización específica futura: publicar backend antes de frontend y comprobar sesión real/dos propietarios/dos pestañas. Las migraciones anteriores ya estaban aplicadas según el propietario; no repetir la inicial. `buf.gen.yaml` fija el commit backend local nuevo; para regenerar sin publicarlo usar `npx buf generate ../backend/proto`. El comando por remoto requiere que ese commit se publique primero.
 
-Siguen pendientes la activación remota de este bloque, inferencia nueva desde la app, diseño de forma de novo y validación experimental. No se activaron recursos de pago ni se ejecutaron modelos en Windows.
+Siguen pendientes publicar/verificar este bloque en producción, inferencia nueva desde la app, diseño de forma de novo y validación experimental. No se activaron recursos de pago ni se ejecutaron modelos en Windows.
