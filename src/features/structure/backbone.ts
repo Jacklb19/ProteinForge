@@ -1,9 +1,9 @@
-import data from './fixtures/1trz-backbone.json';
+import data from './fixtures/1trz-backbone.json' with { type: 'json' };
 import { DISULFIDE_MAX_DISTANCE, SPLINE_STEPS, STAGE_FIT, STAGE_PADDING, TUBE_MIN_WIDTH, TUBE_WIDTH_RATIO } from './config';
 
 export type Point = readonly [number, number, number];
 
-export interface BackboneResidue { number: number; name: string; ca: number[]; sg?: number[] }
+export interface BackboneResidue { number: number; insertion?: string; name: string; ca: number[]; sg?: number[] }
 export interface BackboneChain { id: string; residues: BackboneResidue[] }
 export interface BackboneModel { id: string; source: string; method: string; resolution: number; chains: BackboneChain[] }
 
@@ -87,8 +87,8 @@ function spline(first: Point, second: Point, third: Point, fourth: Point, t: num
 }
 
 /** Projects the model for one orientation and canvas size. Pure: the same input gives the same scene. */
-export function layoutBackbone(model: BackboneModel, view: View): BackboneScene {
-  const { center, radius } = frame(model);
+export function layoutBackbone(model: BackboneModel, view: View, framingModel: BackboneModel = model): BackboneScene {
+  const { center, radius } = frame(framingModel);
   // The farthest atoms are chain ends, so the sphere may exceed the stage a little without clipping the fold.
   const scale = (Math.max(1, Math.min(view.width, view.height) / 2 - STAGE_PADDING) / radius) * STAGE_FIT;
   const screen = (point: Point): readonly [number, number] => [view.width / 2 + point[0] * scale, view.height / 2 + point[1] * scale];

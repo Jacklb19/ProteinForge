@@ -6,6 +6,7 @@ export const ROUTES = {
   analyze: '/analyze',
   alignment: '/alignment',
   generate: '/generate',
+  laboratory: '/generate/lab',
   library: '/library',
   profile: '/profile',
   projects: '/projects',

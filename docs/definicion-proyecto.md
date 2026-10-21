@@ -1,5 +1,7 @@
 # Definición vigente de ProteinForge
 
+Actualización de implementación del 21 oct 2026: Proyectos, migraciones, publicación y confirmación de correo ya resueltos según las verificaciones posteriores; inglés implementado. El [laboratorio A](laboratory.md) añade tres resultados reales de Colab, importación, selección secuencia/3D, edición/restricciones y guardar/reabrir archivo local. Siguen pendientes generación condicionada, predicción nueva desde la app, persistencia de estructuras en Proyectos y forma de novo. La tabla del 12 oct de abajo conserva la captura anterior; el [plan actualizado](plan-desarrollo.md) determina lo restante.
+
 Actualizada el 12 de octubre de 2026. Sustituye la [definición original](archive/definicion-original.md), conservada por trazabilidad. [Decisiones](decisiones.md), [pantallas](pantallas.md) y [plan](plan-desarrollo.md) concretan implementación y límites. Evidencia local no equivale a despliegue ni garantía externa.
 
 ## Problema y objetivo

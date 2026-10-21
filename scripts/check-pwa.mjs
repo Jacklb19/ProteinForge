@@ -86,6 +86,18 @@ try {
   await page.getByRole('button', { name: 'Informe PDF', exact: true }).click();
   const report = await reportDownload;
   if (await report.failure()) throw new Error('Offline PDF generation failed.');
+  await page.goto(baseURL + route('laboratory'));
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
+  await expect(page.locator('.lab-figure canvas')).toBeVisible();
+  await page.locator('[data-position="2"]').click();
+  await page.locator('.lab-inspector select').selectOption('R');
+  await page.getByRole('button', { name: 'Crear sustitución', exact: true }).click();
+  await expect(page.locator('.lab-draft-empty')).toBeVisible();
+  const laboratoryDownload = page.waitForEvent('download');
+  await page.locator('.page-heading-actions button').last().click();
+  const laboratory = await laboratoryDownload;
+  if (await laboratory.failure()) throw new Error('Offline laboratory workspace export failed.');
+  process.stdout.write('Offline laboratory Worker, example, editing and workspace export verified.\n');
   // Inspect actual precache entries; the large online viewer must stay demand-loaded.
   const viewerCached = await page.evaluate(async () => {
     for (const name of await caches.keys()) {

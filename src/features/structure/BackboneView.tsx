@@ -16,7 +16,7 @@ import type { ColorMode } from './config';
 type Rgb = readonly [number, number, number];
 const WHITE: Rgb = [255, 255, 255];
 
-export interface ResidueSelection { chain: string; number: number }
+export interface ResidueSelection { chain: string; number: number; insertion?: string }
 
 interface Props {
   /** Accessible name of the drawing. */
@@ -32,6 +32,8 @@ interface Props {
   /** Turns slowly until the visitor interacts; never with reduced motion. */
   idleTurn?: boolean;
   model?: BackboneModel;
+  /** Already superposed coordinates, framed with the main model and painted in neutral ink. */
+  reference?: BackboneModel;
 }
 
 function parseColor(value: string): Rgb {
@@ -71,10 +73,17 @@ function segmentColor(segment: SceneSegment, mode: ColorMode, palette: Palette):
   return palette.classes[residueClass(residue) ?? 'special'];
 }
 
-function paint(context: CanvasRenderingContext2D, scene: BackboneScene, width: number, height: number, mode: ColorMode, palette: Palette, options: { selected?: ResidueSelection | null; selectedLabel?: string; showEnds: boolean }): void {
+function paint(context: CanvasRenderingContext2D, scene: BackboneScene, width: number, height: number, mode: ColorMode, palette: Palette, options: { selected?: ResidueSelection | null; selectedLabel?: string; showEnds: boolean }, reference?: BackboneScene): void {
   context.clearRect(0, 0, width, height);
   context.lineCap = 'round';
   context.lineJoin = 'round';
+  if (reference) {
+    context.strokeStyle = css(blend(palette.ink, palette.stage, OUTLINE_MIX));
+    context.lineWidth = SELECTION_LINE_WIDTH;
+    for (const segment of reference.segments) {
+      context.beginPath(); context.moveTo(segment.from[0], segment.from[1]); context.lineTo(segment.to[0], segment.to[1]); context.stroke();
+    }
+  }
   for (const segment of scene.segments) {
     const factor = segment.kind === 'bridge' ? BRIDGE_WIDTH_FACTOR : segment.kind === 'sulfur' ? SULFUR_WIDTH_FACTOR : 1;
     const lineWidth = scene.tubeWidth * factor * (DEPTH_WIDTH_BASE + DEPTH_WIDTH_GAIN * segment.depth);
@@ -117,7 +126,7 @@ function paint(context: CanvasRenderingContext2D, scene: BackboneScene, width: n
   }
   const selection = options.selected;
   if (selection) {
-    const anchor = scene.anchors.find((entry) => entry.chain === selection.chain && entry.residue.number === selection.number);
+    const anchor = scene.anchors.find((entry) => entry.chain === selection.chain && entry.residue.number === selection.number && (entry.residue.insertion ?? '') === (selection.insertion ?? ''));
     if (anchor) {
       const radius = scene.tubeWidth * SELECTION_RADIUS_FACTOR;
       context.strokeStyle = css(palette.ink);
@@ -134,7 +143,7 @@ function paint(context: CanvasRenderingContext2D, scene: BackboneScene, width: n
  * Shaded tube through the measured Cα atoms of a small structure, with its disulfide bridges.
  * Drag or use the arrow keys to turn it; a click selects the nearest residue.
  */
-export function BackboneView({ label, describedBy, colorMode, selected = null, selectedLabel, onSelect, showEnds = false, idleTurn = false, model = INSULIN_BACKBONE }: Props): React.JSX.Element {
+export function BackboneView({ label, describedBy, colorMode, selected = null, selectedLabel, onSelect, showEnds = false, idleTurn = false, model = INSULIN_BACKBONE, reference }: Props): React.JSX.Element {
   const themeRevision = useThemeRevision();
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -142,7 +151,7 @@ export function BackboneView({ label, describedBy, colorMode, selected = null, s
   const scene = useRef<BackboneScene | null>(null);
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const touched = useRef(false);
-  const latest = useRef({ colorMode, selected, selectedLabel, showEnds, model });
+  const latest = useRef({ colorMode, selected, selectedLabel, showEnds, model, reference });
 
   const draw = useCallback(() => {
     const element = canvas.current;
@@ -161,13 +170,14 @@ export function BackboneView({ label, describedBy, colorMode, selected = null, s
     context.setTransform(scale, 0, 0, scale, 0, 0);
     const current = latest.current;
     scene.current = layoutBackbone(current.model, { ...view.current, width, height });
-    paint(context, scene.current, width, height, current.colorMode, readPalette(container), current);
+    const referenceScene = current.reference ? layoutBackbone(current.reference, { ...view.current, width, height }, current.model) : undefined;
+    paint(context, scene.current, width, height, current.colorMode, readPalette(container), current, referenceScene);
   }, []);
 
   useEffect(() => {
-    latest.current = { colorMode, selected, selectedLabel, showEnds, model };
+    latest.current = { colorMode, selected, selectedLabel, showEnds, model, reference };
     draw();
-  }, [colorMode, selected, selectedLabel, showEnds, model, themeRevision, draw]);
+  }, [colorMode, selected, selectedLabel, showEnds, model, reference, themeRevision, draw]);
 
   useEffect(() => {
     const container = frame.current;
@@ -237,7 +247,7 @@ export function BackboneView({ label, describedBy, colorMode, selected = null, s
         touched.current = true;
         const bounds = event.currentTarget.getBoundingClientRect();
         const anchor = pickAnchor(scene.current, event.clientX - bounds.left, event.clientY - bounds.top, scene.current.tubeWidth * PICK_RADIUS_FACTOR);
-        if (anchor) onSelect({ chain: anchor.chain, number: anchor.residue.number });
+        if (anchor) onSelect({ chain: anchor.chain, number: anchor.residue.number, ...(anchor.residue.insertion ? { insertion: anchor.residue.insertion } : {}) });
       }}
       onPointerCancel={() => { drag.current = null; }}
       onKeyDown={(event) => {

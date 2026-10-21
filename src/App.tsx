@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { EditorPage } from './features/editor/EditorPage';
 import { SequenceDraftProvider } from './features/editor/SequenceDraftProvider';
@@ -13,6 +13,7 @@ import { ProjectsPage } from './features/projects/ProjectsPage';
 import { LibraryPage } from './features/library/LibraryPage';
 import { GeneratorPage } from './features/generator/GeneratorPage';
 import { GeneratorProvider } from './features/generator/GeneratorProvider';
+import { LabProvider } from './features/design-lab/LabProvider';
 import { PrivacyPage } from './features/privacy/PrivacyPage';
 import { TermsPage } from './features/legal/TermsPage';
 import { AuthProvider } from './features/auth/AuthProvider';
@@ -36,6 +37,7 @@ import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, REDIRECTS, ROUTES }
 
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 const MENU_ID = 'site-menu';
+const DesignLabPage = lazy(async () => ({ default: (await import('./features/design-lab/DesignLabPage')).DesignLabPage }));
 
 /** Visitors without a session flip between light and dark from the bar; Perfil keeps the three-way choice. */
 function ThemeToggle(): React.JSX.Element {
@@ -220,6 +222,7 @@ function ApplicationRoutes(): React.JSX.Element {
           <Route path={ROUTES.analyze} element={<EditorPage />} />
           <Route path={ROUTES.alignment} element={<AlignmentPage />} />
           <Route path={ROUTES.generate} element={<GeneratorPage />} />
+          <Route path={ROUTES.laboratory} element={<Suspense fallback={<main className="page"><p role="status">{t('lab.loading')}</p></main>}><DesignLabPage /></Suspense>} />
           <Route path={ROUTES.library} element={<LibraryPage />} />
           <Route path={ROUTES.profile} element={<ProfilePage />} />
           <Route path={ROUTES.projects} element={<ProjectsPage />} />
@@ -244,7 +247,7 @@ export function App(): React.JSX.Element {
         <SequenceDraftProvider initial={DEFAULT_EXAMPLE}>
           <AlignmentDraftProvider initial={EXAMPLE_ALIGNMENT_DRAFT}>
             <BrowserRouter>
-              <ProjectProvider><GeneratorProvider><ApplicationRoutes /></GeneratorProvider></ProjectProvider>
+              <ProjectProvider><GeneratorProvider><LabProvider><ApplicationRoutes /></LabProvider></GeneratorProvider></ProjectProvider>
             </BrowserRouter>
           </AlignmentDraftProvider>
         </SequenceDraftProvider>

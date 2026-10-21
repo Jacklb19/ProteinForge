@@ -1,6 +1,6 @@
 # Propuesta del laboratorio con datos reales
 
-Preparada el 20 oct 2026 tras comprobar [tres variantes en Colab](design-lab-three-variants.md). **Pendiente de elección y aprobación del plan por pantallas.** No modifica rutas, componentes ni contratos de la aplicación. El acuerdo local de interfaz exige aprobar una propuesta antes de programarla.
+Preparada el 20 oct 2026 tras comprobar [tres variantes en Colab](design-lab-three-variants.md). **El propietario aprobó A · Mesa de estructura y el plan por pantallas.** Implementada el 21 oct en `/generate/lab`; [alcance, formato y límites](laboratory.md). Se conserva abajo la propuesta y su verificación histórica. El guardado de esta entrega es un archivo local versionado; contratos de nube y migraciones se presentan por separado.
 
 ## Dos direcciones
 
