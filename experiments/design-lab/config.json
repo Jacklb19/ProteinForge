@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "reference": {
+    "id": "1UBQ",
+    "chain": "A",
+    "url": "https://files.rcsb.org/download/1UBQ.pdb",
+    "sha256": "d4a6812d8951cf6594e6a0763f089e35f5a80b62acb3c117b2c5565228a7b161",
+    "sequence": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG"
+  },
+  "design": {
+    "repository": "https://github.com/dauparas/ProteinMPNN",
+    "revision": "8907e6671bfbfc92303b5f79c4b5e6ce47cdef57",
+    "rawBase": "https://raw.githubusercontent.com/dauparas/ProteinMPNN/8907e6671bfbfc92303b5f79c4b5e6ce47cdef57/",
+    "files": {
+      "LICENSE": "82009d25ce585631f452b2b24589bdb29c559ccfefa2f200ef312ed5b501a586",
+      "protein_mpnn_run.py": "61f2c519a7f73fa12da9eb90da97b97ec2f8d5f31d42605639c7600cbd321cbe",
+      "protein_mpnn_utils.py": "74c8f9b7553422a7a0bbd705874844ee103c8926c2c96f154a87e0b824071e1b",
+      "vanilla_model_weights/v_48_020.pt": "c9cb4a671d79604111231f8dbfc7c590e06f1197453b7a6854ac6661a642f5bd"
+    },
+    "model": "v_48_020",
+    "seed": 42,
+    "samples": 3,
+    "temperature": 0.1,
+    "selectedSample": 1,
+    "maxLength": 120
+  },
+  "prediction": {
+    "model": "facebook/esmfold_v1",
+    "revision": "75a3841ee059df2bf4d56688166c8fb459ddd97a",
+    "weights": "pytorch_model.bin",
+    "weightsBytes": 8442062570,
+    "weightsSha256": "2ee07356b125d1e3e57503c204111fd7323347fc4735d41d3caac57c2a78e116",
+    "seed": 42,
+    "chunkSize": 32,
+    "recycles": 3,
+    "minimumGpuGiB": 12,
+    "minimumFreeDiskGiB": 20
+  },
+  "measurement": { "sampleSeconds": 0.5 },
+  "download": { "timeoutSeconds": 120, "chunkBytes": 1048576 },
+  "limitations": [
+    "This experiment redesigns a sequence on an experimental backbone; it does not generate a new backbone.",
+    "MPNN likelihood, pLDDT, pTM and backbone RMSD do not demonstrate biological function or experimental stability.",
+    "The selected sample is fixed before prediction; no candidate is selected by predicted confidence.",
+    "Colab runtime versions and hardware are recorded; bitwise reproducibility across different devices is not promised.",
+    "This bundle is an experiment artifact; ProteinForge does not yet import its structures or complete generation history."
+  ]
+}

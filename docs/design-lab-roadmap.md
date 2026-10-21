@@ -2,6 +2,8 @@
 
 Acuerdo y consulta del 12 de octubre de 2026. Próxima dirección del producto, todavía sin implementación ni ejecución de modelos. [Estado actual](plan-desarrollo.md), [generador](candidates.md) y [visor](references.md).
 
+Actualización del 20 oct: el usuario confirma **Colab como entorno del primer ensayo**. [Cuaderno y ejecución](design-lab-colab.md) preparados para rediseñar la secuencia de un esqueleto conocido y predecir esa secuencia exacta. Este paso no genera una forma nueva; la cadena de diseño de novo sigue pendiente. La instalación experimental local se detuvo y no se ejecutaron modelos en Windows. Resultado completo y recursos en Colab pendientes de medición. Proyectos y migraciones ya publicados/aplicados; confirmación de correo resuelta según el propietario, con CI de la publicación correcto. Los apartados históricos inferiores no vuelven a abrir esos pendientes.
+
 ## Objetivo acordado
 
 Volver a la consigna de crear proteínas mediante un recorrido visual comprensible. Basta obtener dos o tres diseños computacionales útiles para una demostración académica, guardarlos, explorarlos y compararlos. No se necesita atender a muchos usuarios ni mantener inferencia disponible permanentemente.
