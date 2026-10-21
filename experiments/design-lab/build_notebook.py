@@ -9,7 +9,7 @@ DESTINATION = SOURCE.parents[1] / "notebooks" / "proteinforge-design-lab.ipynb"
 
 
 def cell(kind, source, name):
-    value = {"cell_type": kind, "metadata": {"id": name}, "source": source.strip().splitlines(keepends=True)}
+    value = {"cell_type": kind, "id": name, "metadata": {"id": name}, "source": source.strip().splitlines(keepends=True)}
     if kind == "code":
         value.update(execution_count=None, outputs=[])
     return value
@@ -60,8 +60,17 @@ STAGE_ENV = dict(os.environ, HF_HOME=str(WORK / "model-cache"),
 def run_stage(name):
     command = [PYTHON, "-u", str(RUN / "experiment.py"), name, "--root", str(RUN)]
     print("Stage:", name, "| Results:", RUN, flush=True)
-    result = subprocess.run(command, env=STAGE_ENV)
-    if result.returncode:
+    with (RUN / f"{name}-stage.log").open("w", encoding="utf-8") as log:
+        with subprocess.Popen(command, env=STAGE_ENV, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, text=True, bufsize=1) as process:
+            for line in process.stdout:
+                print(line, end="", flush=True)
+                log.write(line)
+            returncode = process.wait()
+    if returncode:
+        failure = RUN / "failure.json"
+        if failure.exists():
+            print(failure.read_text(), flush=True)
         raise RuntimeError(f"Stage {name} failed. Read its output; the final download cell can export partial evidence.")
 print("Environment ready. No private sequence or Drive mount is used.")
 '''
@@ -100,7 +109,12 @@ Genera tres secuencias y repite con la misma semilla. La muestra 1 se selecciona
 ## Predicción / Prediction
 ESMFold recibe la secuencia exacta seleccionada. Valida coordenadas finitas, residuos y esqueleto completo. Registra pLDDT, pTM, memoria y tiempo. Este port entrega pLDDT en 0–1; el PDB y el resumen se exportan explícitamente en 0–100. No es probabilidad de función. / ESMFold receives the exact selected sequence; coordinates, residues and backbone completeness are validated. Confidence, memory and time are recorded; this port's 0–1 pLDDT is explicitly exported on a 0–100 scale. It is not a probability of function.
 """, "prediction-notes"),
-        cell("code", 'run_stage("predict")\nprint((RUN / "prediction.json").read_text())', "predict"),
+        cell("code", '''
+run_stage("predict")
+prediction_summary = json.loads((RUN / "prediction.json").read_text())
+print(json.dumps({key: prediction_summary[key] for key in
+    ("model", "residueCount", "meanCaPlddt", "ptm", "precision")}, indent=2))
+''', "predict"),
         cell("markdown", """
 ## Comparar y descargar / Compare and download
 RMSD de Cα tras superposición rígida sin reflexión, sin excluir residuos. No comparar como si ambas secuencias fueran idénticas: cada posición corresponde al esqueleto de referencia usado para diseñar. El ZIP excluye pesos/cachés y se reabre para verificar sus hashes. / Cα RMSD after rigid superposition without reflection or residue exclusion. Positional correspondence comes from the design backbone, not from identical sequences. Weights and caches are excluded; the ZIP is reopened and its hashes checked.
@@ -110,7 +124,9 @@ Si una etapa falla, ejecuta esta última celda para descargar evidencia parcial:
         cell("code", '''
 run_stage("package")
 if (RUN / "comparison.json").exists():
-    print((RUN / "comparison.json").read_text())
+    comparison_summary = json.loads((RUN / "comparison.json").read_text())
+    print(json.dumps({key: comparison_summary[key] for key in
+        ("method", "residuesCompared", "caRmsdAngstrom")}, indent=2))
 print((RUN / "validation.json").read_text())
 from google.colab import files
 files.download(str(WORK / "proteinforge-design-lab-results.zip"))

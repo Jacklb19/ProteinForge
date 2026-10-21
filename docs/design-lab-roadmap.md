@@ -2,7 +2,7 @@
 
 Acuerdo y consulta del 12 de octubre de 2026. Próxima dirección del producto, todavía sin implementación ni ejecución de modelos. [Estado actual](plan-desarrollo.md), [generador](candidates.md) y [visor](references.md).
 
-Actualización del 20 oct: el usuario confirma **Colab como entorno del primer ensayo**. [Cuaderno y ejecución](design-lab-colab.md) preparados para rediseñar la secuencia de un esqueleto conocido y predecir esa secuencia exacta. Este paso no genera una forma nueva; la cadena de diseño de novo sigue pendiente. La instalación experimental local se detuvo y no se ejecutaron modelos en Windows. Resultado completo y recursos en Colab pendientes de medición. Proyectos y migraciones ya publicados/aplicados; confirmación de correo resuelta según el propietario, con CI de la publicación correcto. Los apartados históricos inferiores no vuelven a abrir esos pendientes.
+Actualización del 20 oct: el usuario confirma **Colab como entorno del primer ensayo**. [Cuaderno y ejecución](design-lab-colab.md), con [primer rediseño y predicción completos verificados](design-lab-first-run.md): tres secuencias repetidas, predicción de la muestra 1, PDB de 76 residuos, pLDDT Cα medio 93,39 y RMSD Cα 0,82 Å. Este paso no genera una forma nueva ni acredita función; la cadena de diseño de novo sigue pendiente. La instalación experimental local se detuvo y no se ejecutaron modelos en Windows. Mediciones y ZIP recuperados y comprobados; pendientes integración/importación, otros casos y ejecución limpia de la fuente final. Proyectos y migraciones ya publicados/aplicados; confirmación de correo resuelta según el propietario, con CI de la publicación correcto. Los apartados históricos inferiores no vuelven a abrir esos pendientes.
 
 ## Objetivo acordado
 

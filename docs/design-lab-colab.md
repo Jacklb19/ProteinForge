@@ -2,6 +2,8 @@
 
 Preparado el 20 oct 2026. [Cuaderno](../notebooks/proteinforge-design-lab.ipynb), [fuentes del ensayo](../experiments/design-lab/) y [alcance del laboratorio](design-lab-roadmap.md).
 
+**Ensayo completo recuperado y verificado:** [resultados, mediciones y límites](design-lab-first-run.md). La generación y predicción se ejecutaron realmente en Colab; la fuente final corrige la exportación de pTM escalar. Las notas de incidencia inferiores describen el recorrido, no el estado final.
+
 ## Alcance y estado
 
 El primer caso es **rediseño sobre un esqueleto conocido**, no generación de una forma nueva: ubiquitina experimental 1UBQ, cadena A, 76 residuos → tres muestras ProteinMPNN → repetición con la misma semilla → predicción ESMFold de la muestra 1 → comparación con la referencia. La muestra se fija antes de predecir; no se elige por confianza. No demuestra función, estabilidad experimental ni novedad biológica.
@@ -17,7 +19,7 @@ La sesión mostró la preparación terminada y ProteinMPNN completó generación
 MTIKVEFEDGTTLTLEVSPEDTIAELKAKIQEKTGIPPEEQRLIYKGKVLEDDKTLADYGIKEGDTIRLELVPKGG
 ```
 
-La etapa de predicción estaba ejecutándose cuando se interrumpió el trabajo. **PDB predicho, confianza, comparación, mediciones exactas y ZIP completo todavía no están recuperados ni validados.** No se presenta este avance como un ensayo completo. Al reanudar se debe inspeccionar el estado existente antes de ejecutar otra vez. La sesión del navegador cambió y la conexión de control al cuaderno dejó de responder; se solicitó al propietario abrir/recargar la pestaña, sin repetir el ensayo ni cambiar permisos.
+La primera sesión se perdió tras la interrupción, sin recuperar un PDB. Después de que el propietario recargara el cuaderno, se repitió el caso conservando logs. Se corrigió la lectura escalar de pTM y se recuperó el ensayo completo: PDB, confianza, comparación, mediciones y ZIP con hashes comprobados también localmente. El panel de descarga de Colab falló; se transfirieron los mismos bytes mediante Base64 desde la salida visible, sin cambiar permisos ni cookies. El primer intento fallido permanece identificado en el paquete.
 
 El generador del cuaderno incorpora las fuentes locales y deja todas las salidas vacías. No depende de que este trabajo esté publicado en GitHub. El ZIP resultante todavía no se importa automáticamente en la aplicación; es evidencia para definir después la integración.
 

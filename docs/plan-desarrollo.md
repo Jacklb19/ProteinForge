@@ -1,5 +1,7 @@
 # Estado y siguiente trabajo
 
+**Actualización del 20 oct 2026:** Proyectos ya está publicado, sus migraciones están aplicadas según el propietario y CI pasó. Correo de confirmación e interfaz bilingüe resueltos. El [primer ensayo real en Colab](design-lab-first-run.md) completó rediseño sobre un esqueleto conocido, predicción, comparación y ZIP verificado localmente; no generó una forma nueva. Fuentes y cuaderno reproducible en `experiments/design-lab/` y `notebooks/`. Siguiente trabajo: otros casos y repetición limpia de la fuente final; propuestas visuales del laboratorio antes de código de interfaz; importación/persistencia de resultados y selección 3D/secuencia. El laboratorio y `DesignService` aún no están integrados en la app. La tabla y autorizaciones fechadas el 12 oct de abajo son la captura histórica anterior; no vuelven a abrir migraciones, SMTP o inglés ni autorizan nuevas operaciones remotas.
+
 Actualizado el 12 oct 2026 tras acordar el laboratorio didáctico. Entrega comprobada en dev; el usuario autoriza publicar esa rama de ambos repositorios únicamente con su autoría exclusiva. Push no equivale a merge a main ni a verificar despliegue. Sitios existentes: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/). Migraciones remotas pendientes.
 
 | Bloque | Implementación/evidencia | Límite vigente |

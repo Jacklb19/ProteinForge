@@ -351,7 +351,7 @@ def predict(root: Path, config: dict):
         metrics["peakTorchAllocatedBytes"] = torch.cuda.max_memory_allocated()
         metrics["peakTorchReservedBytes"] = torch.cuda.max_memory_reserved()
         confidence = output.plddt[0, :, 1].float().cpu().numpy()
-        ptm = float(output.ptm[0].item())
+        ptm = float(output.ptm.item())
         if not np.isfinite(confidence).all() or not np.all((0 <= confidence) & (confidence <= 1)) or not math.isfinite(ptm) or not 0 <= ptm <= 1:
             raise ValueError("Invalid confidence output")
         # This pinned Transformers port returns pLDDT in [0,1]; explicitly export PDB B factors in [0,100].
