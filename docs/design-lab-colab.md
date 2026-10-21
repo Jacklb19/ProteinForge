@@ -4,11 +4,13 @@ Preparado el 20 oct 2026. [Cuaderno](../notebooks/proteinforge-design-lab.ipynb)
 
 **Ensayo completo recuperado y verificado:** [resultados, mediciones y límites](design-lab-first-run.md). La generación y predicción se ejecutaron realmente en Colab; la fuente final corrige la exportación de pTM escalar. Las notas de incidencia inferiores describen el recorrido, no el estado final.
 
+**Continuación comprobada:** [tres variantes con ejecuciones nuevas y fuente final](design-lab-three-variants.md). La primera repitió el recorrido sin parche; las tres tienen PDB y ZIP propios verificados localmente.
+
 ## Alcance y estado
 
 El primer caso es **rediseño sobre un esqueleto conocido**, no generación de una forma nueva: ubiquitina experimental 1UBQ, cadena A, 76 residuos → tres muestras ProteinMPNN → repetición con la misma semilla → predicción ESMFold de la muestra 1 → comparación con la referencia. La muestra se fija antes de predecir; no se elige por confianza. No demuestra función, estabilidad experimental ni novedad biológica.
 
-Fuentes, configuración y cuaderno están preparados; diez pruebas locales de validación de archivos y comparación con coordenadas sintéticas identificadas como tales pasan. La referencia pública real se validó por hash, secuencia exacta, 76 residuos y 602 átomos.
+Fuentes, configuración y cuaderno están preparados; trece pruebas locales de validación de archivos, comparación con coordenadas sintéticas identificadas como tales y preservación de campañas previas pasan. La referencia pública real se validó por hash, secuencia exacta, 76 residuos y 602 átomos.
 
 Se creó [ProteinForge-ensayo-Colab.ipynb](https://colab.research.google.com/drive/1t_MeCkwU3cN8oLtiCHG7_JRBo59SjiDC) en la cuenta del propietario mediante el editor. GPU asignada observada: Tesla T4, 15.360 MiB; runtime Python 3.13 y 12,67 GB RAM anunciados por Colab. Se corrigió la ausencia de `ensurepip` usando `venv --without-pip --system-site-packages`, que hereda el pip existente. La celda de preparación pegada se comparó con el texto local y coincidió exactamente.
 
@@ -34,6 +36,19 @@ El generador del cuaderno incorpora las fuentes locales y deja todas las salidas
 La carga automática mediante la extensión de Edge puede requerir acceso a archivos locales. La carga manual desde Colab permite abrir el archivo sin cambiar permisos de la extensión. No se necesitan credenciales en el cuaderno, montar Drive ni compartir secuencias privadas. El ensayo usa únicamente una estructura pública; los pesos y dependencias se descargan a la máquina temporal de Colab.
 
 La GPU, duración y RAM de Colab no están garantizadas: [FAQ oficial](https://research.google.com/colaboratory/faq.html). No se abre una API, túnel ni servicio permanente sobre Colab.
+
+### Campaña opcional de tres variantes
+
+El cuaderno generado incorpora `campaign.py`. Tras ejecutar la preparación, puede activarse la celda final con `RUN_CAMPAIGN = True`: ejecuta las cuatro etapas desde cero para cada índice 1, 2 y 3 en directorios separados dentro de `RUN/campaign/`. Regenera y repite las tres secuencias en cada caso; rechaza diferencias entre conjuntos. Reutiliza únicamente la caché de modelos y el entorno instalado, sin reutilizar predicciones anteriores. Conserva cualquier campaña parcial y rechaza sobrescribir su carpeta; ejecutar la preparación otra vez crea otro `RUN`.
+
+La celda imprime el resumen y la ruta `RUN/proteinforge-design-lab-campaign.zip`. El ZIP reúne el coordinador, el resumen y los tres paquetes con sus hashes. Para descargarlo desde una celda de Colab:
+
+```python
+from google.colab import files
+files.download(str(RUN / "proteinforge-design-lab-campaign.zip"))
+```
+
+La opción queda desactivada por defecto para que «Ejecutar todas» conserve el recorrido básico de una predicción. La campaña es una ejecución interactiva finita, no un servicio. No presenta las tres variantes del mismo esqueleto como tres problemas biológicos independientes.
 
 ## Métodos y trazabilidad
 

@@ -68,4 +68,4 @@ Los datos descargados y pesos no se versionan. El cuaderno reproducible del repo
 
 ## Lo siguiente
 
-Este caso habilita diseñar y probar la importación validada del paquete y el recorrido de laboratorio con datos reales. Antes de programar la interfaz se requieren las propuestas visuales y elección del propietario. Siguen pendientes generar una forma nueva, otros candidatos con predicción y una ejecución nueva desde una sesión limpia con la versión final, sin el parche de recuperación. No declarar integrado `DesignService` ni importación en la app: todavía no existen.
+La continuación ya comprobó [tres variantes con la fuente final desde el inicio](design-lab-three-variants.md), incluida la repetición de este caso sin parche y las predicciones de las muestras 2 y 3. La caché de pesos se conservó; los resultados y procesos fueron nuevos. Están preparadas [dos propuestas visuales](design-lab-proposal.md), pendientes de elección del propietario. Siguen pendientes una forma nueva y la importación validada/persistencia e interfaz del laboratorio. No declarar integrado `DesignService` ni importación en la app: todavía no existen.

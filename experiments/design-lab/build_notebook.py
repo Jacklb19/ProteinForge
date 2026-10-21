@@ -19,6 +19,7 @@ def build():
     program = (SOURCE / "experiment.py").read_text(encoding="utf-8")
     config = (SOURCE / "config.json").read_text(encoding="utf-8")
     requirements = (SOURCE / "requirements-colab.txt").read_text(encoding="utf-8")
+    campaign = (SOURCE / "campaign.py").read_text(encoding="utf-8")
     setup = '''
 #@title Preparar el entorno de Colab / Prepare the Colab environment
 import importlib.util
@@ -47,6 +48,7 @@ RUN.mkdir()
 (RUN / "config.json").write_text(CONFIG_TEXT, encoding="utf-8")
 (RUN / "experiment.py").write_text(PROGRAM_TEXT, encoding="utf-8")
 (RUN / "requirements-colab.txt").write_text(REQUIREMENTS_TEXT, encoding="utf-8")
+(RUN / "campaign.py").write_text(CAMPAIGN_TEXT, encoding="utf-8")
 ENV = WORK / "venv"
 # Managed Debian runtimes may omit ensurepip; inherit their existing pip instead.
 subprocess.run([sys.executable, "-m", "venv", "--without-pip", "--system-site-packages", str(ENV)], check=True)
@@ -75,7 +77,7 @@ def run_stage(name):
 print("Environment ready. No private sequence or Drive mount is used.")
 '''
     setup = ('#@title Preparar el entorno de Colab / Prepare the Colab environment\n'
-             + f"PROGRAM_TEXT = {program!r}\nCONFIG_TEXT = {config!r}\nREQUIREMENTS_TEXT = {requirements!r}\n" + setup.strip())
+             + f"PROGRAM_TEXT = {program!r}\nCONFIG_TEXT = {config!r}\nREQUIREMENTS_TEXT = {requirements!r}\nCAMPAIGN_TEXT = {campaign!r}\n" + setup.strip())
     cells = [
         cell("markdown", """
 # ProteinForge — ensayo de rediseño / sequence redesign experiment
@@ -84,7 +86,7 @@ print("Environment ready. No private sequence or Drive mount is used.")
 
 **Goal:** known experimental backbone → ProteinMPNN sequences → ESMFold prediction of the first sample → comparison and verifiable ZIP.
 
-Este caso usa ubiquitina pública **1UBQ, cadena A, 76 residuos**. Rediseña una secuencia; **no genera una forma nueva ni demuestra función o estabilidad experimental**. El ensayo completo aún debe ejecutarse y evaluarse. / This public 76-residue case redesigns a sequence, does not generate a new backbone, and does not establish biological function or experimental stability. The full experiment still needs execution and evaluation.
+Este caso usa ubiquitina pública **1UBQ, cadena A, 76 residuos**. Rediseña una secuencia; **no genera una forma nueva ni demuestra función o estabilidad experimental**. Cada ejecución conserva sus propias validaciones y mediciones. / This public 76-residue case redesigns a sequence, does not generate a new backbone, and does not establish biological function or experimental stability. Each run retains its own validation and measurements.
 
 En **Entorno de ejecución → Cambiar tipo de entorno → GPU**, selecciona una GPU gratuita, si está disponible. Después usa **Ejecutar todas**. No contrates recursos. Colab no garantiza GPU ni duración. / Select a free GPU runtime, if available, then Run all. Do not purchase resources; availability and session duration are not guaranteed.
 
@@ -131,6 +133,27 @@ print((RUN / "validation.json").read_text())
 from google.colab import files
 files.download(str(WORK / "proteinforge-design-lab-results.zip"))
 ''', "download"),
+        cell("markdown", """
+## Tres variantes opcionales / Optional three-variant campaign
+
+Para comprobar todas las muestras, cambia `RUN_CAMPAIGN` a `True` y ejecuta esta celda después de preparar el entorno. Cada muestra repite las cuatro etapas en su propia carpeta; la primera también se ejecuta desde cero con la fuente corregida. No se elige una ganadora por confianza ni se generan tres formas independientes. La caché de pesos se comparte, los resultados no. / To verify every sample, set `RUN_CAMPAIGN` to `True` after environment setup. Each sample independently repeats all four stages, including a clean first sample. There is no confidence-based winner or three independent backbone designs. Only the model cache is shared.
+
+Una carpeta existente se conserva y se rechaza sobrescribirla. Si Colab pierde el entorno, vuelve a ejecutar la preparación. / Existing campaign folders are preserved and cannot be overwritten. Repeat setup if Colab loses its runtime.
+""", "campaign-notes"),
+        cell("code", '''
+RUN_CAMPAIGN = False
+if RUN_CAMPAIGN:
+    with subprocess.Popen([PYTHON, "-u", str(RUN / "campaign.py"), "--root", str(RUN)],
+                          env=STAGE_ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, bufsize=1) as process:
+        for line in process.stdout:
+            print(line, end="", flush=True)
+        if process.wait():
+            raise RuntimeError("Campaign failed; inspect the stage output and retained partial files")
+    print((RUN / "campaign/campaign-summary.json").read_text())
+else:
+    print("Campaña opcional desactivada / Optional campaign disabled")
+''', "campaign"),
     ]
     notebook = {"nbformat": 4, "nbformat_minor": 5, "cells": cells, "metadata": {
         "accelerator": "GPU", "colab": {"provenance": [], "name": DESTINATION.name},
