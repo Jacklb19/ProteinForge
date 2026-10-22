@@ -22,6 +22,7 @@ const DATE = '2026-10-19T10:00:00.123456Z';
 const HUMAN = '00000000-0000-4000-8000-000000000010';
 const COMPARISON = '00000000-0000-4000-8000-000000000011';
 const LYSOZYME = '00000000-0000-4000-8000-000000000012';
+const MIXED = '00000000-0000-4000-8000-000000000013';
 const prefix = (sequence: string): string => sequence.slice(0, PROJECT_PREVIEW_RESIDUES);
 function sequence(accession: string): string { return readFileSync(`src/features/descriptors/fixtures/${accession}.fasta`, 'utf8').split(/\r?\n/).filter(line => !line.startsWith('>')).join('').trim(); }
 function analysis(id: string, name: string, accession: string): Project {
@@ -35,17 +36,17 @@ function wire(project: Project) {
       sequenceLength: project.activeSequence.length, sequencePrefix: prefix(project.activeSequence), excluded: 0,
       descriptors: workspace.descriptors?.result,
       source: workspace.source ? { origin: SourceOrigin.CATALOG, accession: workspace.source.accession } : undefined,
-      alignment: a.first || a.second ? { firstLength: a.first.length, secondLength: a.second.length, firstPrefix: prefix(a.first), secondPrefix: prefix(a.second), matrix: SubstitutionMatrix.BLOSUM62, mode: AlignmentMode.GLOBAL, result: a.result ? { identities: a.result.identities, similarities: a.result.similarities, columns: a.result.columns } : undefined } : undefined,
+      alignment: a.first || a.second ? { firstLength: a.first.length, secondLength: a.second.length, firstPrefix: prefix(a.first), secondPrefix: prefix(a.second), matrix: SubstitutionMatrix[a.matrix], mode: a.mode === 'global' ? AlignmentMode.GLOBAL : AlignmentMode.LOCAL, result: a.result ? { identities: a.result.identities, similarities: a.result.similarities, columns: a.result.columns } : undefined } : undefined,
     } }, activeSequence: project.activeSequence, workspace: workspaceMessage(workspace),
   };
 }
 
-async function mockCollection(page: Page) {
+async function mockCollection(page: Page, leading: Project[] = []) {
   await storeSession(page);
   const human = analysis(HUMAN, 'Insulina humana', 'P01308');
   const first = sequence('P01308'); const second = sequence('P01317');
   const comparison: Project = { ...human, id: COMPARISON, name: 'Insulina humana y bovina', activeSequence: '', workspace: { ...human.workspace, descriptors: null, source: null, alignment: { first, second, mode: 'global', matrix: 'BLOSUM62', result: await alignSequences(first, second) } } };
-  const documents = new Map([human, comparison, analysis(LYSOZYME, 'Lisozima C', 'P00698')].map(project => [project.id, project]));
+  const documents = new Map([...leading, human, comparison, analysis(LYSOZYME, 'Lisozima C', 'P00698')].map(project => [project.id, project]));
   const gets: string[] = []; const queries: { query: string; order: ProjectOrder; pageToken: string }[] = [];
   let version = 0;
   let listError = false;
@@ -122,6 +123,38 @@ test('copying preserves the current draft and pointer, and a comparison-only pro
   await page.getByRole('button', { name: message('projects.openAlignmentNamed', { name: 'Insulina humana y bovina' }) }).click();
   await page.getByRole('dialog').getByRole('button', { name: spanish['projects.confirmOpen'] }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
+});
+
+test('a mixed project restores its saved comparison parameters and result, and opens its analysis separately', async ({ page }) => {
+  // Mirrors the owner's saved project verified on 22 Oct: human/bovine with Global/BLOSUM80 plus an analysis sequence.
+  const first = sequence('P01308'); const second = sequence('P01317'); const analysed = sequence('P00698');
+  const result = await alignSequences(first, second, { matrix: 'BLOSUM80', mode: 'global' });
+  expect([result.identities, result.columns, result.score]).toEqual([88, 110, 733]);
+  const base = analysis(MIXED, 'Insulina comparada', 'P00698');
+  const mixed: Project = { ...base, workspace: { ...base.workspace, alignment: { first, second, matrix: 'BLOSUM80', mode: 'global', result } } };
+  await mockCollection(page, [mixed]); await page.goto(ROUTES.projects);
+  const card = page.locator('.project-card').filter({ has: page.getByRole('heading', { name: 'Insulina comparada' }) });
+  await expect(card.getByRole('button', { name: message('projects.openAnalysisNamed', { name: 'Insulina comparada' }) })).toBeVisible();
+
+  await card.getByRole('button', { name: message('projects.openAlignmentNamed', { name: 'Insulina comparada' }) }).click();
+  await page.getByRole('dialog').getByRole('button', { name: spanish['projects.confirmOpen'] }).click();
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
+  await expect(page.locator('#alignment-first')).toHaveValue(first);
+  await expect(page.locator('#alignment-second')).toHaveValue(second);
+  await expect(page.getByRole('radio', { name: 'BLOSUM80' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: spanish['alignment.global'] })).toBeChecked();
+  await expect(page.getByText(message('alignment.verdict', { count: '88', total: '110' }))).toBeVisible();
+  await expect(page.locator('.figures')).toContainText('733');
+  await expect(page.getByText(spanish['alignment.stale'])).toHaveCount(0);
+
+  await followNavigation(page, spanish['nav.projects']);
+  await card.getByRole('button', { name: message('projects.openAnalysisNamed', { name: 'Insulina comparada' }) }).click();
+  await page.getByRole('dialog').getByRole('button', { name: spanish['projects.confirmOpen'] }).click();
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
+  await expect(await openSequenceEditor(page)).toHaveValue(analysed);
+  await followNavigation(page, spanish['nav.alignment']);
+  await expect(page.getByRole('radio', { name: 'BLOSUM80' })).toBeChecked();
+  await expect(page.locator('#alignment-second')).toHaveValue(second);
 });
 
 for (const width of [360, 1280]) test(`approved cards, menus and confirmation fit ${String(width)}px in both themes`, async ({ page }) => {
