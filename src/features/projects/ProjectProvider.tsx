@@ -9,7 +9,6 @@ import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { DEFAULT_MATRIX, DEFAULT_MODE, SCORING_SUBSTITUTIONS } from '../alignment/config';
 import { DEFAULT_HYDROPATHY_WINDOW } from '../descriptors/config';
-import { createProjectApi } from './projectApi';
 import type { ProjectApi } from './projectApi';
 import type { Project, ProjectSummary } from './contracts';
 import { DEFAULT_PROJECT_QUERY, PROJECT_POINTER_PREFIX } from './config';
@@ -49,8 +48,23 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   // Track raw edits and provenance, including formatting and parameter changes.
   // Background calculations do not invalidate a deliberate open.
   useLayoutEffect(() => { inputRevision.current++; }, [sequence.text, sequence.profileWindow, sequence.source, alignment.first, alignment.second, alignment.matrix, alignment.mode]);
-  const [configuredApi] = useState(() => { const url = readApiBaseUrl(); return url ? createProjectApi(url) : null; });
+  // The service client carries the generated contracts, which a visit that never opens a project
+  // does not need. It is fetched once, as soon as the provider is mounted; an action that arrives
+  // before it lands waits for the same request instead of failing silently.
+  const [configuredUrl] = useState(readApiBaseUrl);
+  const [configuredApi, setConfiguredApi] = useState<ProjectApi | null>(null);
+  const loading = useRef<Promise<ProjectApi | null> | null>(null);
+  const serviceClient = useCallback(async (): Promise<ProjectApi | null> => {
+    if (api !== undefined) return api;
+    if (!configuredUrl) return null;
+    loading.current ??= import('./projectApi').then(({ createProjectApi }) => createProjectApi(configuredUrl));
+    const resolved = await loading.current;
+    setConfiguredApi(resolved);
+    return resolved;
+  }, [api, configuredUrl]);
+  useEffect(() => { void serviceClient(); }, [serviceClient]);
   const client = api === undefined ? configuredApi : api;
+  const enabled = api === undefined ? Boolean(configuredUrl) : api !== null;
   const user = auth.status === 'signed-in' ? auth.session?.user.id ?? null : null;
   const token = auth.session?.accessToken ?? '';
   const [state, setState] = useState<State>(EMPTY);
@@ -123,14 +137,17 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   }, [current.active, user, sequence.text, sequence.profileWindow, alignment]);
 
   async function run(task: (client: ProjectApi, signal: AbortSignal) => Promise<void>): Promise<boolean> {
-    if (!client || !user || !token || locked.current) return false;
+    if (!enabled || !user || !token || locked.current) return false;
+    // Hold the lock across the wait for the client, so a second action cannot start meanwhile.
     locked.current = true;
+    const service = client ?? await serviceClient();
+    if (!service) { locked.current = false; return false; }
     const epoch = ++generation.current;
     const operation = new AbortController();
     controller.current?.abort(); controller.current = operation;
     setState((value) => ({ ...value, owner: user, busy: true, error: null, notice: null }));
     try {
-      await task(client, operation.signal);
+      await task(service, operation.signal);
       return !operation.signal.aborted && generation.current === epoch;
     } catch (error) {
       if (!operation.signal.aborted && generation.current === epoch) setState((value) => ({ ...value, error: error instanceof ApiError ? error : new ApiError('unknown') }));
@@ -152,7 +169,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   }
   const value = {
     laboratory,
-    enabled: client !== null, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
+    enabled, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
     busy: current.busy, error: current.error, notice: current.notice, dirty, listing: current.listing,
     refresh(more = false, query: ProjectQuery = current.listing) { return run(async (service, signal) => {
       const selected = more ? current.listing : { ...query, query: query.query.trim() };
