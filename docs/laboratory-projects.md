@@ -8,6 +8,8 @@ Implementado localmente el 21 oct 2026 tras la [aprobación del contrato y formu
 
 Archivo descargado y proyecto son destinos explícitos. No hay guardado automático de secuencias en localStorage. Una importación válida sustituye el conjunto y desvincula su proyecto; un fallo o cancelación conserva datos y vínculo. La reapertura de nube comprueba el SHA del documento y vuelve a validar su fuente en Worker antes de sustituir el conjunto. La recarga no restaura el laboratorio automáticamente: se abre el archivo o el proyecto guardado desde la colección.
 
+Una apertura demorada conserva las ediciones hechas mientras esperaba: antes de iniciar la validación en Worker se comprueban el conjunto, los borradores y cualquier importación/exportación en curso. Si cambiaron, se mantiene el laboratorio actual y su vínculo y se informa en español o inglés; volver a abrir permite confirmar de nuevo el reemplazo. Los cambios del editor de análisis no bloquean una apertura independiente del laboratorio.
+
 El acceso interno conserva el laboratorio en memoria. Antes de Google, la pantalla de acceso ofrece descargarlo y explica cómo reabrirlo al regresar. No se transmite una secuencia al proveedor de inferencia desde este formulario. La carga manual en Colab sigue siendo otro recorrido explícito.
 
 ## Contrato y límites
@@ -29,3 +31,5 @@ Backend: 43 pruebas API y 12 SQL ejecutadas aparte en PostgreSQL 18 temporal loc
 Nueva migración: `backend/supabase/migrations/20261021000000_laboratory_projects.sql` del repositorio backend. Está probada localmente y el propietario confirma que ya la aplicó el 21 oct. No volver a ejecutarla. Tras autorización específica futura: publicar backend antes de frontend y comprobar sesión real/dos propietarios/dos pestañas. Las migraciones anteriores ya estaban aplicadas según el propietario; no repetir la inicial. `buf.gen.yaml` fija el commit backend local nuevo; para regenerar sin publicarlo usar `npx buf generate ../backend/proto`. El comando por remoto requiere que ese commit se publique primero.
 
 Siguen pendientes publicar/verificar este bloque en producción, inferencia nueva desde la app, diseño de forma de novo y validación experimental. No se activaron recursos de pago ni se ejecutaron modelos en Windows.
+
+Continuación local: la protección de borradores durante aperturas demoradas suma 337 unitarias totales y 24 E2E afectadas completadas sobre el mismo build, incluidos los dos ZIP reales; tipos/lint/build/PWA correctos. El [procedimiento de activación](laboratory-activation.md) separa esa evidencia local de los casos reales todavía pendientes.

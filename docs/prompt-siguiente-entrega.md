@@ -2,6 +2,8 @@
 
 Actualizado el 21 de octubre de 2026. Sustituye el prompt del 19 oct, conservado en Git. El propietario confirma que ya aplicó la migración del laboratorio; no se inspeccionó la base remota. Copia el bloque siguiente en el nuevo chat, o pide que lea este archivo completo.
 
+Continuación local completada el mismo día: corregida la pérdida de borradores ante aperturas/recuperaciones demoradas (`b971f0d`), con aviso bilingüe y protección de parámetros elegidos antes de acceder. [Activación preparada](laboratory-activation.md), sin publicar ni ejecutar SQL remoto. Esta corrección está terminada; no rehacerla. Los siguientes pasos externos siguen necesitando autorización específica.
+
 ---
 
 Continúa el desarrollo de ProteinForge desde el estado existente. Trabaja de forma autónoma dentro del alcance autorizado, implementa y verifica mejoras reales; no te detengas tras presentar un plan. Lee este relevo como contexto: las instrucciones actuales del propietario y los AGENTS.md aplicables prevalecen. No interpretes los permisos históricos como nuevas autorizaciones remotas.
@@ -23,8 +25,8 @@ No versiones AGENTS.md, docs/PROGRESS.md, secretos, .env, temporales, ZIP/PDB de
 
 ## Estado real al relevar
 
-Frontend `dev`: `c472e7c375e0526987a965f4434a92aa7298a672`.
-Backend `dev`: `5b6c4505c77293e1f4798e0bd86932e13c11600f`.
+Frontend `dev`: código hasta `b971f0d7d86428339c7d519213f5a89a4b0a1f24`, más cierre documental posterior.
+Backend `dev`: `da25fee44d3dda9db0d0599c02f8a0cbd58491cf` (solo documentación posterior a `5b6c450`).
 Ambos árboles estaban limpios antes de preparar este relevo; puede existir un commit posterior exclusivamente documental. Consulta Git, no asumas hashes nuevos. Frontend incluye además `7c56291` (restricciones/Colab) y `4346257` (laboratorio A).
 
 Ya resuelto; no lo rehagas:
@@ -36,6 +38,7 @@ Ya resuelto; no lo rehagas:
 - Guardar/reabrir laboratorio en Proyectos está implementado LOCALMENTE en ambos repositorios, con formulario aprobado, conflictos/recargar/copia, vínculo independiente del editor, conservación de análisis y borradores, e importación fallida/cancelada atómica. El acceso interno conserva memoria; antes de Google se ofrece descargar el archivo.
 - Contrato: Workspace v1 anterior o v2 con LaboratorySnapshot (campo 6): JSON UTF8 portable v1, SHA-256, máximo 1.000.000 bytes, tres variantes/120 residuos. Mensaje RPC completo hasta 2.000.000 bytes, sin aumentar el límite. API valida forma/fuente/borradores sin descomprimir ZIP ni ejecutar ciencia. Reapertura científica íntegra en Worker. La secuencia activa del laboratorio se valida dentro de su state; activeSequence del editor es independiente.
 - Almacenamiento existente analyses, clave estable workspace-v1; SQL impide v1 sobre v2 sin escrituras parciales. Preview solo presencia/cantidad, sin ZIP/coordenadas. Se conservan JWT/RLS/SECURITY INVOKER y timestamps con microsegundos.
+- Abrir/recuperar compara entradas vigentes antes de sustituirlas. Ediciones durante lista/lectura y parámetros elegidos antes de iniciar sesión sobreviven a la recuperación automática; una apertura manual demorada conserva borrador/vínculo/puntero y avisa. Laboratorio comprueba revisión, borradores e importación/exportación en curso antes de iniciar Worker. Los destinos de análisis y laboratorio siguen siendo independientes.
 
 Migración nueva: `backend/supabase/migrations/20261021000000_laboratory_projects.sql`. El propietario acaba de confirmar el 21 oct: «listo, hice migracion». Regístrala como aplicada según él, SIN afirmar inspección remota. No volver a pedirle que la aplique, no repetir la inicial ni ejecutar SQL remoto. Las migraciones anteriores de Proyectos también estaban aplicadas. La publicación de los commits nuevos y su verificación real de producción siguen pendientes.
 
@@ -53,9 +56,11 @@ Producción existente: https://protein-forge.vercel.app y https://protein-back.v
 
 ## Evidencia y reproducción
 
-Última entrega local: frontend 326 unitarias /61 archivos; cobertura 84,67 % statements, 73,67 % branches, 82,44 % functions y 87,76 % lines, mínimos intactos. Tipos/lint/build/PWA correctos, 25 recursos precacheados. Chrome: 32/32 E2E afectadas, ambos ZIP reales, 360/1280/ambos temas, AA/foco/Escape/44px, conflicto/copia, borrador tras recarga y corrupción atómica. Backend: 43 pruebas API ejecutadas; 12 SQL omitidas sin base y ejecutadas aparte, 12/12, en PostgreSQL 18 temporal real. Buf lint/breaking correctos. Python local 3.13.14; 3.14/otros motores/CI remoto de esta entrega no comprobados. Ciencia Python: 21 pruebas sin modelos locales. Los avisos previos de Vite sobre cargador futuro/chunks grandes siguen sin esconderse.
+Última continuación local: frontend 337 unitarias /61 archivos; cobertura 84,71 % statements, 73,82 % branches, 82,46 % functions y 87,80 % lines, mínimos intactos. Tipos/lint/build/PWA correctos, 25 recursos precacheados. Chrome: 24 E2E afectadas completadas en dos subconjuntos sobre el mismo build; ambos ZIP reales, 360/1280/ambos temas, AA/foco/Escape/44px, conflicto/copia, borrador tras recarga, corrupción atómica y respuestas demoradas. Auth/RPC simuladas. Backend solo documentación en esta continuación: conserva evidencia previa de 43 pruebas API y 12/12 SQL en PostgreSQL 18 temporal real; Buf lint/breaking previos, no repetidos sin cambiar contratos. Python local 3.13.14; 3.14/otros motores/CI remoto no comprobados. Ciencia Python: 21 pruebas previas sin modelos locales. Los avisos de Vite sobre cargador futuro/chunks grandes siguen sin esconderse.
 
 Frontend: `npm run typecheck`, `npm run lint`, pruebas pertinentes; batería completa/coverage cuando cambien módulos compartidos; `npm run build`; `npm run check:pwa` al cambiar recursos/Workers/caché. E2E afectadas sobre preview del build con un worker: `E2E_BASE_URL=http://127.0.0.1:5204`, `E2E_WORKERS=1`, `node node_modules/playwright/cli.js test ...`. El servidor puede haber terminado: compruébalo antes de usarlo. No repitas baterías completas sin cambios o dudas que lo justifiquen.
+
+En esta continuación Windows bloqueó localhost dentro del aislamiento: Chrome y preview funcionaron al ejecutarse fuera mediante el permiso correspondiente, sin alterar seguridad del navegador. Vitest necesitó `TEMP` y `TMP` apuntando a `frontend/tmp/vitest` ignorado tras un error de lectura temporal. No tratar esos fallos previos al arranque como defectos de la aplicación ni eludir rechazos de aprobación.
 
 Archivos reales ignorados, no requeridos en CI:
 - `E2E_LAB_ARCHIVE`: `frontend/artifacts/design-lab/campaign/proteinforge-design-lab-campaign.zip`.

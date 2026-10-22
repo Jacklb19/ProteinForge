@@ -1,5 +1,7 @@
 # Estado y siguiente trabajo
 
+**Continuación local del 21 oct:** corregida una carrera que reemplazaba borradores editados durante aperturas/recuperaciones demoradas, con protección de parámetros, aviso bilingüe y pruebas de regresión. [Activación preparada](laboratory-activation.md) con orden de publicación y casos de dos cuentas/dos pestañas. 337 unitarias y 24 E2E afectadas comprobadas localmente; publicación y recorrido con JWT/PostgREST reales siguen pendientes. No repetir la migración ya aplicada por el propietario.
+
 **Cierre local del 21 oct:** [laboratorio en Proyectos implementado](laboratory-projects.md) con formulario aprobado, archivo completo/resultados/borradores, reapertura en Worker y conflictos/copia. Backend con Workspace v2, API/protobuf y migración idempotente, guardia contra clientes antiguos y RLS local comprobados. El propietario confirma el 21 oct que aplicó la migración nueva; falta autorizar publicación y verificar producción; no implica inferencia desde la app ni forma de novo. Las actualizaciones inferiores conservan las etapas anteriores.
 
 **Continuación del 21 oct:** [rediseño condicionado comprobado](design-lab-constraints.md) en Colab T4; tres muestras y repetición conservan R2/F7/R42. Borrador v2 y cuaderno descargables desde el laboratorio; importación y archivo local conservan las restricciones ejecutadas. Sigue la [propuesta de guardado en Proyectos](laboratory-projects-proposal.md), con contrato/migración separados antes de implementar; inferencia desde la app y forma de novo pendientes.
