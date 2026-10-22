@@ -84,7 +84,8 @@ export async function openSiteMenu(page: Page): Promise<Locator> {
  * their own chunk, so asking which controls exist before that replaces a real control with a fallback.
  */
 export async function routeLoaded(page: Page): Promise<void> {
-  await expect(page.getByText(spanish['shell.loadingPage'], { exact: true })).toHaveCount(0);
+  // Every screen opens with its own first-level heading; the loading fallback has none.
+  await expect(page.locator('#app-content').getByRole('heading', { level: 1 }).first()).toBeVisible();
 }
 
 /**
