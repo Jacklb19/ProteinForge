@@ -31,6 +31,8 @@ Luego valida manifiestos y hashes, procedencia/configuración, selección previa
 
 JSON `kind: proteinforge-laboratory`, `schemaVersion: 1`. `source` referencia el ejemplo versionado o incorpora el ZIP original en Base64 con SHA-256. `state` conserva variante activa, posición seleccionada y, para cada variante, secuencia y posiciones protegidas de base cero. Deshacer es temporal; no se serializa el historial. No se confía en coordenadas o métricas serializadas: se relee la fuente y se revalida íntegramente en Worker al abrir y guardar. El borrador exportado por separado usa posiciones de cadena de base uno con claves explícitas.
 
+Corrección del 22 oct: al abrir el laboratorio de un proyecto guardado justo después de recargar, la carga del ejemplo integrado en segundo plano se tomaba por trabajo más nuevo del usuario y la apertura se rechazaba con «tu trabajo cambió». El laboratorio declara ahora si puede sustituirse sin perder nada —ejemplo integrado sin editar, o nada cargado—; una importación o una edición siguen protegiendo el borrador frente a una apertura demorada.
+
 El [guardado en Proyectos aprobado](laboratory-projects.md) ya está implementado localmente: Workspace v2, sobre JSON/SHA, 1 MB, vinculación independiente del editor, apertura validada, concurrencia y migración local. La activación remota queda pendiente. La ejecución condicionada manual ya está comprobada; siguen pendientes predicción nueva desde la app y diseño de forma nueva.
 
 ## Verificación reproducible

@@ -23,7 +23,7 @@ const analysis:Project={id:'00000000-0000-4000-8000-000000000010',name:'Analysis
 beforeAll(async()=>{
  const {dataset}=await loadExample(),drafts=initialDrafts(dataset,null),activeId=required(dataset.variants[0]).id;
  bytes=await exportWorkspace(null,{activeId,selected:0,drafts:Object.fromEntries(Object.entries(drafts).map(([id,d])=>[id,{sequence:d.sequence,protectedPositions:d.protectedPositions}]))});
- lab={dataset,drafts,activeId,selected:0,status:'ready',error:null,progress:null,dirty:true,exported:false,revision:0,document:vi.fn().mockResolvedValue(bytes),openDocument:vi.fn().mockResolvedValue(0),markSaved:vi.fn(),openExample:vi.fn(),openFile:vi.fn(),cancel:vi.fn(),selectVariant:vi.fn(),selectResidue:vi.fn(),substitute:vi.fn(),protect:vi.fn(),undo:vi.fn(),restore:vi.fn(),save:vi.fn()};
+ lab={dataset,drafts,activeId,selected:0,status:'ready',error:null,progress:null,dirty:true,exported:false,replaceable:false,revision:0,document:vi.fn().mockResolvedValue(bytes),openDocument:vi.fn().mockResolvedValue(0),markSaved:vi.fn(),openExample:vi.fn(),openFile:vi.fn(),cancel:vi.fn(),selectVariant:vi.fn(),selectResidue:vi.fn(),substitute:vi.fn(),protect:vi.fn(),undo:vi.fn(),restore:vi.fn(),save:vi.fn()};
 });
 beforeEach(async()=>{localStorage.clear();vi.clearAllMocks();vi.mocked(lab.document).mockResolvedValue(bytes);vi.mocked(lab.openDocument).mockResolvedValue(0);stored={...analysis,id:'00000000-0000-4000-8000-000000000011',name:'Laboratory',workspace:{...analysis.workspace,schemaVersion:2,laboratory:{schemaVersion:1,documentJson:new TextDecoder().decode(bytes),documentSha256:await sha256(bytes)}}};});
 function api():ProjectApi{return{list:vi.fn().mockResolvedValue({items:[],nextPageToken:null}),open:vi.fn().mockImplementation((id:string)=>Promise.resolve(id===analysis.id?analysis:stored)),save:vi.fn().mockImplementation((write:ProjectWrite)=>Promise.resolve({...stored,...write,updatedAt:'2026-10-12T08:00:01.123456Z'})),remove:vi.fn().mockResolvedValue(undefined)};}
@@ -68,6 +68,17 @@ it.each(['edit','import','loading','exporting'] as const)('does not replace newe
  if(change==='import')expect(state().lab).toBeUndefined();else expect(state().lab).toBe(stored.id);
  view.updateLab({...next,status:'ready'});
  await click('open');expect(openDocument).toHaveBeenCalledTimes(1);expect(state().error).toBeUndefined();
+});
+it.each([['example',true],['file',false]] as const)('a pristine laboratory finishing a background %s load during a cloud open is replaced only if built in',async(_origin,replaceable)=>{
+ const pristine:LabState={...lab,dirty:false,status:'loading',replaceable},service=api(),view=mount(service,pristine);await ready();
+ const openDocument=vi.mocked(lab.openDocument);if(replaceable)openDocument.mockResolvedValueOnce(pristine.revision+1);
+ let resolve!:(project:Project)=>void;
+ vi.mocked(service.open).mockReturnValueOnce(new Promise<Project>(done=>{resolve=done;}));
+ fireEvent.click(screen.getByRole('button',{name:'open'}));
+ view.updateLab({...pristine,status:'ready',revision:pristine.revision+1});
+ await act(async()=>{resolve(stored);await Promise.resolve();});await ready();
+ if(replaceable){expect(openDocument).toHaveBeenCalledTimes(1);expect(state()).toMatchObject({lab:stored.id});expect(state().error).toBeUndefined();}
+ else{expect(openDocument).not.toHaveBeenCalled();expect(state().error).toBe('draft-changed');}
 });
 it('updates the laboratory version when renaming and detaches after deletion',async()=>{
  const service=api();mount(service);await ready();await click('open');await click('rename');expect(state().version).toBe('2026-10-12T08:00:01.123456Z');

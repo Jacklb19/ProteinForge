@@ -102,7 +102,17 @@ async function validateCase(files: Map<string, Uint8Array>, budget: ExpansionBud
     await verifyPae(files.get('predicted-aligned-error.npz'), model.ca.length, budget);
     return {
         reference: { id: config.reference.id, chain: config.reference.chain, sequence: reference.sequence, keys: reference.keys, ca: reference.ca },
-        variant: { id: digest, sample: candidate.sample, sequence: candidate.sequence, keys: model.keys, ca: model.ca, alignedCa: fit.aligned, plddt: prediction.caPlddt, meanPlddt: prediction.meanCaPlddt, ptm: prediction.ptm, rmsd: fit.rmsd, identicalPositions: Array.from(candidate.sequence).filter((aa, i) => aa === reference.sequence[i]).length, pdb: text(files, 'prediction.pdb'), model: prediction.model, revision: prediction.revision, designRevision: config.design.revision, ...(constraints?{constraints}:{}) }, sequences,
+        variant: {
+            id: digest, sample: candidate.sample, sequence: candidate.sequence,
+            keys: model.keys, ca: model.ca, alignedCa: fit.aligned,
+            plddt: prediction.caPlddt, meanPlddt: prediction.meanCaPlddt, ptm: prediction.ptm, rmsd: fit.rmsd,
+            identicalPositions: Array.from(candidate.sequence).filter((aa, i) => aa === reference.sequence[i]).length,
+            // The original file as it was produced; coordinates are never rebuilt from the preview.
+            pdb: text(files, 'prediction.pdb'),
+            model: prediction.model, revision: prediction.revision, designRevision: config.design.revision,
+            ...(constraints ? { constraints } : {}),
+        },
+        sequences,
     };
 }
 const campaignSchema = z.object({ status: z.literal('completed'), sameGeneratedSequenceSet: z.literal(true), samples: z.array(z.object({ sample: z.number().int().min(1).max(C.maximumVariants), sequence, sequenceSha256: hash, meanCaPlddt: z.number().min(0).max(100), ptm: z.number().min(0).max(1), caRmsdAngstrom: z.number().nonnegative(), archive: z.string(), archiveBytes: z.number().int().positive().max(C.maximumArchiveBytes), archiveSha256: hash })).min(1).max(C.maximumVariants) });

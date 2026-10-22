@@ -45,7 +45,7 @@ export function ProjectCard({ project, busy, active, dirty, onOpen, onAction }: 
     <div className="project-card-body">
       <p className="project-kind">{t(comparison ? preview.sequenceLength ? 'projects.mixed' : 'projects.comparison' : 'projects.analysis')}</p>
       <h2>{project.name}</h2>
-      {preview?.hasLaboratory && <p className="project-origin">{t('lab.projectVariants',{count:preview.laboratoryVariants??0})}</p>}
+      {preview?.hasLaboratory && <p className="project-origin">{t(preview.laboratoryVariants === 1 ? 'lab.projectVariantsOne' : 'lab.projectVariants', { count: preview.laboratoryVariants ?? 0 })}</p>}
       {source && <p className="project-origin">{t(source.origin === 'catalog' ? 'projects.catalogSource' : 'projects.uniprotSource', { accession: source.accession })}</p>}
       {preview && <p className="project-length">{comparison && !preview.sequenceLength ? t('projects.comparisonLengths', { first: formatNumber(comparison.firstLength), second: formatNumber(comparison.secondLength) }) : t('fasta.residues', { count: formatNumber(preview.sequenceLength) })}</p>}
       {active && <p className="field-help project-active">{t(dirty ? 'projects.activeDirty' : 'projects.active')}</p>}
@@ -56,7 +56,7 @@ export function ProjectCard({ project, busy, active, dirty, onOpen, onAction }: 
           {metric(t('projects.pi'), formatNumber(descriptors.isoelectricPoint, { minimumFractionDigits: precision.pi, maximumFractionDigits: precision.pi }))}
           {metric(t('descriptors.gravy'), formatNumber(descriptors.gravy, { minimumFractionDigits: precision.gravy, maximumFractionDigits: precision.gravy }))}
         </dl> : preview.sequenceLength > 0 && <p className="field-help project-evidence-note">{t('projects.noResults')}</p>}
-        {preview.excluded > 0 && <p className="field-help">{t('projects.excluded', { count: formatNumber(preview.excluded) })}</p>}
+        {preview.excluded > 0 && <p className="field-help">{t(preview.excluded === 1 ? 'projects.excludedOne' : 'projects.excluded', { count: formatNumber(preview.excluded) })}</p>}
         {comparison && <section className="project-comparison" aria-label={t('projects.comparison')}>
           {preview.sequenceLength > 0 && <p className="project-origin">{t('projects.comparisonLengths', { first: formatNumber(comparison.firstLength), second: formatNumber(comparison.secondLength) })}</p>}
           {ribbon(comparison.firstPrefix, comparison.firstLength, t('alignment.first'))}

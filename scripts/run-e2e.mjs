@@ -18,8 +18,13 @@ for (const [name, value] of Object.entries(E2E_PUBLIC_ENV)) {
 const host = process.env.E2E_HOST ?? '127.0.0.1';
 const port = Number(process.env.E2E_PORT ?? 5173);
 
-// Prebundle the FASTA worker dependency and transform worker modules before the first test needs them.
-const server = await createServer({ optimizeDeps: { include: ['zod'] }, server: {
+// Scan every application module, including lazy routes and Workers, so dependencies are bundled once.
+// A dependency discovered later makes Vite re-bundle and reload the page, aborting the navigation of
+// whichever test happens to be running.
+const server = await createServer({ optimizeDeps: {
+  entries: ['index.html', 'src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}', '!src/test/**', '!src/gen/**/*_connect.ts'],
+  include: ['zod'],
+}, server: {
   host, port, strictPort: false,
   warmup: { clientFiles: ['./src/features/*/*.worker.ts', './src/main.tsx'] },
   watch: { ignored: ['**/coverage/**', '**/artifacts/**', '**/test-results/**'] },
@@ -27,11 +32,35 @@ const server = await createServer({ optimizeDeps: { include: ['zod'] }, server: 
 await server.listen();
 const address = server.httpServer?.address();
 if (!address || typeof address === 'string') throw new Error('The E2E server did not report its port.');
+const baseUrl = `http://${host}:${String(address.port)}`;
+
+// A cold dev server transforms hundreds of modules on the first page load, which can exceed a test's
+// budget. Request the whole module graph once, static and dynamic imports alike, before any test runs.
+const MODULE_REFERENCE = /(?:from\s*|import\s*\(?\s*|new URL\(\s*)["'](\/(?:src|node_modules|@id|@fs|@vite)[^"'?]*(?:\?[^"']*)?)["']/g;
+const ENTRIES = ['/', '/src/main.tsx'];
+const pending = [...ENTRIES];
+const visited = new Set(pending);
+while (pending.length > 0) {
+  const batch = pending.splice(0, 16);
+  await Promise.all(batch.map(async (path) => {
+    // Only the two entries must exist. A text that merely looks like a module path is skipped: warming
+    // is an optimisation, and failing the whole suite over one of them would be worse than a cold start.
+    const response = await fetch(`${baseUrl}${path}`).catch(() => null);
+    if (!response?.ok) {
+      if (ENTRIES.includes(path)) throw new Error(`Warming ${path} failed with HTTP ${String(response?.status ?? 0)}.`);
+      return;
+    }
+    const text = await response.text();
+    for (const [, reference] of text.matchAll(MODULE_REFERENCE)) {
+      if (!visited.has(reference)) { visited.add(reference); pending.push(reference); }
+    }
+  }));
+}
 
 const runner = spawn(process.execPath, ['node_modules/playwright/cli.js', 'test', ...process.argv.slice(2)], {
   stdio: 'inherit',
   shell: false,
-  env: { ...process.env, E2E_BASE_URL: `http://${host}:${String(address.port)}` },
+  env: { ...process.env, E2E_BASE_URL: baseUrl },
 });
 
 const exitCode = await new Promise((resolve) => {
