@@ -7,6 +7,12 @@ import type { LabErrorCode } from './config';
 import type { LabDataset, LabDraft, LabProgress, LabRequest, LabResponse, LabSavedState } from './types';
 import { draftFingerprint, initialDrafts, replaceResidue, restoreSequence, toggleProtection, undoDraft } from './state';
 import { downloadLabFile } from './download';
+type LabOrigin = 'example' | 'file' | 'project';
+function originOf(request: LabRequest): LabOrigin | null {
+    if (request.type === 'example') return 'example';
+    if (request.type === 'import') return request.expectedSha256 === undefined ? 'file' : 'project';
+    return null;
+}
 /** In-memory drafts survive navigation; files and explicit project snapshots share Worker validation. */
 export function LabProvider({ children }: {
     children: ReactNode;
@@ -15,6 +21,8 @@ export function LabProvider({ children }: {
     const [activeId, setActiveId] = useState(''), [selected, setSelected] = useState(0);
     const [status, setStatus] = useState<LabState['status']>('idle'), [error, setError] = useState<LabErrorCode | null>(null), [progress, setProgress] = useState<LabProgress | null>(null);
     const [dirty, setDirty] = useState(false), [exported, setExported] = useState(false);
+    // Where the loaded dataset and the in-flight load come from; a user file or project is never replaceable.
+    const [origin, setOrigin] = useState<LabOrigin | null>(null), [loadingOrigin, setLoadingOrigin] = useState<LabOrigin | null>(null);
     const savedFingerprint=useRef('');
     const currentDrafts=useRef(drafts);
     useLayoutEffect(()=>{currentDrafts.current=drafts;},[drafts]);
@@ -34,6 +42,8 @@ export function LabProvider({ children }: {
         pending.current=settle;
         if (request.id !== requestId.current)
             { settle(null); return completion; }
+        const requestOrigin = originOf(request);
+        setLoadingOrigin(requestOrigin);
         try {
             const instance = new Worker(new URL('./import.worker.ts', import.meta.url), { type: 'module' });
             worker.current = instance;
@@ -77,6 +87,7 @@ export function LabProvider({ children }: {
                     setSelected(result.saved?.selected ?? 0);
                     setDirty(false);
                     setExported(false);
+                    setOrigin(requestOrigin);
                     revisionRef.current++; setRevision(revisionRef.current);
                     settle({revision:revisionRef.current}); pending.current=null;
                 }
@@ -93,7 +104,7 @@ export function LabProvider({ children }: {
         }
         return completion;
     }, [fail, stop]);
-    const begin = useCallback((exporting = false) => { stop(); setStatus(exporting ? 'exporting' : 'loading'); setError(null); setProgress(null); return requestId.current; }, [stop]);
+    const begin = useCallback((exporting = false) => { stop(); setStatus(exporting ? 'exporting' : 'loading'); setLoadingOrigin(null); setError(null); setProgress(null); return requestId.current; }, [stop]);
     const openExample = useCallback(() => { void launch({ id: begin(), type: 'example' }); }, [begin, launch]);
     const openFile = useCallback((file: File) => {
         const id = begin();
@@ -145,6 +156,7 @@ export function LabProvider({ children }: {
         return (await launch({id:begin(),type:'import',bytes,expectedSha256:sha256}))?.revision ?? null;
     },[begin,launch]);
     const markSaved=useCallback((fingerprint:string)=>{savedFingerprint.current=fingerprint;setDirty(draftFingerprint(currentDrafts.current)!==fingerprint);},[]);
-    const value = useMemo(() => ({ dataset, drafts, activeId, selected, status, error, progress, dirty, exported, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save, revision,document,openDocument,markSaved }), [dataset, drafts, activeId, selected, status, error, progress, dirty, exported, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save,revision,document,openDocument,markSaved]);
+    const replaceable = !dirty && status !== 'exporting' && (status === 'loading' ? loadingOrigin === 'example' : origin === null || origin === 'example');
+    const value = useMemo(() => ({ dataset, drafts, activeId, selected, status, error, progress, dirty, exported, replaceable, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save, revision,document,openDocument,markSaved }), [dataset, drafts, activeId, selected, status, error, progress, dirty, exported, replaceable, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save,revision,document,openDocument,markSaved]);
     return <LabContext.Provider value={value}>{children}</LabContext.Provider>;
 }

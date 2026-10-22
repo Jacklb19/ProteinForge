@@ -6,6 +6,8 @@ export interface LabState {
   dataset: LabDataset | null; drafts: Record<string,LabDraft>; activeId: string; selected: number;
   status: 'idle'|'loading'|'exporting'|'ready'|'cancelled'|'error'; error: LabErrorCode | null; progress: LabProgress | null;
   dirty: boolean; exported: boolean;
+  /** True when replacing the laboratory loses no user work: unedited built-in example, or nothing loaded yet. */
+  replaceable: boolean;
   openExample: () => void; openFile: (file: File) => void; cancel: () => void;
   selectVariant: (id: string) => void; selectResidue: (index: number) => void;
   substitute: (aa: string) => void; protect: () => void; undo: () => void; restore: () => void;

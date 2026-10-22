@@ -173,8 +173,10 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
         const snapshot=project.workspace.laboratory;
         if(!snapshot || !lab)throw new ApiError('validation');
         const latestLab = labCurrent.current;
-        if (!latestLab || latestLab.revision !== openingLab?.revision || draftFingerprint(latestLab.drafts) !== openingDrafts
-          || latestLab.status === 'loading' || latestLab.status === 'exporting') throw new ApiError('draft-changed');
+        const untouched = latestLab?.revision === openingLab?.revision && draftFingerprint(latestLab?.drafts ?? {}) === openingDrafts
+          && latestLab?.status !== 'loading' && latestLab?.status !== 'exporting';
+        // The built-in example loading in the background is not user work; an import or an edit is.
+        if (!latestLab || !(untouched || latestLab.replaceable)) throw new ApiError('draft-changed');
         signal.addEventListener('abort',lab.cancel,{once:true});
         let revision:number|null;
         try{revision=await lab.openDocument(new TextEncoder().encode(snapshot.documentJson).buffer,snapshot.documentSha256);}

@@ -20,7 +20,7 @@ vi.mock('../structure/BackboneView',()=>({BackboneView:({label,onSelect,referenc
 let example:LabImportResult;
 beforeAll(async()=>{example=await loadExample();});
 beforeEach(()=>{vi.mocked(downloadLabFile).mockReset();});
-function value():LabState{return {dataset:example.dataset,drafts:initialDrafts(example.dataset,null),activeId:required(example.dataset.variants[0]).id,selected:0,status:'ready',error:null,progress:null,dirty:false,exported:false,openExample:vi.fn(),openFile:vi.fn(),cancel:vi.fn(),selectVariant:vi.fn(),selectResidue:vi.fn(),substitute:vi.fn(),protect:vi.fn(),undo:vi.fn(),restore:vi.fn(),save:vi.fn(),revision:0,document:vi.fn(),openDocument:vi.fn(),markSaved:vi.fn()};}
+function value():LabState{return {dataset:example.dataset,drafts:initialDrafts(example.dataset,null),activeId:required(example.dataset.variants[0]).id,selected:0,status:'ready',error:null,progress:null,dirty:false,exported:false,replaceable:true,openExample:vi.fn(),openFile:vi.fn(),cancel:vi.fn(),selectVariant:vi.fn(),selectResidue:vi.fn(),substitute:vi.fn(),protect:vi.fn(),undo:vi.fn(),restore:vi.fn(),save:vi.fn(),revision:0,document:vi.fn(),openDocument:vi.fn(),markSaved:vi.fn()};}
 function page(state:LabState,locale:'es'|'en'='es') {return render(<MemoryRouter><LocaleProvider locale={locale}><LabContext.Provider value={state}><DesignLabPage/></LabContext.Provider></LocaleProvider></MemoryRouter>);}
 describe('approved structure workbench',()=>{
   it('distinguishes historical executed constraints from protection prepared for the next redesign',()=>{
