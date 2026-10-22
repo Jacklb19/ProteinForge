@@ -4,7 +4,7 @@ import { callOptions, createRpcClient, rpc } from './rpc';
 
 const healthSchema = z.object({ status: z.literal('ok'), version: z.string().min(1), identity: z.boolean() });
 const identitySchema = z.object({ id: z.string().min(1), email: z.string() });
-export type ApiErrorCode = 'network' | 'timeout' | 'cancelled' | 'session' | 'unavailable' | 'invalid-response' | 'unknown' | 'conflict' | 'not-found' | 'validation' | 'schema' | 'forbidden' | 'laboratory-size' | 'draft-changed';
+export type ApiErrorCode = 'network' | 'timeout' | 'cancelled' | 'session' | 'unavailable' | 'invalid-response' | 'unknown' | 'conflict' | 'not-found' | 'validation' | 'schema' | 'forbidden' | 'laboratory-size' | 'draft-changed' | 'rate-limit';
 
 /** Only safe categories and correlation IDs reach the UI; response details are never shown or logged. */
 export class ApiError extends Error {

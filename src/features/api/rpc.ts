@@ -22,7 +22,7 @@ const CODE_CATEGORIES: Partial<Record<Code, ApiErrorCode>> = {
   [Code.Aborted]: 'conflict',
   [Code.InvalidArgument]: 'validation',
   [Code.Unavailable]: 'unavailable',
-  [Code.ResourceExhausted]: 'unavailable',
+  [Code.ResourceExhausted]: 'rate-limit',
   [Code.Internal]: 'unavailable',
   [Code.Unimplemented]: 'unavailable',
 };

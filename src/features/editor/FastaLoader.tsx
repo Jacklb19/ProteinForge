@@ -151,7 +151,7 @@ export function FastaLoader({ onSelect }: Props): React.JSX.Element {
         <button className="button button-secondary" type="button" onClick={() => { fileInput.current?.click(); }}><Icon name="upload" />{t('fasta.chooseFile')}</button>
         <span className="field-help">{fileName ? t('fasta.selectedFile', { name: fileName }) : t('fasta.fileLabel', { limit: formatUnit(MAX_FASTA_MEGABYTES, 'megabyte') })}</span>
       </div>
-      <p className="status-message" data-state={statusKey === 'fasta.reading' ? 'calculating' : statusKey && ERROR_STATUSES.includes(statusKey) ? 'error' : 'idle'} role="status" aria-live="polite">{statusKey ? [t(statusKey, { message: errorMessage ? localize(errorMessage) : '' }), entries.length > 0 ? t('fasta.entriesFound', { count: formatNumber(entries.length) }) : ''].filter(Boolean).join(' ') : ''}</p>
+      <p className="status-message" data-state={statusKey === 'fasta.reading' ? 'calculating' : statusKey && ERROR_STATUSES.includes(statusKey) ? 'error' : 'idle'} role="status" aria-live="polite">{statusKey ? [t(statusKey, { message: errorMessage ? localize(errorMessage) : '' }), entries.length > 0 ? t(entries.length === 1 ? 'fasta.entriesFoundOne' : 'fasta.entriesFound', { count: formatNumber(entries.length) }) : ''].filter(Boolean).join(' ') : ''}</p>
       {entries.length > 0 && (
         <div
           ref={list}
