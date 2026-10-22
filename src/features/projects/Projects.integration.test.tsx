@@ -18,6 +18,10 @@ import { ProjectsPage } from './ProjectsPage';
 import { PreferencesProvider } from '../../preferences/PreferencesProvider';
 import { ROUTES } from '../../shared/navigation';
 import { spanish } from '../../i18n/es';
+import { translate } from '../../i18n/translate';
+import type { TranslationKey } from '../../i18n';
+
+const message = (key: TranslationKey, variables: Record<string, string | number>): string => translate('es', key, variables);
 
 const project: Project = { id: '00000000-0000-4000-8000-000000000010', name: 'Study', activeSequence: 'ACD', status: 'draft', createdAt: '2026-10-12T08:00:00.123456Z', updatedAt: '2026-10-12T08:00:00.123456Z', workspace: { schemaVersion: 1, profileWindow: 9, descriptors: null, source: null, alignment: { first: '', second: '', matrix: 'BLOSUM62', mode: 'global', result: null } } };
 function service(): ProjectApi {
@@ -123,4 +127,14 @@ it('shows account/configuration states and lets an empty library recover from a 
   const api = service(); api.list = vi.fn().mockRejectedValueOnce(new ApiError('schema', 'trace-id')).mockResolvedValue({ items: [], nextPageToken: null });
   renderPage(api); await waitFor(() => { expect(library().querySelector('.project-feedback')).toHaveTextContent('trace-id'); });
   await user.click(screen.getByRole('button', { name: spanish['projects.refresh'] })); await screen.findByText(spanish['projects.emptyTitle']);
+});
+
+it('counts one saved project in singular and several in plural', async () => {
+  const api = service(); const rendered = renderPage(api, 'signed-in', true);
+  await screen.findByText(message('projects.loadedOne', { count: 1 }));
+  rendered.unmount();
+  const second = { ...project, id: '00000000-0000-4000-8000-000000000011', name: 'Second' };
+  api.list = vi.fn().mockResolvedValue({ items: [project, second], nextPageToken: null });
+  renderPage(api, 'signed-in', true);
+  await screen.findByText(message('projects.loaded', { count: 2 }));
 });
