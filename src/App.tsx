@@ -23,6 +23,7 @@ import type { Locale } from './i18n/config';
 import { Icon } from './shared/Icon';
 import { BrandMark } from './shared/BrandMark';
 import { NotFoundPage } from './shared/NotFoundPage';
+import { RouteBoundary } from './shared/RouteBoundary';
 import { SegmentedControl } from './shared/SegmentedControl';
 import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, REDIRECTS, ROUTES } from './shared/navigation';
 
@@ -217,6 +218,7 @@ function ApplicationRoutes(): React.JSX.Element {
       <a className="skip-link" href="#app-content">{t('shell.skip')}</a>
       <SiteBar />
       <div className="app-content" id="app-content" ref={content} tabIndex={-1}>
+        <RouteBoundary key={location.pathname}>
         <Suspense fallback={<main className="page"><p role="status">{t('shell.loadingPage')}</p></main>}>
         <Routes>
           <Route path={ROUTES.home} element={<LandingPage />} />
@@ -236,6 +238,7 @@ function ApplicationRoutes(): React.JSX.Element {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </Suspense>
+        </RouteBoundary>
       </div>
       <SiteFooter />
     </div>
