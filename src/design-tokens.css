@@ -77,6 +77,7 @@
   --chart-above: var(--residue-hydrophobic);
   --chart-below: var(--residue-basic);
   --opacity-chart-area: 0.55;
+  --opacity-disabled: 0.55;
 
   --font-ui: 'Atkinson Hyperlegible Next', 'Atkinson Fallback', 'Segoe UI', sans-serif;
   --font-display: 'Bricolage Grotesque', 'Atkinson Hyperlegible Next', 'Segoe UI', sans-serif;
@@ -184,6 +185,10 @@
   --height-alignment-viewport: 26rem;
   --height-alignment-block: 104px;
   --height-structure-viewer: 28rem;
+  --height-lab-figure: 21rem;
+  --height-lab-reader: 21rem;
+  --width-lab-inspector: 21rem;
+  --lab-sequence-columns: 10;
   --height-stage-hero: 28.75rem;
   --height-stage-rail: 15rem;
   --height-stage-caption: 3.75rem;
@@ -302,6 +307,8 @@
   :root {
     --height-bar: 3.75rem;
     --height-editor: 9rem;
+    --height-lab-figure: 20rem;
+    --lab-sequence-columns: 5;
     --height-stage-hero: 23rem;
     --height-stage-caption: 6rem;
     --height-reader-viewport: 25rem;

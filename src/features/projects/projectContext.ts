@@ -8,6 +8,7 @@ import type { ProjectQuery } from './config';
 export interface ProjectContextValue {
   enabled: boolean;
   active: Project | null;
+  laboratory: Project | null;
   items: ProjectSummary[];
   nextPageToken: string | null;
   dirty: boolean;
@@ -16,7 +17,8 @@ export interface ProjectContextValue {
   notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null;
   listing: ProjectQuery;
   refresh(more?: boolean, query?: ProjectQuery): Promise<boolean>;
-  open(id: string): Promise<Project | null>;
+  open(id: string, destination?: 'laboratory'): Promise<Project | null>;
+  saveLaboratory(name: string, copy?: boolean): Promise<boolean>;
   save(name: string, descriptors?: DescriptorState, copy?: boolean): Promise<boolean>;
   rename(project: ProjectSummary, name: string): Promise<boolean>;
   duplicate(project: ProjectSummary, name: string): Promise<boolean>;

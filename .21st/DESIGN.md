@@ -11,4 +11,6 @@ Dirección vigente desde el 12 de octubre de 2026: «ficha de lectura». La refe
 
 Las primitivas son propias (`Icon`, `BrandMark`, `SegmentedControl`, `PageHeading`, celdas de residuo, cinta de secuencia, mapa de alineamiento, escenario de estructura). No se instalan componentes externos.
 
+21 oct 2026: A «Mesa de estructura» aprobada e integrada en Diseñar → Laboratorio. Visor e inspector juntos en escritorio; secuencia y comparación debajo, apilados en móvil. Reutiliza BackboneView con referencia tenue, selección por cadena/número/inserción y colores químicos. Los borradores por variante conservan protección/deshacer; modificar secuencia retira estructura/confianza hasta una nueva predicción asociada. Archivos locales explícitos, sin confundirlos con Proyectos en nube. Referencias 21st Resizable y Table with Row Selection consultadas; sin componentes o dependencias externas añadidos.
+
 19 oct 2026: el propietario eligió A «Colección de secuencias» para Proyectos. Ruta propia y navegación con sesión, tres tarjetas en escritorio y una columna móvil. Cada tarjeta muestra prefijos químicos y resultados guardados, nunca evidencia científica inventada. Perfil conserva preferencias y enlaza a la colección. Acciones deliberadas y diálogos con foco contenido/restaurado; color y fuentes siguen los tokens vigentes.

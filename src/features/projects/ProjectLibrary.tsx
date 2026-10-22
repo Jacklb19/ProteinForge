@@ -14,11 +14,14 @@ import { ProjectCard } from './ProjectCard';
 import type { ProjectDestination } from './ProjectCard';
 import { ProjectDialog } from './ProjectDialog';
 import type { ProjectIntent } from './ProjectDialog';
+import { LabContext } from '../design-lab/context';
+import { useContext } from 'react';
 
 /** Search and sorting apply to the whole owned collection before paging. */
 export function ProjectLibrary(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const projects = useProjects();
+  const lab=useContext(LabContext);
   const auth = useAuth();
   const draft = useSequenceDraft();
   const alignment = useAlignmentDraft();
@@ -27,11 +30,11 @@ export function ProjectLibrary(): React.JSX.Element {
   const [name, setName] = useState('');
   const [query, setQuery] = useState<ProjectQuery>(projects.listing);
   async function open(project: ProjectSummary, destination?: ProjectDestination): Promise<void> {
-    const opened = await projects.open(project.id);
+    const opened = await projects.open(project.id,destination==='laboratory'?'laboratory':undefined);
     if (!opened) return;
     setIntent(null);
     const comparisonOnly = !opened.activeSequence && (opened.workspace.alignment.first || opened.workspace.alignment.second);
-    void navigate(destination === 'alignment' || (!destination && comparisonOnly) ? ROUTES.alignment : ROUTES.analyze);
+    void navigate(destination==='laboratory'?ROUTES.laboratory:destination === 'alignment' || (!destination && comparisonOnly) ? ROUTES.alignment : ROUTES.analyze);
   }
   function submit(): void {
     if (!intent) return;
@@ -53,7 +56,7 @@ export function ProjectLibrary(): React.JSX.Element {
     {!intent && <ProjectFeedback />}
     {!projects.busy && !projects.error && projects.items.length === 0 && <div className="project-empty">{projects.listing.query ? <><p>{t('projects.noMatches')}</p><button className="button button-secondary" type="button" onClick={() => { setQuery(DEFAULT_PROJECT_QUERY); void projects.refresh(false, DEFAULT_PROJECT_QUERY); }}>{t('projects.clearSearch')}</button></> : <><div><h2>{t('projects.emptyTitle')}</h2><p>{t('projects.emptyHelp')}</p></div><Link className="button button-secondary" to={ROUTES.analyze}>{t('projects.begin')}</Link></>}</div>}
     <div className="project-grid" aria-busy={projects.busy}>{projects.items.map(project => <ProjectCard key={project.id} project={project} busy={projects.busy} active={project.id === projects.active?.id} dirty={projects.dirty} onOpen={destination => {
-      if (draft.text || alignment.first || alignment.second) setIntent({ action: 'open', project, destination }); else void open(project, destination);
+      if (destination==='laboratory'?lab?.dirty:draft.text || alignment.first || alignment.second) setIntent({ action: 'open', project, destination }); else void open(project, destination);
     }} onAction={action => { setName(action === 'duplicate' ? t('projects.copyName', { name: project.name }).slice(0, MAX_PROJECT_NAME_LENGTH) : project.name); setIntent({ action, project }); }} />)}</div>
     <div className="projects-list-footer"><p className="field-help" role="status">{t('projects.loaded', { count: formatNumber(projects.items.length) })}</p><div className="actions">{projects.nextPageToken !== null && <button className="button button-secondary" disabled={projects.busy} type="button" onClick={() => { void projects.refresh(true); }}>{t('projects.more')}</button>}<button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { void projects.refresh(false, projects.listing); }}>{t('projects.refresh')}</button></div></div>
     {intent && <ProjectDialog intent={intent} name={name} setName={setName} onClose={() => { setIntent(null); }} onSubmit={submit} />}

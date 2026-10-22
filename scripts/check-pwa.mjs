@@ -86,6 +86,26 @@ try {
   await page.getByRole('button', { name: 'Informe PDF', exact: true }).click();
   const report = await reportDownload;
   if (await report.failure()) throw new Error('Offline PDF generation failed.');
+  await page.goto(baseURL + route('laboratory'));
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
+  await expect(page.locator('.lab-figure canvas')).toBeVisible();
+  const notebookPath=await page.locator('.lab-file-tools a[download]').getAttribute('href');
+  if(!notebookPath)throw new Error('The laboratory notebook link is missing.');
+  const notebookSource=readFileSync(new URL('..'+notebookPath,import.meta.url),'utf8');
+  const notebookOffline=await page.evaluate(async({url,expected})=>{
+    const response=await fetch(url);return response.ok&&await response.text()===expected;
+  },{url:notebookPath,expected:notebookSource});
+  if(!notebookOffline)throw new Error('The reviewed Colab notebook is unavailable offline.');
+  process.stdout.write('The reviewed Colab notebook is available byte for byte offline.\n');
+  await page.locator('[data-position="2"]').click();
+  await page.locator('.lab-inspector select').selectOption('R');
+  await page.getByRole('button', { name: 'Crear sustitución', exact: true }).click();
+  await expect(page.locator('.lab-draft-empty')).toBeVisible();
+  const laboratoryDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Guardar archivo del laboratorio', exact: true }).click();
+  const laboratory = await laboratoryDownload;
+  if (await laboratory.failure()) throw new Error('Offline laboratory workspace export failed.');
+  process.stdout.write('Offline laboratory Worker, example, editing and workspace export verified.\n');
   // Inspect actual precache entries; the large online viewer must stay demand-loaded.
   const viewerCached = await page.evaluate(async () => {
     for (const name of await caches.keys()) {

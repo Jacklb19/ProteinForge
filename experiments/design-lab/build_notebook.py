@@ -1,0 +1,222 @@
+"""Build a self-contained, output-free Colab notebook from reviewed local sources."""
+
+import json
+from pathlib import Path
+
+
+SOURCE = Path(__file__).resolve().parent
+DESTINATION = SOURCE.parents[1] / "notebooks" / "proteinforge-design-lab.ipynb"
+
+
+def demo_draft():
+    fixture = json.loads((SOURCE.parents[1] / "src/features/design-lab/fixtures/ubiquitin.json").read_text())
+    reference, sample = fixture["reference"], fixture["samples"][0]
+    sequence = sample["sequence"][:1] + "R" + sample["sequence"][2:]
+    return {"kind": "proteinforge-design-draft", "schemaVersion": 2, "sequence": sequence,
+            "source": {"referenceId": reference["id"], "referenceChain": reference["chain"],
+                       "referenceSequence": reference["sequence"], "variantSequence": sample["sequence"],
+                       "variantKeys": sample["keys"], "variantSequenceSha256": sample["sequenceSha256"], "sample": 1},
+            "structureStatus": "requires-new-prediction", "constraintStatus": "not-executed",
+            "protectedPositions": [{"chainPosition": position, "residue": sequence[position - 1],
+                                    "referenceKey": reference["keys"][position - 1],
+                                    "predictionKey": sample["keys"][position - 1]} for position in (2, 7, 42)]}
+
+
+def cell(kind, source, name):
+    value = {"cell_type": kind, "id": name, "metadata": {"id": name}, "source": source.strip().splitlines(keepends=True)}
+    if kind == "code":
+        value.update(execution_count=None, outputs=[])
+    return value
+
+
+def build():
+    program = (SOURCE / "experiment.py").read_text(encoding="utf-8")
+    config = (SOURCE / "config.json").read_text(encoding="utf-8")
+    requirements = (SOURCE / "requirements-colab.txt").read_text(encoding="utf-8")
+    campaign = (SOURCE / "campaign.py").read_text(encoding="utf-8")
+    constraints = (SOURCE / "constraints.py").read_text(encoding="utf-8")
+    demo = json.dumps(demo_draft(), ensure_ascii=False, indent=2)
+    setup = '''
+#@title Preparar el entorno de Colab / Prepare the Colab environment
+import importlib.util
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone
+
+if sys.platform != "linux" or importlib.util.find_spec("google.colab") is None:
+    raise RuntimeError("Open this notebook in a managed Google Colab GPU runtime")
+CONFIG = json.loads(CONFIG_TEXT)
+gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+                     check=True, capture_output=True, text=True).stdout.strip()
+print("Allocated GPU:", gpu)
+if float(gpu.splitlines()[0].rsplit(",", 1)[1]) / 1024 < CONFIG["prediction"]["minimumGpuGiB"]:
+    raise RuntimeError("This notebook needs at least 12 GiB VRAM; do not switch to paid resources")
+WORK = Path("/content/proteinforge-design-lab")
+WORK.mkdir(exist_ok=True)
+if shutil.disk_usage(WORK).free < CONFIG["prediction"]["minimumFreeDiskGiB"] * 1024 ** 3:
+    raise RuntimeError("Not enough free space in the managed runtime")
+RUN = WORK / datetime.now(timezone.utc).strftime("run-%Y%m%dT%H%M%S%fZ")
+RUN.mkdir()
+(RUN / "config.json").write_text(CONFIG_TEXT, encoding="utf-8")
+(RUN / "experiment.py").write_text(PROGRAM_TEXT, encoding="utf-8")
+(RUN / "requirements-colab.txt").write_text(REQUIREMENTS_TEXT, encoding="utf-8")
+(RUN / "campaign.py").write_text(CAMPAIGN_TEXT, encoding="utf-8")
+(RUN / "constraints.py").write_text(CONSTRAINTS_TEXT, encoding="utf-8")
+ENV = WORK / "venv"
+# Managed Debian runtimes may omit ensurepip; inherit their existing pip instead.
+subprocess.run([sys.executable, "-m", "venv", "--without-pip", "--system-site-packages", str(ENV)], check=True)
+PYTHON = str(ENV / "bin" / "python")
+subprocess.run([PYTHON, "-m", "pip", "install", "--disable-pip-version-check",
+                "--report", str(RUN / "installation-report.json"),
+                "-r", str(RUN / "requirements-colab.txt")], check=True)
+STAGE_ENV = dict(os.environ, HF_HOME=str(WORK / "model-cache"),
+                 HF_HUB_DISABLE_IMPLICIT_TOKEN="1", HF_HUB_DISABLE_TELEMETRY="1", USE_TF="0", USE_FLAX="0")
+
+def run_stage(name):
+    command = [PYTHON, "-u", str(RUN / "experiment.py"), name, "--root", str(RUN)]
+    print("Stage:", name, "| Results:", RUN, flush=True)
+    with (RUN / f"{name}-stage.log").open("w", encoding="utf-8") as log:
+        with subprocess.Popen(command, env=STAGE_ENV, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, text=True, bufsize=1) as process:
+            for line in process.stdout:
+                print(line, end="", flush=True)
+                log.write(line)
+            returncode = process.wait()
+    if returncode:
+        failure = RUN / "failure.json"
+        if failure.exists():
+            print(failure.read_text(), flush=True)
+        raise RuntimeError(f"Stage {name} failed. Read its output; the final download cell can export partial evidence.")
+print("Environment ready. No private sequence or Drive mount is used.")
+'''
+    setup = ('#@title Preparar el entorno de Colab / Prepare the Colab environment\n'
+             + f"PROGRAM_TEXT = {program!r}\nCONFIG_TEXT = {config!r}\nREQUIREMENTS_TEXT = {requirements!r}\nCAMPAIGN_TEXT = {campaign!r}\nCONSTRAINTS_TEXT = {constraints!r}\nDEMO_DRAFT_TEXT = {demo!r}\n" + setup.strip())
+    cells = [
+        cell("markdown", """
+# ProteinForge — ensayo de rediseño / sequence redesign experiment
+
+**Objetivo:** estructura experimental conocida → secuencias ProteinMPNN → predicción ESMFold de la primera muestra → comparación y ZIP verificable.
+
+**Goal:** known experimental backbone → ProteinMPNN sequences → ESMFold prediction of the first sample → comparison and verifiable ZIP.
+
+Este caso usa ubiquitina pública **1UBQ, cadena A, 76 residuos**. Rediseña una secuencia; **no genera una forma nueva ni demuestra función o estabilidad experimental**. Cada ejecución conserva sus propias validaciones y mediciones. / This public 76-residue case redesigns a sequence, does not generate a new backbone, and does not establish biological function or experimental stability. Each run retains its own validation and measurements.
+
+En **Entorno de ejecución → Cambiar tipo de entorno → GPU**, selecciona una GPU gratuita, si está disponible. Después usa **Ejecutar todas**. No contrates recursos. Colab no garantiza GPU ni duración. / Select a free GPU runtime, if available, then Run all. Do not purchase resources; availability and session duration are not guaranteed.
+
+El cálculo se realiza en Colab. No se monta Drive, no se usa Supabase, no se solicita una clave y no se modifica ProteinForge publicado. Los pesos de predicción requieren descargar unos **8,44 GB** en la máquina de Colab. / Computation runs in Colab. No Drive mount, Supabase access, API key or production change is used. Prediction weights download approximately 8.44 GB into the Colab machine.
+
+Versiones y hashes de entradas fijados; Torch/CUDA/GPU del entorno se registran. Repetición de generación con la misma semilla comprobada; igualdad bit a bit entre equipos distintos no garantizada. / Input versions and hashes are pinned; runtime Torch/CUDA/GPU are recorded. Generation is repeated with the same seed; bitwise equality across different devices is not guaranteed.
+
+Fuentes / Sources: [ProteinMPNN](https://github.com/dauparas/ProteinMPNN), [ESMFold](https://huggingface.co/facebook/esmfold_v1), [Transformers ESM](https://huggingface.co/docs/transformers/en/model_doc/esm), [1UBQ](https://www.rcsb.org/structure/1UBQ), [Colab FAQ](https://research.google.com/colaboratory/faq.html).
+""", "introduction"),
+        cell("code", setup, "setup"),
+        cell("markdown", """
+## Posiciones protegidas opcionales / Optional fixed positions
+
+Antes de preparar la referencia, elige `none` (ensayo original), `public-demo` (borrador público: R2, F7, R42) o `upload` (archivo JSON v2 descargado del laboratorio). La demo cambia T2 a R y lo protege: no debe copiar Q2 de la referencia experimental. / Before preparing the reference, choose none, public-demo (R2/F7/R42), or upload a laboratory draft v2. The demo changes T2 to R and fixes it; the experimental reference's Q2 must not replace it.
+
+`upload` envía el archivo que elijas a este entorno de Google Colab. Usa solo datos que tengas autorización para procesar allí. No se montará Drive. Máximo 64 KiB, misma referencia/longitud y al menos una posición libre. Solo las posiciones protegidas quedan fijadas; las demás pueden cambiar. / Upload sends the selected file to this Google Colab runtime. Use only authorized data; no Drive mount. Maximum 64 KiB, matching reference/length and at least one free position. Only protected positions are fixed; other residues may change.
+
+La generación verifica todas las muestras y la repetición; empaquetar vuelve a verificar las posiciones. Un fallo no se presenta como ejecución restringida correcta. / Every sample and repeated run is checked, then checked again before packaging. Failed constraints cannot be reported as successful.
+""", "constraints-notes"),
+        cell("code", '''
+DRAFT_MODE = "none"  # none | public-demo | upload
+if DRAFT_MODE not in ("none", "public-demo", "upload"):
+    raise ValueError("Unknown draft mode")
+if DRAFT_MODE != "none":
+    import hashlib
+    if DRAFT_MODE == "public-demo":
+        draft_bytes = DEMO_DRAFT_TEXT.encode("utf-8")
+    else:
+        from google.colab import files
+        uploaded_drafts = files.upload()
+        if len(uploaded_drafts) != 1:
+            raise ValueError("Select exactly one laboratory draft JSON file")
+        draft_bytes = next(iter(uploaded_drafts.values()))
+    if len(draft_bytes) > 65536:
+        raise ValueError("Draft exceeds 64 KiB")
+    draft_path = RUN / "design-draft.json"
+    if draft_path.exists() or (RUN / "provenance.json").exists():
+        raise RuntimeError("Start a fresh setup before changing constraints; previous evidence is preserved")
+    draft_path.write_bytes(draft_bytes)
+    CONFIG["design"]["constraints"] = {"draftSha256": hashlib.sha256(draft_bytes).hexdigest()}
+    (RUN / "config.json").write_text(json.dumps(CONFIG, indent=2) + "\\n", encoding="utf-8")
+    print("Draft recorded. Protected positions will be validated before generation.")
+''', "constraints"),
+        cell("markdown", """
+## Referencia e integridad / Reference and integrity
+Descarga solo datos públicos y archivos oficiales con revisión y SHA-256 fijados. Valida la cadena y todos los átomos del esqueleto. / Download public data and pinned official files; validate the chain and complete backbone atoms.
+""", "reference-notes"),
+        cell("code", 'run_stage("prepare")', "prepare"),
+        cell("markdown", """
+## Rediseño / Sequence redesign
+Genera tres secuencias y repite con la misma semilla. La muestra 1 se selecciona **antes de predecir**, sin elegirla por su confianza posterior. El score de ProteinMPNN es una puntuación del modelo, no energía física. / Generate three sequences, repeat with the same seed, and select sample 1 before prediction. ProteinMPNN scores are model likelihood scores, not physical energy.
+""", "design-notes"),
+        cell("code", 'run_stage("design")\nprint((RUN / "candidate.fasta").read_text())', "design"),
+        cell("markdown", """
+## Predicción / Prediction
+ESMFold recibe la secuencia exacta seleccionada. Valida coordenadas finitas, residuos y esqueleto completo. Registra pLDDT, pTM, memoria y tiempo. Este port entrega pLDDT en 0–1; el PDB y el resumen se exportan explícitamente en 0–100. No es probabilidad de función. / ESMFold receives the exact selected sequence; coordinates, residues and backbone completeness are validated. Confidence, memory and time are recorded; this port's 0–1 pLDDT is explicitly exported on a 0–100 scale. It is not a probability of function.
+""", "prediction-notes"),
+        cell("code", '''
+run_stage("predict")
+prediction_summary = json.loads((RUN / "prediction.json").read_text())
+print(json.dumps({key: prediction_summary[key] for key in
+    ("model", "residueCount", "meanCaPlddt", "ptm", "precision")}, indent=2))
+''', "predict"),
+        cell("markdown", """
+## Comparar y descargar / Compare and download
+RMSD de Cα tras superposición rígida sin reflexión, sin excluir residuos. No comparar como si ambas secuencias fueran idénticas: cada posición corresponde al esqueleto de referencia usado para diseñar. El ZIP excluye pesos/cachés y se reabre para verificar sus hashes. / Cα RMSD after rigid superposition without reflection or residue exclusion. Positional correspondence comes from the design backbone, not from identical sequences. Weights and caches are excluded; the ZIP is reopened and its hashes checked.
+
+Si una etapa falla, ejecuta esta última celda para descargar evidencia parcial: figurará **incomplete**, sin inventar resultados. Abre el ZIP completo en Diseñar → Laboratorio para validarlo e inspeccionarlo. / If a stage fails, run this final cell to export partial evidence marked incomplete. Open a completed ZIP in Design → Laboratory for validation and inspection.
+""", "download-notes"),
+        cell("code", '''
+run_stage("package")
+if (RUN / "comparison.json").exists():
+    comparison_summary = json.loads((RUN / "comparison.json").read_text())
+    print(json.dumps({key: comparison_summary[key] for key in
+        ("method", "residuesCompared", "caRmsdAngstrom")}, indent=2))
+print((RUN / "validation.json").read_text())
+from google.colab import files
+files.download(str(WORK / "proteinforge-design-lab-results.zip"))
+''', "download"),
+        cell("markdown", """
+## Tres variantes opcionales / Optional three-variant campaign
+
+Para comprobar todas las muestras, cambia `RUN_CAMPAIGN` a `True` y ejecuta esta celda después de preparar el entorno. Cada muestra repite las cuatro etapas en su propia carpeta; la primera también se ejecuta desde cero con la fuente corregida. No se elige una ganadora por confianza ni se generan tres formas independientes. La caché de pesos se comparte, los resultados no. / To verify every sample, set `RUN_CAMPAIGN` to `True` after environment setup. Each sample independently repeats all four stages, including a clean first sample. There is no confidence-based winner or three independent backbone designs. Only the model cache is shared.
+
+Una carpeta existente se conserva y se rechaza sobrescribirla. Si Colab pierde el entorno, vuelve a ejecutar la preparación. / Existing campaign folders are preserved and cannot be overwritten. Repeat setup if Colab loses its runtime.
+""", "campaign-notes"),
+        cell("code", '''
+RUN_CAMPAIGN = False
+if RUN_CAMPAIGN:
+    with subprocess.Popen([PYTHON, "-u", str(RUN / "campaign.py"), "--root", str(RUN)],
+                          env=STAGE_ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, bufsize=1) as process:
+        for line in process.stdout:
+            print(line, end="", flush=True)
+        if process.wait():
+            raise RuntimeError("Campaign failed; inspect the stage output and retained partial files")
+    print((RUN / "campaign/campaign-summary.json").read_text())
+else:
+    print("Campaña opcional desactivada / Optional campaign disabled")
+''', "campaign"),
+    ]
+    notebook = {"nbformat": 4, "nbformat_minor": 5, "cells": cells, "metadata": {
+        "accelerator": "GPU", "colab": {"provenance": [], "name": DESTINATION.name},
+        "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+        "language_info": {"name": "python"},
+    }}
+    for entry in cells:
+        if entry["cell_type"] == "code":
+            compile("".join(entry["source"]), entry["metadata"]["id"], "exec")
+    DESTINATION.parent.mkdir(parents=True, exist_ok=True)
+    DESTINATION.write_text(json.dumps(notebook, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(DESTINATION)
+
+
+if __name__ == "__main__":
+    build()

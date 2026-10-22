@@ -1,0 +1,10 @@
+# Torch/CUDA are inherited from the managed Colab runtime and recorded in environment.json.
+numpy==2.2.6
+transformers==4.57.1
+accelerate==1.11.0
+huggingface-hub==0.36.0
+tokenizers==0.22.1
+safetensors==0.6.2
+psutil==7.1.0
+# These optional Transformers imports must remain compatible with NumPy 2.
+librosa==0.11.0

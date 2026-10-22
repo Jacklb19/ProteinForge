@@ -1,5 +1,7 @@
 # Proyectos personales
 
+Actualización local del 21 oct: la recuperación automática conserva ediciones realizadas mientras se carga la lista o el proyecto. También respeta ventana y parámetros de comparación elegidos antes de iniciar sesión. Abrir manualmente comprueba que no haya nuevas ediciones desde la acción; una respuesta tardía conserva el borrador, su versión y el puntero, y ofrece un aviso bilingüe para volver a abrir deliberadamente. Los resultados recalculados en segundo plano no cuentan como una nueva edición.
+
 Estado al 19 oct 2026: CRUD y gRPC-Web publicados. Según el relevo del propietario, guardar, abrir, renombrar y borrar funcionan con su cuenta en producción; las tres migraciones fueron aplicadas por él. Esa comprobación no se repitió en esta entrega. No se anuncian guardados sin respuesta del servidor.
 
 La sección propia `/projects` aplica la maqueta A elegida por el propietario: tres tarjetas por fila en escritorio, dos en tabletas y una en móvil. Barra/menú muestran Proyectos con sesión; Perfil mantiene un enlace. Sin sesión, la ruta ofrece entrar/crear cuenta y conserva el retorno a Proyectos. Analizar y Alinear conservan guardado explícito por nombre, actualización, copia, desvinculación y recuperación confirmada.
@@ -18,8 +20,8 @@ Pruebas de cliente: snapshot vigente/desactualizado/validación, microsegundos/2
 
 Privacidad y condiciones describen el guardado deliberado y su disponibilidad condicionada. Sigue pendiente comprobar aislamiento entre dos cuentas reales. [Auditoría, elección A y plan](projects-proposal.md).
 
-## Activar esta entrega
+## Activación anterior y siguiente publicación
 
-Backend nuevo: [20261019000001_project_previews.sql](../../backend/supabase/migrations/20261019000001_project_previews.sql), idempotente y SECURITY INVOKER. El propietario aplica solo esta migración adicional; no repetir las tres ya aplicadas. Después publicar backend revisado y frontend con `buf.gen.yaml` fijado a `7df5f17a0c3d5d82a3246e38374ca55ad95f1734`. Ese commit es local hasta que el propietario publique `dev`; no se ha hecho push ni merge. Para regenerar durante desarrollo sin red: `npx buf generate ../backend/proto` con `node_modules/.bin` en PATH. La generación de CI usa la referencia fija, por lo que el backend debe publicarse primero.
+Las vistas previas de Proyectos y [20261019000001_project_previews.sql](../../backend/supabase/migrations/20261019000001_project_previews.sql) quedaron publicadas/aplicadas en la entrega anterior. El laboratorio es una entrega posterior: su migración del 21 oct también está aplicada según el propietario, pero su código sigue local. No repetir las migraciones. El [procedimiento de activación del laboratorio](laboratory-activation.md) fija el orden backend antes de frontend y los recorridos reales pendientes; publicar requiere autorización específica. Para regenerar localmente: `npx buf generate ../backend/proto`. CI usa la referencia backend fija de `buf.gen.yaml`, que debe existir en el remoto antes de publicar frontend.
 
 La API consulta únicamente proyecciones JSON concretas y prefijos, no descarga snapshots completos por tarjeta. SQL omite evidencias asociadas a entradas antiguas; el contrato valida límites y coherencia. Preparación y nueve pruebas SQL reales en PostgreSQL 18 local no aplican cambios a Supabase.

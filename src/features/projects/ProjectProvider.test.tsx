@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../auth/authContext';
@@ -20,14 +20,77 @@ const auth: AuthContextValue = { status: 'signed-in', session: { accessToken: 'o
 function service(): ProjectApi { return { list: vi.fn().mockResolvedValue({ items: [project], nextPageToken: null }), open: vi.fn().mockResolvedValue(project), save: vi.fn().mockResolvedValue(project), remove: vi.fn().mockResolvedValue(undefined) }; }
 function Probe() {
   const projects = useProjects(); const sequence = useSequenceDraft(); const alignment = useAlignmentDraft();
-  return <><input aria-label="sequence" value={sequence.text} onChange={(event) => { sequence.setText(event.target.value); }} /><output data-testid="state">{JSON.stringify({ active: projects.active?.id, error: projects.error?.code, dirty: projects.dirty, busy: projects.busy, window: sequence.profileWindow, matrix: alignment.matrix })}</output><button disabled={projects.busy} onClick={() => { void projects.open(project.id); }}>open</button><button disabled={projects.busy} onClick={() => { void projects.save('Study'); }}>save</button><button disabled={projects.busy} onClick={() => { void projects.duplicate(project, 'Copy'); }}>duplicate</button><button disabled={projects.busy} onClick={() => { void projects.refresh(false, { query: ' Study ', order: 'name' }); }}>search</button><button disabled={projects.busy} onClick={() => { void projects.refresh(true); }}>more</button></>;
+  return <><input aria-label="sequence" value={sequence.text} onChange={(event) => { sequence.setText(event.target.value); }} /><output data-testid="state">{JSON.stringify({ active: projects.active?.id, error: projects.error?.code, dirty: projects.dirty, busy: projects.busy, window: sequence.profileWindow, matrix: alignment.matrix })}</output><button onClick={() => { sequence.setProfileWindow(19); }}>profile window</button><button onClick={() => { alignment.update({ matrix: 'BLOSUM45' }); }}>comparison</button><button disabled={projects.busy} onClick={() => { void projects.open(project.id); }}>open</button><button disabled={projects.busy} onClick={() => { void projects.save('Study'); }}>save</button><button disabled={projects.busy} onClick={() => { void projects.duplicate(project, 'Copy'); }}>duplicate</button><button disabled={projects.busy} onClick={() => { void projects.refresh(false, { query: ' Study ', order: 'name' }); }}>search</button><button disabled={projects.busy} onClick={() => { void projects.refresh(true); }}>more</button></>;
 }
-function Harness({ api }: { api: ProjectApi }) {
-  const [identity, setIdentity] = useState(auth);
-  return <AuthContext.Provider value={identity}><button onClick={() => { setIdentity({ ...auth, status: 'anonymous', session: null }); }}>sign out</button><SequenceDraftProvider><AlignmentDraftProvider><ProjectProvider api={api}><Probe /></ProjectProvider></AlignmentDraftProvider></SequenceDraftProvider></AuthContext.Provider>;
+function Harness({ api, initialIdentity = auth }: { api: ProjectApi; initialIdentity?: AuthContextValue }) {
+  const [identity, setIdentity] = useState(initialIdentity);
+  return <AuthContext.Provider value={identity}><button onClick={() => { setIdentity(auth); }}>sign in</button><button onClick={() => { setIdentity({ ...auth, status: 'anonymous', session: null }); }}>sign out</button><SequenceDraftProvider><AlignmentDraftProvider><ProjectProvider api={api}><Probe /></ProjectProvider></AlignmentDraftProvider></SequenceDraftProvider></AuthContext.Provider>;
 }
 beforeEach(() => { localStorage.clear(); });
 describe('project lifecycle', () => {
+  it.each(['profile window', 'comparison'])('keeps parameters chosen before sign-in: %s', async (parameter) => {
+    localStorage.setItem(`${PROJECT_POINTER_PREFIX}owner`, project.id);
+    const api = service();
+    render(<Harness api={api} initialIdentity={{ ...auth, status: 'anonymous', session: null }} />);
+    fireEvent.click(screen.getByRole('button', { name: parameter }));
+    fireEvent.click(screen.getByRole('button', { name: 'sign in' }));
+    await waitFor(() => { expect(api.list).toHaveBeenCalled(); expect(screen.getByRole('button', { name: 'open' })).toBeEnabled(); });
+    expect(api.open).not.toHaveBeenCalled();
+    expect(screen.getByTestId('state')).toHaveTextContent(parameter === 'profile window' ? '"window":19' : '"matrix":"BLOSUM45"');
+  });
+  it.each(['profile window', 'comparison'])('preserves parameter edits during a manual open: %s', async (parameter) => {
+    const api = service(); let resolve!: (value: Project) => void;
+    api.open = vi.fn().mockReturnValueOnce(new Promise<Project>((done) => { resolve = done; }));
+    render(<Harness api={api} />);
+    await waitFor(() => { expect(screen.getByRole('button', { name: 'open' })).toBeEnabled(); });
+    fireEvent.click(screen.getByRole('button', { name: 'open' }));
+    fireEvent.click(screen.getByRole('button', { name: parameter }));
+    await act(async () => { resolve(project); await Promise.resolve(); });
+    expect(screen.getByTestId('state')).toHaveTextContent('"error":"draft-changed"');
+    expect(screen.getByTestId('state')).toHaveTextContent(parameter === 'profile window' ? '"window":19' : '"matrix":"BLOSUM45"');
+    expect(screen.getByLabelText('sequence')).toHaveValue('');
+  });
+  it('does not resume over edits made while the collection is loading', async () => {
+    localStorage.setItem(`${PROJECT_POINTER_PREFIX}owner`, project.id);
+    const api = service(); let resolve!: (value: Awaited<ReturnType<ProjectApi['list']>>) => void;
+    api.list = vi.fn().mockReturnValue(new Promise((done) => { resolve = done; }));
+    render(<Harness api={api} />);
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: 'MKWV' } });
+    await act(async () => { resolve({ items: [project], nextPageToken: null }); await Promise.resolve(); });
+    expect(screen.getByLabelText('sequence')).toHaveValue('MKWV');
+    expect(api.open).not.toHaveBeenCalled();
+    expect(screen.getByTestId('state')).not.toHaveTextContent(`"active":"${project.id}"`);
+    expect(screen.getByRole('button', { name: 'open' })).toBeEnabled();
+  });
+  it('does not resume over edits made while the saved project is loading', async () => {
+    localStorage.setItem(`${PROJECT_POINTER_PREFIX}owner`, project.id);
+    const api = service(); let resolve!: (value: Project) => void;
+    api.open = vi.fn().mockReturnValue(new Promise<Project>((done) => { resolve = done; }));
+    render(<Harness api={api} />);
+    await waitFor(() => { expect(api.open).toHaveBeenCalled(); });
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: 'MKWV' } });
+    await act(async () => { resolve(project); await Promise.resolve(); });
+    expect(screen.getByLabelText('sequence')).toHaveValue('MKWV');
+    expect(screen.getByTestId('state')).not.toHaveTextContent(`"active":"${project.id}"`);
+    expect(localStorage.getItem(`${PROJECT_POINTER_PREFIX}owner`)).toBe(project.id);
+  });
+  it('rejects a late manual open after an edit and allows a deliberate retry', async () => {
+    const api = service(); let resolve!: (value: Project) => void;
+    api.open = vi.fn().mockReturnValueOnce(new Promise<Project>((done) => { resolve = done; })).mockResolvedValue(project);
+    render(<Harness api={api} />);
+    await waitFor(() => { expect(screen.getByRole('button', { name: 'open' })).toBeEnabled(); });
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: 'ACD' } });
+    fireEvent.click(screen.getByRole('button', { name: 'open' }));
+    // Even a formatting-only edit must survive an old response.
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: 'acd ' } });
+    await act(async () => { resolve(project); await Promise.resolve(); });
+    expect(screen.getByLabelText('sequence')).toHaveValue('acd ');
+    expect(screen.getByTestId('state')).toHaveTextContent('"error":"draft-changed"');
+    expect(localStorage.getItem(`${PROJECT_POINTER_PREFIX}owner`)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'open' }));
+    await waitFor(() => { expect(screen.getByLabelText('sequence')).toHaveValue('ACD'); });
+    expect(screen.getByTestId('state')).not.toHaveTextContent('"error"');
+  });
   it('duplicates the saved snapshot without replacing an edited draft, active revision or pointer', async () => {
     const user = userEvent.setup(); const api = service();
     localStorage.setItem(`${PROJECT_POINTER_PREFIX}owner`, project.id);

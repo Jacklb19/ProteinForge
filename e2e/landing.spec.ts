@@ -119,7 +119,8 @@ test('reduced motion keeps the structure still and removes the entrance delays',
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(ROUTES.home);
   expect(await page.locator('main.page').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
-  expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-enter').trim())).toBe('0ms');
+  // Production CSS normalizes zero milliseconds to zero seconds; both must mean no delay.
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-enter').trim())).toMatch(/^0(?:ms|s)$/);
   await structurePainted(page);
   await frames(page, 5);
   const still = await drawing(page);

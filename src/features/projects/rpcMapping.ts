@@ -27,6 +27,7 @@ export function workspaceMessage(workspace: WorkspaceSnapshot): MessageInitShape
   return {
     schemaVersion: workspace.schemaVersion,
     profileWindow: workspace.profileWindow,
+    laboratory: workspace.laboratory ?? undefined,
     source: source ? {
       origin: ORIGINS[source.origin], accession: source.accession, sequence: source.sequence,
       entryVersion: source.entryVersion ?? undefined, sequenceVersion: source.sequenceVersion ?? undefined,
@@ -55,6 +56,7 @@ export function workspaceDocument(workspace: WorkspaceMessage | undefined): unkn
   return {
     schemaVersion: workspace.schemaVersion,
     profileWindow: workspace.profileWindow,
+    ...(workspace.laboratory ? { laboratory: { schemaVersion: workspace.laboratory.schemaVersion, documentJson: workspace.laboratory.documentJson, documentSha256: workspace.laboratory.documentSha256 } } : {}),
     source: source ? {
       origin: nameOf(ORIGINS, source.origin), accession: source.accession, sequence: source.sequence,
       entryVersion: source.entryVersion ?? null, sequenceVersion: source.sequenceVersion ?? null, retrievedAt: isoFromTimestamp(source.retrieveTime),
@@ -86,6 +88,7 @@ export function summaryDocument(summary: SummaryMessage | undefined): Record<str
     createdAt: isoFromTimestamp(summary?.createTime), updatedAt: isoFromTimestamp(summary?.updateTime),
     ...(preview ? { preview: {
       sequenceLength: preview.sequenceLength, sequencePrefix: preview.sequencePrefix, excluded: preview.excluded,
+      hasLaboratory: preview.hasLaboratory, laboratoryVariants: preview.laboratoryVariants,
       descriptors: descriptors ? { massDa: descriptors.massDa, isoelectricPoint: descriptors.isoelectricPoint, instabilityIndex: descriptors.instabilityIndex, aliphaticIndex: descriptors.aliphaticIndex, gravy: descriptors.gravy, length: descriptors.length } : null,
       source: preview.source ? { origin: nameOf(ORIGINS, preview.source.origin), accession: preview.source.accession } : null,
       alignment: alignment ? {

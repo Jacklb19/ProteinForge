@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
 import { PageHeading } from '../../shared/PageHeading';
@@ -52,7 +52,7 @@ export function GeneratorPage(): React.JSX.Element {
       <span className="candidate-cells" style={{ '--ribbon-columns': candidate.sequence.length } as React.CSSProperties} aria-hidden="true">{Array.from(candidate.sequence, (residue, index) => <span key={index} className="residue" data-chem={residueClass(residue)}>{residue}</span>)}</span><code className="visually-hidden">{candidate.sequence}</code><p>{t('generator.properties', { mass: formatNumber(candidate.descriptors.massDa, { maximumFractionDigits: 2 }), gravy: formatNumber(candidate.descriptors.gravy, { maximumFractionDigits: 4 }), loss: formatNumber(candidate.loss, { maximumFractionDigits: 4 }) })}</p>
     </li>)}</ol></section>;
   }
-  return <main className="page generator-page"><PageHeading titleKey="generator.title" introduction="generator.introduction" />
+  return <main className="page generator-page"><PageHeading titleKey="generator.title" introduction="generator.introduction"><Link className="button button-primary" to={ROUTES.laboratory}>{t('lab.openLaboratory')}</Link></PageHeading>
     <form className="section generator-form" onSubmit={(event) => { event.preventDefault(); setPending(null); generator.run(); }}>
       <h2>{t('generator.conditions')}</h2><div className="generator-inputs">{numeric('length', 'generator.length', C.minLength, C.maxLength, 1)}{numeric('budget', 'generator.budget', C.minBudget, C.maxBudget, 1)}{numeric('seed', 'generator.seed', 1, C.maxSeed, 1)}</div>
       <p className="field-help">{t('generator.bounds')}</p>
