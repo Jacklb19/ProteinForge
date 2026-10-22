@@ -20,6 +20,7 @@ export const PROJECT_PREVIEW_PRECISION = { mass: 2, pi: 2, gravy: 3, percent: 1 
 export const PROJECT_POINTER_PREFIX = 'proteinforge:last-project:';
 export const DESCRIPTOR_METHOD_VERSION = 'proteinforge-descriptors-v1';
 export const PROJECT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
+  'draft-changed': 'projects.draftChanged',
   'laboratory-size':'lab.projectSize',
   network: 'projects.network', timeout: 'projects.timeout', cancelled: 'projects.cancelled', session: 'projects.session',
   unavailable: 'projects.unavailable', 'invalid-response': 'projects.invalidResponse', unknown: 'projects.error',

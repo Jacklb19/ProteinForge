@@ -324,6 +324,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'projects.invalidResponse': 'That project could not be read. Your current work was not replaced.',
   'projects.error': 'The operation could not be completed. Your draft is kept.',
   'projects.conflict': 'This project changed in another tab. Save a copy of your changes or restore the saved version before continuing.',
+  'projects.draftChanged': 'Your work changed while the project was opening. Your current changes were kept. Open it again if you want to replace them.',
   'projects.notFound': 'This project is no longer available to your account. Refresh the list.',
   'projects.validation': 'Check the name and the sequences. Saving allows up to 100,000 residues for analysis and 5,000 per comparison input; the results must match the current inputs.',
   'projects.schema': 'Saving is not available right now. You can keep calculating and exporting.',

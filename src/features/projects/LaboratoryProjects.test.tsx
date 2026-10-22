@@ -1,4 +1,4 @@
-import {fireEvent,render,screen,waitFor} from '@testing-library/react';
+import {act,fireEvent,render,screen,waitFor} from '@testing-library/react';
 import {beforeAll,beforeEach,expect,it,vi} from 'vitest';
 import {AuthContext} from '../auth/authContext';
 import {signedInFixture} from '../../test/authFixture';
@@ -28,7 +28,10 @@ beforeAll(async()=>{
 beforeEach(async()=>{localStorage.clear();vi.clearAllMocks();vi.mocked(lab.document).mockResolvedValue(bytes);vi.mocked(lab.openDocument).mockResolvedValue(0);stored={...analysis,id:'00000000-0000-4000-8000-000000000011',name:'Laboratory',workspace:{...analysis.workspace,schemaVersion:2,laboratory:{schemaVersion:1,documentJson:new TextDecoder().decode(bytes),documentSha256:await sha256(bytes)}}};});
 function api():ProjectApi{return{list:vi.fn().mockResolvedValue({items:[],nextPageToken:null}),open:vi.fn().mockImplementation((id:string)=>Promise.resolve(id===analysis.id?analysis:stored)),save:vi.fn().mockImplementation((write:ProjectWrite)=>Promise.resolve({...stored,...write,updatedAt:'2026-10-12T08:00:01.123456Z'})),remove:vi.fn().mockResolvedValue(undefined)};}
 function Harness(){const p=useProjects(),s=useSequenceDraft();return <><output data-testid="state">{JSON.stringify({active:p.active?.id,lab:p.laboratory?.id,version:p.laboratory?.updatedAt,error:p.error?.code,sequence:s.text,busy:p.busy})}</output><button onClick={()=>{void p.open(analysis.id);}}>analysis</button><button onClick={()=>{void p.open(stored.id,'laboratory');}}>open</button><button onClick={()=>{void p.saveLaboratory('Saved');}}>save</button><button onClick={()=>{void p.saveLaboratory('Copy',true);}}>copy</button><button onClick={()=>{void p.rename(stored,'Renamed');}}>rename</button><button onClick={()=>{void p.remove(stored);}}>delete</button></>;}
-function mount(service:ProjectApi,value=lab){return render(<AuthContext.Provider value={signedInFixture}><SequenceDraftProvider><AlignmentDraftProvider><LabContext.Provider value={value}><ProjectProvider api={service}><Harness/></ProjectProvider></LabContext.Provider></AlignmentDraftProvider></SequenceDraftProvider></AuthContext.Provider>);}
+function mount(service:ProjectApi,value=lab){
+ const tree=(next:LabState)=><AuthContext.Provider value={signedInFixture}><SequenceDraftProvider><AlignmentDraftProvider><LabContext.Provider value={next}><ProjectProvider api={service}><Harness/></ProjectProvider></LabContext.Provider></AlignmentDraftProvider></SequenceDraftProvider></AuthContext.Provider>;
+ const view=render(tree(value));return {...view,updateLab:(next:LabState)=>{view.rerender(tree(next));}};
+}
 const state=()=>JSON.parse(screen.getByTestId('state').textContent) as {active?:string;lab?:string;error?:string;sequence:string;busy:boolean;version?:string};
 async function ready(){await waitFor(()=>{expect(state().busy).toBe(false);});}
 async function click(name:string){fireEvent.click(screen.getByRole('button',{name}));await ready();}
@@ -50,6 +53,21 @@ it('keeps binding and draft on conflict and offers a version-independent copy',a
 it('retains binding when reopening fails without restoring analysis',async()=>{
  const service=api();mount(service);await ready();await click('open');vi.mocked(lab.openDocument).mockResolvedValueOnce(null);await click('open');
  expect(state()).toMatchObject({lab:stored.id,error:'validation',sequence:''});
+});
+it.each(['edit','import','loading','exporting'] as const)('does not replace newer laboratory work during a delayed cloud open: %s',async(change)=>{
+ const service=api(),view=mount(service);await ready();await click('open');
+ const openDocument=vi.mocked(lab.openDocument);openDocument.mockClear();
+ let resolve!:(project:Project)=>void;
+ vi.mocked(service.open).mockReturnValueOnce(new Promise<Project>(done=>{resolve=done;}));
+ fireEvent.click(screen.getByRole('button',{name:'open'}));
+ const draft=required(lab.drafts[lab.activeId]);
+ const next:LabState=change==='edit'?{...lab,drafts:{...lab.drafts,[lab.activeId]:{...draft,protectedPositions:[0]}}}:change==='import'?{...lab,revision:lab.revision+1}:{...lab,status:change};
+ view.updateLab(next);
+ await act(async()=>{resolve(stored);await Promise.resolve();});await ready();
+ expect(openDocument).not.toHaveBeenCalled();expect(state().error).toBe('draft-changed');
+ if(change==='import')expect(state().lab).toBeUndefined();else expect(state().lab).toBe(stored.id);
+ view.updateLab({...next,status:'ready'});
+ await click('open');expect(openDocument).toHaveBeenCalledTimes(1);expect(state().error).toBeUndefined();
 });
 it('updates the laboratory version when renaming and detaches after deletion',async()=>{
  const service=api();mount(service);await ready();await click('open');await click('rename');expect(state().version).toBe('2026-10-12T08:00:01.123456Z');

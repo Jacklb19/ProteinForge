@@ -1,13 +1,14 @@
 import { DEFAULT_EXAMPLE } from '../editor/examples';
 import { EXAMPLE_ALIGNMENT_INPUT } from '../alignment/examples';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../auth/authContext';
 import { readApiBaseUrl } from '../api/config';
 import { ApiError } from '../api/apiClient';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
-import { SCORING_SUBSTITUTIONS } from '../alignment/config';
+import { DEFAULT_MATRIX, DEFAULT_MODE, SCORING_SUBSTITUTIONS } from '../alignment/config';
+import { DEFAULT_HYDROPATHY_WINDOW } from '../descriptors/config';
 import { createProjectApi } from './projectApi';
 import type { ProjectApi } from './projectApi';
 import type { Project, ProjectSummary } from './contracts';
@@ -39,11 +40,15 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const lab = useContext(LabContext);
   const [labBinding,setLabBinding]=useState<{owner:string;project:Project;revision:number}|null>(null);
   const labCurrent=useRef(lab);
-  useEffect(()=>{labCurrent.current=lab;},[lab]);
+  useLayoutEffect(()=>{labCurrent.current=lab;},[lab]);
   const sequence = useSequenceDraft();
   const alignment = useAlignmentDraft();
   const { setText, setProfileWindow, setSource } = sequence;
   const { update } = alignment;
+  const inputRevision = useRef(0);
+  // Track raw edits and provenance, including formatting and parameter changes.
+  // Background calculations do not invalidate a deliberate open.
+  useLayoutEffect(() => { inputRevision.current++; }, [sequence.text, sequence.profileWindow, sequence.source, alignment.first, alignment.second, alignment.matrix, alignment.mode]);
   const [configuredApi] = useState(() => { const url = readApiBaseUrl(); return url ? createProjectApi(url) : null; });
   const client = api === undefined ? configuredApi : api;
   const user = auth.status === 'signed-in' ? auth.session?.user.id ?? null : null;
@@ -74,19 +79,25 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     locked.current = Boolean(user && client);
     const id = user ? lastProject(user) : null;
     // The last project resumes only over untouched drafts: empty, or still the examples the application opens with.
-    const sequenceUntouched = !sequence.text || sequence.text === DEFAULT_EXAMPLE.text;
-    const alignmentUntouched = (!alignment.first && !alignment.second)
-      || (alignment.first === EXAMPLE_ALIGNMENT_INPUT.first && alignment.second === EXAMPLE_ALIGNMENT_INPUT.second);
+    const sequenceUntouched = (!sequence.text || sequence.text === DEFAULT_EXAMPLE.text)
+      && sequence.profileWindow === DEFAULT_HYDROPATHY_WINDOW
+      && (!sequence.source || sequence.source === DEFAULT_EXAMPLE.source);
+    const alignmentUntouched = ((!alignment.first && !alignment.second)
+      || (alignment.first === EXAMPLE_ALIGNMENT_INPUT.first && alignment.second === EXAMPLE_ALIGNMENT_INPUT.second))
+      && alignment.matrix === DEFAULT_MATRIX && alignment.mode === DEFAULT_MODE;
     const canRestore = sequenceUntouched && alignmentUntouched;
+    const resumeRevision = inputRevision.current;
     queueMicrotask(() => { setState({ ...EMPTY, owner: user, busy: Boolean(user && client) }); });
     if (user && client) {
       void (async () => {
         try {
           const listing = await client.list(token, '', operation.signal);
-          const project = id && canRestore ? await client.open(id, token, operation.signal) : null;
+          const project = id && canRestore && resumeRevision === inputRevision.current && !operation.signal.aborted
+            ? await client.open(id, token, operation.signal) : null;
           if (epoch !== generation.current) return;
-          if (project) restore(project);
-          setState({ ...EMPTY, owner: user, active: project, items: listing.items, nextPageToken: listing.nextPageToken, notice: project ? 'opened' : null });
+          const resumed = resumeRevision === inputRevision.current ? project : null;
+          if (resumed) restore(resumed);
+          setState({ ...EMPTY, owner: user, active: resumed, items: listing.items, nextPageToken: listing.nextPageToken, notice: resumed ? 'opened' : null });
         } catch (error) {
           if (epoch !== generation.current) return;
           const failure = error instanceof ApiError ? error : new ApiError('unknown');
@@ -153,11 +164,17 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     async open(id: string, destination?: 'laboratory'): Promise<Project | null> {
       let opened: Project | null = null;
       const done = await run(async (service, signal) => {
+      const openingRevision = inputRevision.current;
+      const openingLab = labCurrent.current;
+      const openingDrafts = openingLab ? draftFingerprint(openingLab.drafts) : null;
       const project = await service.open(id, token, signal);
       if (signal.aborted) return;
       if(destination==='laboratory'){
         const snapshot=project.workspace.laboratory;
         if(!snapshot || !lab)throw new ApiError('validation');
+        const latestLab = labCurrent.current;
+        if (!latestLab || latestLab.revision !== openingLab?.revision || draftFingerprint(latestLab.drafts) !== openingDrafts
+          || latestLab.status === 'loading' || latestLab.status === 'exporting') throw new ApiError('draft-changed');
         signal.addEventListener('abort',lab.cancel,{once:true});
         let revision:number|null;
         try{revision=await lab.openDocument(new TextEncoder().encode(snapshot.documentJson).buffer,snapshot.documentSha256);}
@@ -167,6 +184,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
         if(user)setLabBinding({owner:user,project,revision}); opened=project;
         setState(value=>({...value,notice:'opened'})); return;
       }
+      if (openingRevision !== inputRevision.current) throw new ApiError('draft-changed');
       restore(project); if (user) remember(user, project.id);
       opened = project;
       setState((value) => ({ ...value, active: project, notice: 'opened' }));

@@ -12,7 +12,7 @@ import {
 import { PROJECT_POINTER_PREFIX } from '../src/features/projects/config';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
-import { alignmentInputs, assertFits, message, navigationLink, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT } from './helpers';
+import { alignmentInputs, assertFits, followNavigation, message, navigationLink, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT } from './helpers';
 import { fulfillRpc, fulfillRpcError, GRPC_CODES, isRpc, rpcMethod, rpcRequest } from './rpc';
 
 const ID = '00000000-0000-4000-8000-000000000010';
@@ -31,6 +31,7 @@ function projectMessage(project: Project) {
 async function mockProjects(page: Page, initial: Project | null = null) {
   let project = initial; let version = 0; let conflict = false;
   const writes: ProjectWrite[] = [];
+  let heldOpen: { gate: Promise<void>; start: () => void } | null = null;
   await storeSession(page);
   await page.route(isRpc, async (route) => {
     const method = rpcMethod(route);
@@ -38,7 +39,11 @@ async function mockProjects(page: Page, initial: Project | null = null) {
     if (method === 'AccountService/GetMe') return fulfillRpc(route, GetMeResponseSchema, { id: USER, email: TEST_ACCOUNT.email });
     expect(route.request().headers().authorization).toBe(`Bearer ${TEST_ACCOUNT.accessToken}`);
     if (method === 'ProjectService/ListProjects') return fulfillRpc(route, ListProjectsResponseSchema, { projects: project ? [projectMessage(project).summary] : [] });
-    if (method === 'ProjectService/GetProject') return project ? fulfillRpc(route, GetProjectResponseSchema, { project: projectMessage(project) }) : fulfillRpcError(route, GRPC_CODES.notFound, 'not-found');
+    if (method === 'ProjectService/GetProject') {
+      const held = heldOpen; heldOpen = null;
+      if (held) { held.start(); await held.gate; }
+      return project ? fulfillRpc(route, GetProjectResponseSchema, { project: projectMessage(project) }) : fulfillRpcError(route, GRPC_CODES.notFound, 'not-found');
+    }
     if (method === 'ProjectService/DeleteProject') { project = null; return fulfillRpc(route, DeleteProjectResponseSchema, {}); }
     if (conflict && method === 'ProjectService/UpdateProject') return fulfillRpcError(route, GRPC_CODES.aborted, 'project-conflict', 'e2e-conflict');
     const update = method === 'ProjectService/UpdateProject';
@@ -49,13 +54,66 @@ async function mockProjects(page: Page, initial: Project | null = null) {
     project = { ...saved, ...write, updatedAt: `2026-10-12T08:00:${String(++version).padStart(2, '0')}.123456Z` };
     return fulfillRpc(route, update ? UpdateProjectResponseSchema : CreateProjectResponseSchema, { project: projectMessage(project) });
   });
-  return { writes, setConflict: () => { conflict = true; }, clearConflict:()=>{conflict=false;}, corrupt:()=>{if(project?.workspace.laboratory)project={...project,workspace:{...project.workspace,laboratory:{...project.workspace.laboratory,documentSha256:'0'.repeat(64)}}};}, current: () => project };
+  return { writes, holdNextOpen: () => {
+    let release!: () => void, start!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const started = new Promise<void>(resolve => { start = resolve; });
+    heldOpen = { gate, start }; return { release, started };
+  }, setConflict: () => { conflict = true; }, clearConflict:()=>{conflict=false;}, corrupt:()=>{if(project?.workspace.laboratory)project={...project,workspace:{...project.workspace,laboratory:{...project.workspace.laboratory,documentSha256:'0'.repeat(64)}}};}, current: () => project };
 }
 
 /** Dedicated project collection. */
 function projectLibrary(page: Page): Locator {
   return page.getByRole('region', { name: spanish['projects.title'] });
 }
+
+test('a delayed resume preserves sequence edits made after reload', async ({ page }) => {
+  const data = await mockProjects(page, saved), held = data.holdNextOpen();
+  await page.addInitScript(({ key, id }) => { localStorage.setItem(key, id); }, { key: `${PROJECT_POINTER_PREFIX}${USER}`, id: ID });
+  await page.goto(ROUTES.analyze);
+  await held.started;
+  const editor = await openSequenceEditor(page);
+  await editor.fill('MKWV');
+  held.release();
+  const panel = await openProjectPanel(page);
+  await panel.getByLabel(spanish['projects.name']).fill('Preserved draft');
+  await expect(panel.getByRole('button', { name: spanish['projects.create'], exact: true })).toBeEnabled();
+  await expect(await openSequenceEditor(page)).toHaveValue('MKWV');
+  expect(data.writes).toHaveLength(0);
+});
+
+for (const width of [360, 1280]) test(`a delayed laboratory open preserves newer edits at ${String(width)}px`, async ({ page }) => {
+  const data = await mockProjects(page);
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto(ROUTES.laboratory);
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
+  await page.getByRole('button', { name: spanish['lab.saveProject'], exact: true }).click();
+  let dialog = page.getByRole('dialog');
+  await dialog.getByLabel(spanish['projects.name']).fill('Race laboratory');
+  await dialog.getByRole('button', { name: spanish['projects.create'], exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await followNavigation(page, spanish['nav.projects']);
+  const held = data.holdNextOpen();
+  await projectLibrary(page).getByRole('button', { name: message('lab.openProjectNamed', { name: 'Race laboratory' }) }).click();
+  await held.started;
+  await followNavigation(page, spanish['nav.generate']);
+  await page.getByRole('link', { name: spanish['lab.openLaboratory'], exact: true }).click();
+  await page.getByRole('button', { name: spanish['lab.protect'], exact: true }).click();
+  held.release();
+  const save = page.getByRole('button', { name: spanish['lab.saveProject'], exact: true });
+  await expect(save).toBeEnabled();
+  await save.click(); dialog = page.getByRole('dialog');
+  await expect(dialog.getByText(spanish['projects.draftChanged'], { exact: true })).toBeVisible();
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await assertFits(page);
+    expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+    await page.screenshot({ path: `artifacts/laboratory-race-${String(width)}-${theme}.png`, fullPage: true });
+  }
+  await page.keyboard.press('Escape'); await expect(save).toBeFocused();
+  await expect(page.getByRole('button', { name: spanish['lab.unprotect'], exact: true })).toBeVisible();
+  expect(data.writes).toHaveLength(1);
+});
 
 test('owned project saves current calculations and resumes after reload', async ({ page }) => {
   const data = await mockProjects(page);

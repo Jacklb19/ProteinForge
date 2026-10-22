@@ -322,6 +322,7 @@ export const spanish = {
   'projects.invalidResponse': 'No se pudo leer ese proyecto. Tu trabajo actual no se reemplazó.',
   'projects.error': 'No se pudo completar la operación. Tu borrador se conserva.',
   'projects.conflict': 'Este proyecto cambió en otra pestaña. Guarda una copia de tus cambios o recupera la versión guardada antes de continuar.',
+  'projects.draftChanged': 'Tu trabajo cambió mientras se abría el proyecto. Conservamos los cambios actuales. Vuelve a abrirlo si quieres reemplazarlos.',
   'projects.notFound': 'Este proyecto ya no está disponible para tu cuenta. Actualiza la lista.',
   'projects.validation': 'Revisa el nombre y las secuencias. El guardado admite hasta 100.000 residuos para análisis y 5.000 por entrada de comparación; los resultados deben corresponder a las entradas actuales.',
   'projects.schema': 'El guardado no está disponible ahora. Puedes seguir calculando y exportando.',
