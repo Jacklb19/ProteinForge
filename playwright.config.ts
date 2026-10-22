@@ -15,7 +15,9 @@ const workers = process.env.E2E_WORKERS ? Number(process.env.E2E_WORKERS) : proc
 export default defineConfig({
   testDir: './e2e',
   workers,
-  reporter: 'line',
+  // In continuous integration a failure also becomes a check annotation with the test and its error,
+  // which anyone can read on GitHub; the step log itself needs a signed-in account.
+  reporter: process.env.CI ? [['github'], ['line']] : 'line',
   timeout: 30_000,
   use: {
     baseURL,
