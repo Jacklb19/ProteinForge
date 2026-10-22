@@ -58,11 +58,17 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     if (api !== undefined) return api;
     if (!configuredUrl) return null;
     loading.current ??= import('./projectApi').then(({ createProjectApi }) => createProjectApi(configuredUrl));
-    const resolved = await loading.current;
-    setConfiguredApi(resolved);
-    return resolved;
+    try {
+      const resolved = await loading.current;
+      setConfiguredApi(resolved);
+      return resolved;
+    } catch {
+      // The file may be unreachable offline or after a replaced build; let the next action try again.
+      loading.current = null;
+      throw new ApiError('network');
+    }
   }, [api, configuredUrl]);
-  useEffect(() => { void serviceClient(); }, [serviceClient]);
+  useEffect(() => { void serviceClient().catch(() => undefined); }, [serviceClient]);
   const client = api === undefined ? configuredApi : api;
   const enabled = api === undefined ? Boolean(configuredUrl) : api !== null;
   const user = auth.status === 'signed-in' ? auth.session?.user.id ?? null : null;
@@ -140,7 +146,13 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     if (!enabled || !user || !token || locked.current) return false;
     // Hold the lock across the wait for the client, so a second action cannot start meanwhile.
     locked.current = true;
-    const service = client ?? await serviceClient();
+    let service: ProjectApi | null;
+    try { service = client ?? await serviceClient(); }
+    catch (error) {
+      locked.current = false;
+      setState((value) => ({ ...value, owner: user, error: error instanceof ApiError ? error : new ApiError('unknown') }));
+      return false;
+    }
     if (!service) { locked.current = false; return false; }
     const epoch = ++generation.current;
     const operation = new AbortController();

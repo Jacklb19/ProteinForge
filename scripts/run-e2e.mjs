@@ -37,13 +37,19 @@ const baseUrl = `http://${host}:${String(address.port)}`;
 // A cold dev server transforms hundreds of modules on the first page load, which can exceed a test's
 // budget. Request the whole module graph once, static and dynamic imports alike, before any test runs.
 const MODULE_REFERENCE = /(?:from\s*|import\s*\(?\s*|new URL\(\s*)["'](\/(?:src|node_modules|@id|@fs|@vite)[^"'?]*(?:\?[^"']*)?)["']/g;
-const pending = ['/', '/src/main.tsx'];
+const ENTRIES = ['/', '/src/main.tsx'];
+const pending = [...ENTRIES];
 const visited = new Set(pending);
 while (pending.length > 0) {
   const batch = pending.splice(0, 16);
   await Promise.all(batch.map(async (path) => {
-    const response = await fetch(`${baseUrl}${path}`);
-    if (!response.ok) throw new Error(`Warming ${path} failed with HTTP ${String(response.status)}.`);
+    // Only the two entries must exist. A text that merely looks like a module path is skipped: warming
+    // is an optimisation, and failing the whole suite over one of them would be worse than a cold start.
+    const response = await fetch(`${baseUrl}${path}`).catch(() => null);
+    if (!response?.ok) {
+      if (ENTRIES.includes(path)) throw new Error(`Warming ${path} failed with HTTP ${String(response?.status ?? 0)}.`);
+      return;
+    }
     const text = await response.text();
     for (const [, reference] of text.matchAll(MODULE_REFERENCE)) {
       if (!visited.has(reference)) { visited.add(reference); pending.push(reference); }
