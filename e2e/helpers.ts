@@ -80,10 +80,19 @@ export async function openSiteMenu(page: Page): Promise<Locator> {
 }
 
 /**
+ * Waits until the screen of the current address is on the page. Routes outside the first load arrive as
+ * their own chunk, so asking which controls exist before that replaces a real control with a fallback.
+ */
+export async function routeLoaded(page: Page): Promise<void> {
+  await expect(page.getByText(spanish['shell.loadingPage'], { exact: true })).toHaveCount(0);
+}
+
+/**
  * Chooses a theme through the control the current page offers: the radios of Perfil, the phone menu of a
  * signed-out visitor, or the bar toggle, which only flips between light and dark.
  */
 export async function chooseTheme(page: Page, theme: keyof typeof themeLabels): Promise<void> {
+  await routeLoaded(page);
   const radio = page.getByRole('radio', { name: themeLabels[theme], exact: true });
   if (await radio.isVisible()) {
     await radio.check();

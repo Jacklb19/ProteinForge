@@ -56,6 +56,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'app.title': 'ProteinForge — Explore, compare and design proteins',
   'app.description': 'Explore, compare and design proteins from their sequence.',
   'app.tagline': 'Explore, compare and design proteins.',
+  'shell.loadingPage': 'Loading…',
   'shell.skip': 'Skip to content',
   'shell.home': 'ProteinForge, go to Home',
   'shell.themeToLight': 'Switch to light theme',

@@ -54,6 +54,7 @@ export const spanish = {
   'app.title': 'ProteinForge — Explora, compara y diseña proteínas',
   'app.description': 'Explora, compara y diseña proteínas a partir de su secuencia.',
   'app.tagline': 'Explora, compara y diseña proteínas.',
+  'shell.loadingPage': 'Cargando…',
   'shell.skip': 'Saltar al contenido',
   'shell.home': 'ProteinForge, ir a Inicio',
   'shell.themeToLight': 'Cambiar a tema claro',

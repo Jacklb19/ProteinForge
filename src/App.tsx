@@ -6,21 +6,12 @@ import { DEFAULT_EXAMPLE } from './features/editor/examples';
 import { AlignmentPage } from './features/alignment/AlignmentPage';
 import { AlignmentDraftProvider } from './features/alignment/AlignmentDraftProvider';
 import { EXAMPLE_ALIGNMENT_DRAFT } from './features/alignment/examples';
-import { ProfilePage } from './features/profile/ProfilePage';
 import { LandingPage } from './features/landing/LandingPage';
 import { ProjectProvider } from './features/projects/ProjectProvider';
-import { ProjectsPage } from './features/projects/ProjectsPage';
-import { LibraryPage } from './features/library/LibraryPage';
-import { GeneratorPage } from './features/generator/GeneratorPage';
 import { GeneratorProvider } from './features/generator/GeneratorProvider';
 import { LabProvider } from './features/design-lab/LabProvider';
-import { PrivacyPage } from './features/privacy/PrivacyPage';
-import { TermsPage } from './features/legal/TermsPage';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { useAuth } from './features/auth/authContext';
-import { SignInPage } from './features/auth/SignInPage';
-import { SignUpPage } from './features/auth/SignUpPage';
-import { RecoverPage } from './features/auth/RecoverPage';
 import { PreferencesProvider } from './preferences/PreferencesProvider';
 import { usePreferences } from './preferences/usePreferences';
 import { LOCALE_LABEL_KEYS, THEMES, THEME_LABEL_KEYS } from './preferences/config';
@@ -38,6 +29,15 @@ import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, REDIRECTS, ROUTES }
 const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 const MENU_ID = 'site-menu';
 const DesignLabPage = lazy(async () => ({ default: (await import('./features/design-lab/DesignLabPage')).DesignLabPage }));
+const ProfilePage = lazy(async () => ({ default: (await import('./features/profile/ProfilePage')).ProfilePage }));
+const ProjectsPage = lazy(async () => ({ default: (await import('./features/projects/ProjectsPage')).ProjectsPage }));
+const LibraryPage = lazy(async () => ({ default: (await import('./features/library/LibraryPage')).LibraryPage }));
+const GeneratorPage = lazy(async () => ({ default: (await import('./features/generator/GeneratorPage')).GeneratorPage }));
+const PrivacyPage = lazy(async () => ({ default: (await import('./features/privacy/PrivacyPage')).PrivacyPage }));
+const TermsPage = lazy(async () => ({ default: (await import('./features/legal/TermsPage')).TermsPage }));
+const SignInPage = lazy(async () => ({ default: (await import('./features/auth/SignInPage')).SignInPage }));
+const SignUpPage = lazy(async () => ({ default: (await import('./features/auth/SignUpPage')).SignUpPage }));
+const RecoverPage = lazy(async () => ({ default: (await import('./features/auth/RecoverPage')).RecoverPage }));
 
 /** Visitors without a session flip between light and dark from the bar; Perfil keeps the three-way choice. */
 function ThemeToggle(): React.JSX.Element {
@@ -217,12 +217,13 @@ function ApplicationRoutes(): React.JSX.Element {
       <a className="skip-link" href="#app-content">{t('shell.skip')}</a>
       <SiteBar />
       <div className="app-content" id="app-content" ref={content} tabIndex={-1}>
+        <Suspense fallback={<main className="page"><p role="status">{t('shell.loadingPage')}</p></main>}>
         <Routes>
           <Route path={ROUTES.home} element={<LandingPage />} />
           <Route path={ROUTES.analyze} element={<EditorPage />} />
           <Route path={ROUTES.alignment} element={<AlignmentPage />} />
           <Route path={ROUTES.generate} element={<GeneratorPage />} />
-          <Route path={ROUTES.laboratory} element={<Suspense fallback={<main className="page"><p role="status">{t('lab.loading')}</p></main>}><DesignLabPage /></Suspense>} />
+          <Route path={ROUTES.laboratory} element={<DesignLabPage />} />
           <Route path={ROUTES.library} element={<LibraryPage />} />
           <Route path={ROUTES.profile} element={<ProfilePage />} />
           <Route path={ROUTES.projects} element={<ProjectsPage />} />
@@ -234,6 +235,7 @@ function ApplicationRoutes(): React.JSX.Element {
           {REDIRECTS.map((redirect) => <Route key={redirect.from} path={redirect.from} element={<Navigate to={redirect.to} replace />} />)}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        </Suspense>
       </div>
       <SiteFooter />
     </div>
