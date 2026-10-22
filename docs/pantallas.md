@@ -18,6 +18,8 @@ El propietario eligió A «Colección de secuencias». `/projects` implementa es
 | Privacidad, condiciones | `/privacy`, `/terms` | Texto legal | Públicas |
 | Dirección desconocida | Cualquier otra | Regreso a Analizar o Inicio | — |
 
+Cada pantalla distinta de Inicio, Analizar y Alinear llega en su propio archivo al abrir su dirección: mientras tanto se ve un «Cargando…» con `role="status"`, y si el archivo no llega —sin conexión, o tras reemplazar la versión publicada— la pantalla lo dice y ofrece recargar, en lugar de quedarse en blanco. El trabajo sin guardar de la pestaña se conserva en ambos casos.
+
 Direcciones anteriores: `/app` redirige a Analizar y `/settings` a Perfil. `/app` sigue siendo la dirección de retorno registrada para Google.
 
 ## Paneles y acciones
