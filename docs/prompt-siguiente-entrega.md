@@ -67,7 +67,7 @@ Mientras no haya acuerdo, el recorrido manual (laboratorio → cuaderno → Cola
 
 ## Evidencia y reproducción
 
-Frontend: 348 unitarias en 64 archivos; cobertura ≈84 % statements / 74 % branches / 82 % functions / 88 % lines, mínimo 70 % intacto. Tipos, lint, build y `check:pwa` correctos. Chrome local: batería completa de 89 recorridos y repeticiones dirigidas. Contenedor Linux con `CI=true`: 87 correctos, 2 omitidos, 0 fallos. Auth y RPC simulados; no hay sesión real ni otros navegadores certificados.
+Frontend: 348 unitarias en 64 archivos; cobertura ≈84 % statements / 74 % branches / 82 % functions / 88 % lines, mínimo 70 % intacto. Tipos, lint, build y `check:pwa` correctos. Chrome local: batería completa 87 correctos, 2 omitidos, 0 fallos, y repeticiones dirigidas. Contenedor Linux con `CI=true`: 87 correctos, 2 omitidos, 0 fallos. Auth y RPC simulados; no hay sesión real ni otros navegadores certificados.
 
 Backend: 61 pruebas (12 SQL omitidas sin base). Las 12 pruebas SQL reales con PostgreSQL 18 temporal siguen siendo válidas y no se repitieron porque este bloque no toca esquema, políticas ni acceso a datos.
 
