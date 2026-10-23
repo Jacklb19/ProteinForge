@@ -102,6 +102,10 @@ test('without a session the reading offers to sign in instead of the action', as
   const reading = page.locator('.reading');
   await expect(reading.getByText(spanish['assistant.signInHelp'])).toBeVisible();
   await expect(reading.getByRole('button', { name: spanish['assistant.read.analysis'] })).toHaveCount(0);
+  for (const width of [360, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await assertFits(page);
+  }
   expect(calls.requests).toHaveLength(0);
 });
 
