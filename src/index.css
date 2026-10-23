@@ -707,3 +707,24 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
   .lab-table .button { padding-inline: var(--space-xs); font-size: var(--font-size-caption); }
   .lab-file-tools .actions > .button { width: var(--width-full); white-space: normal; }
 }
+
+/* Reading ---------------------------------------------------------------- */
+.reading { display: grid; gap: var(--space-sm); margin-block-start: var(--space-xl); padding-block-start: var(--space-lg); border-block-start: var(--border-width) solid var(--border-subtle); }
+.reading-body { display: grid; grid-template-columns: minmax(0, var(--width-reading-measure)) minmax(0, 1fr); gap: var(--space-xl) var(--space-2xl); align-items: start; }
+.reading-column { display: grid; gap: var(--space-sm); min-width: var(--space-none); }
+/* Prose, not interface: its own measure and a line height that carries two or three sentences. */
+.reading-text { display: grid; gap: var(--space-md); max-width: var(--width-reading-measure); line-height: var(--line-height-reading); }
+.reading-lead { font-size: var(--font-size-lead); line-height: var(--line-height-heading); }
+.reading-sources { padding-inline-start: var(--space-lg); border-inline-start: var(--border-width) solid var(--border-subtle); }
+.reading-sources h3 { margin-block-end: var(--space-2xs); color: var(--text-secondary); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
+.reading-sources dl { display: grid; gap: var(--space-2xs); margin: var(--space-none); }
+.reading-sources dl > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2xs) var(--space-md); padding-block: var(--space-3xs); }
+.reading-sources dt { color: var(--text-secondary); font-size: var(--font-size-small); }
+.reading-sources dd { margin: var(--space-none); font-size: var(--font-size-small); }
+@media (width < 64rem) {
+  .reading-body { grid-template-columns: minmax(0, 1fr); }
+  .reading-sources { padding-inline-start: var(--space-none); padding-block-start: var(--space-md); border-inline-start: none; border-block-start: var(--border-width) solid var(--border-subtle); }
+  /* The action reads after the text on a narrow screen, where the header would leave it stranded. */
+  .reading .section-header { display: grid; }
+  .reading .section-header .button { order: 1; justify-self: start; }
+}
