@@ -21,6 +21,16 @@ Solo las cifras que ya están en pantalla, con su etiqueta y unidad, tal como la
 
 Si más adelante quieres que el asistente lea la secuencia, eso pasa a ser otra decisión con su propio consentimiento.
 
+## Revisión del 23 oct tras tu comentario
+
+Dijiste que se veía «muy IA», «muy vacío» y costoso de leer. Las tres cosas tenían causa concreta y están corregidas en las capturas nuevas, tomadas **dentro de la aplicación real en producción**, no en una maqueta aparte:
+
+- **Vacío**: la maqueta anterior tenía recuadros de relleno donde van la secuencia, el perfil y la estructura. La pantalla real está llena; el hueco lo ponía la maqueta. Aun así quedaba un vacío verdadero: una columna de texto de 62 caracteres dentro de una sección a todo lo ancho deja casi la mitad libre. Ahora ese lado lo ocupan **las cifras exactas que se enviaron**, en una lista a la derecha separada por un filete.
+- **Difícil de leer**: el texto llegaba en dos párrafos largos con muchas cifras seguidas. El modelo recibe ahora otra consigna: una frase de entrada sin cifras que dice qué se está mirando, y después tres o cuatro párrafos de dos o tres frases, con un máximo de dos cifras por frase y 180 palabras en total. Además el bloque usa medida de 62 caracteres e interlineado 1,75, en vez del interlineado de interfaz.
+- **Muy IA**: no lleva icono, insignia, color ni marca de «IA». La frase de procedencia usa el mismo `field-help` que las demás notas de alcance de la aplicación, y la lista de cifras al lado deja comprobar la lectura contra los datos, que es lo contrario de un texto que hay que creerse.
+
+Pendiente de resolver al implementar: en móvil «Volver a leer» queda suelto bajo el título porque `section-header` envuelve; va después del texto en pantallas estrechas.
+
 ## Las dos direcciones
 
 | | A · Lectura al pie de la ficha | B · Lectura al margen |
@@ -34,7 +44,7 @@ Si más adelante quieres que el asistente lea la secuencia, eso pasa a ser otra 
 
 Las dos usan primitivas que ya existen (`section-header`, `button-secondary`, `button-quiet`, `field-help`, `disclosure`, `property-list`), no añaden color y respetan tinta sobre papel, foco visible, 44 px y los dos temas.
 
-**Recomiendo A.** La dirección visual acordada es «ficha de lectura», y un texto explicativo de dos párrafos es exactamente eso; en la columna estrecha de B el mismo texto se corta en una tira de muchas líneas y obliga a plegar la mitad. B tiene sentido si prefieres verlo sin desplazarte, aunque sea más breve.
+**Recomiendo A**, que es la que elegiste y la que está refinada arriba. La dirección visual acordada es «ficha de lectura», y un texto explicativo de dos párrafos es exactamente eso; en la columna estrecha de B el mismo texto se corta en una tira de muchas líneas y obliga a plegar la mitad. B tiene sentido si prefieres verlo sin desplazarte, aunque sea más breve.
 
 También se pueden combinar: **A en Analizar** (hay sitio y el texto es largo) y **B en Laboratorio** (el inspector ya concentra las cifras). Dímelo si lo prefieres.
 
