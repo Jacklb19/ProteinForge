@@ -279,7 +279,12 @@ test('laboratory projects keep drafts, conflicts, atomic imports and independent
   await page.locator('input[type=file]').setInputFiles({name:'corrupt.json',mimeType:'application/json',buffer:Buffer.from('{}')});
   await expect(page.getByRole('alert')).toBeVisible();
   await page.getByRole('button',{name:spanish['lab.saveProject'],exact:true}).click();
-  await expect(page.getByRole('dialog').getByRole('button',{name:spanish['projects.update'],exact:true})).toBeVisible();
+  dialog=page.getByRole('dialog');
+  await expect(dialog.getByRole('button',{name:spanish['projects.update'],exact:true})).toBeVisible();
+  // Recovering names what the laboratory loses, not the analysis inputs.
+  await dialog.getByRole('button',{name:spanish['projects.reload'],exact:true}).click();
+  await expect(dialog.getByText(spanish['lab.reopenWarning'])).toBeVisible();
+  await expect(dialog.getByText(spanish['projects.replaceWarning'])).toHaveCount(0);
   await page.keyboard.press('Escape');
   await navigationLink(page,spanish['nav.projects']).click();
   await projectLibrary(page).getByRole('button',{name:spanish['projects.refresh'],exact:true}).click();
@@ -290,6 +295,13 @@ test('laboratory projects keep drafts, conflicts, atomic imports and independent
   await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
   await expect(page.getByRole('button',{name:spanish['lab.protect'],exact:true})).toBeVisible();
   await expect(page.locator('.lab-table tbody tr').first()).toContainText(spanish['lab.draftState']);
+  // Opening the laboratory over unsaved drafts warns about the laboratory, and cancelling keeps them.
+  await page.getByRole('button',{name:spanish['lab.protect'],exact:true}).click();
+  await navigationLink(page,spanish['nav.projects']).click();
+  await projectLibrary(page).getByRole('button',{name:'Abrir laboratorio de Laboratorio guardado'}).click();
+  await expect(page.getByRole('dialog').getByText(spanish['lab.reopenWarning'])).toBeVisible();
+  await page.getByRole('dialog').getByRole('button',{name:spanish['projects.cancel'],exact:true}).click();
+  await expect(page).toHaveURL(new RegExp(ROUTES.projects+'$'));
   await page.reload();
   await navigationLink(page,spanish['nav.projects']).click();
   await projectLibrary(page).getByRole('button',{name:'Abrir laboratorio de Laboratorio guardado'}).click();

@@ -54,7 +54,7 @@ function SaveDialog({ onClose }: { onClose: () => void }): React.JSX.Element {
               {/* Reopening the saved copy discards the current drafts, so it is confirmed apart. */}
               {reload && projects.laboratory && (
                 <div className="project-confirm">
-                  <p>{t('projects.replaceWarning')}</p>
+                  <p>{t('lab.reopenWarning')}</p>
                   <div className="actions">
                     <button type="button" className="button button-secondary" disabled={busy} onClick={() => { setReload(false); }}>{t('projects.cancel')}</button>
                     <button
