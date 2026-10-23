@@ -1,78 +1,77 @@
 # Relevo de desarrollo — ProteinForge
 
-Actualizado el **22 de octubre de 2026**, al cerrar un bloque local de correcciones, rendimiento y propuestas. Sustituye el relevo anterior, conservado en Git. Las instrucciones actuales del propietario y los AGENTS.md aplicables prevalecen; este contexto no amplía autorizaciones remotas.
+Actualizado el **23 de octubre de 2026**, tras cerrar localmente el asistente de interpretación. Las instrucciones actuales del propietario y los AGENTS.md prevalecen; este contexto no amplía autorizaciones remotas.
 
----
+## Lectura y reglas
 
-Continúa desde el estado existente. Implementa y verifica el siguiente bloque local autorizado; no rehagas lo terminado, no detengas todo por un pendiente externo y no inventes autorizaciones.
+Raíz sin Git; `frontend/` y `backend/` son repositorios independientes. Leer completo este archivo, los tres AGENTS.md y las últimas entradas de ambos `docs/PROGRESS.md`. Trabajar en `dev`, conservar cambios del propietario y no crear repositorios anidados ni mover `.git`.
 
-## Workspace y lectura
+Respuestas y documentación en español; código, comentarios y commits en inglés. Autor y committer exclusivamente **Jacklb19 <jose.burbanob@campusucc.edu.co>**, sin coautores, firmas ni menciones a agentes o herramientas en commits, merges o GitHub. Verificar antes de cada commit/publicación.
 
-Ruta: C:\Users\josel\Desktop\U\semestre7\ProgramacionAWeb\ProteinForge. Raíz sin Git; `frontend/` y `backend/` tienen repositorios independientes. Trabaja en `dev` de cada uno, conserva los cambios del propietario, no muevas `.git` ni añadas repositorios anidados.
+Interfaz bilingüe: todo texto visible en `src/i18n/es.ts` y `en.ts` en el mismo cambio. Opciones y límites en `config.ts`; medidas en tokens. La interfaz nueva necesita maqueta aprobada; **la del asistente ya está aprobada**, dirección A revisada.
 
-Lee completo este archivo, AGENTS.md de raíz y de ambos repositorios, las últimas entradas de **docs/PROGRESS.md de ambos** y revisa rama/status/log. Después, según lo que vayas a tocar: frontend `docs/plan-desarrollo.md`, `docs/laboratory.md`, `docs/laboratory-projects.md`, `docs/pantallas.md` y `docs/diseno-visual.md`; backend `docs/api.md`, `docs/uniprot.md`, `docs/project-persistence.md` y `docs/arquitectura.md`.
+Costo cero y sin tarjeta. No instalar ni ejecutar modelos en Windows. No versionar AGENTS.md, docs/PROGRESS.md, docs/propuestas.md, secretos, .env, temporales ni artifacts. Push, merge, despliegues, SQL remoto, servicios nuevos y gastos requieren autorización expresa actual. **Esta continuación no publica nada.**
 
-Algunos documentos conservan párrafos históricos «local», «sin publicar» o «migración pendiente». El progreso más reciente y este relevo corrigen esos estados; no reabras entregas completadas por leer una captura antigua.
+## Estado conocido
 
-## Reglas vigentes
+Producción según el relevo del propietario: frontend `main` **9fc20e8**, backend `main` **9d5528d**, CI y despliegues verdes. No se volvió a consultar GitHub/Vercel en este cierre. Las referencias origin son locales; no se hizo fetch.
 
-Responde en español; código, comentarios y commits en inglés. Autor y committer exclusivamente **Jacklb19 <jose.burbanob@campusucc.edu.co>**, sin coautores, firmas ni menciones a agentes o IA en commits, merges o GitHub. Commits pequeños y revisados; comprueba identidades y trailers antes de publicar.
+Backend `dev` tenía cinco commits locales: `58329a6` asistente, `569ce52` documentación y `049fd47`, `63d9dcd`, `9f3a044` correcciones. Esta continuación solo añade documentación backend; no modifica ni repite sus pruebas de código. La evidencia anterior es **70 pruebas en total, con 12 SQL omitidas sin base**.
 
-Interfaz bilingüe: español e inglés juntos en `src/i18n/es.ts` y `en.ts`. Conserva tokens, química de residuos, foco/teclado, 44 px y la matriz 360/1280 en ambos temas. A · Mesa de estructura, Proyectos y el formulario de guardado ya están aprobados. Una interfaz sustancialmente nueva necesita propuesta maquetada y elección del propietario.
+Frontend `dev` tenía tres commits de documentación (`856075d`, `fc7b6b8`, `220d352`) y la implementación sin confirmar. Se cerró en cuatro commits pequeños:
 
-Costo cero, sin tarjeta. No instales ni ejecutes Torch, ProteinMPNN, ESMFold u otros modelos en Windows; las inferencias comprobadas fueron en Colab T4. No versiones AGENTS.md, docs/PROGRESS.md, docs/propuestas.md, secretos, `.env`, temporales, artefactos ni modelos.
+- `7a9ce42`: cliente RPC, contrato generado y textos español/inglés.
+- `431d315`: sección de lectura e integración en Analizar/Laboratorio.
+- `bdc59b1`: pruebas de vigencia, recálculo y respuestas canceladas tardías.
+- `cb90ea9`: ocho E2E del asistente, incluido reemplazo del conjunto de laboratorio.
 
-## Estado publicado
+La documentación de cierre y NVIDIA se confirma aparte; consultar HEAD y progreso para sus hashes finales. Autoría exclusiva verificada. Sin cambios de código pendientes al cerrar.
 
-Publicación del 21 oct completada y verificada; **no hay nada nuevo publicado desde entonces**.
+## Asistente implementado, todavía sin publicar
 
-- Frontend: https://protein-forge.vercel.app — `main` cc8990d81b9d119d013de9d22b8e2614753078c8.
-- Backend: https://protein-back.vercel.app — `main` cc64b4e3093bb30779062f00ce8894e4805fca9c.
-- Migraciones aplicadas por el propietario, incluida `20261021000000_laboratory_projects.sql`. **No pedir repetirlas.**
+[Uso frontend](assistant.md), [decisión visual aprobada](assistant-ui-proposal.md), [contrato backend](../../backend/docs/assistant.md).
 
-Lo que está en producción: laboratorio en `/generate/lab`, colección en `/projects`, CRUD de proyectos por gRPC-Web con REST conservado, UniProt autenticado, cuentas con correo y Google. `DesignService v1alpha1` sigue siendo borrador sin ejecutor.
+Sección **Lectura de los resultados** al pie de Analizar y Laboratorio. Petición deliberada con sesión a `AssistantService/Interpret`; Groq `openai/gpt-oss-120b` escribe prosa breve. El propietario aceptó el envío del contexto. **El frontend solo envía cifras etiqueta/valor/unidad, nunca la secuencia.** Las lista junto al texto con modelo/proveedor/fecha.
 
-El 22 oct se comprobó con la cuenta del propietario que «Abrir comparación» recupera la alineación humana/bovina con sus parámetros (Global/BLOSUM80, 88/110, identidad 80 %, similitud 81,8 %, puntuación 733). Eso acredita lectura/apertura autenticada real, **no** CRUD completo del laboratorio, aislamiento de dos propietarios ni conflictos de dos pestañas.
+Cambiar cifras o idioma retira la lectura. No se puede leer mientras los descriptores se recalculan; abrir otro conjunto del laboratorio invalida la lectura aunque reutilice los IDs. Los borradores editados no envían cifras de la predicción anterior. Una respuesta cancelada tardía no sustituye a la nueva. No hay chat, historial, persistencia ni exportación de lecturas.
 
-## Terminado en el bloque local del 22 oct (sin publicar)
+Backend REST y RPC comparten dominio; 1–80 hechos, español/inglés, presupuesto por identidad y proceso (6/min por omisión). La comprobación numérica admite datos/redondeos, enteros hasta 20 y cotas del glosario 40/50/70/90/100. **No garantiza corrección semántica completa ni ausencia de alucinaciones.** No se envía el token del usuario a Groq.
 
-Catorce commits en frontend `dev` y seis en backend `dev`, todos con autoría exclusiva del propietario.
+`GROQ_API_KEY` existe en backend/.env según la comprobación anterior, sin mostrarla. No se ha comprobado su presencia en Vercel ni retención cero en la cuenta. La clave local no viaja con Git.
 
-- **Corregido**: tras recargar, «Abrir laboratorio» de un proyecto guardado se quedaba en Proyectos (3 de 4 veces) porque la carga del ejemplo integrado se tomaba por trabajo nuevo del usuario. `LabState.replaceable` distingue ahora lo que no pierde trabajo. 5 de 5 correctas después.
-- **Corregido**: si el archivo del cliente de Proyectos no se podía descargar, el proveedor quedaba bloqueado para toda la sesión sin avisar. Ahora informa, libera el bloqueo y reintenta.
-- **CI de navegador**: reproducido en contenedor Linux limpio con `CI=true`; con dos trabajadores fallaban alineamiento, biblioteca y perfil por falta de CPU. Ahora CI usa un trabajador y `run-e2e.mjs` precalienta el grafo de módulos. **Contenedor en verde: 87 correctos, 0 fallos.** No se debilitó ninguna aserción ni tiempo. La causa exacta de la ejecución remota 39721928591 sigue sin log.
-- **Rendimiento**: pantallas secundarias y cliente de Proyectos fuera de la primera carga; paquete de entrada de 743 kB a 492 kB (gzip 226 → 151).
-- **Nuevo estado**: si una pantalla no puede mostrarse, se dice en ambos idiomas y se ofrece recargar, en vez de quedar en blanco.
-- **Backend**: presupuesto de consultas a UniProt por identidad (`UNIPROT_REQUESTS_PER_MINUTE`, 20 por omisión), compartido entre REST y gRPC-Web, que responde 429 antes de llamar al proveedor y solo se gasta con consultas válidas. Contadores por proceso, no cuota global.
-- **Legibilidad**: laboratorio, generador, biblioteca y colección dejan de tener líneas JSX de hasta 1.600 caracteres; el laboratorio delega en `LabInspector` y `LabVariantsTable`, con el mismo marcado.
-- **Plurales**: siete textos tienen forma singular en ambos catálogos.
+## Verificación local del 23 oct
 
-## Decisiones que te esperan
+- Tipos, lint y build correctos. **357 unitarias / 66 archivos**, cobertura 84,50 / 75,14 / 81,91 / 87,67; mínimos intactos.
+- Primera batería afectada: 30 correctas y 2 omitidas por no indicar los ZIP. Batería final: **33/33 sin omisiones**, con los ZIP reales de campaña y restricciones, Chrome local y un trabajador. Archivos: assistant, laboratory, editor-design, projects y reports.
+- PWA correcta: 47 recursos, fuentes, Workers/WASM, laboratorio/cuaderno y exportaciones sin conexión. Permanecen avisos previos de Vite sobre cargador futuro y chunks grandes.
+- Cuatro capturas del asistente 360/1280, claro/oscuro, revisadas; AA automático en las E2E. Auth/RPC/textos simulados; no equivale a integración autenticada con Groq en producción.
+- `npx buf generate ../backend/proto` deja los clientes sin diferencias. El generador añade una línea final vacía al stub nuevo; no editar a mano el código generado.
+- El primer intento E2E y la primera PWA se bloquearon por localhost dentro del aislamiento; ambos completaron después con permisos de ejecución local. No se cambiaron flags de seguridad ni umbrales.
+- **5296 libre**, comprobado; no había Uvicorn que cerrar. Otros servidores ajenos se conservan.
 
-Cuatro propuestas escritas, ninguna implementada ni autorizada. Cada una termina en la decisión concreta que se pide:
+## Publicación: orden obligatorio tras autorización
 
-1. [Forma de novo en Colab](de-novo-proposal.md): monómero de 60–100 residuos, tres sesiones de dos horas, RFdiffusion + cuaderno actual, criterios RMSD < 2 Å, pLDDT > 80, pTM > 0,7 y reproducibilidad. Licencias: el README de RFdiffusion declara BSD para el código pero no para los pesos; el `LICENSE.md` de Foundry no se pudo leer el 22 oct.
-2. [Inferencia desde la aplicación](app-inference-proposal.md): ejecutor, contrato de `DesignService`, consentimiento y prueba exigida. Un túnel sobre Colab gratuito queda descartado por sus condiciones.
-3. [RF-18 y persistencia](prediction-storage-proposal.md): proveedor, dónde se guarda, retención y cuotas.
-4. [Asistente de interpretación](assistant-proposal.md): resumen determinista local frente a Groq.
+**No publicar el frontend todavía con su pin actual.** CI ejecuta `npx buf generate` desde el commit backend de `buf.gen.yaml`: **5b6c4505c77293e1f4798e0bd86932e13c11600f**, que no contiene el asistente.
 
-Mientras no haya acuerdo, el recorrido manual (laboratorio → cuaderno → Colab → importar ZIP validado) sigue siendo el camino comprobado.
+1. Obtener autorización de push de `dev` y merge/push de `main` de ambos repositorios. Auditar identidad, trailers, árboles y referencias remotas.
+2. Publicar backend primero, esperar CI y despliegue, comprobar REST/Connect/gRPC-Web/CORS. El propietario configura la clave de Groq en Vercel si falta; no pedir ni mostrar su valor.
+3. Fijar `frontend/buf.gen.yaml` al commit backend publicado con AssistantService. Ejecutar `npx buf generate`, revisar y confirmar el cambio.
+4. Publicar frontend después; verificar CI/despliegue y la lectura real con el alcance de sesión/datos autorizado.
 
-## Siguiente desarrollo
+No requiere SQL nuevo. La migración del laboratorio ya fue aplicada por el propietario; **no repetirla**.
 
-1. Audita brevemente el estado y completa un bloque local con requisitos definidos. No dediques otra conversación entera a planificar ni a rehacer Proyectos, laboratorio, correo o inglés.
-2. Corrige defectos **reproducidos** y verifica los recorridos afectados. No cambies contrato ni semántica de guardado por un fallo no reproducido.
-3. Siguen preparados los casos reales de [activación](laboratory-activation.md): crear, abrir, editar, renombrar, copiar y borrar, recarga, dos pestañas y dos propietarios. Crear o borrar datos reales requiere alcance específico y la sesión del propietario; avanza localmente si no está disponible.
-4. Publicar (push, merge, despliegue), SQL remoto, servicios nuevos o gastos necesitan autorización expresa del propietario para esta entrega.
+## Laboratorio y decisiones pendientes
 
-## Evidencia y reproducción
+[Activación real del 22 oct](laboratory-activation.md): guardado/apertura/edición/copia/conflicto/borrado probados en producción con proyectos de prueba ya eliminados. La segunda cuenta no ve proyectos de la primera; lectura directa por ID con esa sesión sigue sin autorización/prueba. No forzar escrituras ni repetir datos reales por iniciativa propia.
 
-Frontend: 348 unitarias en 64 archivos; cobertura ≈84 % statements / 74 % branches / 82 % functions / 88 % lines, mínimo 70 % intacto. Tipos, lint, build y `check:pwa` correctos. Chrome local: batería completa 87 correctos, 2 omitidos, 0 fallos, y repeticiones dirigidas. Contenedor Linux con `CI=true`: 87 correctos, 2 omitidos, 0 fallos. Auth y RPC simulados; no hay sesión real ni otros navegadores certificados.
+**NVIDIA:** leídos completos los API Trial Terms of Service de nueve páginas, versión 19 septiembre 2025, enlazados en RFdiffusion/ProteinMPNN. Secciones 1.2/1.4 limitan a evaluación interna y excluyen producción del servicio/resultados. Según FAQ oficial, servir usuarios reales es producción aunque la web no cobre. Además, la ficha de ESMFold marca el endpoint como Deprecated. [Fuentes, cláusulas y recomendación](app-inference-proposal.md). Recomendación pendiente del propietario: cualquier ensayo futuro solo interno suyo, con datos públicos; eso no autoriza aún integración, cuentas, claves ni llamadas. No prometer la cadena alojada como disponible. La licencia de los modelos es distinta de la del servicio.
 
-Backend: 61 pruebas (12 SQL omitidas sin base). Las 12 pruebas SQL reales con PostgreSQL 18 temporal siguen siendo válidas y no se repitieron porque este bloque no toca esquema, políticas ni acceso a datos.
+Siguen abiertas [forma de novo](de-novo-proposal.md), [inferencia desde la app](app-inference-proposal.md) y [persistencia de predicciones](prediction-storage-proposal.md). Colab sigue siendo manual; no alojar un servicio detrás de él. No hay ejecutor ni DesignService implementado. RTX 4060 8 GB: ESMFold alcanzó 7,91 GiB con 76 residuos en el ensayo anterior; no volver a instalar modelos en Windows.
 
-Comandos: frontend `npm run typecheck`, `npm run lint`, `npm run test:coverage`, `npm run build`, `npm run check:pwa`; E2E `E2E_PORT=5190 E2E_WORKERS=1 node scripts/run-e2e.mjs --reporter=line`. Backend `.venv/Scripts/python.exe -m unittest discover -s tests -v`; SQL real con `scripts/test-postgres.ps1`. Para reproducir el CI de navegador: contenedor `node:24` con `CI=true`, clon de `dev`, `npm ci`, `npx playwright install --with-deps chromium` y `npm run test:e2e`.
+## Entorno
 
-Windows: Vitest necesita `TEMP`/`TMP` bajo `frontend/tmp/vitest`; Chrome y el servidor de vista previa necesitan ejecutarse fuera del aislamiento para alcanzar localhost, con permiso y sin cambiar flags de seguridad.
+Frontend preview habitual 5187; 5173 pertenece a otro proyecto. E2E 5190, un trabajador. API local habitual 5296 (libre al cierre); 8000 es otra herramienta.
 
-Al cerrar, distingue siempre implementado, probado localmente, comprobado en producción y pendiente de decisión. No crees otro repositorio ni otra conversación por cuenta propia.
+Frontend: `npm run typecheck`, `npm run lint`, `npm run test:coverage`, `npm run build`, `npm run check:pwa`. Vitest Windows con TEMP/TMP bajo frontend/tmp/vitest. No editar src mientras corren E2E. Backend: `.venv/Scripts/python.exe -m unittest discover -s tests -v`; SQL local mediante scripts/test-postgres.ps1. gh no instalado; no extraer credenciales para acceder a logs.
+
+Al cerrar distinguir implementado, probado localmente, comprobado en producción y pendiente de decisión. No crear otro chat ni repositorio por cuenta propia.

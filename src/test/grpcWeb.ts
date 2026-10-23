@@ -11,7 +11,7 @@ const TRAILER_FLAG = 0x80;
 const HEADER_BYTES = 5;
 
 /** Numeric gRPC codes used by the API (same values as Code in @connectrpc/connect). */
-export const GRPC_CODES = { ok: 0, invalidArgument: 3, notFound: 5, permissionDenied: 7, aborted: 10, unimplemented: 12, failedPrecondition: 9, unavailable: 14, unauthenticated: 16 } as const;
+export const GRPC_CODES = { ok: 0, invalidArgument: 3, notFound: 5, permissionDenied: 7, aborted: 10, unimplemented: 12, failedPrecondition: 9, unavailable: 14, unauthenticated: 16, resourceExhausted: 8 } as const;
 
 function frame(flag: number, payload: Uint8Array): Uint8Array {
   const output = new Uint8Array(HEADER_BYTES + payload.length);

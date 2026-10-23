@@ -106,6 +106,9 @@
   --font-weight-strong: 600;
   --line-height-base: 1.5;
   --line-height-heading: 1.2;
+  /* Reading prose: a longer measure and more leading than interface text. */
+  --line-height-reading: 1.75;
+  --width-reading-measure: 62ch;
   --line-height-display: 1.06;
   --line-height-tight: 1;
   --letter-spacing-display: -0.015em;

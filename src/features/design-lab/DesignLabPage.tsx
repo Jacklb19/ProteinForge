@@ -11,6 +11,8 @@ import { LabViewer } from './LabViewer';
 import { LabSequence } from './LabSequence';
 import { LabInspector } from './LabInspector';
 import { LabVariantsTable } from './LabVariantsTable';
+import { ReadingSection } from '../assistant/ReadingSection';
+import { laboratoryFacts } from '../assistant/facts';
 import { LabProjectControls } from './LabProjectControls';
 
 function ReplaceDialog({ onClose, onConfirm, returnFocus }: {
@@ -164,6 +166,13 @@ export function DesignLabPage(): React.JSX.Element {
             <p className="field-help">{t('lab.provenanceScope')}</p>
           </details>
         </section>
+
+        {/* Reads the active variant; an edited draft is read as a draft, without its past figures. */}
+        <ReadingSection
+          subject="laboratory"
+          revision={`${String(lab.revision)}:${variant.id}:${draft.sequence}:${draft.protectedPositions.join(',')}`}
+          build={() => laboratoryFacts({ t, formatNumber }, variant, draft, dataset.reference.id)}
+        />
       </>}
 
       {!dataset && <button type="button" className="button button-secondary" disabled={busy} onClick={lab.openExample}>{t('lab.openExample')}</button>}

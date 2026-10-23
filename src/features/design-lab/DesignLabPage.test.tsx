@@ -1,6 +1,8 @@
 import {fireEvent,render,screen} from '@testing-library/react';
 import {beforeAll,beforeEach,describe,expect,it,vi} from 'vitest';
 import {MemoryRouter} from 'react-router-dom';
+import {AuthContext} from '../auth/authContext';
+import {signedInFixture} from '../../test/authFixture';
 import {LocaleProvider} from '../../i18n';
 import {spanish as es} from '../../i18n/es';
 import {translate} from '../../i18n/translate';
@@ -21,7 +23,7 @@ let example:LabImportResult;
 beforeAll(async()=>{example=await loadExample();});
 beforeEach(()=>{vi.mocked(downloadLabFile).mockReset();});
 function value():LabState{return {dataset:example.dataset,drafts:initialDrafts(example.dataset,null),activeId:required(example.dataset.variants[0]).id,selected:0,status:'ready',error:null,progress:null,dirty:false,exported:false,replaceable:true,openExample:vi.fn(),openFile:vi.fn(),cancel:vi.fn(),selectVariant:vi.fn(),selectResidue:vi.fn(),substitute:vi.fn(),protect:vi.fn(),undo:vi.fn(),restore:vi.fn(),save:vi.fn(),revision:0,document:vi.fn(),openDocument:vi.fn(),markSaved:vi.fn()};}
-function page(state:LabState,locale:'es'|'en'='es') {return render(<MemoryRouter><LocaleProvider locale={locale}><LabContext.Provider value={state}><DesignLabPage/></LabContext.Provider></LocaleProvider></MemoryRouter>);}
+function page(state:LabState,locale:'es'|'en'='es') {return render(<MemoryRouter><LocaleProvider locale={locale}><AuthContext.Provider value={signedInFixture}><LabContext.Provider value={state}><DesignLabPage/></LabContext.Provider></AuthContext.Provider></LocaleProvider></MemoryRouter>);}
 describe('approved structure workbench',()=>{
   it('distinguishes historical executed constraints from protection prepared for the next redesign',()=>{
     const state=value(),dataset=required(state.dataset);

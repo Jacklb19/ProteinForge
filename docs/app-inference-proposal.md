@@ -4,6 +4,21 @@ Preparada el **22 oct 2026**. Requiere decisión del propietario antes de implem
 
 Hoy el recorrido es manual y comprobado: el laboratorio exporta un borrador y el cuaderno, el propietario ejecuta en Colab y vuelve a importar el ZIP ([recorrido condicionado](design-lab-constraints.md), [laboratorio](laboratory.md)). La aplicación **no** solicita inferencia. `proteinforge.design.v1alpha1.DesignService` existe solo como borrador en `backend/proto/proteinforge/design/v1alpha1/design_service.proto`, sin implementación ni ejecutor.
 
+## API de NVIDIA: términos completos revisados el 23 oct 2026
+
+Leídas las nueve páginas de [NVIDIA API Trial Terms of Service](https://assets.ngc.nvidia.com/products/api-catalog/legal/NVIDIA%20API%20Trial%20Terms%20of%20Service.pdf), versión **19 septiembre 2025**, enlazadas desde [RFdiffusion](https://build.nvidia.com/ipd/rfdiffusion) y [ProteinMPNN](https://build.nvidia.com/ipd/proteinmpnn):
+
+- **1.2 y 1.4:** prueba limitada a evaluación interna; excluye producción del servicio y de sus resultados. La producción requiere suscripción separada de NVIDIA o de un proveedor; no hay excepción académica o por ausencia de ingresos.
+- **2.2–2.4, 2.6, 3.3 y 4.3:** se necesitan derechos sobre las entradas, hay restricciones para datos confidenciales/personales y existen excepciones de conservación y usos para mejora/seguridad. No prometer ausencia de registro.
+- **4.2 y 9:** restricciones para poner el servicio o resultados a disposición de terceros y licencias adicionales por modelo. La licencia abierta del modelo no sustituye los términos del servicio alojado.
+- **8, 11–15:** disponibilidad revocable, sin garantías, responsabilidad limitada y arbitraje; no es una promesa de infraestructura gratuita permanente.
+
+El [FAQ oficial](https://docs.api.nvidia.com/nim/docs/product) incluye servir a usuarios finales reales en la definición de producción. **Interpretación para ProteinForge:** abrir inferencia al público entra en ese supuesto aunque la web sea académica y no cobre. La prueba gratuita no autoriza esa integración.
+
+Además, la ficha actual de [ESMFold](https://build.nvidia.com/meta/esmfold) marca su endpoint como **Deprecated** y pide migrar a otro modelo. No se ha probado su disponibilidad mediante inferencia; la cadena RFdiffusion→ProteinMPNN→ESMFold alojada no puede darse por operativa.
+
+**Recomendación pendiente del propietario:** si se explora NVIDIA, hacerlo como ensayo interno solo para él, con datos públicos y sin servir ni publicar sus resultados como función de la web. Restringir la identidad es necesario para ese alcance, pero no convierte cualquier uso personal en evaluación: sigue sujeto a los términos y a las condiciones específicas del modelo. Antes de implementar, verificar un predictor disponible y acordar contrato, consentimiento y acceso. Para inferencia pública, obtener condiciones de producción compatibles o mantener el recorrido manual actual. No se creó cuenta, aceptó contrato, generó clave ni ejecutó solicitud de modelo.
+
 ## Lo que se decide
 
 1. Si se abre inferencia desde la web y para quién: solo el propietario, o cualquier sesión con cuenta.

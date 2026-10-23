@@ -17,6 +17,8 @@ import { StructureStage } from '../structure/StructureStage';
 import { useTranslation } from '../../i18n';
 import { ROUTES } from '../../shared/navigation';
 import { DESCRIPTOR_FIELDS } from '../descriptors/config';
+import { ReadingSection } from '../assistant/ReadingSection';
+import { analysisFacts } from '../assistant/facts';
 import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
 import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
@@ -104,6 +106,7 @@ export function EditorPage(): React.JSX.Element {
   const count = residueCount > 0 ? t(residueCount === 1 ? 'editor.residueCountOne' : 'editor.residueCount', { count: formatNumber(residueCount) }) : '';
   const meta = [text === DEFAULT_EXAMPLE.text ? t('editor.exampleTag') : '', source?.accession ?? reference?.accession, annotations?.organism ?? reference?.organism, count, annotations ? t('editor.fullPrecursor') : '']
     .filter(Boolean).join(' · ');
+  const descriptorResult = descriptors.result;
   const sequencePanelOpen = panel === 'sequence';
   const toggle = (next: Exclude<Panel, null>): void => { setPanel((current) => (current === next ? null : next)); };
 
@@ -201,6 +204,15 @@ export function EditorPage(): React.JSX.Element {
             )}
           </aside>
         </div>
+      )}
+
+      {/* Closes the sheet: the reading of everything above, asked for on purpose. */}
+      {hasInput && descriptorResult && descriptors.status === 'current' && invalidPositions.length === 0 && (
+        <ReadingSection
+          subject="analysis"
+          revision={`${validation.sequence}:${String(profileWindow)}`}
+          build={() => analysisFacts({ t, formatNumber }, validation.sequence, descriptorResult, profileWindow)}
+        />
       )}
     </main>
   );

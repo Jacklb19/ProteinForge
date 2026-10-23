@@ -1,5 +1,7 @@
 # Definición vigente de ProteinForge
 
+Estado del 23 oct 2026: laboratorio y guardado en Proyectos publicados y [recorrido real registrado](laboratory-activation.md). RF-11 implementado localmente con Groq: [lectura de resultados](assistant.md) en Analizar/Laboratorio, sin enviar secuencias; publicación pendiente. Siguen abiertas forma de novo, inferencia estructural desde la app y persistencia de predicciones. Las capturas de estado fechadas inferiores conservan la evolución anterior.
+
 Actualización de implementación del 21 oct 2026: Proyectos, migraciones, publicación y confirmación de correo ya resueltos según las verificaciones posteriores; inglés implementado. El [laboratorio A](laboratory.md) añade tres resultados reales de Colab, importación, selección secuencia/3D, edición/restricciones y guardar/reabrir archivo local. El [recorrido condicionado manual](design-lab-constraints.md) también está ejecutado y comprobado. El [guardado completo en Proyectos](laboratory-projects.md) está implementado y comprobado localmente. Quedan su activación remota, predicción nueva desde la app y forma de novo. La tabla del 12 oct de abajo conserva la captura anterior; el [plan actualizado](plan-desarrollo.md) determina lo restante.
 
 Actualizada el 12 de octubre de 2026. Sustituye la [definición original](archive/definicion-original.md), conservada por trazabilidad. [Decisiones](decisiones.md), [pantallas](pantallas.md) y [plan](plan-desarrollo.md) concretan implementación y límites. Evidencia local no equivale a despliegue ni garantía externa.
