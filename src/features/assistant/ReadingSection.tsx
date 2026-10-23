@@ -57,7 +57,7 @@ export function ReadingSection({ subject, build, revision, api }: Props): React.
           {!signedIn ? (
             <p className="field-help">
               {t('assistant.signInHelp')}{' '}
-              <Link state={{ from: subject === 'analysis' ? ROUTES.analyze : ROUTES.laboratory }} to={ROUTES.signIn}>{t('shell.signIn')}</Link>
+              <Link className="button button-quiet" state={{ from: subject === 'analysis' ? ROUTES.analyze : ROUTES.laboratory }} to={ROUTES.signIn}>{t('shell.signIn')}</Link>
             </p>
           ) : <>
             <p className="status-message" data-state={error ? 'error' : undefined} role="status">
