@@ -1,6 +1,6 @@
 # Interfaz del asistente · propuesta
 
-Preparada el **23 oct 2026**. Requiere tu elección antes de programar nada de interfaz. El backend ya está implementado y probado en local ([contrato](../../backend/docs/assistant.md)); esto decide solo cómo se ve y dónde vive.
+Preparada el **23 oct 2026**. El propietario aprobó la dirección A revisada y su implementación en Analizar y Laboratorio. Ya está implementada localmente; [uso, límites y publicación](assistant.md). El resto conserva la propuesta y su revisión como registro de la decisión. Backend implementado y probado en local ([contrato](../../backend/docs/assistant.md)).
 
 Maquetas y capturas en `artifacts/asistente-2026-10-23/` (fuera de Git): `a.html`, `b.html` y ocho PNG a 360 y 1280 px en tema claro y oscuro. Están hechas con `design-tokens.css`, `fonts.css` e `index.css` del propio proyecto, de modo que tipografías, colores y medidas son las reales. Las cifras son las que la aplicación mostró en producción el 22 oct y **el texto lo escribió Groq de verdad**, no está inventado para la maqueta.
 
@@ -29,7 +29,7 @@ Dijiste que se veía «muy IA», «muy vacío» y costoso de leer. Las tres cosa
 - **Difícil de leer**: el texto llegaba en dos párrafos largos con muchas cifras seguidas. El modelo recibe ahora otra consigna: una frase de entrada sin cifras que dice qué se está mirando, y después tres o cuatro párrafos de dos o tres frases, con un máximo de dos cifras por frase y 180 palabras en total. Además el bloque usa medida de 62 caracteres e interlineado 1,75, en vez del interlineado de interfaz.
 - **Muy IA**: no lleva icono, insignia, color ni marca de «IA». La frase de procedencia usa el mismo `field-help` que las demás notas de alcance de la aplicación, y la lista de cifras al lado deja comprobar la lectura contra los datos, que es lo contrario de un texto que hay que creerse.
 
-Pendiente de resolver al implementar: en móvil «Volver a leer» queda suelto bajo el título porque `section-header` envuelve; va después del texto en pantallas estrechas.
+Resuelto al implementar: la cabecera usa una rejilla en pantallas estrechas para mantener «Volver a leer» junto al título sin un salto lateral suelto.
 
 ## Las dos direcciones
 
@@ -63,7 +63,7 @@ También se pueden combinar: **A en Analizar** (hay sitio y el texto es largo) y
 
 ## Textos y accesibilidad
 
-Todo el texto visible va a `src/i18n/es.ts` y `src/i18n/en.ts` en el mismo cambio. Las cifras se envían formateadas según el idioma activo, como ya las formatea la interfaz: en español `8.445,71` y en inglés `8,445.71`. El bloque es una `section` con su encabezado; la llegada del texto se anuncia con `role="status"`, y el foco no salta solo.
+Todo el texto visible va a `src/i18n/es.ts` y `src/i18n/en.ts` en el mismo cambio. Las cifras se envían formateadas según el idioma activo, como ya las formatea la interfaz: en español `8.445,71` y en inglés `8,445.71`. El bloque es una `section` con su encabezado; `role="status"` anuncia el estado de la solicitud y el foco no salta solo.
 
 ## Lo que no incluye
 
@@ -76,4 +76,4 @@ Chat ni preguntas libres, memoria entre pantallas, envío de la secuencia, lectu
 - **A + B**: A en Analizar y B en Laboratorio.
 - **Ninguna**: dejar la interfaz como está; el backend queda implementado y sin usar.
 
-Cuando elijas, hago el plan por pantallas, lo implemento tal cual se aprobó y entrego capturas reales a 360 y 1280 en ambos temas.
+Decisión cerrada: **A en las dos pantallas**, con la revisión de prosa y cifras enviadas. Implementación y capturas reales a 360 y 1280 en ambos temas completadas localmente; publicación pendiente de autorización.

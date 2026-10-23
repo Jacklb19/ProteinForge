@@ -2,6 +2,8 @@
 
 Actualizado el 13 de octubre de 2026. Dirección «ficha de lectura», elegida por el usuario entre dos propuestas maquetadas. Sustituye a «la forja» y a «laboratorio cercano». Se conservan el nombre, el logo y las tres tipografías; todo lo demás cambió.
 
+Ampliación aprobada del 23 oct: [Lectura de los resultados](assistant.md) al pie de Analizar y Laboratorio, sin icono ni color adicional. Prosa de 62 caracteres e interlineado 1,75 mediante tokens; cifras enviadas a la derecha en escritorio y debajo en móvil, separadas por un filete. Cabecera en rejilla en pantallas estrechas, foco conservado y estados bilingües. Implementada localmente; no cambia la dirección visual vigente.
+
 ## Principios
 
 1. **La pantalla muestra proteínas, no habla de sí misma.** Cada pantalla de trabajo abre con un ejemplo real que se puede reemplazar: la insulina humana (P01308) en Analizar e Inicio, humana frente a bovina (P01317) en Alinear, una búsqueda ya resuelta en Diseñar y la estructura 1TRZ en Biblioteca. No hay cajas vacías con explicaciones.

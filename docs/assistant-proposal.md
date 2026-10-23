@@ -1,5 +1,7 @@
 # Asistente de interpretación (RF-11) · propuesta
 
+**Decisión del 23 oct 2026:** el propietario eligió B, Groq con `openai/gpt-oss-120b`, y aceptó expresamente el envío del contexto. Backend e interfaz A revisada implementados localmente; [resultado y límites actuales](assistant.md). El cliente solo envía cifras, sin secuencia; cuota por identidad, sin caché ni alternativa determinista. La configuración de retención cero en la cuenta no está verificada y no se anuncia como garantía. Lo que sigue conserva las alternativas de la propuesta original; la decisión ya no está abierta. Publicación pendiente de autorización.
+
 Preparada el **22 oct 2026**. Requiere decisión del propietario antes de implementar. No se habilitó proveedor, no se creó cuenta, no se configuró clave y no se envió ningún dato. Concreta RF-11 de la [definición vigente](definicion-proyecto.md), que prevé un asistente con Groq y `openai/gpt-oss-120b` pero deja sin verificar proveedor, límites, consentimiento y retención.
 
 El asistente **interpreta resultados ya calculados**. No genera secuencias, no sustituye al generador, no predice estructura y no decide ciencia: eso lo hacen los módulos existentes ([candidatos](candidates.md), [laboratorio](laboratory.md), [informes](reports.md)).
