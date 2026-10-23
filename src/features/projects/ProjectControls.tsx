@@ -7,9 +7,15 @@ import type { DescriptorState } from '../descriptors/useDescriptors';
 import { useProjects } from './projectContext';
 import { MAX_PROJECT_NAME_LENGTH, PROJECT_ERROR_KEYS } from './config';
 
-export function ProjectFeedback(): React.JSX.Element {
+/**
+ * `fresh` shows only successes of actions taken after it appeared, so a dialog never presents an earlier
+ * outcome as its own. Errors stay: they describe what is still unresolved, such as a conflict.
+ */
+export function ProjectFeedback({ fresh = false }: { fresh?: boolean }): React.JSX.Element {
   const projects = useProjects();
   const { t } = useTranslation();
+  const [shown] = useState(projects.attempt);
+  const recent = !fresh || projects.attempt !== shown;
   return (
     <div className="project-feedback" aria-live="polite" role="status">
       {projects.busy && <p className="status-message">{t('projects.busy')}</p>}
@@ -20,7 +26,7 @@ export function ProjectFeedback(): React.JSX.Element {
           {projects.error.requestId && <span className="field-help"> {t('projects.reference', { id: projects.error.requestId })}</span>}
         </p>
       )}
-      {!projects.busy && projects.notice && <p className="status-message" data-state="success">{t(`projects.${projects.notice}`)}</p>}
+      {!projects.busy && recent && projects.notice && <p className="status-message" data-state="success">{t(`projects.${projects.notice}`)}</p>}
     </div>
   );
 }

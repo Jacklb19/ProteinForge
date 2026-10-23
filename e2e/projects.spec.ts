@@ -281,6 +281,8 @@ test('laboratory projects keep drafts, conflicts, atomic imports and independent
   await page.getByRole('button',{name:spanish['lab.saveProject'],exact:true}).click();
   dialog=page.getByRole('dialog');
   await expect(dialog.getByRole('button',{name:spanish['projects.update'],exact:true})).toBeVisible();
+  // The copy saved before this dialog opened is not this dialog's outcome.
+  await expect(dialog.locator('.project-feedback')).not.toContainText(spanish['projects.saved']);
   // Recovering names what the laboratory loses, not the analysis inputs.
   await dialog.getByRole('button',{name:spanish['projects.reload'],exact:true}).click();
   await expect(dialog.getByText(spanish['lab.reopenWarning'])).toBeVisible();

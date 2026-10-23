@@ -44,7 +44,7 @@ function SaveDialog({ onClose }: { onClose: () => void }): React.JSX.Element {
                 <label htmlFor="lab-project-name">{t('projects.name')}</label>
                 <input autoFocus className="text-input" id="lab-project-name" value={name} onChange={event => { setName(event.target.value); }} required maxLength={MAX_PROJECT_NAME_LENGTH} disabled={busy} />
               </div>
-              <ProjectFeedback />
+              <ProjectFeedback fresh />
 
               {projects.laboratory && <>
                 <p className="field-help">{t('lab.projectBound', { name: projects.laboratory.name })}</p>

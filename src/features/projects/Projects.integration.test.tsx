@@ -90,6 +90,8 @@ it('confirms replacement, rename and delete, preserving the local draft after de
   await screen.findByRole('heading', { name: 'Renamed' });
   await user.click(screen.getByLabelText(spanish['projects.actionsNamed'].replace('{{name}}', 'Renamed')));
   await user.click(screen.getByRole('button', { name: spanish['projects.deleteNamed'].replace('{{name}}', 'Renamed') }));
+  // The rename already succeeded; a new confirmation must not present that outcome as its own.
+  expect(library().querySelector('.project-feedback')).not.toHaveTextContent(spanish['projects.saved']);
   await user.click(screen.getByRole('button', { name: spanish['projects.cancel'] })); expect(remove).toHaveBeenCalledTimes(0);
   await user.click(screen.getByLabelText(spanish['projects.actionsNamed'].replace('{{name}}', 'Renamed')));
   await user.click(screen.getByRole('button', { name: spanish['projects.deleteNamed'].replace('{{name}}', 'Renamed') }));

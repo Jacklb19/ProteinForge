@@ -45,7 +45,7 @@ export function ProjectDialog({ intent, name, setName, onClose, onSubmit }: Prop
           </div>
         ) : <p>{t(intent.action === 'delete' ? 'projects.deleteWarning' : intent.destination === 'laboratory' ? 'lab.reopenWarning' : 'projects.replaceWarning')}</p>}
 
-        <ProjectFeedback />
+        <ProjectFeedback fresh />
 
         <div className="actions">
           {/* Cancel takes the focus when nothing is typed, so a deliberate confirmation needs a move. */}

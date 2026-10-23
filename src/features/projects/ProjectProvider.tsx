@@ -20,8 +20,8 @@ import { LabContext } from '../design-lab/context';
 import { draftFingerprint } from '../design-lab/state';
 import { sha256 } from '../design-lab/zip';
 
-interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null }
-const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, listing: DEFAULT_PROJECT_QUERY, busy: false, error: null, notice: null };
+interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null; attempt: number }
+const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, listing: DEFAULT_PROJECT_QUERY, busy: false, error: null, notice: null, attempt: 0 };
 
 function remember(owner: string, id: string | null): void {
   try {
@@ -150,14 +150,14 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     try { service = client ?? await serviceClient(); }
     catch (error) {
       locked.current = false;
-      setState((value) => ({ ...value, owner: user, error: error instanceof ApiError ? error : new ApiError('unknown') }));
+      setState((value) => ({ ...value, owner: user, error: error instanceof ApiError ? error : new ApiError('unknown'), attempt: value.attempt + 1 }));
       return false;
     }
     if (!service) { locked.current = false; return false; }
     const epoch = ++generation.current;
     const operation = new AbortController();
     controller.current?.abort(); controller.current = operation;
-    setState((value) => ({ ...value, owner: user, busy: true, error: null, notice: null }));
+    setState((value) => ({ ...value, owner: user, busy: true, error: null, notice: null, attempt: value.attempt + 1 }));
     try {
       await task(service, operation.signal);
       return !operation.signal.aborted && generation.current === epoch;
@@ -182,7 +182,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const value = {
     laboratory,
     enabled, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
-    busy: current.busy, error: current.error, notice: current.notice, dirty, listing: current.listing,
+    busy: current.busy, error: current.error, notice: current.notice, attempt: current.attempt, dirty, listing: current.listing,
     refresh(more = false, query: ProjectQuery = current.listing) { return run(async (service, signal) => {
       const selected = more ? current.listing : { ...query, query: query.query.trim() };
       if (!more) setState(value => ({ ...value, items: [], nextPageToken: null, listing: selected }));
