@@ -151,6 +151,32 @@ test('the phone menu is a dialog that closes four ways and hands focus back', as
   await expect(page.locator('#app-content')).toBeFocused();
 });
 
+test('the phone menu contains keyboard focus and keeps the selected preference focused', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 900 });
+  await page.goto(ROUTES.analyze);
+  const menu = await openSiteMenu(page);
+  const first = menu.getByRole('link', { name: spanish['app.name'], exact: true });
+  const last = menu.getByRole('link', { name: spanish['shell.signIn'], exact: true });
+  await last.focus();
+  await page.keyboard.press('Tab');
+  await expect(first).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(last).toBeFocused();
+
+  const dark = menu.getByRole('radio', { name: spanish['settings.dark'], exact: true });
+  await dark.focus();
+  await page.keyboard.press('Space');
+  await expect(dark).toBeChecked();
+  await expect(dark).toBeFocused();
+  const englishOption = menu.getByRole('radio', { name: spanish['settings.english'], exact: true });
+  await englishOption.focus();
+  await page.keyboard.press('Space');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('#site-menu').getByRole('radio', { name: english['settings.english'], exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: english['shell.openMenu'] })).toBeFocused();
+});
+
 test('the bar veils after scrolling and the footer keeps only the legal links', async ({ page }) => {
   await page.goto(ROUTES.analyze);
   const bar = page.locator('header.site-bar');

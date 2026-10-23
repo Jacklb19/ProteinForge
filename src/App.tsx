@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { EditorPage } from './features/editor/EditorPage';
 import { SequenceDraftProvider } from './features/editor/SequenceDraftProvider';
@@ -88,10 +88,25 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
   const { status } = useAuth();
   const { theme, setTheme, locale, setLocale } = usePreferences();
   const close = useRef<HTMLButtonElement>(null);
+  const sheet = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     close.current?.focus();
-    const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') onClose(); };
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') { event.preventDefault(); onClose(); return; }
+      if (event.key !== 'Tab') return;
+      const controls = sheet.current?.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]');
+      const focusable = [...(controls ?? [])].filter(element => element.tabIndex >= 0
+        && !element.matches(':disabled') && element.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      const inside = sheet.current?.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || !inside)) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !inside)) {
+        event.preventDefault(); first?.focus();
+      }
+    };
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('keydown', onKey); };
   }, [onClose]);
@@ -99,7 +114,7 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
   return (
     <>
       <button className="menu-scrim" type="button" tabIndex={-1} aria-label={t('shell.closeMenu')} onClick={onClose} />
-      <div className="menu-sheet" id={MENU_ID} role="dialog" aria-modal="true" aria-label={t('shell.menu')}>
+      <div ref={sheet} className="menu-sheet" id={MENU_ID} role="dialog" aria-modal="true" aria-label={t('shell.menu')}>
         <div className="menu-sheet-head">
           <Link to={ROUTES.home} className="brand" onClick={onClose}><BrandMark /><span>{t('app.name')}</span></Link>
           <button ref={close} className="button button-icon" type="button" aria-label={t('shell.closeMenu')} onClick={onClose}><Icon name="close" /></button>
@@ -141,7 +156,7 @@ function SiteBar(): React.JSX.Element {
     return () => { window.removeEventListener('scroll', update); };
   }, []);
 
-  const closeMenu = (): void => { setMenuOpen(false); toggle.current?.focus(); };
+  const closeMenu = useCallback((): void => { setMenuOpen(false); toggle.current?.focus(); }, []);
   const signedIn = status === 'signed-in' && session !== null;
 
   return (
