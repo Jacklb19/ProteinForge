@@ -44,7 +44,7 @@ function SaveDialog({ onClose }: { onClose: () => void }): React.JSX.Element {
                 <label htmlFor="lab-project-name">{t('projects.name')}</label>
                 <input autoFocus className="text-input" id="lab-project-name" value={name} onChange={event => { setName(event.target.value); }} required maxLength={MAX_PROJECT_NAME_LENGTH} disabled={busy} />
               </div>
-              <ProjectFeedback />
+              <ProjectFeedback fresh />
 
               {projects.laboratory && <>
                 <p className="field-help">{t('lab.projectBound', { name: projects.laboratory.name })}</p>
@@ -54,7 +54,7 @@ function SaveDialog({ onClose }: { onClose: () => void }): React.JSX.Element {
               {/* Reopening the saved copy discards the current drafts, so it is confirmed apart. */}
               {reload && projects.laboratory && (
                 <div className="project-confirm">
-                  <p>{t('projects.replaceWarning')}</p>
+                  <p>{t('lab.reopenWarning')}</p>
                   <div className="actions">
                     <button type="button" className="button button-secondary" disabled={busy} onClick={() => { setReload(false); }}>{t('projects.cancel')}</button>
                     <button

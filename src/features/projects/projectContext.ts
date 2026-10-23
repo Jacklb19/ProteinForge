@@ -15,6 +15,8 @@ export interface ProjectContextValue {
   busy: boolean;
   error: ApiError | null;
   notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null;
+  /** Counts the actions started, so feedback can tell an earlier success from a new one. */
+  attempt: number;
   listing: ProjectQuery;
   refresh(more?: boolean, query?: ProjectQuery): Promise<boolean>;
   open(id: string, destination?: 'laboratory'): Promise<Project | null>;

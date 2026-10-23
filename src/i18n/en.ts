@@ -701,6 +701,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'lab.saveScope': 'The file keeps results, drafts and protected positions on your device; you can reopen it without an account. Save to Project keeps a copy in your account.',
   'lab.unsaved': 'Some changes have not been saved to a file or Project.',
   'lab.dialogTitle': 'Open another result',
+  'lab.reopenWarning': 'Opening the saved version will replace the variants, drafts and protected positions of this laboratory. Save a copy first if you want to keep your changes.',
   'lab.replaceWarning': 'Some changes have not been downloaded. Save the laboratory file before replacing this work if you want to keep them.',
   'lab.confirmOpen': 'Replace work',
   'lab.keepCurrent': 'Keep current work',

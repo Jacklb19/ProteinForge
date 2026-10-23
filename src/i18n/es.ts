@@ -699,6 +699,7 @@ export const spanish = {
   'lab.saveScope': 'El archivo conserva resultados, borradores y posiciones protegidas en tu equipo; puedes reabrirlo sin cuenta. Guardar en Proyecto conserva una copia en tu cuenta.',
   'lab.unsaved': 'Hay cambios sin guardar en un archivo o Proyecto.',
   'lab.dialogTitle': 'Abrir otro resultado',
+  'lab.reopenWarning': 'Abrir la versión guardada reemplazará las variantes, los borradores y las posiciones protegidas de este laboratorio. Guarda una copia primero si quieres conservar cambios.',
   'lab.replaceWarning': 'Hay cambios sin descargar. Guarda el archivo del laboratorio antes de reemplazar este trabajo si quieres conservarlos.',
   'lab.confirmOpen': 'Reemplazar trabajo',
   'lab.keepCurrent': 'Conservar trabajo actual',

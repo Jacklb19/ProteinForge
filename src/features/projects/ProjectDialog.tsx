@@ -43,9 +43,9 @@ export function ProjectDialog({ intent, name, setName, onClose, onSubmit }: Prop
               maxLength={MAX_PROJECT_NAME_LENGTH} required disabled={projects.busy}
             />
           </div>
-        ) : <p>{t(intent.action === 'delete' ? 'projects.deleteWarning' : 'projects.replaceWarning')}</p>}
+        ) : <p>{t(intent.action === 'delete' ? 'projects.deleteWarning' : intent.destination === 'laboratory' ? 'lab.reopenWarning' : 'projects.replaceWarning')}</p>}
 
-        <ProjectFeedback />
+        <ProjectFeedback fresh />
 
         <div className="actions">
           {/* Cancel takes the focus when nothing is typed, so a deliberate confirmation needs a move. */}
