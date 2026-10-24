@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '../api/apiClient';
+import { ApiError } from '../api/errors';
 import { useTranslation } from '../../i18n';
 import type { Fact, Reading } from './assistantApi';
 import type { AssistantApi } from './assistantApi';

@@ -2,8 +2,8 @@ import { Code, ConnectError, createClient } from '@connectrpc/connect';
 import type { CallOptions, Client } from '@connectrpc/connect';
 import { createGrpcWebTransport } from '@connectrpc/connect-web';
 import type { DescService } from '@bufbuild/protobuf';
-import { ApiError } from './apiClient';
-import type { ApiErrorCode } from './apiClient';
+import { ApiError } from './errors';
+import type { ApiErrorCode } from './errors';
 import { API_TIMEOUT_MS, REQUEST_ID_HEADER, RPC_DETAIL_CODES } from './config';
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;

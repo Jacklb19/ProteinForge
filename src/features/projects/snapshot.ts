@@ -3,7 +3,7 @@ import type { AlignmentDraftState } from '../alignment/alignmentDraft';
 import { isStaleResult } from '../alignment/alignmentSummary';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 import type { HydropathyWindow } from '../descriptors/config';
-import { ApiError } from '../api/apiClient';
+import { ApiError } from '../api/errors';
 import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_SEQUENCE_LENGTH } from './config';
 import type { Project, WorkspaceSnapshot } from './contracts';
 import { workspaceSchema } from './contracts';

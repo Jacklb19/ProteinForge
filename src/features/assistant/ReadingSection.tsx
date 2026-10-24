@@ -29,13 +29,13 @@ export function ReadingSection({ subject, build, revision, api }: Props): React.
   const [configuredUrl] = useState(readApiBaseUrl);
   const [loaded, setLoaded] = useState<AssistantApi | null>(null);
   useEffect(() => {
-    if (api !== undefined || !configuredUrl) return;
+    if (api !== undefined || !configuredUrl || auth.status !== 'signed-in') return;
     let cancelled = false;
     void import('./assistantApi')
       .then(({ createAssistantApi }) => { if (!cancelled) setLoaded(createAssistantApi(configuredUrl)); })
       .catch(() => undefined);
     return () => { cancelled = true; };
-  }, [api, configuredUrl]);
+  }, [api, configuredUrl, auth.status]);
 
   const client = api === undefined ? loaded : api;
   const token = auth.session?.accessToken ?? null;
