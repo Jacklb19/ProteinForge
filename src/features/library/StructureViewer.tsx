@@ -4,15 +4,27 @@ import type { PluginContext } from 'molstar/lib/mol-plugin/context';
 import { useTranslation } from '../../i18n';
 import { useThemeRevision } from '../../theme/useThemeRevision';
 import { CAMERA_ROTATION_RADIANS, CAMERA_ZOOM_FACTOR, MAX_STRUCTURE_BYTES, STRUCTURE_DOWNLOAD_URL, STRUCTURE_TIMEOUT_MS } from './config';
+import type { CoordinateResidue } from './residueMapping';
+import type { indexStructureResidues } from './structureResidues';
+
+interface ResidueSelection {
+  pdbId: string;
+  /** The parent must resolve ambiguous sequence mappings before sending a unique coordinate address. */
+  selected: CoordinateResidue | null;
+  onSelect: (pdbId: string, residue: CoordinateResidue | null) => void;
+  onReady: (pdbId: string, coordinates: readonly CoordinateResidue[]) => void;
+}
 
 interface Props {
   pdbId: string;
   /** Shown until the viewer is ready; with it, a failed download stays quiet instead of reporting an error. */
   placeholder?: ReactNode;
+  /** Optional bridge; no mapping service or sequence-index assumption is built into the viewer. */
+  residueSelection?: ResidueSelection;
 }
 
 /** A small control surface over Mol*. Only real public BinaryCIF is rendered. */
-export default function StructureViewer({ pdbId, placeholder }: Props): React.JSX.Element {
+export default function StructureViewer({ pdbId, placeholder, residueSelection }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const themeRevision = useThemeRevision();
   const container = useRef<HTMLDivElement>(null);
@@ -20,6 +32,16 @@ export default function StructureViewer({ pdbId, placeholder }: Props): React.JS
   const plugin = useRef<PluginContext | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
+  const selection = useRef(residueSelection);
+  const residueIndex = useRef<ReturnType<typeof indexStructureResidues> | null>(null);
+  const selectionEnabled = residueSelection !== undefined;
+
+  useEffect(() => {
+    selection.current = residueSelection;
+    if (state === 'ready' && residueIndex.current) {
+      plugin.current?.managers.interactivity.lociHighlights.highlightOnly({ loci: residueIndex.current.lociFor(residueSelection?.pdbId === pdbId ? residueSelection.selected : null) }, false);
+    }
+  }, [residueSelection, state, pdbId]);
 
   useEffect(() => {
     const target = container.current; const surface = canvas.current;
@@ -28,15 +50,16 @@ export default function StructureViewer({ pdbId, placeholder }: Props): React.JS
     let instance: PluginContext | null = null;
     let active = true;
     let disposed = false;
+    let unsubscribe: (() => void) | undefined;
     const isCurrent = () => active && !controller.signal.aborted;
-    const dispose = () => { if (!disposed && instance) { disposed = true; instance.dispose(); } if (plugin.current === instance) plugin.current = null; };
+    const dispose = () => { unsubscribe?.(); if (!disposed && instance) { disposed = true; instance.dispose(); } if (plugin.current === instance) { plugin.current = null; residueIndex.current = null; } };
     const timer = setTimeout(() => { controller.abort(); dispose(); if (active) setState('error'); }, STRUCTURE_TIMEOUT_MS);
     let visible = true;
     function updateVisibility(): void { if (document.hidden || !visible) instance?.canvas3d?.pause(true); else instance?.canvas3d?.resume(); }
     queueMicrotask(() => { setState('loading'); });
     void (async () => {
       try {
-        const { PluginContext, DefaultPluginSpec, Color } = await import('./molstarRuntime');
+        const { PluginContext, DefaultPluginSpec, Color, indexStructureResidues, residueFromLoci } = await import('./molstarRuntime');
         if (!isCurrent()) return;
         const response = await fetch(`${STRUCTURE_DOWNLOAD_URL}${pdbId.toLowerCase()}.bcif`, { signal: controller.signal, credentials: 'omit', redirect: 'error' });
         if (!response.ok || Number(response.headers.get('Content-Length') ?? 0) > MAX_STRUCTURE_BYTES) throw new Error('Invalid structure download');
@@ -57,6 +80,18 @@ export default function StructureViewer({ pdbId, placeholder }: Props): React.JS
         if (!polymer) throw new Error('No polymer coordinates');
         await instance.builders.structure.representation.addRepresentation(polymer, { type: 'cartoon', color: 'chain-id' });
         if (!isCurrent()) return;
+        if (selectionEnabled && structure.obj) {
+          const index = indexStructureResidues(structure.obj.data);
+          if (index.pdbId !== pdbId) throw new Error('Unexpected coordinate entry');
+          residueIndex.current = index;
+          const current = selection.current;
+          instance.managers.interactivity.lociHighlights.highlightOnly({ loci: index.lociFor(current?.pdbId === pdbId ? current.selected : null) }, false);
+          selection.current?.onReady(pdbId, index.coordinates);
+          const subscription = instance.behaviors.interaction.click.subscribe(event => {
+            if (isCurrent()) selection.current?.onSelect(pdbId, residueFromLoci(event.current.loci));
+          });
+          unsubscribe = () => { subscription.unsubscribe(); };
+        }
         instance.canvas3d?.requestCameraReset({ durationMs: 0 });
         updateVisibility();
         setState('ready');
@@ -76,7 +111,7 @@ export default function StructureViewer({ pdbId, placeholder }: Props): React.JS
       document.removeEventListener('visibilitychange', updateVisibility);
       dispose();
     };
-  }, [pdbId, attempt]);
+  }, [pdbId, attempt, selectionEnabled]);
 
   useEffect(() => {
     const instance = plugin.current; const target = container.current;
