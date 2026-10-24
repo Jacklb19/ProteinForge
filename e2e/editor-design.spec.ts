@@ -133,7 +133,7 @@ test('editor empty and scientific warning states remain accessible', async ({ pa
   await page.getByRole('radio', { name: '19', exact: true }).check();
   await expect(page.getByText(message('profile.tooShort', { count: 19 }))).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-feedback').trim())).toBe('0ms');
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-feedback').trim())).toMatch(/^0(?:ms|s)$/);
   await page.screenshot({ path: 'artifacts/editor-empty-short.png', fullPage: true });
   await restore.click();
   await expect(title).toHaveText(spanish['examples.insulinName']);
