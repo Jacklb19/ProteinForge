@@ -96,6 +96,16 @@ it('rejects coordinates for another PDB entry before publishing a selectable add
   expect(mocks.ready).not.toHaveBeenCalled(); expect(mocks.clicks.size).toBe(0);
 });
 
+it('keeps the rendered model and camera available when only the residue index fails', async () => {
+  mocks.indexStructureResidues.mockImplementationOnce(() => { throw new Error('Invalid residue identity'); });
+  const onUnavailable = vi.fn();
+  const view = render(<StructureViewer pdbId="1TRZ" residueSelection={{ ...bridge(), onUnavailable }} />);
+  await waitFor(() => { expect(view.container.querySelector('[role=status]')).toHaveTextContent(spanish['library.viewerReady']); });
+  expect(onUnavailable).toHaveBeenCalledWith('1TRZ', 'index');
+  expect(mocks.ready).not.toHaveBeenCalled(); expect(mocks.clicks.size).toBe(0);
+  expect(mocks.dispose).not.toHaveBeenCalled();
+});
+
 it('does not resume coordinate construction after unmount during asynchronous viewer initialization', async () => {
   const init = deferred<boolean>(); mocks.initViewer.mockReturnValueOnce(init.promise);
   const view = render(<StructureViewer pdbId="1TRZ" residueSelection={bridge()} />);

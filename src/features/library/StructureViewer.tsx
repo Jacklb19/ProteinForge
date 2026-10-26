@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { PluginContext } from 'molstar/lib/mol-plugin/context';
 import { useTranslation } from '../../i18n';
@@ -13,6 +13,7 @@ interface ResidueSelection {
   selected: CoordinateResidue | null;
   onSelect: (pdbId: string, residue: CoordinateResidue | null) => void;
   onReady: (pdbId: string, coordinates: readonly CoordinateResidue[]) => void;
+  onUnavailable?: (pdbId: string, reason: 'loading' | 'coordinates' | 'index') => void;
 }
 
 interface Props {
@@ -36,7 +37,7 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
   const residueIndex = useRef<ReturnType<typeof indexStructureResidues> | null>(null);
   const selectionEnabled = residueSelection !== undefined;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     selection.current = residueSelection;
     if (state === 'ready' && residueIndex.current) {
       plugin.current?.managers.interactivity.lociHighlights.highlightOnly({ loci: residueIndex.current.lociFor(residueSelection?.pdbId === pdbId ? residueSelection.selected : null) }, false);
@@ -53,10 +54,11 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
     let unsubscribe: (() => void) | undefined;
     const isCurrent = () => active && !controller.signal.aborted;
     const dispose = () => { unsubscribe?.(); if (!disposed && instance) { disposed = true; instance.dispose(); } if (plugin.current === instance) { plugin.current = null; residueIndex.current = null; } };
-    const timer = setTimeout(() => { controller.abort(); dispose(); if (active) setState('error'); }, STRUCTURE_TIMEOUT_MS);
+    const timer = setTimeout(() => { controller.abort(); dispose(); if (active) { selection.current?.onUnavailable?.(pdbId, 'coordinates'); setState('error'); } }, STRUCTURE_TIMEOUT_MS);
     let visible = true;
     function updateVisibility(): void { if (document.hidden || !visible) instance?.canvas3d?.pause(true); else instance?.canvas3d?.resume(); }
     queueMicrotask(() => { setState('loading'); });
+    selection.current?.onUnavailable?.(pdbId, 'loading');
     void (async () => {
       try {
         const { PluginContext, DefaultPluginSpec, Color, indexStructureResidues, residueFromLoci } = await import('./molstarRuntime');
@@ -87,24 +89,29 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
         await instance.builders.structure.representation.addRepresentation(polymer, { type: 'cartoon', color: 'chain-id' });
         if (!isCurrent()) return;
         if (selectionEnabled && structure.obj) {
-          const index = indexStructureResidues(structure.obj.data);
-          if (index.pdbId !== pdbId) throw new Error('Unexpected coordinate entry');
-          residueIndex.current = index;
-          const current = selection.current;
-          instance.managers.interactivity.lociHighlights.highlightOnly({ loci: index.lociFor(current?.pdbId === pdbId ? current.selected : null) }, false);
-          selection.current?.onReady(pdbId, index.coordinates);
-          if (!isCurrent()) return;
-          const subscription = instance.behaviors.interaction.click.subscribe(event => {
-            if (isCurrent()) selection.current?.onSelect(pdbId, residueFromLoci(event.current.loci));
-          });
-          unsubscribe = () => { subscription.unsubscribe(); };
+          let index: ReturnType<typeof indexStructureResidues> | null = null;
+          try { index = indexStructureResidues(structure.obj.data); }
+          catch { selection.current?.onUnavailable?.(pdbId, 'index'); }
+          if (index) {
+            if (index.pdbId !== pdbId) throw new Error('Unexpected coordinate entry');
+            residueIndex.current = index;
+            const current = selection.current;
+            instance.managers.interactivity.lociHighlights.highlightOnly({ loci: index.lociFor(current?.pdbId === pdbId ? current.selected : null) }, false);
+            selection.current?.onReady(pdbId, index.coordinates);
+            if (!isCurrent()) return;
+            const subscription = instance.behaviors.interaction.click.subscribe(event => {
+              if (isCurrent()) selection.current?.onSelect(pdbId, residueFromLoci(event.current.loci));
+            });
+            unsubscribe = () => { subscription.unsubscribe(); };
+          }
         }
+        if (!isCurrent()) return;
         instance.canvas3d?.requestCameraReset({ durationMs: 0 });
         updateVisibility();
         setState('ready');
       } catch {
         dispose();
-        if (isCurrent()) setState('error');
+        if (isCurrent()) { selection.current?.onUnavailable?.(pdbId, 'coordinates'); setState('error'); }
       } finally { clearTimeout(timer); }
     })();
     const resize = new ResizeObserver(() => { instance?.canvas3d?.requestResize(); });
