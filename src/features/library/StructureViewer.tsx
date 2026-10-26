@@ -71,12 +71,18 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
         await instance.init();
         if (!isCurrent()) return;
         if (!await instance.initViewerAsync(surface, target)) throw new Error('WebGL unavailable');
+        if (!isCurrent()) return;
         instance.canvas3d?.setProps({ renderer: { backgroundColor: Color.fromHexStyle(getComputedStyle(target).getPropertyValue('--bg-subtle').trim()) } });
         const data = await instance.builders.data.rawData({ data: new Uint8Array(bytes), label: pdbId });
+        if (!isCurrent()) return;
         const trajectory = await instance.builders.structure.parseTrajectory(data, 'mmcif');
+        if (!isCurrent()) return;
         const model = await instance.builders.structure.createModel(trajectory);
+        if (!isCurrent()) return;
         const structure = await instance.builders.structure.createStructure(model, { name: 'model', params: {} });
+        if (!isCurrent()) return;
         const polymer = await instance.builders.structure.tryCreateComponentStatic(structure, 'polymer');
+        if (!isCurrent()) return;
         if (!polymer) throw new Error('No polymer coordinates');
         await instance.builders.structure.representation.addRepresentation(polymer, { type: 'cartoon', color: 'chain-id' });
         if (!isCurrent()) return;
@@ -87,6 +93,7 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
           const current = selection.current;
           instance.managers.interactivity.lociHighlights.highlightOnly({ loci: index.lociFor(current?.pdbId === pdbId ? current.selected : null) }, false);
           selection.current?.onReady(pdbId, index.coordinates);
+          if (!isCurrent()) return;
           const subscription = instance.behaviors.interaction.click.subscribe(event => {
             if (isCurrent()) selection.current?.onSelect(pdbId, residueFromLoci(event.current.loci));
           });
