@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import type { Plugin } from 'vite';
+import type { Plugin, ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
@@ -23,6 +23,24 @@ const fontPreloads = FONT_FILES.filter((font) => font.preload)
   .join('\n    ');
 const appIcon = readFileSync(new URL('./src/shared/app-icon.svg', import.meta.url), 'utf8')
   .replaceAll('{{surface}}', surface).replaceAll('{{accent}}', accent).replaceAll('{{stroke}}', stroke);
+
+const isolationHeaders = {
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Embedder-Policy': 'require-corp',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+};
+/** Static serving bypasses configured headers on 304; apply isolation before cache validation too. */
+function configureIsolation(server: Pick<ViteDevServer, 'middlewares'>): void {
+  server.middlewares.use((_request, response, next) => {
+    for (const [name, value] of Object.entries(isolationHeaders)) response.setHeader(name, value);
+    next();
+  });
+}
+const resourceIsolation: Plugin = {
+  name: 'resource-isolation',
+  configureServer: configureIsolation,
+  configurePreviewServer: configureIsolation,
+};
 
 /** Serve the same reviewed, output-free notebook in development and in the production assets. */
 const laboratoryNotebook:Plugin={
@@ -61,7 +79,7 @@ const applicationIdentity: Plugin = {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), applicationIdentity, laboratoryNotebook, VitePWA({
+  plugins: [react(), resourceIsolation, applicationIdentity, laboratoryNotebook, VitePWA({
     registerType: 'prompt',
     injectRegister: 'script',
     manifest: {
@@ -85,16 +103,10 @@ export default defineConfig({
   })],
   server: {
     port: 5173,
-    headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-    },
+    headers: isolationHeaders,
   },
   preview: {
     port: 4173,
-    headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-    },
+    headers: isolationHeaders,
   },
 });

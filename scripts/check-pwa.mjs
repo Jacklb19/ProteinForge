@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { preview } from 'vite';
-import { chromium, expect } from '@playwright/test';
+import { chromium, firefox, webkit, expect } from '@playwright/test';
 
 const tokens = readFileSync(new URL('../src/design-tokens.css', import.meta.url), 'utf8');
 const accent = tokens.match(/(?<![\w-])--accent-brand:\s*([^;]+);/)?.[1]?.trim();
@@ -17,16 +17,20 @@ const route = (name) => {
 
 const port = Number(process.env.PWA_CHECK_PORT ?? 4173);
 const baseURL = 'http://127.0.0.1:' + String(port);
+const browserName = process.env.PWA_CHECK_BROWSER ?? 'chromium';
+const engine = browserName === 'chromium' ? chromium : browserName === 'firefox' ? firefox : browserName === 'webkit' ? webkit : null;
+if (!engine) throw new Error('PWA_CHECK_BROWSER must be chromium, firefox or webkit.');
 const server = await preview({ preview: { host: '127.0.0.1', port, strictPort: true } });
-const browser = await chromium.launch({
+const browser = await engine.launch(browserName === 'chromium' ? {
   executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
     ?? (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined),
-});
+} : {});
+process.stdout.write(`PWA browser: ${browserName} ${browser.version()}\n`);
 try {
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto(baseURL + '/');
-  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.waitForFunction(async () => { await navigator.serviceWorker.ready; return true; });
   await page.reload();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   await context.setOffline(true);
@@ -57,12 +61,20 @@ try {
   }, fonts);
   process.stdout.write(`Offline reload and precached WOFF2 verified: ${JSON.stringify(cachedFonts)}\n`);
   await page.goto(baseURL + route('analyze'));
-  await page.waitForEvent('worker', { predicate: (worker) => worker.url().includes('profile.worker') }).catch(() => undefined);
+  await expect.poll(() => page.workers().some(worker => worker.url().includes('profile.worker'))).toBe(true);
   const chartWorker = page.workers().find((worker) => worker.url().includes('profile.worker'));
   if (!chartWorker) throw new Error('Offline profile worker is missing.');
-  await expect.poll(() => chartWorker.evaluate((family) => [...self.fonts].some((face) =>
-    face.family.replaceAll('"', '') === family && face.status === 'loaded'), chartFamily)).toBe(true);
-  process.stdout.write(`${chartFamily} loaded in the profile worker after offline reload.\n`);
+  const canTransfer = await page.evaluate(() => typeof HTMLCanvasElement.prototype.transferControlToOffscreen === 'function');
+  if (canTransfer) {
+    await expect.poll(() => chartWorker.evaluate((family) => [...self.fonts].some((face) =>
+      face.family.replaceAll('"', '') === family && face.status === 'loaded'), chartFamily)).toBe(true);
+    process.stdout.write(`${chartFamily} loaded in the profile worker after offline reload.\n`);
+  } else {
+    await expect(page.locator('#profile-status')).toContainText('consulta los valores en la tabla');
+    await page.locator('details', { has: page.locator('.profile-table-container') }).locator('summary').click();
+    await expect(page.locator('.profile-table-container tbody tr').first()).toContainText('M');
+    process.stdout.write('Canvas transfer unavailable: the calculated profile table remains available offline.\n');
+  }
   await page.goto(baseURL + route('alignment'));
   // The page opens with the example already aligned; a second pair proves the workers also answer new input offline.
   await page.locator('.verdict').waitFor();
