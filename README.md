@@ -1,6 +1,6 @@
 # ProteinForge — frontend
 
-Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, visor experimental Mol*, informes locales PDF/JSON/CSV y búsqueda reproducible de candidatos. Proyectos por propietario, laboratorio con selección secuencia/3D y asistente de interpretación publicados en la entrega del 23 de octubre. El cierre autenticado del asistente sigue por verificar. El 25 de octubre se integran localmente mejoras de calidad y el núcleo SIFTS/puente opcional del visor; su conexión general con Biblioteca/Analizar aún está pendiente. Predicción estructural y dominios/ensamblado pendientes. [Estado y evidencia](docs/plan-desarrollo.md).
+Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, visor experimental Mol*, informes locales PDF/JSON/CSV y búsqueda reproducible de candidatos. Proyectos, laboratorio y asistente publicados en la entrega del 23 de octubre; Groq autenticado en producción sigue por verificar. El 26 se completa localmente la selección SIFTS entre Biblioteca y Analizar, con servicio autenticado y verificación de la secuencia completa, además de mejoras de sesión, accesibilidad y compatibilidad. Tipos/lint/build, 436 unitarias, 76 recorridos Chromium y PWA comprobados; publicación pendiente. La nueva prueba manual ZeroGPU entrega un rediseño fragmentario, sin inferencia conectada a la app ni validación biológica. [Estado y evidencia](docs/plan-desarrollo.md).
 
 ## Repositorios y carpetas
 

@@ -6,6 +6,8 @@ Ampliación aprobada del 23 oct: [Lectura de los resultados](assistant.md) al pi
 
 ## Principios
 
+Ampliación SIFTS aprobada e implementada el 25–26 oct: [maqueta y plan de selección](references.md). Biblioteca conserva catálogo, consulta y visor; añade posición, cadena y estado. Analizar conserva lector/editor/perfiles y abre el visor general en su lateral solo al recibir una referencia exacta de Biblioteca. Sin lector nuevo en Biblioteca, persistencia adicional o rediseño del laboratorio. Capturas a 360 y 1280 px, ambos temas, revisadas tras las pruebas combinadas.
+
 1. **La pantalla muestra proteínas, no habla de sí misma.** Cada pantalla de trabajo abre con un ejemplo real que se puede reemplazar: la insulina humana (P01308) en Analizar e Inicio, humana frente a bovina (P01317) en Alinear, una búsqueda ya resuelta en Diseñar y la estructura 1TRZ en Biblioteca. No hay cajas vacías con explicaciones.
 2. **El título es el sujeto.** Analizar se titula con el nombre de la proteína; Alinear, con las dos que compara. El nombre de la herramienta ya está en la barra.
 3. **La interfaz va en tinta; el color es química.** Botones, enlaces, líneas y texto usan tinta sobre papel frío. Los únicos tonos son las seis clases de residuo: hidrofóbico, polar, ácido, básico, Gly·Pro y cisteína. El perfil usa dos de ellos: hidrofóbico sobre cero, básico bajo cero.

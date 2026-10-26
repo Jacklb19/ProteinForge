@@ -190,3 +190,9 @@ node node_modules/playwright/cli.js test --config scripts/pwa-upgrade.config.mjs
 ```
 
 El comando genera ambos builds bajo la salida indicada y usa solo ajustes públicos ficticios del servidor local. `PWA_UPGRADE_BEFORE_REVISION` permite elegir explícitamente otra revisión, que constituye otra transición por verificar. La configuración dedicada usa un solo motor/worker y no incorpora el archivo `.check.ts` a las E2E generales. Tipos E2E, lint del comprobador y sintaxis de su configuración correctos; no hay cambios de dependencias ni nuevos textos de interfaz.
+
+## Comprobación combinada — 26 oct 2026
+
+Las entregas S5/S7 están integradas en el frontend canónico. Tipos, lint, build, 436 unitarias y 76 recorridos Chromium afectados completados; dos casos de Colab inicialmente omitidos se repitieron con sus archivos reales y pasaron. PWA integrada correcta, con Mol* excluido del uso offline. Capturas de Biblioteca/Analizar a 360 y 1280 px revisadas en ambos temas. No se repitieron las mediciones históricas de rendimiento ni se atribuyen a este árbol cifras nuevas de LCP/INP.
+
+RNF-04 añade [auditoría HTTP local del backend](../../backend/docs/local-api-load.md): 500 solicitudes reales de loopback en 300,006 s, cero errores y p95 de 16,262 ms. Identidad y almacenamiento simulados, sin carga externa, SQL o Vercel. No certifica capacidad máxima ni rendimiento de producción. Se conservan los límites de WebKit offline, Safari, versiones anteriores y dispositivos físicos indicados arriba.
