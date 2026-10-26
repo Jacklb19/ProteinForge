@@ -88,43 +88,47 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
   const { status } = useAuth();
   const { theme, setTheme, locale, setLocale } = usePreferences();
   const close = useRef<HTMLButtonElement>(null);
-  const sheet = useRef<HTMLDivElement>(null);
+  const sheet = useRef<HTMLDialogElement>(null);
+  const closeSheet = (): void => { sheet.current?.close(); onClose(); };
 
   useEffect(() => {
+    const dialog = sheet.current;
+    dialog?.showModal();
     close.current?.focus();
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') { event.preventDefault(); onClose(); return; }
-      if (event.key !== 'Tab') return;
-      const controls = sheet.current?.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]');
-      const focusable = [...(controls ?? [])].filter(element => element.tabIndex >= 0
-        && !element.matches(':disabled') && element.getClientRects().length > 0);
-      const first = focusable[0];
-      const last = focusable.at(-1);
-      const inside = sheet.current?.contains(document.activeElement);
-      if (event.shiftKey && (document.activeElement === first || !inside)) {
-        event.preventDefault(); last?.focus();
-      } else if (!event.shiftKey && (document.activeElement === last || !inside)) {
-        event.preventDefault(); first?.focus();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('keydown', onKey); };
-  }, [onClose]);
+    return () => { dialog?.close(); };
+  }, []);
 
   return (
-    <>
-      <button className="menu-scrim" type="button" tabIndex={-1} aria-label={t('shell.closeMenu')} onClick={onClose} />
-      <div ref={sheet} className="menu-sheet" id={MENU_ID} role="dialog" aria-modal="true" aria-label={t('shell.menu')}>
+    <dialog ref={sheet} className="menu-sheet" id={MENU_ID} aria-modal="true" aria-label={t('shell.menu')}
+      onCancel={(event) => { event.preventDefault(); closeSheet(); }}
+      onKeyDown={(event) => {
+        if (event.key !== 'Tab') return;
+        const controls = [...event.currentTarget.querySelectorAll<HTMLElement>('a[href], button, input')]
+          .filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && element.getClientRects().length > 0);
+        const first = controls[0], last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault(); last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first?.focus();
+        }
+      }}
+      onClick={(event) => {
+        // Backdrop clicks target the dialog, with coordinates outside its box.
+        if (event.target !== event.currentTarget) return;
+        const box = event.currentTarget.getBoundingClientRect();
+        if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) closeSheet();
+      }}
+    >
         <div className="menu-sheet-head">
-          <Link to={ROUTES.home} className="brand" onClick={onClose}><BrandMark /><span>{t('app.name')}</span></Link>
-          <button ref={close} className="button button-icon" type="button" aria-label={t('shell.closeMenu')} onClick={onClose}><Icon name="close" /></button>
+          <Link to={ROUTES.home} className="brand" onClick={closeSheet}><BrandMark /><span>{t('app.name')}</span></Link>
+          <button ref={close} className="button button-icon" type="button" aria-label={t('shell.closeMenu')} onClick={closeSheet}><Icon name="close" /></button>
         </div>
         <nav aria-label={t('shell.menu')}>
-          {NAVIGATION_ITEMS.filter(item => !item.signedInOnly || status === 'signed-in').map((item) => <NavLink key={item.path} to={item.path} end={item.end} onClick={onClose}>{t(item.labelKey)}</NavLink>)}
+          {NAVIGATION_ITEMS.filter(item => !item.signedInOnly || status === 'signed-in').map((item) => <NavLink key={item.path} to={item.path} end={item.end} onClick={closeSheet}>{t(item.labelKey)}</NavLink>)}
         </nav>
         <div className="menu-sheet-end">
           {status === 'signed-in'
-            ? <Link className="button button-secondary button-large button-wide" to={ROUTES.profile} onClick={onClose}>{t('nav.profile')}</Link>
+            ? <Link className="button button-secondary button-large button-wide" to={ROUTES.profile} onClick={closeSheet}>{t('nav.profile')}</Link>
             : <>
               <SegmentedControl
                 legend={t('account.appearance')}
@@ -133,12 +137,11 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
                 onChange={setTheme}
               />
               <LanguageChoice locale={locale} onChange={setLocale} />
-              {status !== 'disabled' && <Link className="button button-primary button-large button-wide" to={ROUTES.signUp} onClick={onClose}>{t('auth.signUpAction')}</Link>}
-              <Link className="button button-secondary button-large button-wide" to={ROUTES.signIn} onClick={onClose}>{t('shell.signIn')}</Link>
+              {status !== 'disabled' && <Link className="button button-primary button-large button-wide" to={ROUTES.signUp} onClick={closeSheet}>{t('auth.signUpAction')}</Link>}
+              <Link className="button button-secondary button-large button-wide" to={ROUTES.signIn} onClick={closeSheet}>{t('shell.signIn')}</Link>
             </>}
         </div>
-      </div>
-    </>
+    </dialog>
   );
 }
 

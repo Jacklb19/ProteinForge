@@ -81,7 +81,7 @@ test('reduced motion keeps every panel and the tools one step away', async ({ pa
   expect(await page.locator('#sequence-panel').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
   const menu = await openSiteMenu(page);
   expect(await menu.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
-  expect(await page.locator('.menu-scrim').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
+  expect(await menu.evaluate((element) => getComputedStyle(element, '::backdrop').animationName)).toBe('none');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: spanish['editor.toAlignment'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
@@ -175,6 +175,23 @@ test('the phone menu contains keyboard focus and keeps the selected preference f
   await expect(page.locator('#site-menu').getByRole('radio', { name: english['settings.english'], exact: true })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: english['shell.openMenu'] })).toBeFocused();
+});
+
+test('the phone menu makes the background inert for focus and the accessibility tree', async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 360, height: 900 });
+  await page.goto(ROUTES.analyze);
+  const menu = await openSiteMenu(page);
+  await page.locator('#app-content').evaluate(element => { element.focus(); });
+  await expect(menu.getByRole('button', { name: spanish['shell.closeMenu'] })).toBeFocused();
+  if (browserName === 'chromium') {
+    const cdp = await page.context().newCDPSession(page);
+    const tree = await cdp.send('Accessibility.getFullAXTree');
+    expect(tree.nodes.filter(node => !node.ignored && node.role?.value === 'main')).toEqual([]);
+    await cdp.detach();
+  }
+  await page.keyboard.press('Escape');
+  await page.locator('#app-content').focus();
+  await expect(page.locator('#app-content')).toBeFocused();
 });
 
 test('the bar veils after scrolling and the footer keeps only the legal links', async ({ page }) => {

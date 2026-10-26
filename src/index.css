@@ -96,9 +96,10 @@ ul, ol { padding-inline-start: var(--space-lg); }
 .only-narrow, .button.only-narrow { display: none; }
 
 /* Phone menu: a panel over the page. */
-.menu-scrim { position: fixed; inset: var(--space-none); z-index: var(--layer-sheet); border: none; background: var(--bg-scrim); animation: fade var(--duration-feedback) var(--ease-feedback) both; }
-.menu-sheet { position: fixed; inset: var(--space-none) var(--space-none) auto; z-index: var(--layer-sheet); display: grid; gap: var(--space-md); max-height: 100dvh; overflow-y: auto; padding: var(--space-xs) var(--space-md) var(--space-lg); border-block-end: var(--border-width) solid var(--border-subtle); border-radius: var(--space-none) var(--space-none) var(--radius-sheet) var(--radius-sheet); background: var(--bg-raised); animation: fade var(--duration-feedback) var(--ease-feedback) both; }
+.menu-sheet::backdrop { background: var(--bg-scrim); animation: fade var(--duration-feedback) var(--ease-feedback) both; }
+.menu-sheet { margin: var(--space-none); width: var(--width-full); max-width: var(--width-full); color: var(--text-primary); border: none; position: fixed; inset: var(--space-none) var(--space-none) auto; z-index: var(--layer-sheet); display: grid; gap: var(--space-md); max-height: 100dvh; overflow-y: auto; padding: var(--space-xs) var(--space-md) var(--space-lg); border-block-end: var(--border-width) solid var(--border-subtle); border-radius: var(--space-none) var(--space-none) var(--radius-sheet) var(--radius-sheet); background: var(--bg-raised); animation: fade var(--duration-feedback) var(--ease-feedback) both; }
 .menu-sheet-head { display: flex; align-items: center; justify-content: space-between; min-height: var(--height-bar); }
+.menu-sheet:not([open]) { display: none; }
 .menu-sheet nav { display: grid; }
 .menu-sheet nav a { display: flex; align-items: center; min-height: var(--size-control); padding-inline: var(--space-2xs); border-block-end: var(--border-width) solid var(--border-subtle); color: var(--text-secondary); font-family: var(--font-display); font-size: var(--font-size-menu); font-weight: var(--font-weight-strong); text-decoration: none; }
 .menu-sheet nav a[aria-current='page'] { color: var(--text-primary); }
@@ -126,6 +127,7 @@ ul, ol { padding-inline-start: var(--space-lg); }
   gap: var(--space-xs);
   min-height: var(--size-touch);
   min-width: var(--size-touch);
+  background: var(--transparent);
   padding: var(--space-xs) var(--space-md);
   border: var(--border-width) solid var(--transparent);
   border-radius: var(--radius-control);
@@ -630,7 +632,7 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page, .auth-page, .tool-panel, .menu-scrim, .menu-sheet { animation: none; }
+  .page, .auth-page, .tool-panel, .menu-sheet, .menu-sheet::backdrop { animation: none; }
 }
 
 /* Laboratory A: a structure and its residue inspector, then the sequence and variants. */
