@@ -4,17 +4,17 @@ Actualizado el **26 de octubre de 2026**. Leer este documento completo, los AGEN
 
 ## Publicación: orden obligatorio
 
-**No hay autorización nueva para push, merge o despliegue.** El propietario aprobó maqueta y suministro SIFTS: «Sí, implementar interfaz y suministro SIFTS». No pedir otra aprobación visual/de contrato para el mismo alcance.
+**Publicación autorizada expresamente el 26 oct:** el propietario responde «sí» a publicar dev y actualizar main de ambos repositorios, backend primero y frontend después de actualizar/regenerar el contrato. No repetir esa petición para esta entrega. También aprobó maqueta y suministro SIFTS: «Sí, implementar interfaz y suministro SIFTS».
 
-Frontend `0f3166e` genera GetResidueMapping desde el protobuf local. **buf.gen.yaml sigue fijando c2d127c, sin ese método**: publicar así haría que CI regenere tipos anteriores y falle. Tras autorización: publicar backend con el contrato primero, actualizar el pin al commit efectivamente publicado, regenerar/confirmar frontend y publicarlo al final. No usar un commit remoto inexistente ni cambiar CI a un directorio local.
+Backend dev `1443dd9` y main `a3edaf1d7a43ada2b2bbf9113ff9ccef7f123a57` ya publicados; CI de ambos correcta, incluida Python 3.14. **buf.gen.yaml actualizado al main publicado con GetResidueMapping**; la regeneración remota reproduce exactamente los archivos locales de `0f3166e`. Confirmar este pin antes de publicar frontend. No volver al antiguo c2d127c, usar un commit remoto inexistente o cambiar CI a un directorio local.
 
-Última producción comprobada el 23 oct: frontend main `3562c0c` y backend main `c2d127c`, CI/Vercel correctos entonces. No se hizo fetch o inspección remota nueva el 25–26. Proyectos, laboratorio y asistente ya están publicados; no reabrir sus migraciones o entregas como pendientes. Groq autenticado en producción, clave/retención y acceso directo por ID con segunda cuenta siguen sin certificar.
+Frontend main anterior `3562c0c`, CI/Vercel correctos el 23 oct; esta publicación del 26 sigue en curso al escribir. Fetch de ambos completado sin cambios remotos inesperados. Leer el cierre en ambos PROGRESS para los hashes/resultados finales. Proyectos, laboratorio y asistente ya están publicados; no reabrir sus migraciones o entregas como pendientes. Groq autenticado en producción, clave/retención y acceso directo por ID con segunda cuenta siguen sin certificar.
 
 ## Reglas vigentes
 
 Trabajar en dev. Autor y committer exclusivamente Jacklb19 <jose.burbanob@campusucc.edu.co>, sin firmas, coautores o menciones a herramientas de IA en Git/GitHub. Commits pequeños en inglés; documentación/respuestas en español. Cada texto visible en es/en en el mismo cambio. No forzar AGENTS, PROGRESS, propuestas, artifacts, secretos o dependencias al índice.
 
-Costo cero estricto, sin tarjeta ni modelos en Windows. No cambios de servicios/secretos, SQL remoto, cuentas nuevas o gastos por esta continuación. Publicaciones anteriores no autorizan esta entrega. No repetir migraciones ya aplicadas por el propietario.
+Costo cero estricto, sin tarjeta ni modelos en Windows. No cambios de servicios/secretos, SQL remoto, cuentas nuevas o gastos por esta continuación. La autorización actual se limita a publicar esta entrega; no se extiende a entregas futuras. No repetir migraciones ya aplicadas por el propietario.
 
 ## S5: implementación local integrada
 
@@ -62,4 +62,4 @@ El formulario HF del 23 oct bloqueó alojamiento propio Gradio/Docker solicitand
 
 No archivar/eliminar copias o ramas sin conservar cambios/evidencias; no rebase ni escritura concurrente mientras estén activas. Seguimientos a esos dos chats autorizados en esta tarea; no extender a mensajes ajenos.
 
-Cerrar revisión documental/autoría y pedir autorización de publicación. Después publicar en el orden correcto y comprobar integración autenticada real dentro del alcance autorizado. No volver a pedir aprobación SIFTS o migraciones antiguas. Mantener límites S7/Groq/modelado; elegir entrada completa y validación independiente antes de ampliar importador o DesignService.
+Completar publicación autorizada del frontend con el pin nuevo y comprobar CI/despliegues. Consultar ambos PROGRESS antes de repetir operaciones: el cierre posterior recoge resultados y hashes finales. Comprobar integración autenticada real dentro del alcance autorizado, sin usar datos/cuentas del propietario por iniciativa propia. No volver a pedir aprobación SIFTS o migraciones antiguas. Mantener límites S7/Groq/modelado; elegir entrada completa y validación independiente antes de ampliar importador o DesignService.
