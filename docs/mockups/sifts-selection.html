@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProteinForge · propuesta SIFTS</title>
+  <link rel="stylesheet" href="../../src/design-tokens.css">
+  <link rel="stylesheet" href="../../src/index.css">
+  <style>
+    @font-face { font-family: 'Atkinson Hyperlegible Next'; src: url('/fonts/atkinson-next-regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+    @font-face { font-family: 'Atkinson Hyperlegible Next'; src: url('/fonts/atkinson-next-semibold.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+    @font-face { font-family: 'Bricolage Grotesque'; src: url('/fonts/bricolage-semibold.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+    @font-face { font-family: 'IBM Plex Mono'; src: url('/fonts/plex-mono-regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+    .proposal-review, .proposal-main { max-width: var(--width-content); margin-inline: auto; padding: var(--space-lg); }
+    .proposal-review { border-block-end: var(--border-width) solid var(--border-subtle); display: grid; gap: var(--space-sm); }
+    .proposal-review p { color: var(--text-secondary); font-size: var(--font-size-small); max-width: var(--width-copy); }
+    .review-fields { display: flex; gap: var(--space-sm); align-items: end; flex-wrap: wrap; }
+    .review-fields .field { flex: 1 1 10rem; }
+    .review-fields select { min-height: var(--size-touch); width: 100%; }
+    .proposal-heading { padding-block: var(--space-xl); border-block-end: var(--border-width) solid var(--border-subtle); display: grid; gap: var(--space-sm); }
+    .proposal-heading p, .selection-copy, .proposal-foot { color: var(--text-secondary); }
+    .proposal-heading .subject { font-family: var(--font-sequence); font-size: var(--font-size-small); }
+    .proposal-layout { padding-block: var(--space-xl); }
+    .proposal-main[data-screen='analyze'] .proposal-layout { display: grid; grid-template-columns: minmax(0, 1fr) var(--width-rail); gap: var(--space-2xl); align-items: start; }
+    .sequence-reference { display: grid; gap: var(--space-md); padding-block-end: var(--space-xl); }
+    .sequence-reference code { display: grid; gap: var(--space-xs); font-size: var(--font-size-base); line-height: 2; }
+    .sequence-row { display: flex; align-items: center; gap: var(--space-xs); }
+    .sequence-number { color: var(--text-secondary); font-size: var(--font-size-caption); min-width: 3ch; text-align: end; margin-inline-end: var(--space-sm); }
+    .sequence-letter { display: inline-block; min-width: 1.6ch; text-align: center; border-radius: var(--radius-cell); }
+    .sequence-reference .selected { background: var(--bg-selected); outline: var(--border-width-indicator) solid var(--text-primary); outline-offset: var(--space-hairline); }
+    .proposal-main[data-screen='library'] .sequence-reference { display: none; }
+    .structure-proposal { min-width: 0; display: grid; gap: var(--space-md); }
+    .structure-proposal h2 { margin-block-end: var(--space-xs); }
+    .reference-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-md); }
+    .proposal-main[data-screen='analyze'] .reference-controls { grid-template-columns: minmax(0, 1fr); }
+    .reference-controls select { width: 100%; min-height: var(--size-control); }
+    .reference-provenance { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-md); font-size: var(--font-size-small); }
+    .reference-provenance code { font-family: var(--font-sequence); }
+    .mapping-selection { display: grid; gap: var(--space-xs); padding-block: var(--space-md); border-block: var(--border-width) solid var(--border-subtle); }
+    .mapping-selection strong { font-family: var(--font-sequence); font-size: var(--font-size-base); }
+    .mapping-selection p { max-width: var(--width-copy); }
+    .mapping-selection .actions { margin-block-start: var(--space-xs); }
+    .proposal-main[data-screen='analyze'] .structure-canvas { height: var(--height-stage-rail); }
+    .proposal-main[data-screen='analyze'] .structure-viewer > .field-help { font-size: var(--font-size-caption); }
+    .proposal-fallback { display: block; width: 100%; height: var(--height-structure-viewer); object-fit: contain; background: var(--bg-subtle); border-radius: var(--radius-surface); }
+    .proposal-main[data-screen='analyze'] .proposal-fallback { height: var(--height-stage-rail); }
+    .proposal-foot { border-block-start: var(--border-width) solid var(--border-subtle); padding-block: var(--space-lg); font-size: var(--font-size-small); }
+    @media (max-width: 47.99rem) {
+      .proposal-review, .proposal-main { padding-inline: var(--space-md); }
+      .review-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .review-fields .field { min-width: 0; }
+      .proposal-main[data-screen='analyze'] .proposal-layout { grid-template-columns: minmax(0, 1fr); gap: var(--space-none); }
+      .reference-controls { grid-template-columns: minmax(0, 1fr); }
+      .proposal-heading { padding-block: var(--space-lg); }
+    }
+  </style>
+</head>
+<body>
+  <aside class="proposal-review" aria-labelledby="review-title">
+    <strong id="review-title"></strong><p id="review-scope"></p>
+    <div class="review-fields">
+      <div class="field"><label id="screen-label" for="review-screen"></label><select class="text-input" id="review-screen"><option value="library">Biblioteca</option><option value="analyze">Analizar</option></select></div>
+      <div class="field"><label id="state-label" for="review-state"></label><select class="text-input" id="review-state"></select></div>
+      <div class="field"><label id="position-label" for="review-position"></label><select class="text-input" id="review-position"><option value="90">P01308:90 · G</option><option value="25">P01308:25 · F</option><option value="54">P01308:54 · T</option><option value="110">P01308:110 · N</option><option value="60">P01308:60 · D</option></select></div>
+      <div class="field"><label id="theme-label" for="review-theme"></label><select class="text-input" id="review-theme"><option value="light">Claro</option><option value="dark">Oscuro</option></select></div>
+      <div class="field"><label id="language-label" for="review-language"></label><select class="text-input" id="review-language"><option value="es">Español</option><option value="en">English</option></select></div>
+    </div>
+    <p id="scenario-note" role="status"></p>
+  </aside>
+  <main class="proposal-main" id="proposal-main" data-screen="library">
+    <header class="proposal-heading"><h1 id="page-title"></h1><p id="page-description"></p><p class="subject">P01308 · Homo sapiens · SV 1</p></header>
+    <div class="proposal-layout">
+      <section class="sequence-reference" aria-labelledby="sequence-title"><h2 id="sequence-title"></h2><p class="field-help" id="sequence-note"></p><code id="reference-sequence"></code><p class="field-help" id="sequence-context"></p></section>
+      <section class="structure-proposal" aria-labelledby="structure-title">
+        <header><h2 id="structure-title"></h2><p class="selection-copy" id="structure-description"></p></header>
+        <div class="reference-controls">
+          <div class="field"><label id="pdb-label" for="pdb-entry"></label><select class="text-input" id="pdb-entry"><option>1TRZ · X-ray · 1.60 Å</option></select></div>
+          <div class="field"><label id="chain-label" for="mapping-chain"></label><select class="text-input" id="mapping-chain" aria-describedby="mapping-status"></select></div>
+        </div>
+        <div class="reference-provenance"><strong id="experimental"></strong><a class="inline-link" href="https://www.rcsb.org/structure/1TRZ" id="pdb-source"></a><span id="coverage"></span><code>A/C=90–110, B/D=25–54</code></div>
+        <div class="mapping-selection"><strong id="selection-address"></strong><p id="mapping-status" role="status" aria-live="polite" aria-atomic="true"></p><div class="actions"><button type="button" class="button button-secondary" id="mapping-retry" hidden></button><button type="button" class="button button-secondary" id="open-analysis"></button></div></div>
+        <div id="proposal-viewer"></div>
+      </section>
+    </div>
+    <p class="proposal-foot" id="scope-note"></p>
+  </main>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import StructureViewer from '../../src/features/library/StructureViewer.tsx';
+    import { LocaleContext } from '../../src/i18n/locale.ts';
+    import { mappingFromSiftsXml } from '../../src/features/library/siftsXml.ts';
+    import { createVerifiedResidueBinding } from '../../src/features/library/referenceBinding.ts';
+    import xml from '../../src/features/library/fixtures/1trz-sifts-excerpt.xml?raw';
+    import listing from '../../src/features/library/fixtures/1trz-residues-excerpt.json';
+    import fasta from '../../src/features/descriptors/fixtures/P01308.fasta?raw';
+    import { residueClass } from '../../src/features/chemistry/config.ts';
+
+    // Only this review document redirects the already public structure URL to its local fixture.
+    // No application route, service, CSP, generated contract or production catalog is changed.
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = (input, init) => nativeFetch(String(input) === 'https://models.rcsb.org/1trz.bcif' ? '/e2e/fixtures/1TRZ.bcif' : input, init);
+    const sequence = fasta.split(/\r?\n/).slice(1).join('');
+    const texts = {
+      es: {
+        reviewTitle: 'Propuesta local · selección de referencia', reviewScope: 'Recorte de las áreas afectadas. Catálogo, consulta, perfil y propiedades conservan su composición actual. La imagen inicial y el visor usan las coordenadas experimentales de 1TRZ. Sin servicios externos.',
+        screen: 'Pantalla', states: 'Estado de revisión', position: 'Residuo de ejemplo', theme: 'Tema', language: 'Idioma', library: 'Biblioteca', analyze: 'Analizar', light: 'Claro', dark: 'Oscuro',
+        stateNames: { ambiguous: 'Varias cadenas', mapped: 'Correspondencia única', uncovered: 'Sin correspondencia', unobserved: 'Sin coordenadas (simulado)', missing: 'Mapeo ausente (simulado)', error: 'Fallo de consulta (simulado)', stale: 'Otra referencia (simulado)', loading: 'Consulta pendiente (simulado)' },
+        actual: 'Casos públicos de los extractos: 90, 110 → A/C; 25, 54 → B/D. La posición 60 queda fuera de la insulina madura. Los demás residuos no tienen interacción en esta maqueta.',
+        simulated: 'Estado simulado para revisar el recorrido; no describe una ausencia o un fallo observado en 1TRZ. El visor experimental permanece disponible.',
+        libraryTitle: 'Biblioteca', analyzeTitle: 'Insulina humana', libraryDescription: 'Proteínas de referencia para analizar y comparar, y sus estructuras medidas.', analyzeDescription: 'Ejemplo · Insulina humana · 110 residuos',
+        sequenceTitle: 'Secuencia de referencia', sequenceNote: 'Insulina humana · P01308 · 110 residuos', sequenceContext: 'La selección conserva la posición de la secuencia completa; los tramos sin correspondencia no se rellenan.',
+        structureTitle: 'Estructura medida', structureDescription: 'Insulina humana madura. Primer modelo de la unidad asimétrica.', pdb: 'Estructura para abrir', chain: 'Cadena de la estructura', chooseChain: 'Elegir cadena', author: 'autor', experimental: 'Experimental', pdbSource: '1TRZ · Ficha en RCSB PDB', coverage: 'Cobertura anotada: 51 de 110 posiciones.',
+        ambiguous: 'Esta posición tiene varias correspondencias: {addresses}. Elige una cadena para seleccionar un residuo.', mapped: 'Correspondencia única en el modelo 1: {addresses}.', uncovered: 'Esta posición no tiene correspondencia en {where}. La selección 3D se ha retirado.',
+        unobserved: 'La correspondencia existe, pero no hay coordenadas seleccionables en este modelo.', missing: 'No hay correspondencias disponibles para esta referencia y estructura.', error: 'No se pudo obtener la correspondencia. Puedes seguir explorando 1TRZ.', stale: 'La selección pertenece a otra referencia. Elígela de nuevo.', loading: 'Buscando correspondencias para P01308 y 1TRZ…', retry: 'Volver a consultar', openAnalysis: 'Ver selección en Analizar', backLibrary: 'Ver referencia en Biblioteca',
+        scope: 'Los intervalos describen cobertura anotada. El mapeo y la presencia de coordenadas se comprueban por residuo y por modelo; una estructura experimental no describe el precursor completo.',
+      },
+      en: {
+        reviewTitle: 'Local proposal · reference selection', reviewScope: 'Affected areas only. Catalog, lookup, profile and properties retain their current layout. The initial image and viewer use experimental 1TRZ coordinates. No external services.',
+        screen: 'Screen', states: 'Review state', position: 'Example residue', theme: 'Theme', language: 'Language', library: 'Library', analyze: 'Analyze', light: 'Light', dark: 'Dark',
+        stateNames: { ambiguous: 'Multiple chains', mapped: 'Unique correspondence', uncovered: 'No correspondence', unobserved: 'No coordinates (simulated)', missing: 'Mapping absent (simulated)', error: 'Lookup failure (simulated)', stale: 'Different reference (simulated)', loading: 'Lookup pending (simulated)' },
+        actual: 'Public excerpt cases: 90, 110 → A/C; 25, 54 → B/D. Position 60 is outside mature insulin. Other residues have no interaction in this mockup.',
+        simulated: 'Simulated state for reviewing the flow; it is not an observed absence or failure in 1TRZ. The experimental viewer remains available.',
+        libraryTitle: 'Library', analyzeTitle: 'Human insulin', libraryDescription: 'Reference proteins to analyze and compare, with their measured structures.', analyzeDescription: 'Example · Human insulin · 110 residues',
+        sequenceTitle: 'Reference sequence', sequenceNote: 'Human insulin · P01308 · 110 residues', sequenceContext: 'Selection keeps the position in the complete sequence; unmapped regions are never filled in.',
+        structureTitle: 'Measured structure', structureDescription: 'Mature human insulin. First model of the asymmetric unit.', pdb: 'Structure to open', chain: 'Structure chain', chooseChain: 'Choose a chain', author: 'author', experimental: 'Experimental', pdbSource: '1TRZ · RCSB PDB entry', coverage: 'Annotated coverage: 51 of 110 positions.',
+        ambiguous: 'This position has multiple correspondences: {addresses}. Choose a chain to select a residue.', mapped: 'Unique correspondence in model 1: {addresses}.', uncovered: 'This position has no correspondence in {where}. The 3D selection has been cleared.',
+        unobserved: 'A correspondence exists, but this model has no selectable coordinates for it.', missing: 'No correspondences are available for this reference and structure.', error: 'The correspondence could not be retrieved. You can keep exploring 1TRZ.', stale: 'This selection belongs to a different reference. Select it again.', loading: 'Looking up correspondences for P01308 and 1TRZ…', retry: 'Try lookup again', openAnalysis: 'View selection in Analyze', backLibrary: 'View reference in Library',
+        scope: 'Intervals describe annotated coverage. Mapping and coordinate availability are checked per residue and model; an experimental structure does not describe the complete precursor.',
+      },
+    };
+    const params = new URLSearchParams(location.search);
+    const ui = { screen: params.get('screen') === 'analyze' ? 'analyze' : 'library', state: params.get('state') ?? 'ambiguous', theme: params.get('theme') === 'dark' ? 'dark' : 'light', lang: params.get('lang') === 'en' ? 'en' : 'es', position: 90, chain: '' };
+    const byId = id => document.getElementById(id);
+    const root = createRoot(byId('proposal-viewer'));
+    const binding = createVerifiedResidueBinding();
+    let ready = false;
+    const mapping = mappingFromSiftsXml(xml, listing, '1TRZ', '2026-10-23T21:40:00Z');
+    // SHA-256 of the existing public P01308 FASTA sequence, fixed independently for this proposal.
+    const referenceSha256 = '99603f8fb1e9872e2d24ee1e9f85108c2bddea6b148a0f1099e16ba2715c8263';
+    const simulated = () => !['ambiguous', 'mapped', 'uncovered'].includes(ui.state);
+    function setScenario(value) {
+      ui.state = Object.hasOwn(texts.es.stateNames, value) ? value : 'ambiguous';
+      ui.position = ui.state === 'uncovered' ? 60 : 90;
+      ui.chain = ui.state === 'mapped' ? 'A' : '';
+    }
+    setScenario(ui.state);
+    function pick(pdbId, residue) {
+      if (pdbId !== '1TRZ' || !residue || !ready || simulated()) return;
+      const result = binding.fromStructure(residue);
+      if (result.status !== 'mapped') { ui.state = 'missing'; ui.chain = ''; render(); return; }
+      ui.position = result.candidates[0].position; ui.chain = residue.labelAsymId; ui.state = 'mapped'; render();
+    }
+    async function coordinates(pdbId, coordinates) {
+      const result = await binding.bind({ mapping, reference_sequence_version: 1, reference_sequence_sha256: referenceSha256 }, { accession: 'P01308', sequence, sequenceVersion: 1 }, { pdbId, coordinates }, 1);
+      ready = result === 'ready'; render();
+    }
+    function render() {
+      const t = texts[ui.lang]; document.documentElement.lang = ui.lang; document.documentElement.dataset.theme = ui.theme;
+      document.title = `ProteinForge · ${t.reviewTitle}`;
+      byId('proposal-main').dataset.screen = ui.screen;
+      for (const [id, key] of Object.entries({ 'review-title': 'reviewTitle', 'review-scope': 'reviewScope', 'screen-label': 'screen', 'state-label': 'states', 'position-label': 'position', 'theme-label': 'theme', 'language-label': 'language', 'sequence-title': 'sequenceTitle', 'sequence-note': 'sequenceNote', 'sequence-context': 'sequenceContext', 'structure-title': 'structureTitle', 'structure-description': 'structureDescription', 'pdb-label': 'pdb', 'chain-label': 'chain', experimental: 'experimental', 'pdb-source': 'pdbSource', coverage: 'coverage', 'scope-note': 'scope', 'mapping-retry': 'retry' })) byId(id).textContent = t[key];
+      byId('page-title').textContent = t[ui.screen + 'Title']; byId('page-description').textContent = t[ui.screen + 'Description'];
+      byId('scenario-note').textContent = simulated() ? t.simulated : t.actual;
+      for (const option of byId('review-screen').options) option.textContent = t[option.value];
+      for (const option of byId('review-theme').options) option.textContent = t[option.value];
+      byId('review-state').replaceChildren(...Object.entries(t.stateNames).map(([key, label]) => new Option(label, key)));
+      for (const key of ['screen', 'state', 'theme']) byId('review-' + key).value = ui[key];
+      byId('review-language').value = ui.lang; byId('review-position').value = String(ui.position);
+      byId('mapping-chain').replaceChildren(new Option(t.chooseChain, ''), ...['A', 'B', 'C', 'D'].map(chain => new Option(`${chain} · ${t.author} ${chain}`, chain)));
+      byId('mapping-chain').value = ui.chain; byId('mapping-chain').disabled = simulated();
+      byId('reference-sequence').replaceChildren(...Array.from({ length: Math.ceil(sequence.length / 10) }, (_, rowIndex) => {
+        const row = document.createElement('span'); row.className = 'sequence-row';
+        const number = document.createElement('span'); number.className = 'sequence-number'; number.textContent = String(rowIndex * 10 + 1); row.append(number);
+        for (let index = rowIndex * 10; index < Math.min(sequence.length, rowIndex * 10 + 10); index += 1) {
+          const span = document.createElement('span'); span.textContent = sequence[index]; span.className = index + 1 === ui.position ? 'sequence-letter selected' : 'sequence-letter';
+          const chemistry = residueClass(sequence[index]); if (chemistry) span.style.backgroundColor = `var(--residue-${chemistry}-soft)`;
+          row.append(span);
+        }
+        return row;
+      }));
+      byId('selection-address').textContent = `P01308:${ui.position} · ${sequence[ui.position - 1]}`;
+      const result = binding.fromSequence(ui.position, ui.chain || undefined);
+      const observed = result.status === 'mapped' && !simulated();
+      const selected = observed ? { ...result.candidates[0].address, modelNum: 1 } : null;
+      let state = simulated() ? ui.state : !ready ? 'loading' : result.status === 'mapped' ? 'mapped' : result.status === 'ambiguous' ? 'ambiguous' : 'uncovered';
+      const addresses = 'candidates' in result ? result.candidates.map(item => `${item.address.labelAsymId}:${item.address.authSeqId ?? '—'}${item.address.insertionCode}`).join(', ') : '';
+      byId('mapping-status').textContent = t[state].replace('{addresses}', addresses).replace('{where}', ui.chain ? `1TRZ · ${ui.chain}` : '1TRZ');
+      byId('mapping-retry').hidden = state !== 'error';
+      byId('open-analysis').textContent = t[ui.screen === 'library' ? 'openAnalysis' : 'backLibrary'];
+      root.render(React.createElement(LocaleContext.Provider, { value: ui.lang }, React.createElement(StructureViewer, {
+        pdbId: '1TRZ', placeholder: React.createElement('img', { className: 'proposal-fallback', src: `assets/sifts-1trz-${ui.theme}.png`, alt: '1TRZ' }),
+        residueSelection: { pdbId: '1TRZ', selected, onSelect: pick, onReady: coordinates },
+      })));
+      const url = new URL(location.href); for (const key of ['screen', 'state', 'theme', 'lang']) url.searchParams.set(key, ui[key]); history.replaceState(null, '', url);
+      document.body.dataset.binding = ready ? 'ready' : binding.status;
+    }
+    byId('review-screen').addEventListener('change', event => { ui.screen = event.target.value; render(); });
+    byId('review-state').addEventListener('change', event => { setScenario(event.target.value); render(); });
+    byId('review-position').addEventListener('change', event => { ui.position = Number(event.target.value); ui.state = ui.position === 60 ? 'uncovered' : ui.chain ? 'mapped' : 'ambiguous'; render(); });
+    byId('review-theme').addEventListener('change', event => { ui.theme = event.target.value; render(); });
+    byId('review-language').addEventListener('change', event => { ui.lang = event.target.value; render(); });
+    byId('mapping-chain').addEventListener('change', event => { ui.chain = event.target.value; ui.state = ui.chain ? 'mapped' : 'ambiguous'; render(); });
+    byId('mapping-retry').addEventListener('click', () => { setScenario('ambiguous'); render(); });
+    byId('open-analysis').addEventListener('click', () => { ui.screen = ui.screen === 'library' ? 'analyze' : 'library'; render(); byId('page-title').scrollIntoView({ block: 'start' }); });
+    window.addEventListener('pagehide', () => { binding.clear(); root.unmount(); });
+    render();
+  </script>
+</body>
+</html>
