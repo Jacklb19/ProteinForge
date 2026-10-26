@@ -1,6 +1,6 @@
 # Calidad y rendimiento S7
 
-**Actualización del 25 de octubre:** segunda entrega al final de este documento. Las secciones y cifras del 23 conservan la evidencia inicial; no describen la matriz de motores ni las correcciones posteriores.
+**Actualización del 26 de octubre:** segunda entrega del 25, cierre de herramientas y transición de PWA instalada al final de este documento. Las secciones y cifras del 23 conservan la evidencia inicial; no describen la matriz de motores ni las correcciones posteriores.
 
 Auditoría local del 23 de octubre de 2026, desde frontend `4404997`, aislada en `parallel/quality`. Esta evidencia no certifica producción, Safari ni hardware de cuatro núcleos. No se usaron sesiones del propietario ni servicios reales para los datos autenticados.
 
@@ -150,7 +150,7 @@ Para repetir la atribución: build con `npm run build -- --sourcemap`; `STARTUP_
 - Chromium: 44/44 en la matriz inicial y 11/11 de comprobaciones posteriores. Firefox: 43/44 inicialmente; el único fallo era la interpretación de 304, luego WASM 2/2 y nuevas comprobaciones de caché, tabla y contraste correctas. No se repitieron los 43 recorridos ya aprobados.
 - WebKit: matriz inicial 25/44; se conservaron sus fallos como evidencia. Tras corregir caché/contraste y hacer determinista la cancelación: 8/8 afectados correctos (alineamiento, informes PDF/JSON/CSV consecutivos, carga anónima, recargas y tabla), además de modalidad y WASM correctos en las comprobaciones específicas. Las gráficas sin transferencia de canvas continúan como capacidad ausente, no como pruebas aprobadas.
 - PWA limpia final correcta en Chromium y Firefox: 46 recursos / 2.847,23 KiB; fuentes, Workers/WASM, aislamiento, PDF, laboratorio y cuaderno exacto offline; Mol* excluido. WebKit registra `page.reload: WebKit encountered an internal error` al recargar tras `setOffline(true)`: **offline no certificado** en ese motor; no se evitó esa comprobación para darla por aprobada.
-- **Actualización de PWA existente no probada.** Los recursos cuyo hash no cambie pueden conservar respuestas precache previas sin CORP. Las pruebas con perfil limpio no acreditan migración de cabeceras ni actualización segura desde una instalación anterior. No se añade una invalidación general de caché sin comprobar antes esa necesidad; queda explícito para la integración.
+- **Al cierre del 25, actualización de PWA existente no probada.** Los recursos cuyo hash no cambie pueden conservar respuestas precache previas sin CORP. Las pruebas con perfil limpio no acreditan migración de cabeceras ni actualización segura desde una instalación anterior. La comprobación acotada del 26 se describe al final; no equivale a migrar todas las cabeceras ni a certificar otras transiciones.
 - Capturas por motor en `artifacts/quality/{chromium,firefox,webkit}-2026-10-25/`, tabla en `profile-data-*-2026-10-25.png`, exportación en `reports-*-*.png`. Se revisaron el menú y la alternativa de tabla y el contraste corregido; no hay nueva composición.
 
 Quedan abiertos RNF-01 (tareas largas e INP de campo), RNF-02 (hardware físico acordado), RNF-03 (producción/red/PWA instalada), RNF-04 (carga del backend), lectores de pantalla reales, Safari/dispositivos físicos/versiones anteriores y los límites PWA indicados. Esta entrega reduce defectos comprobados y amplía evidencia; no certifica S7 integral ni publica cambios.
@@ -158,3 +158,35 @@ Quedan abiertos RNF-01 (tareas largas e INP de campo), RNF-02 (hardware físico 
 ### Cierre de herramientas — 26 de octubre de 2026
 
 `check-pwa.mjs` incluye ahora el arranque del navegador dentro de `try/finally` y cierra el servidor incluso si falla el arranque o el cierre del navegador. Verificación acotada con ejecutable inexistente: error de arranque esperado, proceso terminado y puerto 5319 disponible para un nuevo servidor. La comprobación inicial por conexión recibió `EACCES` del entorno y no se usó como evidencia; la comprobación posterior pudo enlazar y liberar ese mismo puerto. Registros `artifacts/quality/pwa-launch-failure-2026-10-26.log` y `pwa-launch-cleanup-2026-10-26.log`; sintaxis y diff correctos. No se repiten ni se amplían las baterías de aplicación por este ajuste de limpieza.
+
+## Transición de PWA instalada — 26 de octubre de 2026
+
+Comprobación adicional de un solo escenario en **WebKit 26.6 / Windows**, con Service Workers permitidos y un contexto de navegador independiente. Se generaron dos builds con las mismas dependencias instaladas: fuente Git completa de `a5de1cf7dab7b49330ca15ec13c95aa9365e73e6`, anterior a CORP, y fuente de esta copia en `1893ff3f9ed8623edda16d72bbf09a1f70ff0fcf`. La fuente anterior se extrajo con `git archive` bajo `tmp`, validando las rutas antes de extraer; sin checkout/rebase ni escritura en `dev`. No se prueba el árbol canónico posterior con cambios de otros frentes.
+
+Ambas versiones se sirven sucesivamente desde **el mismo servidor y origen** `http://127.0.0.1:5316`: COOP `same-origin` y COEP `require-corp` en ambas fases, CORP `same-origin` solo en la nueva. El servidor estático local conserva caché HTTP, ETag y respuestas condicionales; las rutas Auth/RPC se resuelven en una fixture local con identidad ficticia y un documento en memoria. No se interceptan recursos con `page.route`, no se desactiva la caché, no se usan servicios reales ni credenciales del propietario. Esto comprueba la transición local de precaché, no el comportamiento de un CDN o despliegue real.
+
+Recorrido final, **1/1 correcto**:
+
+1. Instalar la versión anterior y recargar hasta que su Service Worker controle la página; comprobar aislamiento y nueve recursos comunes precacheados sin CORP.
+2. Editar una secuencia propia de 60 residuos y ventana 19, calcular y guardar proyecto mediante la API local simulada.
+3. Cambiar el servidor al build nuevo y solicitar la comprobación normal con `registration.update()`. El reemplazo queda `installed/waiting`; no se fuerza `skipWaiting`. El borrador sigue intacto y permite editar a 61 residuos y ventana 9; se guardan esos cambios explícitamente.
+4. Cerrar todas las páginas controladas, dejar la aplicación cerrada un segundo y reabrir en **el mismo contexto y origen**. Comprobar controlador activo, ausencia de reemplazo en espera y script principal del build nuevo. Ese segundo representa el intervalo entre cerrar/reabrir; no mide latencia de actualización ni sustituye las aserciones del estado activo.
+5. Comprobar recuperación de los 61 residuos y ventana 9 del proyecto guardado, y contenido de `localStorage` idéntico, incluida la referencia al proyecto. Editar a 62 residuos, recalcular cinco descriptores, alinear una pareja nueva de nueve residuos con resultado `9 de 9` y volver a Analizar manteniendo el nuevo borrador.
+
+Los nueve recursos comunes —ocho Workers y WASM— permanecen precacheados **sin CORP**, como antes. No hubo peticiones al servidor de esos recursos durante la fase nueva; el cálculo y alineamiento funcionan con los recursos retenidos. El WASM de 21.953 bytes coincide exactamente con el versionado, SHA-256 `55f5794d3016738c551ae7b10fdcccc0cf89a6137928924c27a32879078bed9f`. Aislamiento conservado, dos escrituras explícitas a la fixture local, cero errores de página/consola y cero peticiones externas en la ejecución final. No se borraron perfiles, almacenamiento ni cachés manualmente; solo se ejecutó la limpieza normal del propio Workbox al activar. **Esta transición online no reproduce una necesidad de invalidar recursos por CORP**, por lo que no se cambia la política de precaché ni se modifica código de producto.
+
+La conservación tiene un alcance preciso: el borrador sin guardar permanece mientras espera la actualización y entre rutas dentro de una página viva; tras cerrar/reabrir se recupera el **proyecto guardado**. El editor mantiene intencionadamente su texto en memoria, sin persistir secuencias en almacenamiento local. No se atribuye a esta prueba recuperación automática de texto sin guardar tras cerrar la aplicación, ni se prueba persistencia real de Supabase/JWT.
+
+Artefactos ignorados: `artifacts/quality/pwa-upgrade-2026-10-26/result.json`, builds `before/after`, fuente Git archivada y `after-upgrade.png`, revisada. Log final `artifacts/quality/pwa-upgrade-online-final-2026-10-26.log`. SHA-256 de los Service Workers: anterior `948f3f1a75ae43bf6e273cc7552261860c62d403d4240868b1ea213f0c7507e5`, nuevo `47460a0580b1b5bc9d274e48a3c2eb881a24191a044549b440cbe0b9a04a7468`.
+
+Los intentos previos se conservan y **no se cuentan como aprobados**: acceso local inicialmente restringido, espera de evento de inspección no expuesto por WebKit y timeouts al reabrir/probar activación. La ejecución final usa el estado de registro desde la página y el intervalo de aplicación cerrada descrito. Un intento adicional con `setOffline(true)` después de activar y recuperar el proyecto permitió recalcular con el Worker ya vivo, pero al crear el alineamiento emitió `WebKit encountered an internal error`; evidencia en `offline-internal-error.json` y `pwa-upgrade-final-2026-10-26.log`. El resultado online final **no resuelve ni certifica offline**, y no basta para atribuir aquel error a CORP o a la migración. Se mantienen los límites gráficos/offline de WebKit, Safari, versiones anteriores, actualización en producción y borradores sin guardar. No se amplió la matriz ni se repitieron rendimiento/baterías generales.
+
+Reproducción del escenario completo (requiere el WebKit oficial instalado y `tar` disponible):
+
+```powershell
+$env:PLAYWRIGHT_BROWSERS_PATH=Join-Path $PWD 'artifacts/browsers'
+$env:PWA_UPGRADE_OUTPUT='artifacts/quality/otra-transicion'
+node node_modules/playwright/cli.js test --config scripts/pwa-upgrade.config.mjs
+```
+
+El comando genera ambos builds bajo la salida indicada y usa solo ajustes públicos ficticios del servidor local. `PWA_UPGRADE_BEFORE_REVISION` permite elegir explícitamente otra revisión, que constituye otra transición por verificar. La configuración dedicada usa un solo motor/worker y no incorpora el archivo `.check.ts` a las E2E generales. Tipos E2E, lint del comprobador y sintaxis de su configuración correctos; no hay cambios de dependencias ni nuevos textos de interfaz.
