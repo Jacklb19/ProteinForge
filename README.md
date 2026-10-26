@@ -1,6 +1,6 @@
 # ProteinForge — frontend
 
-Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, visor experimental Mol*, informes locales PDF/JSON/CSV y búsqueda reproducible de candidatos. CRUD por propietario implementado localmente; requiere activar migraciones/publicar API. Predicción, interpretación, dominios/ensamblado y selección 3D sincronizada pendientes. [Estado y evidencia](docs/plan-desarrollo.md).
+Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, visor experimental Mol*, informes locales PDF/JSON/CSV y búsqueda reproducible de candidatos. Proyectos por propietario, laboratorio con selección secuencia/3D y asistente de interpretación publicados en la entrega del 23 de octubre. El cierre autenticado del asistente sigue por verificar. El 25 de octubre se integran localmente mejoras de calidad y el núcleo SIFTS/puente opcional del visor; su conexión general con Biblioteca/Analizar aún está pendiente. Predicción estructural y dominios/ensamblado pendientes. [Estado y evidencia](docs/plan-desarrollo.md).
 
 ## Repositorios y carpetas
 
@@ -47,11 +47,11 @@ npm run check:wasm
 
 ## Arquitectura y límites
 
-El cálculo pesado ocurre en Workers; el alineamiento usa WASM con máximo de 5.000 residuos por secuencia. FASTA admite 5.000.000 bytes. PWA precachea recursos locales. La cobertura V8 no mide internamente Rust. Inglés completo, auditoría de otros navegadores y rendimiento externo pendientes.
+El cálculo pesado ocurre en Workers; el alineamiento usa WASM con máximo de 5.000 residuos por secuencia. FASTA admite 5.000.000 bytes. PWA precachea recursos locales. La cobertura V8 no mide internamente Rust. La interfaz es bilingüe español/inglés; auditoría de otros navegadores y rendimiento externo continúan pendientes.
 
 El backend es propietario de migraciones Supabase y su prueba de RLS. Este frontend se puede clonar, probar y construir sin el backend. `VITE_API_BASE_URL` habilita los proyectos y la consulta de UniProt; sin ella no se hace ninguna petición a la API. La web habla con la API por gRPC-Web (clientes generados en `src/gen/` desde los contratos del backend; ver [gRPC](docs/grpc.md)); el backend conserva además sus rutas REST. La sesión se envía solo al servidor configurado, sin redirecciones ni cookies. Para publicación, añadir únicamente el origen concreto de la API a `connect-src` de la CSP; no se amplían orígenes antes de conocer la URL. Configurar CORS en el backend con el origen exacto del frontend.
 
-El generador local está implementado; diseño estructural/predicción pendientes. Próxima prioridad: [laboratorio didáctico](docs/design-lab-roadmap.md), con una prueba real pequeña antes de ampliar la interfaz. El asistente solo interpreta. Descriptores y predicciones no demuestran función biológica ni novedad experimental.
+El generador local y el [laboratorio didáctico](docs/laboratory.md) están implementados. Este permite explorar resultados guardados, editar/proteger posiciones y conservar variantes; una edición invalida la estructura asociada hasta nueva predicción. Diseño de forma nueva y cálculo estructural desde la app siguen pendientes de una ejecución gratuita comprobada. El asistente solo interpreta. Descriptores y predicciones no demuestran función biológica ni novedad experimental.
 
 ## Documentación y despliegue
 
@@ -63,4 +63,4 @@ El generador local está implementado; diseño estructural/predicción pendiente
 - [Archivo histórico](docs/archive/README.md)
 - [Laboratorio de diseño y alojamiento](docs/design-lab-roadmap.md): alcance acordado, modelos, primera prueba, hardware y precios consultados
 
-Vercel importa únicamente este repositorio con preset Vite; el backend usa otro proyecto. Configurar producción desde `main` y desarrollo desde `dev` según corresponda. URLs efectivas pendientes de registrar. El usuario controla publicación y cambios remotos; la organización local no cambia el despliegue existente.
+Vercel importa únicamente este repositorio con preset Vite; el backend usa otro proyecto. Producción desde `main`: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/), comprobados en la publicación del 23 de octubre. Los cambios locales del 25 aún no están publicados. El usuario controla publicación y cambios remotos; la organización local no cambia el despliegue existente.
