@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { updateInvalidPositions, splitStandardResidues, validateSequence } from './sequence';
 import { FastaLoader } from './FastaLoader';
@@ -22,6 +22,9 @@ import { analysisFacts } from '../assistant/facts';
 import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
 import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
+import { isCurrentReference } from '../library/referenceView';
+
+const MappedStructure = lazy(() => import('../library/MappedStructure').then(module => ({ default: module.MappedStructure })));
 
 type Panel = 'sequence' | 'project' | null;
 const SEQUENCE_PANEL_ID = 'sequence-panel';
@@ -30,7 +33,7 @@ const PROJECT_PANEL_ID = 'project-panel';
 /** One protein per page: its sequence, profile and properties, with a single line of actions. */
 export function EditorPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
-  const { text, setText, profileWindow, setProfileWindow, source, setSource } = useSequenceDraft();
+  const { text, setText, profileWindow, setProfileWindow, source, setSource, referenceView, setReferenceView } = useSequenceDraft();
   const alignment = useAlignmentDraft();
   const navigate = useNavigate();
   const descriptors = useDescriptors(text);
@@ -39,7 +42,13 @@ export function EditorPage(): React.JSX.Element {
   const [invalidPositions, setInvalidPositions] = useState<number[]>([]);
   // An empty draft opens with the editor ready; it stays open while the visitor types.
   const [panel, setPanel] = useState<Panel>(() => (text === '' ? 'sequence' : null));
-  const [selected, setSelected] = useState<number | null>(() => annotationsFor(source)?.highlight ?? null);
+  const [localSelected, setLocalSelected] = useState<number | null>(() => annotationsFor(source)?.highlight ?? null);
+  const activeView = isCurrentReference(referenceView, text, source) ? referenceView : null;
+  const selected = activeView ? activeView.position : localSelected;
+  const setSelected = (position: number | null): void => {
+    setLocalSelected(position);
+    if (activeView) setReferenceView({ ...activeView, position });
+  };
   const validatedText = useRef('');
   const validatedPositions = useRef<number[]>([]);
   const highlight = useRef<HTMLPreElement>(null);
@@ -64,14 +73,14 @@ export function EditorPage(): React.JSX.Element {
     validatedPositions.current = entry.invalidPositions;
     setText(entry.sequence);
     setInvalidPositions(entry.invalidPositions);
-    setSelected(null);
+    setLocalSelected(null);
   };
 
   const clear = (): void => { loadEntry({ number: 0, header: '', sequence: '', invalidPositions: [] }); setPanel('sequence'); };
   const restoreExample = (): void => {
     loadEntry({ number: 0, header: '', sequence: DEFAULT_EXAMPLE.text, invalidPositions: [] });
     setSource(DEFAULT_EXAMPLE.source);
-    setSelected(annotationsFor(DEFAULT_EXAMPLE.source)?.highlight ?? null);
+    setLocalSelected(annotationsFor(DEFAULT_EXAMPLE.source)?.highlight ?? null);
     setPanel(null);
   };
 
@@ -100,7 +109,7 @@ export function EditorPage(): React.JSX.Element {
   const hasInput = residueCount > 0 || validation.invalidPositions.length > 0;
   const annotations = annotationsFor(source);
   const reference = referenceFor(validation.sequence);
-  const title = annotations ? t(annotations.nameKey)
+  const title = annotations ? t(annotations.nameKey) : activeView?.entry ? activeView.entry.name
     : reference ? t(reference.label)
       : hasInput ? t('editor.ownTitle') : t('editor.emptyTitle');
   const count = residueCount > 0 ? t(residueCount === 1 ? 'editor.residueCountOne' : 'editor.residueCount', { count: formatNumber(residueCount) }) : '';
@@ -193,7 +202,12 @@ export function EditorPage(): React.JSX.Element {
                 <CompositionBar sequence={validation.sequence} />
               </section>
             )}
-            {annotations && (
+            {activeView ? <section aria-label={t('library.structureTitle')}>
+              <h3>{t('library.structureTitle')}</h3>
+              <Suspense fallback={<p className="status-message">{t('library.viewerLoading')}</p>}><MappedStructure compact reference={activeView.source} structures={activeView.structures} pdbId={activeView.pdbId} position={selected} chain={activeView.chain}
+                onStructure={pdbId => { setReferenceView({ ...activeView, pdbId, chain: null, position: null }); }}
+                onSelect={(position, chain) => { setReferenceView({ ...activeView, position, chain }); }} /></Suspense>
+            </section> : annotations && (
               <StructureStage
                 variant="rail"
                 annotations={annotations}

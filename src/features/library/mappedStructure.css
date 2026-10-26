@@ -1,0 +1,7 @@
+.mapped-reference, .mapped-model { display: grid; min-width: 0; gap: var(--space-md); }
+.mapped-reference > *, .mapped-model > * { min-width: 0; }
+.mapped-position, .mapping-status, .mapped-model .structure-provenance { overflow-wrap: anywhere; }
+.mapped-reference .actions { flex-wrap: wrap; }
+.mapped-reference .text-input { max-width: 100%; }
+.mapped-reference-compact .structure-canvas { height: var(--height-stage-rail); }
+.mapped-reference-compact .structure-canvas[data-ready='false'] { height: auto; }

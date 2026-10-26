@@ -6,8 +6,9 @@ import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
 import { timestampFromIso } from '../src/features/api/timestamps';
 import { ListProjectsResponseSchema } from '../src/gen/proteinforge/project/v1/project_service_pb';
-import { GetEntryRequestSchema, GetEntryResponseSchema, SearchEntriesRequestSchema, SearchEntriesResponseSchema } from '../src/gen/proteinforge/reference/v1/reference_service_pb';
-import { fulfillRpc, isRpc, rpcMethod, rpcRequest } from './rpc';
+import { GetEntryRequestSchema, GetEntryResponseSchema, GetResidueMappingRequestSchema, GetResidueMappingResponseSchema, SearchEntriesRequestSchema, SearchEntriesResponseSchema } from '../src/gen/proteinforge/reference/v1/reference_service_pb';
+import { siftsFixture } from './siftsFixture';
+import { GRPC_CODES, fulfillRpc, fulfillRpcError, isRpc, rpcMethod, rpcRequest } from './rpc';
 import { assertFits, message, openExportMenu, openSequenceEditor, storeSession } from './helpers';
 
 const fixture = (accession: string): string => readFileSync(`src/features/descriptors/fixtures/${accession}.fasta`, 'utf8').split(/\r?\n/).slice(1).join('');
@@ -37,6 +38,13 @@ async function serveUniProt(page: Page, entry: typeof reference): Promise<void> 
     const method = rpcMethod(route);
     if (method === 'ProjectService/ListProjects') return fulfillRpc(route, ListProjectsResponseSchema, {});
     expect(route.request().headers().authorization).toBe(`Bearer ${ACCOUNT.accessToken}`);
+    if (method === 'ReferenceService/GetResidueMapping') {
+      const request = rpcRequest(route, GetResidueMappingRequestSchema);
+      expect(request).toMatchObject({ accession: 'P01308', sequenceVersion: 1 });
+      expect(['1TRZ', ...entry.structures.map(item => item.id)]).toContain(request.pdbId);
+      if (request.pdbId !== '1TRZ') return fulfillRpcError(route, GRPC_CODES.notFound, 'sifts-not-found');
+      return fulfillRpc(route, GetResidueMappingResponseSchema, siftsFixture());
+    }
     const summary = { accession: entry.accession, name: entry.name, organism: entry.organism, length: entry.length, reviewed: entry.reviewed };
     const retrieveTime = timestampFromIso(entry.retrievedAt);
     if (method === 'ReferenceService/SearchEntries') {
