@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { spanish } from '../src/i18n/es';
+import { english } from '../src/i18n/en';
 import { InterpretRequestSchema, InterpretResponseSchema, Subject } from '../src/gen/proteinforge/assistant/v1/assistant_service_pb';
 import { ROUTES } from '../src/shared/navigation';
 import { required } from '../src/features/design-lab/config';
@@ -14,7 +15,7 @@ const MODEL = 'openai/gpt-oss-120b';
 interface Calls { requests: { subject: Subject; language: string; facts: { label: string; value: string; unit?: string }[] }[] }
 
 /** Answers AssistantService; every other RPC keeps failing loudly, as in the other suites. */
-async function mockAssistant(page: Page, outcome: 'ok' | 'rate-limit' = 'ok'): Promise<Calls> {
+async function mockAssistant(page: Page, outcome: 'ok' | 'rate-limit' | 'not-configured' = 'ok'): Promise<Calls> {
   const calls: Calls = { requests: [] };
   await storeSession(page);
   await page.route('**/*', async (route) => {
@@ -24,6 +25,7 @@ async function mockAssistant(page: Page, outcome: 'ok' | 'rate-limit' = 'ok'): P
     const request = rpcRequest(route, InterpretRequestSchema);
     calls.requests.push({ subject: request.subject, language: request.language, facts: request.facts.map((fact) => ({ label: fact.label, value: fact.value, unit: fact.unit })) });
     if (outcome === 'rate-limit') { await fulfillRpcError(route, GRPC_CODES.resourceExhausted, 'assistant-rate-limit'); return; }
+    if (outcome === 'not-configured') { await fulfillRpcError(route, GRPC_CODES.failedPrecondition, 'assistant-not-configured'); return; }
     await fulfillRpc(route, InterpretResponseSchema, { text: READING, model: MODEL, provider: 'groq', createTime: { seconds: 1792800000n, nanos: 0 } });
   });
   return calls;
@@ -69,6 +71,25 @@ test('a refused reading is explained and leaves the action usable', async ({ pag
   await expect(reading.getByText(spanish['assistant.rateLimit'])).toBeVisible();
   await expect(reading.getByText(spanish['assistant.sources'])).toHaveCount(0);
   await expect(reading.getByRole('button', { name: spanish['assistant.read.analysis'] })).toBeEnabled();
+});
+
+test('an unconfigured assistant uses the unavailable message in both languages', async ({ page }) => {
+  const calls = await mockAssistant(page, 'not-configured');
+  await page.goto(ROUTES.analyze);
+  const reading = page.locator('.reading');
+  for (const catalog of [spanish, english]) {
+    if (catalog === english) {
+      await page.goto(ROUTES.profile);
+      await page.getByRole('radio', { name: spanish['settings.english'], exact: true }).check();
+      await page.goto(ROUTES.analyze);
+    }
+    await reading.getByRole('button', { name: catalog['assistant.read.analysis'] }).click();
+    await expect(reading.getByRole('status')).toHaveText(catalog['assistant.unavailable']);
+    await expect(reading.getByText(catalog['assistant.sources'])).toHaveCount(0);
+    await expect(reading.getByRole('button', { name: catalog['assistant.read.analysis'] })).toBeEnabled();
+    await expect(reading).not.toContainText('assistant-not-configured');
+  }
+  expect(calls.requests.map((request) => request.language)).toEqual(['es', 'en']);
 });
 
 test('the laboratory reading leaves the figures of an edited draft out', async ({ page }) => {

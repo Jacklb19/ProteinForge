@@ -7,6 +7,7 @@ export const REQUEST_ID_HEADER = 'X-Request-Id';
 export const RPC_DETAIL_CODES: Partial<Record<string, ApiErrorCode>> = {
   'projects-schema-unavailable': 'schema',
   'identity-not-configured': 'unavailable',
+  'assistant-not-configured': 'unavailable',
 };
 /** Only explicit HTTP(S) origins/paths are allowed; credentials and URL fragments are rejected. */
 export function readApiBaseUrl(environment: ImportMetaEnv = import.meta.env): string | null {
