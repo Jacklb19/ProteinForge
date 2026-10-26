@@ -21,12 +21,13 @@ const browserName = process.env.PWA_CHECK_BROWSER ?? 'chromium';
 const engine = browserName === 'chromium' ? chromium : browserName === 'firefox' ? firefox : browserName === 'webkit' ? webkit : null;
 if (!engine) throw new Error('PWA_CHECK_BROWSER must be chromium, firefox or webkit.');
 const server = await preview({ preview: { host: '127.0.0.1', port, strictPort: true } });
-const browser = await engine.launch(browserName === 'chromium' ? {
-  executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
-    ?? (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined),
-} : {});
-process.stdout.write(`PWA browser: ${browserName} ${browser.version()}\n`);
+let browser;
 try {
+  browser = await engine.launch(browserName === 'chromium' ? {
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
+      ?? (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined),
+  } : {});
+  process.stdout.write(`PWA browser: ${browserName} ${browser.version()}\n`);
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto(baseURL + '/');
@@ -129,6 +130,9 @@ try {
   if (viewerCached) throw new Error('The online Mol* engine was unexpectedly precached.');
   process.stdout.write('Offline candidate Worker and PDF export verified; Mol* engine excluded from precache.\n');
 } finally {
-  await browser.close();
-  await new Promise((resolve, reject) => { server.httpServer.close((error) => error ? reject(error) : resolve()); });
+  try {
+    await browser?.close();
+  } finally {
+    await new Promise((resolve, reject) => { server.httpServer.close((error) => error ? reject(error) : resolve()); });
+  }
 }

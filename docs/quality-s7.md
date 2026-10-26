@@ -154,3 +154,7 @@ Para repetir la atribución: build con `npm run build -- --sourcemap`; `STARTUP_
 - Capturas por motor en `artifacts/quality/{chromium,firefox,webkit}-2026-10-25/`, tabla en `profile-data-*-2026-10-25.png`, exportación en `reports-*-*.png`. Se revisaron el menú y la alternativa de tabla y el contraste corregido; no hay nueva composición.
 
 Quedan abiertos RNF-01 (tareas largas e INP de campo), RNF-02 (hardware físico acordado), RNF-03 (producción/red/PWA instalada), RNF-04 (carga del backend), lectores de pantalla reales, Safari/dispositivos físicos/versiones anteriores y los límites PWA indicados. Esta entrega reduce defectos comprobados y amplía evidencia; no certifica S7 integral ni publica cambios.
+
+### Cierre de herramientas — 26 de octubre de 2026
+
+`check-pwa.mjs` incluye ahora el arranque del navegador dentro de `try/finally` y cierra el servidor incluso si falla el arranque o el cierre del navegador. Verificación acotada con ejecutable inexistente: error de arranque esperado, proceso terminado y puerto 5319 disponible para un nuevo servidor. La comprobación inicial por conexión recibió `EACCES` del entorno y no se usó como evidencia; la comprobación posterior pudo enlazar y liberar ese mismo puerto. Registros `artifacts/quality/pwa-launch-failure-2026-10-26.log` y `pwa-launch-cleanup-2026-10-26.log`; sintaxis y diff correctos. No se repiten ni se amplían las baterías de aplicación por este ajuste de limpieza.
