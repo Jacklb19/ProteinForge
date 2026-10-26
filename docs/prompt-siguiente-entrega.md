@@ -2,6 +2,12 @@
 
 Actualizado el **26 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes.
 
+## Nueva prioridad: experiencia y rediseño integral
+
+El propietario solicita analizar y mejorar todas las secciones, con organización, explicaciones científicas correctas y calidad de presentación comercial, dentro del alcance real del proyecto. [Auditoría, valoraciones y plan por pantalla](usability-redesign-proposal-2026-10-26.md). Tres direcciones navegables en `artifacts/usability-redesign-2026-10-26/prototype/`, fuera de Git/build; A «Mesa clara» recomendada. Vista local en puerto 5331 con `index.html` explícito, según el informe. 14 pantallas, 112 configuraciones de idioma/anchura/tema comprobadas; batería de maqueta 16/16 y regresiones finales 4/4. La aplicación React todavía conserva su diseño actual.
+
+Se presentó la decisión de dirección y aprobación del plan conforme al AGENTS local; comprobar la respuesta posterior del propietario antes de implementar. La selección sustituirá el marco visual pertinente, sin ampliar algoritmos, inferencia, contratos, persistencia o autorizaciones de publicación. La revisión automática externa de `src` fue rechazada por no garantizar permanencia local del código; se hizo inspección local/navegador sin subir fuentes. Los pendientes anteriores se conservan y no se reabren ensayos/migraciones/publicaciones ya terminados.
+
 ## Publicación completada y pendientes reales
 
 **Publicación autorizada expresamente el 26 oct:** el propietario responde «sí» a publicar dev y actualizar main de ambos repositorios, backend primero y frontend después de actualizar/regenerar el contrato. No repetir esa petición para esta entrega. También aprobó maqueta y suministro SIFTS: «Sí, implementar interfaz y suministro SIFTS».
