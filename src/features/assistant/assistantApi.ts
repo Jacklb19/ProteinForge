@@ -1,10 +1,15 @@
 import { z } from 'zod';
-import { AssistantService } from '../../gen/proteinforge/assistant/v1/assistant_service_pb';
+import { AssistantService, Subject } from '../../gen/proteinforge/assistant/v1/assistant_service_pb';
 import { ApiError, validated } from '../api/apiClient';
 import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { isoFromTimestamp } from '../api/timestamps';
-import { MAX_FACTS, MAX_LABEL_LENGTH, MAX_READING_LENGTH, MAX_UNIT_LENGTH, MAX_VALUE_LENGTH, SUBJECT_MESSAGES } from './config';
+import { MAX_FACTS, MAX_LABEL_LENGTH, MAX_READING_LENGTH, MAX_UNIT_LENGTH, MAX_VALUE_LENGTH } from './config';
 import type { ReadingSubject } from './config';
+
+const SUBJECT_MESSAGES: Record<ReadingSubject, Subject> = {
+  analysis: Subject.ANALYSIS,
+  laboratory: Subject.LABORATORY,
+};
 
 export const factSchema = z.object({
   label: z.string().min(1).max(MAX_LABEL_LENGTH),

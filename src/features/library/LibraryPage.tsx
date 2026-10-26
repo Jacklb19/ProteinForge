@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
@@ -11,29 +11,40 @@ import type { ApiErrorCode } from '../api/apiClient';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import type { SequenceSource } from '../editor/source';
 import { REFERENCE_CATALOG } from './catalog';
-import { annotatedCoverage, createLibraryApi } from './libraryApi';
+import { createLibraryApi } from './libraryApi';
 import type { EntrySummary, PdbReference, UniProtEntry } from './libraryApi';
-import { PDB_URL, UNIPROT_DEFAULT_QUERY, UNIPROT_QUERY_MAX_LENGTH, UNIPROT_URL } from './config';
+import { UNIPROT_DEFAULT_QUERY, UNIPROT_QUERY_MAX_LENGTH, UNIPROT_URL } from './config';
 import { annotationsForAccession } from '../editor/annotations';
 import { StructureStage } from '../structure/StructureStage';
+import { MappedStructure } from './MappedStructure';
+import { isCurrentReference } from './referenceView';
+import type { ReferenceView } from './referenceView';
+import type { MappingLoader } from './mappingTypes';
 
-const StructureViewer = lazy(() => import('./StructureViewer'));
 const INSULIN_ACCESSION = 'P01308';
 const INSULIN_STRUCTURE: PdbReference = { id: '1TRZ', method: 'X-ray', resolution: '1.60 Å', chains: 'A/C=90-110, B/D=25-54' };
+const INSULIN_REFERENCE = (() => {
+  const reference = REFERENCE_CATALOG.find(item => item.accession === INSULIN_ACCESSION);
+  if (!reference) throw new Error('Missing bundled reference');
+  return reference;
+})();
 
-export function LibraryPage(): React.JSX.Element {
+export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader | null }): React.JSX.Element {
   const { t, formatNumber, formatDate } = useTranslation();
   const auth = useAuth(); const draft = useSequenceDraft(); const navigate = useNavigate();
   const client = useMemo(() => { const url = readApiBaseUrl(); return url ? createLibraryApi(url) : null; }, []);
   const [query, setQuery] = useState(UNIPROT_DEFAULT_QUERY);
   const [items, setItems] = useState<EntrySummary[] | null>(null);
-  const [entry, setEntry] = useState<UniProtEntry | null>(null);
+  const restored = isCurrentReference(draft.referenceView, draft.text, draft.source) ? draft.referenceView : null;
+  const [entry, setEntry] = useState<UniProtEntry | null>(restored?.entry ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [truncated, setTruncated] = useState(false);
   // The bundled example opens with its measured structure already on screen.
-  const [structure, setStructure] = useState<PdbReference | null>(INSULIN_STRUCTURE);
-  const [pending, setPending] = useState<SequenceSource | null>(null);
+  const [structure, setStructure] = useState<PdbReference | null>(() => restored ? restored.structures.find(item => item.id === restored.pdbId) ?? null : INSULIN_STRUCTURE);
+  const [position, setPosition] = useState<number | null>(restored?.position ?? 90);
+  const [chain, setChain] = useState<string | null>(restored?.chain ?? null);
+  const [pending, setPending] = useState<{ source: SequenceSource; view: ReferenceView | null } | null>(null);
   const controller = useRef<AbortController | null>(null);
   const token = auth.status === 'signed-in' ? auth.session?.accessToken ?? '' : '';
   useEffect(() => () => { controller.current?.abort(); }, [token]);
@@ -42,7 +53,8 @@ export function LibraryPage(): React.JSX.Element {
     if (!client || !token) return;
     controller.current?.abort();
     const operation = new AbortController(); controller.current = operation;
-    setBusy(true); setError(null); setStructure(accession ? null : structure); setEntry(null);
+    setBusy(true); setError(null);
+    if (accession) { setStructure(null); setEntry(null); setPosition(null); setChain(null); }
     try {
       if (accession) {
         const detail = await client.detail(accession, token, operation.signal);
@@ -54,14 +66,19 @@ export function LibraryPage(): React.JSX.Element {
     } catch (failure) { if (!operation.signal.aborted) setError(failure instanceof ApiError ? failure : new ApiError('unknown')); }
     finally { if (controller.current === operation) setBusy(false); }
   }
-  function load(source: SequenceSource): void {
-    draft.setText(source.sequence); draft.setSource(source); void navigate(ROUTES.analyze);
+  function load(source: SequenceSource, view: ReferenceView | null = null): void {
+    draft.setText(source.sequence); draft.setSource(source); draft.setReferenceView(view); void navigate(ROUTES.analyze);
   }
-  function choose(source: SequenceSource): void { if (draft.text) setPending(source); else load(source); }
+  function choose(source: SequenceSource, view: ReferenceView | null = null): void {
+    if (view && draft.text === source.sequence && draft.source?.accession === source.accession && draft.source.sequenceVersion === source.sequenceVersion) {
+      draft.setReferenceView(view); void navigate(ROUTES.analyze);
+    } else if (draft.text) setPending({ source, view }); else load(source, view);
+  }
   const ERROR_KEYS: Partial<Record<ApiErrorCode, TranslationKey>> = { session: 'library.session', 'not-found': 'library.notFound', validation: 'library.invalidQuery', 'rate-limit': 'projects.rateLimit' };
   const references = entry?.structures ?? [INSULIN_STRUCTURE];
-  const structureLength = entry?.length ?? REFERENCE_CATALOG[0]?.sequence.length ?? 0;
-  const coverage = structure ? annotatedCoverage(structure.chains, structureLength) : null;
+  const referenceSource = useMemo<SequenceSource>(() => entry
+    ? { origin: 'uniprot', accession: entry.accession, sequence: entry.sequence, entryVersion: entry.entryVersion, sequenceVersion: entry.sequenceVersion, retrievedAt: entry.retrievedAt }
+    : { origin: 'catalog', accession: INSULIN_ACCESSION, sequence: INSULIN_REFERENCE.sequence, entryVersion: null, sequenceVersion: INSULIN_REFERENCE.sequenceVersion, retrievedAt: null }, [entry]);
   // While the full viewer loads, or when it cannot, the example keeps its light drawing of the same coordinates.
   const exampleAnnotations = structure?.id === INSULIN_STRUCTURE.id ? annotationsForAccession(INSULIN_ACCESSION) : null;
   const sketch = exampleAnnotations ? <StructureStage variant="library" annotations={exampleAnnotations} /> : undefined;
@@ -101,7 +118,7 @@ export function LibraryPage(): React.JSX.Element {
           <p>{t('library.replaceHelp')}</p>
           <div className="actions">
             <button type="button" className="button button-secondary" onClick={() => { setPending(null); }}>{t('projects.cancel')}</button>
-            <button type="button" className="button button-primary" onClick={() => { load(pending); }}>{t('library.confirmLoad')}</button>
+            <button type="button" className="button button-primary" onClick={() => { load(pending.source, pending.view); }}>{t('library.confirmLoad')}</button>
           </div>
         </section>
       )}
@@ -183,30 +200,10 @@ export function LibraryPage(): React.JSX.Element {
         <h2 id="structure-title">{t('library.structureTitle')}</h2>
         <p className="field-help">{t(entry ? 'library.structureHelp' : 'library.structureExample')}</p>
 
-        {references.length ? (
-          <div className="field">
-            <label htmlFor="structure-entry">{t('library.structureChoose')}</label>
-            <select className="text-input" id="structure-entry" value={structure?.id ?? ''} onChange={(event) => { setStructure(references.find((reference) => reference.id === event.target.value) ?? null); }}>
-              <option value="">{t('library.structurePlaceholder')}</option>
-              {references.map((reference) => (
-                <option key={reference.id} value={reference.id}>{reference.id} · {reference.method}{reference.resolution ? ` · ${reference.resolution}` : ''}</option>
-              ))}
-            </select>
-          </div>
-        ) : <p className="notice">{t('library.noStructures')}</p>}
-
-        {structure && <>
-          {/* Experimental coordinates with their provenance; the viewer never fabricates a structure. */}
-          <div className="structure-provenance">
-            <span>{t('library.experimental')}</span>
-            <a className="inline-link" href={`${PDB_URL}${structure.id}`}>{structure.id} · {t('library.pdbSource')}</a>
-            <p>{structure.method}{structure.resolution ? ` · ${structure.resolution}` : ''}</p>
-            {coverage !== null && <p>{t('library.coverage', { count: formatNumber(coverage), total: formatNumber(structureLength) })}</p>}
-            {structure.chains && <code>{structure.chains}</code>}
-            <p className="field-help">{t('library.mappingScope')}</p>
-          </div>
-          <Suspense fallback={sketch}><StructureViewer key={structure.id} pdbId={structure.id} placeholder={sketch} /></Suspense>
-        </>}
+        <MappedStructure reference={referenceSource} structures={references} pdbId={structure?.id ?? ''} position={position} chain={chain}
+          onStructure={id => { setStructure(references.find(item => item.id === id) ?? null); setPosition(null); setChain(null); }}
+          onSelect={(next, nextChain) => { setPosition(next); setChain(nextChain); }} placeholder={sketch} mappingLoader={mappingLoader}
+          onOpenAnalysis={() => { choose(referenceSource, { source: referenceSource, entry, structures: references, pdbId: structure?.id ?? '', position, chain }); }} />
       </section>
     </main>
   );

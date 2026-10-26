@@ -81,7 +81,7 @@ test('reduced motion keeps every panel and the tools one step away', async ({ pa
   expect(await page.locator('#sequence-panel').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
   const menu = await openSiteMenu(page);
   expect(await menu.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
-  expect(await page.locator('.menu-scrim').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
+  expect(await menu.evaluate((element) => getComputedStyle(element, '::backdrop').animationName)).toBe('none');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: spanish['editor.toAlignment'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
@@ -148,6 +148,49 @@ test('the phone menu is a dialog that closes four ways and hands focus back', as
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(examplePairTitle);
+  await expect(page.locator('#app-content')).toBeFocused();
+});
+
+test('the phone menu contains keyboard focus and keeps the selected preference focused', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 900 });
+  await page.goto(ROUTES.analyze);
+  const menu = await openSiteMenu(page);
+  const first = menu.getByRole('link', { name: spanish['app.name'], exact: true });
+  const last = menu.getByRole('link', { name: spanish['shell.signIn'], exact: true });
+  await last.focus();
+  await page.keyboard.press('Tab');
+  await expect(first).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(last).toBeFocused();
+
+  const dark = menu.getByRole('radio', { name: spanish['settings.dark'], exact: true });
+  await dark.focus();
+  await page.keyboard.press('Space');
+  await expect(dark).toBeChecked();
+  await expect(dark).toBeFocused();
+  const englishOption = menu.getByRole('radio', { name: spanish['settings.english'], exact: true });
+  await englishOption.focus();
+  await page.keyboard.press('Space');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('#site-menu').getByRole('radio', { name: english['settings.english'], exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: english['shell.openMenu'] })).toBeFocused();
+});
+
+test('the phone menu makes the background inert for focus and the accessibility tree', async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 360, height: 900 });
+  await page.goto(ROUTES.analyze);
+  const menu = await openSiteMenu(page);
+  await page.locator('#app-content').evaluate(element => { element.focus(); });
+  await expect(menu.getByRole('button', { name: spanish['shell.closeMenu'] })).toBeFocused();
+  if (browserName === 'chromium') {
+    const cdp = await page.context().newCDPSession(page);
+    const tree = await cdp.send('Accessibility.getFullAXTree');
+    expect(tree.nodes.filter(node => !node.ignored && node.role?.value === 'main')).toEqual([]);
+    await cdp.detach();
+  }
+  await page.keyboard.press('Escape');
+  await page.locator('#app-content').focus();
   await expect(page.locator('#app-content')).toBeFocused();
 });
 

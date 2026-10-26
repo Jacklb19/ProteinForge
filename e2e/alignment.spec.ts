@@ -21,15 +21,15 @@ test('aligns with progress, supports cancellation, and displays reproducible met
   await expect(page.getByRole('textbox', { name: spanish['library.bovineInsulin'], exact: true })).not.toBeEmpty();
   await expect(alignmentVerdict(page)).toHaveText(new RegExp(`^${message('alignment.verdict', { count: '\\d+', total: '\\d+' })}$`));
 
-  await first.fill('A'.repeat(3000));
-  await second.fill('A'.repeat(3000));
+  await first.fill('A'.repeat(MAX_ALIGNMENT_RESIDUES));
+  await second.fill('A'.repeat(MAX_ALIGNMENT_RESIDUES));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['alignment.title']);
   await expect(page.getByText(spanish['alignment.stale'])).toBeVisible();
   await start.click();
   await expect(status).toContainText(running);
   await expect(page.getByRole('progressbar')).toBeVisible();
   await expect(start).toBeDisabled();
-  await page.getByRole('button', { name: spanish['alignment.cancel'], exact: true }).click();
+  await page.getByRole('button', { name: spanish['alignment.cancel'], exact: true }).press('Enter');
   await expect(status).toContainText(spanish['alignment.cancelled']);
   await expect(result).toHaveCount(0);
   await expect(alignmentVerdict(page)).toHaveCount(0);

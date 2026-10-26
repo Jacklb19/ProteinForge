@@ -2,6 +2,8 @@ import { createContext } from 'react';
 import { useRequiredContext } from '../../shared/useRequiredContext';
 import type { HydropathyWindow } from '../descriptors/config';
 import type { SequenceSource } from './source';
+import type { ReferenceView } from '../library/referenceView';
+import type { Dispatch, SetStateAction } from 'react';
 
 /** The sequence being analyzed, kept in memory while the visitor moves between tools. */
 export interface SequenceDraft {
@@ -11,6 +13,8 @@ export interface SequenceDraft {
   setProfileWindow: (value: HydropathyWindow) => void;
   source: SequenceSource | null;
   setSource: (source: SequenceSource | null) => void;
+  referenceView: ReferenceView | null;
+  setReferenceView: Dispatch<SetStateAction<ReferenceView | null>>;
 }
 
 export const SequenceDraftContext = createContext<SequenceDraft | null>(null);

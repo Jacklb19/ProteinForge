@@ -1,77 +1,65 @@
 # Relevo de desarrollo — ProteinForge
 
-Actualizado el **23 de octubre de 2026**, tras cerrar localmente el asistente de interpretación. Las instrucciones actuales del propietario y los AGENTS.md prevalecen; este contexto no amplía autorizaciones remotas.
+Actualizado el **26 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes.
 
-## Lectura y reglas
+## Publicación: orden obligatorio
 
-Raíz sin Git; `frontend/` y `backend/` son repositorios independientes. Leer completo este archivo, los tres AGENTS.md y las últimas entradas de ambos `docs/PROGRESS.md`. Trabajar en `dev`, conservar cambios del propietario y no crear repositorios anidados ni mover `.git`.
+**Publicación autorizada expresamente el 26 oct:** el propietario responde «sí» a publicar dev y actualizar main de ambos repositorios, backend primero y frontend después de actualizar/regenerar el contrato. No repetir esa petición para esta entrega. También aprobó maqueta y suministro SIFTS: «Sí, implementar interfaz y suministro SIFTS».
 
-Respuestas y documentación en español; código, comentarios y commits en inglés. Autor y committer exclusivamente **Jacklb19 <jose.burbanob@campusucc.edu.co>**, sin coautores, firmas ni menciones a agentes o herramientas en commits, merges o GitHub. Verificar antes de cada commit/publicación.
+Backend dev `1443dd9` y main `a3edaf1d7a43ada2b2bbf9113ff9ccef7f123a57` ya publicados; CI de ambos correcta, incluida Python 3.14. **buf.gen.yaml actualizado al main publicado con GetResidueMapping**; la regeneración remota reproduce exactamente los archivos locales de `0f3166e`. Confirmar este pin antes de publicar frontend. No volver al antiguo c2d127c, usar un commit remoto inexistente o cambiar CI a un directorio local.
 
-Interfaz bilingüe: todo texto visible en `src/i18n/es.ts` y `en.ts` en el mismo cambio. Opciones y límites en `config.ts`; medidas en tokens. La interfaz nueva necesita maqueta aprobada; **la del asistente ya está aprobada**, dirección A revisada.
+Frontend main anterior `3562c0c`, CI/Vercel correctos el 23 oct; esta publicación del 26 sigue en curso al escribir. Fetch de ambos completado sin cambios remotos inesperados. Leer el cierre en ambos PROGRESS para los hashes/resultados finales. Proyectos, laboratorio y asistente ya están publicados; no reabrir sus migraciones o entregas como pendientes. Groq autenticado en producción, clave/retención y acceso directo por ID con segunda cuenta siguen sin certificar.
 
-Costo cero y sin tarjeta. No instalar ni ejecutar modelos en Windows. No versionar AGENTS.md, docs/PROGRESS.md, docs/propuestas.md, secretos, .env, temporales ni artifacts. Push, merge, despliegues, SQL remoto, servicios nuevos y gastos requieren autorización expresa actual. **Esta continuación no publica nada.**
+## Reglas vigentes
 
-## Estado conocido
+Trabajar en dev. Autor y committer exclusivamente Jacklb19 <jose.burbanob@campusucc.edu.co>, sin firmas, coautores o menciones a herramientas de IA en Git/GitHub. Commits pequeños en inglés; documentación/respuestas en español. Cada texto visible en es/en en el mismo cambio. No forzar AGENTS, PROGRESS, propuestas, artifacts, secretos o dependencias al índice.
 
-Producción según el relevo del propietario: frontend `main` **9fc20e8**, backend `main` **9d5528d**, CI y despliegues verdes. No se volvió a consultar GitHub/Vercel en este cierre. Las referencias origin son locales; no se hizo fetch.
+Costo cero estricto, sin tarjeta ni modelos en Windows. No cambios de servicios/secretos, SQL remoto, cuentas nuevas o gastos por esta continuación. La autorización actual se limita a publicar esta entrega; no se extiende a entregas futuras. No repetir migraciones ya aplicadas por el propietario.
 
-Backend `dev` tenía cinco commits locales: `58329a6` asistente, `569ce52` documentación y `049fd47`, `63d9dcd`, `9f3a044` correcciones. Esta continuación solo añade documentación backend; no modifica ni repite sus pruebas de código. La evidencia anterior es **70 pruebas en total, con 12 SQL omitidas sin base**.
+## S5: implementación local integrada
 
-Frontend `dev` tenía tres commits de documentación (`856075d`, `fc7b6b8`, `220d352`) y la implementación sin confirmar. Se cerró en cuatro commits pequeños:
+[Maqueta y plan aprobados](references.md). Biblioteca añade posición, cadena y estado, conservando catálogo/consulta/visor y confirmación de reemplazo. «Ver selección en Analizar» transfiere una referencia exacta en memoria. Analizar conserva lector/editor/perfil; ese contexto abre el visor general en el lateral de forma diferida. El ejemplo habitual conserva su dibujo inmediato. No hay lector/editor nuevo en Biblioteca.
 
-- `7a9ce42`: cliente RPC, contrato generado y textos español/inglés.
-- `431d315`: sección de lectura e integración en Analizar/Laboratorio.
-- `bdc59b1`: pruebas de vigencia, recálculo y respuestas canceladas tardías.
-- `cb90ea9`: ocho E2E del asistente, incluido reemplazo del conjunto de laboratorio.
+Selección bidireccional por filas SIFTS y coordenadas reales, con cadena explícita ante copias ambiguas. Conserva posición UniProt, autor textual/null, inserción, huecos y modelo; no interpola intervalos. Versión conocida y SHA-256 de toda la secuencia antes de habilitar selección. Editar, retirar procedencia, cambiar referencia/PDB/modelo/sesión o recibir respuesta nueva cierra el vínculo; respuestas/hashes antiguos no lo reactivan. Fallos de índice/mapeo dejan cámara y coordenadas válidas disponibles. Sin persistencia nueva o cambios del laboratorio.
 
-La documentación de cierre y NVIDIA se confirma aparte; consultar HEAD y progreso para sus hashes finales. Autoría exclusiva verificada. Sin cambios de código pendientes al cerrar.
+Backend `b1fdbd8`: GET /v1/pdb/{pdb_id}/residue-mapping?accession=...&sequence_version=... y ReferenceService.GetResidueMapping, autenticados. UniProt fresco, versión/hash completos y accession exacta, sin recibir secuencias privadas. Presupuesto existente de referencias: 20/minuto por identidad/proceso; plazo de 20 s después de autenticar, fuentes y descargas acotadas. Caché pública por PDB: 300 s, cuatro entradas/4 MB serializados, sin identidad/secuencias/SQL. Respuesta REST y RPC binario/JSON completa hasta 2.000.000 bytes, sin truncamiento. Isoformas no habilitadas por este contrato. [Contrato y pruebas](../../backend/docs/sifts.md).
 
-## Asistente implementado, todavía sin publicar
+Tercera entrega S5 integrada: `b8e7499/65842bb/6f275d9/8f622fa`; las previas también están incorporadas. En worktree-sifts el generado sigue como diferencia local intencional, idéntico al canónico, fuera de sus commits para no duplicar `0f3166e`: conservar hasta decidir el cierre de esa copia.
 
-[Uso frontend](assistant.md), [decisión visual aprobada](assistant-ui-proposal.md), [contrato backend](../../backend/docs/assistant.md).
+## S7: calidad y límites
 
-Sección **Lectura de los resultados** al pie de Analizar y Laboratorio. Petición deliberada con sesión a `AssistantService/Interpret`; Groq `openai/gpt-oss-120b` escribe prosa breve. El propietario aceptó el envío del contexto. **El frontend solo envía cifras etiqueta/valor/unidad, nunca la secuencia.** Las lista junto al texto con modelo/proveedor/fecha.
+Integrados cierre de sesión durante imports aplazados, lecturas por propietario, diálogo móvil modal que aísla el fondo, contraste WebKit y reutilización numérica medida. CORP same-origin y cabeceras también en 304 conservan COOP/COEP. WASM verifica bytes y revalidación sin aceptar errores como éxito. [Evidencia](quality-s7.md).
 
-Cambiar cifras o idioma retira la lectura. No se puede leer mientras los descriptores se recalculan; abrir otro conjunto del laboratorio invalida la lectura aunque reutilice los IDs. Los borradores editados no envían cifras de la predicción anterior. Una respuesta cancelada tardía no sustituye a la nueva. No hay chat, historial, persistencia ni exportación de lecturas.
+Firefox 155 y WebKit 26.6 se ejecutaron en Windows. WebKit no transfiere canvas al Worker: aviso/tabla calculada comprobados, batería gráfica completa sin certificar. PWA limpia Chromium/Firefox comprobada; WebKit offline registra error interno. Windows/WebKit no certifica Safari, dispositivos físicos, lectores de pantalla o las dos versiones objetivo.
 
-Backend REST y RPC comparten dominio; 1–80 hechos, español/inglés, presupuesto por identidad y proceso (6/min por omisión). La comprobación numérica admite datos/redondeos, enteros hasta 20 y cotas del glosario 40/50/70/90/100. **No garantiza corrección semántica completa ni ausencia de alucinaciones.** No se envía el token del usuario a Groq.
+La transición online de PWA instalada a5de1cf→1893ff3 pasó en WebKit con el mismo origen/perfil: borrador conservado mientras espera; proyecto guardado recuperado tras cerrar/reabrir; descriptores/WASM funcionan con recursos antiguos sin CORP. No se invalidaron masivamente. No certifica recuperar texto sin guardar tras cerrar, árbol canónico posterior, producción u offline. Auditoría incorporada en `76efdb5/05a2ec4`; no cambia producto.
 
-`GROQ_API_KEY` existe en backend/.env según la comprobación anterior, sin mostrarla. No se ha comprobado su presencia en Vercel ni retención cero en la cuenta. La clave local no viaja con Git.
+## Verificación combinada del 26 oct
 
-## Verificación local del 23 oct
+- Frontend: tipos/lint/build correctos; **436 unitarias/77 archivos**. Cobertura 86,34/77,21/83,13/89,87 %, mínimos intactos. Build: 47 recursos/2902,96 KiB; avisos previos Vite/fuentes/chunk conservados.
+- **76 recorridos Chromium completados**: 74 correctos en la matriz de 14 archivos; dos casos Colab inicialmente omitidos al faltar sus rutas, repetidos con campaña/resultado condicionado reales y 2/2 correctos. Incluye shell, responsive, loading, assistant, library, SIFTS, projects, collection, reports, editor, laboratorio, compatibilidad, alineamiento y WASM. Auth/RPC simulados; BinaryCIF/ZIP reales. Sin sesiones o escrituras del propietario.
+- PWA del build integrado en 5331 correcta: navegación, fuentes, Workers/WASM, PDF, laboratorio/cuaderno/edición/archivo offline; Mol* excluido.
+- Capturas Biblioteca/Analizar a 360 y 1280 px, ambos temas, inspeccionadas. Cabecera fija en medio de la captura completa corresponde al desplazamiento al tomarla.
+- Backend: 104 totales, 92 correctas y 12 SQL omitidas sin base. Python 3.13.14 local; 3.14 objetivo sin nueva comprobación. Buf lint/regeneración reproducibles; dos espacios finales emitidos por el generador Python se conservan sin editarlo a mano.
+- Servicio Connect con identidad **simulada** y tres fuentes HTTPS reales: 102 filas, SV1, hash completo y 16.713 bytes JSON. Smoke offline con coordenadas reales: 102 ida/vuelta, 51 posiciones UniProt únicas y mutación fuera de cobertura rechazada.
+- [Carga HTTP local](../../backend/docs/local-api-load.md): 500 solicitudes/300,006 s, cero errores, p95 de 16,262 ms. Identidad/almacenamiento simulados; no carga de proveedores reales, SQL o Vercel.
 
-- Tipos, lint y build correctos. **357 unitarias / 66 archivos**, cobertura 84,50 / 75,14 / 81,91 / 87,67; mínimos intactos.
-- Primera batería afectada: 30 correctas y 2 omitidas por no indicar los ZIP. Batería final: **33/33 sin omisiones**, con los ZIP reales de campaña y restricciones, Chrome local y un trabajador. Archivos: assistant, laboratory, editor-design, projects y reports.
-- PWA correcta: 47 recursos, fuentes, Workers/WASM, laboratorio/cuaderno y exportaciones sin conexión. Permanecen avisos previos de Vite sobre cargador futuro y chunks grandes.
-- Cuatro capturas del asistente 360/1280, claro/oscuro, revisadas; AA automático en las E2E. Auth/RPC/textos simulados; no equivale a integración autenticada con Groq en producción.
-- `npx buf generate ../backend/proto` deja los clientes sin diferencias. El generador añade una línea final vacía al stub nuevo; no editar a mano el código generado.
-- El primer intento E2E y la primera PWA se bloquearon por localhost dentro del aislamiento; ambos completaron después con permisos de ejecución local. No se cambiaron flags de seguridad ni umbrales.
-- **5296 libre**, comprobado; no había Uvicorn que cerrar. Otros servidores ajenos se conservan.
+Logs frontend/artifacts/integration-2026-10-26-* y backend/artifacts/quality/local-api-load.json, ignorados. No atribuir LCP/INP de campo al nuevo árbol por mediciones históricas.
 
-## Publicación: orden obligatorio tras autorización
+## Modelado: primera ejecución nueva en ZeroGPU
 
-**No publicar el frontend todavía con su pin actual.** CI ejecuta `npx buf generate` desde el commit backend de `buf.gen.yaml`: **5b6c4505c77293e1f4798e0bd86932e13c11600f**, que no contiene el asistente.
+El 26 oct la demo oficial RFD4 devolvió Design 1 en el ejemplo público Inverse folding 2KL8, Thinking low, un diseño, semilla 42. El propietario autorizó expresamente **solo perfil público HF Jacklb** para el Space oficial; no repositorios privados/escritura/pagos. La concesión inicial se bloqueó automáticamente sin ese permiso; se completó tras recibirlo. Sin tarjeta, PRO, servicio propio o modelos Windows.
 
-1. Obtener autorización de push de `dev` y merge/push de `main` de ambos repositorios. Auditar identidad, trailers, árboles y referencias remotas.
-2. Publicar backend primero, esperar CI y despliegue, comprobar REST/Connect/gRPC-Web/CORS. El propietario configura la clave de Groq en Vercel si falta; no pedir ni mostrar su valor.
-3. Fijar `frontend/buf.gen.yaml` al commit backend publicado con AssistantService. Ejecutar `npx buf generate`, revisar y confirmar el cambio.
-4. Publicar frontend después; verificar CI/despliegue y la lectura real con el alcance de sesión/datos autorizado.
+El propietario indicó C:\Users\josel\Desktop\designs\design-1.cif tras fallar la devolución de ruta de descarga; original intacto, copia validada en frontend/artifacts/modeling/rfd4-2kl8-2026-10-26. CIF de 80.169 bytes, 403 átomos/59 residuos, cadena A/modelo 1, coordenadas finitas y secuencia coherente. **Fragmentos 1–7/28–79, salto CA de 21,425 Å y C–N de 23,688 Å**: no tratar como cadena completa lista para el laboratorio. Sin pLDDT certificado, pesos/versiones completos, predicción independiente, utilidad biológica o medición de GPU/cuota/tiempo. Ejecución gratuita probada; diseño completo útil e inferencia desde la app pendientes. CIF/FASTA/capturas/informe solo locales e ignorados.
 
-No requiere SQL nuevo. La migración del laboratorio ya fue aplicada por el propietario; **no repetirla**.
+El formulario HF del 23 oct bloqueó alojamiento propio Gradio/Docker solicitando PRO; no se creó servicio. No prometer gratuidad al registrar tarjeta en Modal. Demo compartida no implica capacidad ilimitada ni permiso de backend público. Colab sigue manual, sin túneles. Laboratorio actual conserva los tres rediseños 1UBQ y sus ZIP comprobados.
 
-## Laboratorio y decisiones pendientes
+## Copias y siguiente paso
 
-[Activación real del 22 oct](laboratory-activation.md): guardado/apertura/edición/copia/conflicto/borrado probados en producción con proyectos de prueba ya eliminados. La segunda cuenta no ve proyectos de la primera; lectura directa por ID con esa sesión sigue sin autorización/prueba. No forzar escrituras ni repetir datos reales por iniciativa propia.
+- **ProteinForge · S7 calidad y rendimiento**: 01a16ab0-a33d-7853-96bb-4e1376d07849, worktree-quality, parallel/quality, puertos 5310–5319. Entrega cerrada e integrada; conservar evidencia.
+- **ProteinForge · S5 sincronización 3D**: 01a16ab0-c9f9-7440-83ad-acb1096f8745, worktree-sifts, parallel/sifts, puertos 5320–5329. Entrega cerrada e integrada; generado local intencional indicado arriba.
+- Coordinación: frontend/dev, backend/dev y documentos generales, puertos 5330–5339. [Plan local](../../parallel-development.md).
 
-**NVIDIA:** leídos completos los API Trial Terms of Service de nueve páginas, versión 19 septiembre 2025, enlazados en RFdiffusion/ProteinMPNN. Secciones 1.2/1.4 limitan a evaluación interna y excluyen producción del servicio/resultados. Según FAQ oficial, servir usuarios reales es producción aunque la web no cobre. Además, la ficha de ESMFold marca el endpoint como Deprecated. [Fuentes, cláusulas y recomendación](app-inference-proposal.md). Recomendación pendiente del propietario: cualquier ensayo futuro solo interno suyo, con datos públicos; eso no autoriza aún integración, cuentas, claves ni llamadas. No prometer la cadena alojada como disponible. La licencia de los modelos es distinta de la del servicio.
+No archivar/eliminar copias o ramas sin conservar cambios/evidencias; no rebase ni escritura concurrente mientras estén activas. Seguimientos a esos dos chats autorizados en esta tarea; no extender a mensajes ajenos.
 
-Siguen abiertas [forma de novo](de-novo-proposal.md), [inferencia desde la app](app-inference-proposal.md) y [persistencia de predicciones](prediction-storage-proposal.md). Colab sigue siendo manual; no alojar un servicio detrás de él. No hay ejecutor ni DesignService implementado. RTX 4060 8 GB: ESMFold alcanzó 7,91 GiB con 76 residuos en el ensayo anterior; no volver a instalar modelos en Windows.
-
-## Entorno
-
-Frontend preview habitual 5187; 5173 pertenece a otro proyecto. E2E 5190, un trabajador. API local habitual 5296 (libre al cierre); 8000 es otra herramienta.
-
-Frontend: `npm run typecheck`, `npm run lint`, `npm run test:coverage`, `npm run build`, `npm run check:pwa`. Vitest Windows con TEMP/TMP bajo frontend/tmp/vitest. No editar src mientras corren E2E. Backend: `.venv/Scripts/python.exe -m unittest discover -s tests -v`; SQL local mediante scripts/test-postgres.ps1. gh no instalado; no extraer credenciales para acceder a logs.
-
-Al cerrar distinguir implementado, probado localmente, comprobado en producción y pendiente de decisión. No crear otro chat ni repositorio por cuenta propia.
+Completar publicación autorizada del frontend con el pin nuevo y comprobar CI/despliegues. Consultar ambos PROGRESS antes de repetir operaciones: el cierre posterior recoge resultados y hashes finales. Comprobar integración autenticada real dentro del alcance autorizado, sin usar datos/cuentas del propietario por iniciativa propia. No volver a pedir aprobación SIFTS o migraciones antiguas. Mantener límites S7/Groq/modelado; elegir entrada completa y validación independiente antes de ampliar importador o DesignService.

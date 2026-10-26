@@ -1,9 +1,13 @@
 import { z } from 'zod';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { ReferenceService } from '../../gen/proteinforge/reference/v1/reference_service_pb';
 import type { EntrySummary as EntrySummaryMessage } from '../../gen/proteinforge/reference/v1/reference_service_pb';
 import { ApiError, validated } from '../api/apiClient';
-import { callOptions, createRpcClient, rpc } from '../api/rpc';
+import { callOptions, createRpcClient, rpc, toApiError } from '../api/rpc';
 import { isoFromTimestamp } from '../api/timestamps';
+import { MAX_MAPPING_RESIDUES, residueMappingSchema } from './residueMapping';
+import { ResidueMappingError } from './mappingTypes';
+import type { ResidueMappingRequest } from './mappingTypes';
 
 export const entrySummarySchema = z.object({ accession: z.string().regex(/^[A-Z0-9]{6,10}$/), name: z.string().min(1).max(2000), organism: z.string().min(1).max(500), length: z.number().int().positive().max(100_000), reviewed: z.boolean() });
 export const pdbReferenceSchema = z.object({ id: z.string().regex(/^[0-9][A-Z0-9]{3}$/), method: z.string(), resolution: z.string().nullable(), chains: z.string().nullable() });
@@ -23,6 +27,31 @@ function summaryDocument(summary: EntrySummaryMessage | undefined) {
 export function createLibraryApi(baseUrl: string, fetchImplementation?: FetchLike) {
   const client = createRpcClient(ReferenceService, baseUrl, fetchImplementation);
   return {
+    mapping: async (request: ResidueMappingRequest, token: string, signal: AbortSignal) => {
+      if (!token) throw new ApiError('session');
+      try {
+        // Acquisition can use 20 seconds; keep its wait independent from ordinary lookups.
+        const response = await client.getResidueMapping(request, { ...callOptions(signal, token), timeoutMs: 25_000 });
+        const document = response.mapping;
+        if (document && document.rows.length > MAX_MAPPING_RESIDUES) throw new ApiError('invalid-response');
+        const mapping = validated(residueMappingSchema, document ? {
+          version: document.version, pdbId: document.pdbId,
+          provenance: document.provenance ? { provider: document.provenance.provider, xmlUrl: document.provenance.xmlUrl, residueListingUrl: document.provenance.residueListingUrl, retrievedAt: document.provenance.retrievedAt, releaseDate: document.provenance.releaseDate } : undefined,
+          rows: document.rows.map(row => ({ entityId: row.entityId, labelAsymId: row.labelAsymId, authAsymId: row.authAsymId, labelSeqId: row.labelSeqId, authSeqId: row.authSeqId ?? null, insertionCode: row.insertionCode, segmentId: row.segmentId, accession: row.accession, position: row.position, residue: row.residue, notObserved: row.notObserved })),
+        } : undefined);
+        if (mapping.pdbId !== request.pdbId || mapping.rows.some(row => row.accession !== request.accession)) throw new ApiError('invalid-response');
+        return validated(z.object({ mapping: residueMappingSchema, reference_sequence_version: z.number().int().positive(), reference_sequence_sha256: z.string().regex(/^[a-f0-9]{64}$/) }), {
+          mapping, reference_sequence_version: response.referenceSequenceVersion, reference_sequence_sha256: response.referenceSequenceSha256,
+        });
+      } catch (error) {
+        if (error instanceof ConnectError) {
+          if (error.code === Code.FailedPrecondition && error.rawMessage === 'sifts-reference-version') throw new ResidueMappingError('version');
+          if (error.code === Code.FailedPrecondition && error.rawMessage === 'sifts-reference-mismatch') throw new ResidueMappingError('mismatch');
+          if (error.code === Code.ResourceExhausted && error.rawMessage === 'sifts-response-too-large') throw new ResidueMappingError('size');
+        }
+        throw error instanceof ResidueMappingError ? error : toApiError(error);
+      }
+    },
     async search(query: string, token: string, signal: AbortSignal) {
       if (!token) throw new ApiError('session');
       const response = await rpc(() => client.searchEntries({ query }, callOptions(signal, token)));

@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proteinforge/reference/v1/reference_service.proto.
  */
 export const file_proteinforge_reference_v1_reference_service: GenFile = /*@__PURE__*/
-  fileDesc("CjFwcm90ZWluZm9yZ2UvcmVmZXJlbmNlL3YxL3JlZmVyZW5jZV9zZXJ2aWNlLnByb3RvEhlwcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxImMKDEVudHJ5U3VtbWFyeRIRCglhY2Nlc3Npb24YASABKAkSDAoEbmFtZRgCIAEoCRIQCghvcmdhbmlzbRgDIAEoCRIQCghyZXZpZXdlZBgEIAEoCBIOCgZsZW5ndGgYBSABKAUicgoMUGRiUmVmZXJlbmNlEgoKAmlkGAEgASgJEg4KBm1ldGhvZBgCIAEoCRIXCgpyZXNvbHV0aW9uGAMgASgJSACIAQESEwoGY2hhaW5zGAQgASgJSAGIAQFCDQoLX3Jlc29sdXRpb25CCQoHX2NoYWlucyKYAgoFRW50cnkSOAoHc3VtbWFyeRgBIAEoCzInLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuRW50cnlTdW1tYXJ5EhAKCHNlcXVlbmNlGAIgASgJEhUKDWVudHJ5X3ZlcnNpb24YAyABKAUSGAoQc2VxdWVuY2VfdmVyc2lvbhgEIAEoBRIxCg1yZXRyaWV2ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCghmdW5jdGlvbhgGIAEoCUgAiAEBEjsKCnN0cnVjdHVyZXMYByADKAsyJy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlBkYlJlZmVyZW5jZUILCglfZnVuY3Rpb24iJQoUU2VhcmNoRW50cmllc1JlcXVlc3QSDQoFcXVlcnkYASABKAkipgEKFVNlYXJjaEVudHJpZXNSZXNwb25zZRI4CgdlbnRyaWVzGAEgAygLMicucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5FbnRyeVN1bW1hcnkSDQoFbGltaXQYAiABKAUSEQoJdHJ1bmNhdGVkGAMgASgIEjEKDXJldHJpZXZlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIiQKD0dldEVudHJ5UmVxdWVzdBIRCglhY2Nlc3Npb24YASABKAkiQwoQR2V0RW50cnlSZXNwb25zZRIvCgVlbnRyeRgBIAEoCzIgLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuRW50cnky9QEKEFJlZmVyZW5jZVNlcnZpY2USdwoNU2VhcmNoRW50cmllcxIvLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuU2VhcmNoRW50cmllc1JlcXVlc3QaMC5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlNlYXJjaEVudHJpZXNSZXNwb25zZSIDkAIBEmgKCEdldEVudHJ5EioucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5HZXRFbnRyeVJlcXVlc3QaKy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkdldEVudHJ5UmVzcG9uc2UiA5ACAWIGcHJvdG8z", [file_google_protobuf_timestamp]);
+  fileDesc("CjFwcm90ZWluZm9yZ2UvcmVmZXJlbmNlL3YxL3JlZmVyZW5jZV9zZXJ2aWNlLnByb3RvEhlwcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxImMKDEVudHJ5U3VtbWFyeRIRCglhY2Nlc3Npb24YASABKAkSDAoEbmFtZRgCIAEoCRIQCghvcmdhbmlzbRgDIAEoCRIQCghyZXZpZXdlZBgEIAEoCBIOCgZsZW5ndGgYBSABKAUicgoMUGRiUmVmZXJlbmNlEgoKAmlkGAEgASgJEg4KBm1ldGhvZBgCIAEoCRIXCgpyZXNvbHV0aW9uGAMgASgJSACIAQESEwoGY2hhaW5zGAQgASgJSAGIAQFCDQoLX3Jlc29sdXRpb25CCQoHX2NoYWlucyKYAgoFRW50cnkSOAoHc3VtbWFyeRgBIAEoCzInLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuRW50cnlTdW1tYXJ5EhAKCHNlcXVlbmNlGAIgASgJEhUKDWVudHJ5X3ZlcnNpb24YAyABKAUSGAoQc2VxdWVuY2VfdmVyc2lvbhgEIAEoBRIxCg1yZXRyaWV2ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCghmdW5jdGlvbhgGIAEoCUgAiAEBEjsKCnN0cnVjdHVyZXMYByADKAsyJy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlBkYlJlZmVyZW5jZUILCglfZnVuY3Rpb24iJQoUU2VhcmNoRW50cmllc1JlcXVlc3QSDQoFcXVlcnkYASABKAkipgEKFVNlYXJjaEVudHJpZXNSZXNwb25zZRI4CgdlbnRyaWVzGAEgAygLMicucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5FbnRyeVN1bW1hcnkSDQoFbGltaXQYAiABKAUSEQoJdHJ1bmNhdGVkGAMgASgIEjEKDXJldHJpZXZlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIiQKD0dldEVudHJ5UmVxdWVzdBIRCglhY2Nlc3Npb24YASABKAkiQwoQR2V0RW50cnlSZXNwb25zZRIvCgVlbnRyeRgBIAEoCzIgLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuRW50cnkiVwoYR2V0UmVzaWR1ZU1hcHBpbmdSZXF1ZXN0Eg4KBnBkYl9pZBgBIAEoCRIRCglhY2Nlc3Npb24YAiABKAkSGAoQc2VxdWVuY2VfdmVyc2lvbhgDIAEoBSKGAQoYUmVzaWR1ZU1hcHBpbmdQcm92ZW5hbmNlEhAKCHByb3ZpZGVyGAEgASgJEg8KB3htbF91cmwYAiABKAkSGwoTcmVzaWR1ZV9saXN0aW5nX3VybBgDIAEoCRIUCgxyZXRyaWV2ZWRfYXQYBCABKAkSFAoMcmVsZWFzZV9kYXRlGAUgASgJIosCChFSZXNpZHVlTWFwcGluZ1JvdxIRCgllbnRpdHlfaWQYASABKAkSFQoNbGFiZWxfYXN5bV9pZBgCIAEoCRIUCgxhdXRoX2FzeW1faWQYAyABKAkSFAoMbGFiZWxfc2VxX2lkGAQgASgFEhgKC2F1dGhfc2VxX2lkGAUgASgJSACIAQESFgoOaW5zZXJ0aW9uX2NvZGUYBiABKAkSEgoKc2VnbWVudF9pZBgHIAEoCRIRCglhY2Nlc3Npb24YCCABKAkSEAoIcG9zaXRpb24YCSABKAUSDwoHcmVzaWR1ZRgKIAEoCRIUCgxub3Rfb2JzZXJ2ZWQYCyABKAhCDgoMX2F1dGhfc2VxX2lkIr4BChZSZXNpZHVlTWFwcGluZ0RvY3VtZW50Eg8KB3ZlcnNpb24YASABKAUSDgoGcGRiX2lkGAIgASgJEkcKCnByb3ZlbmFuY2UYAyABKAsyMy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlJlc2lkdWVNYXBwaW5nUHJvdmVuYW5jZRI6CgRyb3dzGAQgAygLMiwucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5SZXNpZHVlTWFwcGluZ1JvdyKmAQoZR2V0UmVzaWR1ZU1hcHBpbmdSZXNwb25zZRJCCgdtYXBwaW5nGAEgASgLMjEucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5SZXNpZHVlTWFwcGluZ0RvY3VtZW50EiIKGnJlZmVyZW5jZV9zZXF1ZW5jZV92ZXJzaW9uGAIgASgFEiEKGXJlZmVyZW5jZV9zZXF1ZW5jZV9zaGEyNTYYAyABKAky+wIKEFJlZmVyZW5jZVNlcnZpY2USdwoNU2VhcmNoRW50cmllcxIvLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuU2VhcmNoRW50cmllc1JlcXVlc3QaMC5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlNlYXJjaEVudHJpZXNSZXNwb25zZSIDkAIBEmgKCEdldEVudHJ5EioucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5HZXRFbnRyeVJlcXVlc3QaKy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkdldEVudHJ5UmVzcG9uc2UiA5ACARKDAQoRR2V0UmVzaWR1ZU1hcHBpbmcSMy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkdldFJlc2lkdWVNYXBwaW5nUmVxdWVzdBo0LnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuR2V0UmVzaWR1ZU1hcHBpbmdSZXNwb25zZSIDkAIBYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message proteinforge.reference.v1.EntrySummary
@@ -236,6 +236,198 @@ export const GetEntryResponseSchema: GenMessage<GetEntryResponse> = /*@__PURE__*
   messageDesc(file_proteinforge_reference_v1_reference_service, 6);
 
 /**
+ * @generated from message proteinforge.reference.v1.GetResidueMappingRequest
+ */
+export type GetResidueMappingRequest = Message<"proteinforge.reference.v1.GetResidueMappingRequest"> & {
+  /**
+   * @generated from field: string pdb_id = 1;
+   */
+  pdbId: string;
+
+  /**
+   * @generated from field: string accession = 2;
+   */
+  accession: string;
+
+  /**
+   * @generated from field: int32 sequence_version = 3;
+   */
+  sequenceVersion: number;
+};
+
+/**
+ * Describes the message proteinforge.reference.v1.GetResidueMappingRequest.
+ * Use `create(GetResidueMappingRequestSchema)` to create a new message.
+ */
+export const GetResidueMappingRequestSchema: GenMessage<GetResidueMappingRequest> = /*@__PURE__*/
+  messageDesc(file_proteinforge_reference_v1_reference_service, 7);
+
+/**
+ * @generated from message proteinforge.reference.v1.ResidueMappingProvenance
+ */
+export type ResidueMappingProvenance = Message<"proteinforge.reference.v1.ResidueMappingProvenance"> & {
+  /**
+   * @generated from field: string provider = 1;
+   */
+  provider: string;
+
+  /**
+   * @generated from field: string xml_url = 2;
+   */
+  xmlUrl: string;
+
+  /**
+   * @generated from field: string residue_listing_url = 3;
+   */
+  residueListingUrl: string;
+
+  /**
+   * @generated from field: string retrieved_at = 4;
+   */
+  retrievedAt: string;
+
+  /**
+   * @generated from field: string release_date = 5;
+   */
+  releaseDate: string;
+};
+
+/**
+ * Describes the message proteinforge.reference.v1.ResidueMappingProvenance.
+ * Use `create(ResidueMappingProvenanceSchema)` to create a new message.
+ */
+export const ResidueMappingProvenanceSchema: GenMessage<ResidueMappingProvenance> = /*@__PURE__*/
+  messageDesc(file_proteinforge_reference_v1_reference_service, 8);
+
+/**
+ * @generated from message proteinforge.reference.v1.ResidueMappingRow
+ */
+export type ResidueMappingRow = Message<"proteinforge.reference.v1.ResidueMappingRow"> & {
+  /**
+   * @generated from field: string entity_id = 1;
+   */
+  entityId: string;
+
+  /**
+   * @generated from field: string label_asym_id = 2;
+   */
+  labelAsymId: string;
+
+  /**
+   * @generated from field: string auth_asym_id = 3;
+   */
+  authAsymId: string;
+
+  /**
+   * @generated from field: int32 label_seq_id = 4;
+   */
+  labelSeqId: number;
+
+  /**
+   * @generated from field: optional string auth_seq_id = 5;
+   */
+  authSeqId?: string | undefined;
+
+  /**
+   * @generated from field: string insertion_code = 6;
+   */
+  insertionCode: string;
+
+  /**
+   * @generated from field: string segment_id = 7;
+   */
+  segmentId: string;
+
+  /**
+   * @generated from field: string accession = 8;
+   */
+  accession: string;
+
+  /**
+   * @generated from field: int32 position = 9;
+   */
+  position: number;
+
+  /**
+   * @generated from field: string residue = 10;
+   */
+  residue: string;
+
+  /**
+   * @generated from field: bool not_observed = 11;
+   */
+  notObserved: boolean;
+};
+
+/**
+ * Describes the message proteinforge.reference.v1.ResidueMappingRow.
+ * Use `create(ResidueMappingRowSchema)` to create a new message.
+ */
+export const ResidueMappingRowSchema: GenMessage<ResidueMappingRow> = /*@__PURE__*/
+  messageDesc(file_proteinforge_reference_v1_reference_service, 9);
+
+/**
+ * @generated from message proteinforge.reference.v1.ResidueMappingDocument
+ */
+export type ResidueMappingDocument = Message<"proteinforge.reference.v1.ResidueMappingDocument"> & {
+  /**
+   * @generated from field: int32 version = 1;
+   */
+  version: number;
+
+  /**
+   * @generated from field: string pdb_id = 2;
+   */
+  pdbId: string;
+
+  /**
+   * @generated from field: proteinforge.reference.v1.ResidueMappingProvenance provenance = 3;
+   */
+  provenance?: ResidueMappingProvenance | undefined;
+
+  /**
+   * @generated from field: repeated proteinforge.reference.v1.ResidueMappingRow rows = 4;
+   */
+  rows: ResidueMappingRow[];
+};
+
+/**
+ * Describes the message proteinforge.reference.v1.ResidueMappingDocument.
+ * Use `create(ResidueMappingDocumentSchema)` to create a new message.
+ */
+export const ResidueMappingDocumentSchema: GenMessage<ResidueMappingDocument> = /*@__PURE__*/
+  messageDesc(file_proteinforge_reference_v1_reference_service, 10);
+
+/**
+ * @generated from message proteinforge.reference.v1.GetResidueMappingResponse
+ */
+export type GetResidueMappingResponse = Message<"proteinforge.reference.v1.GetResidueMappingResponse"> & {
+  /**
+   * @generated from field: proteinforge.reference.v1.ResidueMappingDocument mapping = 1;
+   */
+  mapping?: ResidueMappingDocument | undefined;
+
+  /**
+   * @generated from field: int32 reference_sequence_version = 2;
+   */
+  referenceSequenceVersion: number;
+
+  /**
+   * SHA-256 of the entire exact uppercase ASCII sequence, without spaces.
+   *
+   * @generated from field: string reference_sequence_sha256 = 3;
+   */
+  referenceSequenceSha256: string;
+};
+
+/**
+ * Describes the message proteinforge.reference.v1.GetResidueMappingResponse.
+ * Use `create(GetResidueMappingResponseSchema)` to create a new message.
+ */
+export const GetResidueMappingResponseSchema: GenMessage<GetResidueMappingResponse> = /*@__PURE__*/
+  messageDesc(file_proteinforge_reference_v1_reference_service, 11);
+
+/**
  * Public UniProt annotations through the API. Only the text query or accession is sent
  * to UniProt; the caller's token never leaves the API and no editor sequence is sent.
  * Requires a valid bearer token (UNAUTHENTICATED otherwise).
@@ -264,6 +456,18 @@ export const ReferenceService: GenService<{
     methodKind: "unary";
     input: typeof GetEntryRequestSchema;
     output: typeof GetEntryResponseSchema;
+  },
+  /**
+   * Explicit SIFTS residues for one exact UniProt sequence version. Authenticated,
+   * shares the reference request budget. No sequence or caller identity reaches providers.
+   * A complete response must fit 2,000,000 bytes; never silently truncates rows.
+   *
+   * @generated from rpc proteinforge.reference.v1.ReferenceService.GetResidueMapping
+   */
+  getResidueMapping: {
+    methodKind: "unary";
+    input: typeof GetResidueMappingRequestSchema;
+    output: typeof GetResidueMappingResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_proteinforge_reference_v1_reference_service, 0);

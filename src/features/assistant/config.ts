@@ -1,15 +1,9 @@
-import { Subject } from '../../gen/proteinforge/assistant/v1/assistant_service_pb';
 import type { TranslationKey } from '../../i18n';
 import type { ApiErrorCode } from '../api/apiClient';
 
-/** Screens that can be read. Each one maps to a contract subject and to its own heading. */
+/** Screens that can be read; the service adapter maps them to wire subjects on demand. */
 export const READING_SUBJECTS = ['analysis', 'laboratory'] as const;
 export type ReadingSubject = (typeof READING_SUBJECTS)[number];
-
-export const SUBJECT_MESSAGES: Record<ReadingSubject, Subject> = {
-  analysis: Subject.ANALYSIS,
-  laboratory: Subject.LABORATORY,
-};
 
 /** Limits of the contract, checked here so an oversized request never leaves the browser. */
 export const MAX_FACTS = 80;

@@ -4,7 +4,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState }
 import type { ReactNode } from 'react';
 import { useAuth } from '../auth/authContext';
 import { readApiBaseUrl } from '../api/config';
-import { ApiError } from '../api/apiClient';
+import { ApiError } from '../api/errors';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { DEFAULT_MATRIX, DEFAULT_MODE, SCORING_SUBSTITUTIONS } from '../alignment/config';
@@ -49,7 +49,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   // Background calculations do not invalidate a deliberate open.
   useLayoutEffect(() => { inputRevision.current++; }, [sequence.text, sequence.profileWindow, sequence.source, alignment.first, alignment.second, alignment.matrix, alignment.mode]);
   // The service client carries the generated contracts, which a visit that never opens a project
-  // does not need. It is fetched once, as soon as the provider is mounted; an action that arrives
+  // does not need. It is fetched on sign-in; an action that arrives
   // before it lands waits for the same request instead of failing silently.
   const [configuredUrl] = useState(readApiBaseUrl);
   const [configuredApi, setConfiguredApi] = useState<ProjectApi | null>(null);
@@ -68,10 +68,18 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       throw new ApiError('network');
     }
   }, [api, configuredUrl]);
-  useEffect(() => { void serviceClient().catch(() => undefined); }, [serviceClient]);
+  useEffect(() => {
+    if (auth.status === 'signed-in') void serviceClient().catch(() => undefined);
+  }, [auth.status, serviceClient]);
   const client = api === undefined ? configuredApi : api;
   const enabled = api === undefined ? Boolean(configuredUrl) : api !== null;
   const user = auth.status === 'signed-in' ? auth.session?.user.id ?? null : null;
+  const ownerRevision = useRef(0);
+  useLayoutEffect(() => {
+    const revision = ownerRevision;
+    revision.current++;
+    return () => { revision.current++; };
+  }, [user]);
   const token = auth.session?.accessToken ?? '';
   const [state, setState] = useState<State>(EMPTY);
   const controller = useRef<AbortController | null>(null);
@@ -146,13 +154,16 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     if (!enabled || !user || !token || locked.current) return false;
     // Hold the lock across the wait for the client, so a second action cannot start meanwhile.
     locked.current = true;
+    const startingOwner = ownerRevision.current;
     let service: ProjectApi | null;
     try { service = client ?? await serviceClient(); }
     catch (error) {
+      if (ownerRevision.current !== startingOwner) return false;
       locked.current = false;
       setState((value) => ({ ...value, owner: user, error: error instanceof ApiError ? error : new ApiError('unknown'), attempt: value.attempt + 1 }));
       return false;
     }
+    if (ownerRevision.current !== startingOwner) return false;
     if (!service) { locked.current = false; return false; }
     const epoch = ++generation.current;
     const operation = new AbortController();

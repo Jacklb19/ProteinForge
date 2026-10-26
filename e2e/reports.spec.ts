@@ -1,8 +1,35 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
-import { alignmentInputs, alignmentVerdict, message, navigationLink, openExportMenu } from './helpers';
+import { alignmentInputs, alignmentVerdict, assertFits, message, navigationLink, openExportMenu } from './helpers';
+
+test('report choices support keyboard, touch targets and AA in both themes and widths', async ({ page }) => {
+  for (const width of [360, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(ROUTES.analyze);
+    await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      const summary = page.locator('details.toolbar-menu > summary');
+      await summary.focus();
+      await summary.press('Enter');
+      const choices = page.locator('.toolbar-popover');
+      await expect(choices.getByRole('button', { name: spanish['report.pdf'], exact: true })).toBeEnabled();
+      await page.keyboard.press('Tab');
+      await expect(choices.getByRole('button').first()).toBeFocused();
+      await assertFits(page);
+      const audit = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      expect(audit.violations, JSON.stringify(audit.violations)).toEqual([]);
+      await page.screenshot({ path: `artifacts/quality/reports-${String(width)}-${theme}.png`, fullPage: true });
+      await summary.focus();
+      await summary.press('Enter');
+      await expect(choices).toBeHidden();
+      await expect(summary).toBeFocused();
+    }
+  }
+});
 
 test('PDF, JSON and profile/alignment CSV are generated locally from the current scientific snapshot', async ({ page }) => {
   const outbound: string[] = [];
