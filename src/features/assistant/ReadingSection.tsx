@@ -24,6 +24,13 @@ interface Props {
  * nothing else: the sequence stays in the browser, which is why the notice can be one line.
  */
 export function ReadingSection({ subject, build, revision, api }: Props): React.JSX.Element | null {
+  const auth = useAuth();
+  const owner = auth.status === 'signed-in' ? auth.session?.user.id : null;
+  return <SessionReading key={owner ?? 'anonymous'} subject={subject} build={build} revision={revision} api={api} />;
+}
+
+/** Readings and pending imports belong to one owner; token refresh keeps that owner's view. */
+function SessionReading({ subject, build, revision, api }: Props): React.JSX.Element | null {
   const { t, formatDate } = useTranslation();
   const auth = useAuth();
   const [configuredUrl] = useState(readApiBaseUrl);

@@ -35,6 +35,23 @@ const FACTS: Fact[] = [{ label: 'Punto isoeléctrico', value: '4,81' }, { label:
 
 beforeEach(() => { vi.clearAllMocks(); vi.stubEnv('VITE_API_BASE_URL', 'https://api.example'); });
 
+it('removes the reading and its facts on sign-out and does not expose them to the next owner', async () => {
+  const { client } = api();
+  const view = mount(client, () => FACTS);
+  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.read.analysis'] }));
+  await screen.findByText('Primera frase de entrada.');
+  const content = (identity: typeof signedInFixture) => <MemoryRouter><AuthContext.Provider value={identity}>
+    <ReadingSection subject="analysis" build={() => FACTS} revision="r1" api={client} />
+  </AuthContext.Provider></MemoryRouter>;
+  view.rerender(content({ ...signedInFixture, status: 'anonymous', session: null }));
+  expect(screen.queryByText('18 residuos')).not.toBeInTheDocument();
+  const session = signedInFixture.session;
+  if (!session) throw new Error('The signed-in fixture must have a session.');
+  view.rerender(content({ ...signedInFixture, session: { ...session, accessToken: 'second-token', user: { id: 'second', email: 'second@example.org' } } }));
+  expect(screen.queryByText('Primera frase de entrada.')).not.toBeInTheDocument();
+  expect(screen.queryByText('18 residuos')).not.toBeInTheDocument();
+});
+
 it('asks for a reading, shows it in paragraphs and lists the figures it sent', async () => {
   const { client, interpret } = api();
   mount(client, () => FACTS);

@@ -74,6 +74,12 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
   const client = api === undefined ? configuredApi : api;
   const enabled = api === undefined ? Boolean(configuredUrl) : api !== null;
   const user = auth.status === 'signed-in' ? auth.session?.user.id ?? null : null;
+  const ownerRevision = useRef(0);
+  useLayoutEffect(() => {
+    const revision = ownerRevision;
+    revision.current++;
+    return () => { revision.current++; };
+  }, [user]);
   const token = auth.session?.accessToken ?? '';
   const [state, setState] = useState<State>(EMPTY);
   const controller = useRef<AbortController | null>(null);
@@ -148,13 +154,16 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     if (!enabled || !user || !token || locked.current) return false;
     // Hold the lock across the wait for the client, so a second action cannot start meanwhile.
     locked.current = true;
+    const startingOwner = ownerRevision.current;
     let service: ProjectApi | null;
     try { service = client ?? await serviceClient(); }
     catch (error) {
+      if (ownerRevision.current !== startingOwner) return false;
       locked.current = false;
       setState((value) => ({ ...value, owner: user, error: error instanceof ApiError ? error : new ApiError('unknown'), attempt: value.attempt + 1 }));
       return false;
     }
+    if (ownerRevision.current !== startingOwner) return false;
     if (!service) { locked.current = false; return false; }
     const epoch = ++generation.current;
     const operation = new AbortController();
