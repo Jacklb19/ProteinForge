@@ -3,16 +3,44 @@ import { MAX_MAPPING_RESIDUES, MAX_SIFTS_XML_CHARACTERS, residueMappingSchema } 
 import type { ResidueMappingDocument, ResidueMappingRow } from './residueMapping';
 
 const namespace = 'http://www.ebi.ac.uk/pdbe/docs/sifts/eFamily.xsd';
-const listingSchema = z.object({ molecules: z.array(z.object({
-  entity_id: z.number().int().positive(),
-  chains: z.array(z.object({
-    chain_id: z.string().min(1), struct_asym_id: z.string().min(1),
-    residues: z.array(z.object({
-      residue_number: z.number().int().positive(), residue_name: z.string().min(1),
-      author_residue_number: z.union([z.number().int(), z.string().min(1)]).nullable(), author_insertion_code: z.string(),
-    })).max(MAX_MAPPING_RESIDUES),
-  })).max(MAX_MAPPING_RESIDUES),
-})).max(MAX_MAPPING_RESIDUES) });
+const moleculeSchema = z.object({ entity_id: z.number().int().positive(), chains: z.unknown() });
+const chainSchema = z.object({ chain_id: z.string().min(1).max(128), struct_asym_id: z.string().min(1).max(128), residues: z.unknown() });
+const listingResidueSchema = z.object({
+  residue_number: z.number().int().positive().max(MAX_MAPPING_RESIDUES), residue_name: z.string().min(1).max(128),
+  author_residue_number: z.union([z.number().int(), z.string().min(1).max(128)]).nullable(), author_insertion_code: z.string().max(16),
+});
+type ListingMatch = { entityId: string; labelAsymId: string; residue: z.infer<typeof listingResidueSchema> };
+
+function listingLookup(input: unknown, pdbId: string): Map<string, ListingMatch | null> {
+  const value = z.object({ [pdbId]: z.unknown() }).parse(input)[pdbId];
+  const listing = z.object({ molecules: z.unknown() }).parse(value);
+  let nodes = 0;
+  let residueCount = 0;
+  function array(input: unknown): unknown[] {
+    if (!Array.isArray(input)) throw new Error('Invalid PDBe residue listing');
+    // Count containers as well as residues before visiting/cloning their members.
+    if (input.length > 3 * MAX_MAPPING_RESIDUES - nodes) throw new Error('Oversized PDBe residue listing');
+    nodes += input.length;
+    return input;
+  }
+  const lookup = new Map<string, ListingMatch | null>();
+  for (const moleculeInput of array(listing.molecules)) {
+    const molecule = moleculeSchema.parse(moleculeInput);
+    for (const chainInput of array(molecule.chains)) {
+      const chain = chainSchema.parse(chainInput);
+      if (Array.isArray(chain.residues) && chain.residues.length > MAX_MAPPING_RESIDUES - residueCount) throw new Error('Oversized PDBe residue listing');
+      for (const residueInput of array(chain.residues)) {
+        residueCount += 1;
+        const residue = listingResidueSchema.parse(residueInput);
+        const author = residue.author_residue_number === null ? 'null' : `${String(residue.author_residue_number)}${residue.author_insertion_code}`;
+        const key = JSON.stringify([chain.chain_id, residue.residue_number, author, residue.residue_name]);
+        // A duplicate remains ambiguous, without accumulating a quadratic array of candidates.
+        lookup.set(key, lookup.has(key) ? null : { entityId: String(molecule.entity_id), labelAsymId: chain.struct_asym_id, residue });
+      }
+    }
+  }
+  return lookup;
+}
 
 function attribute(element: Element, name: string): string {
   const value = element.getAttribute(name);
@@ -32,18 +60,13 @@ function elements(parent: Element, name: string): Element[] {
  * Coordinate observation is determined later from the actual displayed model, not observed_ratio.
  */
 export function mappingFromSiftsXml(xml: string, listingInput: unknown, pdbId: string, retrievedAt: string): ResidueMappingDocument {
+  residueMappingSchema.shape.pdbId.parse(pdbId);
+  residueMappingSchema.shape.provenance.shape.retrievedAt.parse(retrievedAt);
   if (xml.length > MAX_SIFTS_XML_CHARACTERS || /<!DOCTYPE|<!ENTITY/i.test(xml)) throw new Error('Unsafe or oversized SIFTS XML');
   const parsed = new DOMParser().parseFromString(xml, 'application/xml');
   const entry = parsed.documentElement;
   if (parsed.getElementsByTagName('parsererror').length || entry.localName !== 'entry' || entry.namespaceURI !== namespace || attribute(entry, 'dbAccessionId').toUpperCase() !== pdbId) throw new Error('Invalid SIFTS entry');
-  const listing = listingSchema.parse(z.record(z.string(), z.unknown()).parse(listingInput)[pdbId.toLowerCase()]);
-  const lookup = new Map<string, { entityId: string; labelAsymId: string; residue: z.infer<typeof listingSchema>['molecules'][number]['chains'][number]['residues'][number] }[]>();
-  let count = 0;
-  for (const molecule of listing.molecules) for (const chain of molecule.chains) for (const residue of chain.residues) {
-    if (++count > MAX_MAPPING_RESIDUES) throw new Error('Oversized PDBe residue listing');
-    const key = JSON.stringify([chain.chain_id, residue.residue_number]);
-    lookup.set(key, [...(lookup.get(key) ?? []), { entityId: String(molecule.entity_id), labelAsymId: chain.struct_asym_id, residue }]);
-  }
+  const lookup = listingLookup(listingInput, pdbId.toLowerCase());
   const rows: ResidueMappingRow[] = [];
   const residues = elements(entry, 'residue');
   if (residues.length > MAX_MAPPING_RESIDUES) throw new Error('Oversized SIFTS residue listing');
@@ -60,12 +83,8 @@ export function mappingFromSiftsXml(xml: string, listingInput: unknown, pdbId: s
     const authorNumber = attribute(pdb, 'dbResNum');
     // The listing separates author IDs from insertions; splitting SIFTS "12A" by a regexp
     // would assume author IDs are numeric, which the mmCIF dictionary does not require.
-    const matches = (lookup.get(JSON.stringify([authAsymId, labelSeqId])) ?? []).filter(item => {
-      const author = item.residue.author_residue_number;
-      return (author === null ? 'null' : `${String(author)}${item.residue.author_insertion_code}`) === authorNumber && item.residue.residue_name === attribute(pdb, 'dbResName');
-    });
-    const match = matches[0];
-    if (matches.length !== 1 || !match) throw new Error('Missing or ambiguous PDBe residue identity');
+    const match = lookup.get(JSON.stringify([authAsymId, labelSeqId, authorNumber, attribute(pdb, 'dbResName')]));
+    if (!match) throw new Error('Missing or ambiguous PDBe residue identity');
     const authSeqId = match.residue.author_residue_number === null ? null : String(match.residue.author_residue_number);
     const insertionCode = match.residue.author_insertion_code;
     const segment = residue.parentElement?.parentElement;

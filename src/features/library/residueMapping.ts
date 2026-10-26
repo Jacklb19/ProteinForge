@@ -49,16 +49,53 @@ export function residueAddressKey(address: ResidueAddress): string {
   return JSON.stringify([address.entityId, address.labelAsymId, address.authAsymId, address.labelSeqId, address.authSeqId, address.insertionCode]);
 }
 
+function assertBounded(input: unknown, field: string): void {
+  if (typeof input !== 'object' || input === null || !(field in input)) return;
+  const value = (input as Record<string, unknown>)[field];
+  if (Array.isArray(value) && value.length > MAX_MAPPING_RESIDUES) throw new Error('Too many residue records');
+}
+
+/** A label chain and internal position identify one residue, regardless of author numbering. */
+function assertIdentities(rows: readonly (ResidueAddress & { modelNum?: number })[]): void {
+  const chains = new Map<string, string>();
+  const residues = new Map<string, string>();
+  for (const row of rows) {
+    const chainKey = JSON.stringify([row.modelNum ?? null, row.labelAsymId]);
+    const chainIdentity = JSON.stringify([row.entityId, row.authAsymId]);
+    const residueKey = JSON.stringify([chainKey, row.labelSeqId]);
+    const identity = residueAddressKey(row);
+    if ((chains.has(chainKey) && chains.get(chainKey) !== chainIdentity) || (residues.has(residueKey) && residues.get(residueKey) !== identity)) throw new Error('Conflicting structural residue identity');
+    chains.set(chainKey, chainIdentity); residues.set(residueKey, identity);
+  }
+}
+
+function assertCorrespondences(rows: readonly ResidueMappingRow[]): void {
+  const observations = new Map<string, boolean>();
+  const residues = new Map<string, string>();
+  for (const row of rows) {
+    const address = residueAddressKey(row);
+    const position = JSON.stringify([row.accession, row.position]);
+    if (observations.has(address) && observations.get(address) !== row.notObserved) throw new Error('Conflicting residue observation');
+    if (residues.has(position) && residues.get(position) !== row.residue) throw new Error('Conflicting UniProt residue identity');
+    observations.set(address, row.notObserved); residues.set(position, row.residue);
+  }
+}
+
+const noMatches: readonly ResidueMatch[] = Object.freeze([]);
+
 /** Bind a validated correspondence to one exact reference and one displayed coordinate model.
  * All positions are one-based. No ranges are expanded or aligned by index.
  */
 export function createResidueMapping(input: unknown, referenceInput: unknown, coordinatesInput: unknown, modelNum: number) {
+  // Reject oversized arrays before Zod visits/clones their members.
+  assertBounded(input, 'rows'); assertBounded(coordinatesInput, 'coordinates');
   const document = residueMappingSchema.parse(input);
   const reference = referenceSchema.parse(referenceInput);
   const context = coordinateContextSchema.parse(coordinatesInput);
   if (context.pdbId !== document.pdbId) throw new Error('Mapping and coordinates belong to different PDB entries');
   const coordinates = context.coordinates;
   positive.parse(modelNum);
+  assertIdentities(document.rows); assertIdentities(coordinates); assertCorrespondences(document.rows);
   const observed = new Set(coordinates.filter(row => row.modelNum === modelNum).map(residueAddressKey));
   const rows = document.rows.filter(row => row.accession === reference.accession);
   // A disagreement invalidates the whole binding, including otherwise matching positions.
@@ -78,10 +115,10 @@ export function createResidueMapping(input: unknown, referenceInput: unknown, co
       continue;
     }
     const match: ResidueMatch = {
-      address: residueAddressSchema.parse({
+      address: {
         entityId: row.entityId, labelAsymId: row.labelAsymId, authAsymId: row.authAsymId,
         labelSeqId: row.labelSeqId, authSeqId: row.authSeqId, insertionCode: row.insertionCode,
-      }),
+      },
       position: row.position, accession: row.accession, observed: !row.notObserved && observed.has(key), segmentIds: [row.segmentId],
     };
     seen.set(rowKey, { match, segments: new Set([row.segmentId]), notObserved: row.notObserved });
@@ -94,22 +131,25 @@ export function createResidueMapping(input: unknown, referenceInput: unknown, co
   for (const matches of byAddress.values()) for (const match of matches) {
     Object.freeze(match.address); Object.freeze(match.segmentIds); Object.freeze(match);
   }
+  for (const matches of byAddress.values()) Object.freeze(matches);
+  for (const matches of byPosition.values()) Object.freeze(matches);
   function result(matches: readonly ResidueMatch[]): MappingSelection {
-    const candidates = Object.freeze([...matches]);
+    const candidates = Object.freeze(matches);
     const ambiguous = matches.length > 1 || matches.some(match => (byAddress.get(residueAddressKey(match.address))?.length ?? 0) > 1);
-    return { status: mismatch ? 'sequence-mismatch' : !matches.length ? 'unmapped' : ambiguous ? 'ambiguous' : matches[0]?.observed ? 'mapped' : 'unobserved', candidates: mismatch ? [] : candidates };
+    return Object.freeze({ status: mismatch ? 'sequence-mismatch' : !matches.length ? 'unmapped' : ambiguous ? 'ambiguous' : matches[0]?.observed ? 'mapped' : 'unobserved', candidates: mismatch ? noMatches : candidates });
   }
   return {
     pdbId: document.pdbId,
     modelNum,
     provenance: Object.freeze(document.provenance),
     fromSequence(position: number, labelAsymId?: string): MappingSelection {
-      if (!Number.isSafeInteger(position) || position < 1 || position > reference.sequence.length) return result([]);
-      return result((byPosition.get(position) ?? []).filter(match => labelAsymId === undefined || match.address.labelAsymId === labelAsymId));
+      if (!Number.isSafeInteger(position) || position < 1 || position > reference.sequence.length) return result(noMatches);
+      const matches = byPosition.get(position) ?? noMatches;
+      return result(labelAsymId === undefined ? matches : matches.filter(match => match.address.labelAsymId === labelAsymId));
     },
     fromStructure(input: CoordinateResidue): MappingSelection {
       const address = coordinateResidueSchema.parse(input);
-      return result(address.modelNum === modelNum ? byAddress.get(residueAddressKey(address)) ?? [] : []);
+      return result(address.modelNum === modelNum ? byAddress.get(residueAddressKey(address)) ?? noMatches : noMatches);
     },
   };
 }

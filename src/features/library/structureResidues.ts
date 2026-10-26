@@ -7,6 +7,17 @@ import type { Structure } from 'molstar/lib/mol-model/structure';
 import { coordinateResidueSchema, MAX_MAPPING_RESIDUES, residueAddressKey } from './residueMapping';
 import type { CoordinateResidue } from './residueMapping';
 
+/** Bounds the extra atom-index allocation; this is a technical budget, not a scientific limit. */
+export const MAX_INDEXED_ATOMS = 1_000_000;
+
+function authorId(location: StructureElement.Location): string | null {
+  const source = location.unit.model.sourceData;
+  if (!MmcifFormat.is(source)) return null;
+  const field = source.data.frame.categories.atom_site?.getField('auth_seq_id');
+  const sourceIndex = StructureProperties.atom.sourceIndex(location);
+  return field?.valueKind(sourceIndex) === Column.ValueKind.Present ? field.str(sourceIndex) : null;
+}
+
 function coordinate(location: StructureElement.Location): CoordinateResidue | null {
   if (!Unit.isAtomic(location.unit) || !location.unit.conformation.operator.isIdentity || StructureProperties.entity.type(location) !== 'polymer') return null;
   const residueIndex = location.unit.model.atomicHierarchy.residueAtomSegments.index[location.element];
@@ -16,16 +27,13 @@ function coordinate(location: StructureElement.Location): CoordinateResidue | nu
   // string instead, so a nonnumeric author identifier cannot silently become zero.
   const source = location.unit.model.sourceData;
   if (!MmcifFormat.is(source)) return null;
-  const authorField = source.data.frame.categories.atom_site?.getField('auth_seq_id');
-  const sourceIndex = StructureProperties.atom.sourceIndex(location);
-  const authSeqId = authorField?.valueKind(sourceIndex) === Column.ValueKind.Present ? authorField.str(sourceIndex) : null;
   const address = coordinateResidueSchema.safeParse({
     modelNum: location.unit.model.modelNum,
     entityId: StructureProperties.chain.label_entity_id(location),
     labelAsymId: StructureProperties.chain.label_asym_id(location),
     authAsymId: StructureProperties.chain.auth_asym_id(location),
     labelSeqId: StructureProperties.residue.label_seq_id(location),
-    authSeqId,
+    authSeqId: authorId(location),
     insertionCode: insertionCode === '.' || insertionCode === '?' ? '' : insertionCode,
   });
   return address.success ? address.data : null;
@@ -54,10 +62,12 @@ export function residueFromLoci(loci: Loci): CoordinateResidue | null {
 
 /** Index the actual asymmetric-unit coordinates once, including all alternate atoms of each residue. */
 export function indexStructureResidues(structure: Structure) {
+  if (structure.elementCount > MAX_INDEXED_ATOMS) throw new Error('Too many atoms for residue selection index');
   const entries = new Set(structure.models.map(model => model.entryId.toUpperCase()));
   const pdbId = entries.values().next().value;
   if (entries.size !== 1 || !pdbId || !/^[0-9][A-Z0-9]{3}$/.test(pdbId)) throw new Error('Residue index requires one PDB entry');
   const addresses = new Map<string, CoordinateResidue>();
+  const internalIdentities = new Map<string, string>();
   const lociElements = new Map<string, StructureElement.Loci['elements'][number][]>();
   const location = StructureElement.Location.create(structure);
   for (const unit of structure.units) {
@@ -76,8 +86,14 @@ export function indexStructureResidues(structure: Structure) {
         previousResidue = residueIndex ?? -1;
       }
       if (!address) continue;
+      // Numeric coercion can merge distinct textual author IDs in Mol*'s residue table.
+      // Never include atoms with a different original ID in the same selectable locus.
+      if (authorId(location) !== address.authSeqId) throw new Error('Conflicting coordinate author identity');
       const id = key(address);
       if (!addresses.has(id)) {
+        const internalKey = JSON.stringify([address.modelNum, address.labelAsymId, address.labelSeqId]);
+        if (internalIdentities.has(internalKey) && internalIdentities.get(internalKey) !== id) throw new Error('Conflicting coordinate author identity');
+        internalIdentities.set(internalKey, id);
         if (addresses.size >= MAX_MAPPING_RESIDUES) throw new Error('Too many coordinate residues');
         addresses.set(id, Object.freeze(address));
       }

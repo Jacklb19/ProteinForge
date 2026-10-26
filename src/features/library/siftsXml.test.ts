@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import listing from './fixtures/1trz-residues-excerpt.json';
 import xml from './fixtures/1trz-sifts-excerpt.xml?raw';
 import { mappingFromSiftsXml } from './siftsXml';
-import { createResidueMapping, MAX_SIFTS_XML_CHARACTERS } from './residueMapping';
+import { createResidueMapping, MAX_MAPPING_RESIDUES, MAX_SIFTS_XML_CHARACTERS } from './residueMapping';
 
 const retrievedAt = '2026-10-23T21:40:00Z';
 const parse = (text = xml, data: unknown = listing) => mappingFromSiftsXml(text, data, '1TRZ', retrievedAt);
@@ -66,5 +66,31 @@ describe('SIFTS XML residue adapter', () => {
     for (const text of ['<!DOCTYPE entry>' + xml, '<!ENTITY x SYSTEM "https://example.org">' + xml, xml.slice(0, -20), xml.replace('dbAccessionId="1trz"', 'dbAccessionId="2xyz"'), xml.replace('eFamily.xsd', 'wrong.xsd'), ' '.repeat(MAX_SIFTS_XML_CHARACTERS + 1)]) expect(() => parse(text)).toThrow();
     expect(() => mappingFromSiftsXml(xml, listing, '1TRZ', 'yesterday')).toThrow();
     expect(() => parse(xml, {})).toThrow();
+  });
+
+  it('keeps author strings exact instead of erasing signs, leading zeroes or insertion boundaries', () => {
+    const data = JSON.parse(JSON.stringify(listing)) as { '1trz': { molecules: { chains: { residues: { author_residue_number: string; author_insertion_code: string }[] }[] }[] } };
+    const residue = required(required(required(data['1trz'].molecules[0]).chains[0]).residues[0]);
+    for (const author of ['001', '+1', '-0', 'author-X']) {
+      residue.author_residue_number = author;
+      const text = xml.replace('dbResNum="1" dbResName="GLY" dbChainId="A"', `dbResNum="${author}" dbResName="GLY" dbChainId="A"`);
+      expect(parse(text, data).rows[0]?.authSeqId).toBe(author);
+    }
+    residue.author_residue_number = '001';
+    expect(() => parse(xml, data)).toThrow('identity');
+  });
+
+  it('bounds total nested listing cardinality before touching residue members', () => {
+    const tooMany = new Proxy(new Array<unknown>(MAX_MAPPING_RESIDUES + 1), { get(target, key) {
+      if (key === '0') throw new Error('Visited member before cardinality guard');
+      const value: unknown = Reflect.get(target, key); return value;
+    } });
+    expect(() => parse(xml, { '1trz': { molecules: [{ entity_id: 1, chains: [{ chain_id: 'A', struct_asym_id: 'A', residues: tooMany }] }] } })).toThrow('Oversized PDBe');
+    expect(() => parse(xml, { '1trz': { molecules: new Array<unknown>(3 * MAX_MAPPING_RESIDUES + 1) } })).toThrow('Oversized PDBe');
+  });
+
+  it('retains ambiguity with many repeated identities without treating the first candidate as authoritative', () => {
+    const molecule = required(listing['1trz'].molecules[0]);
+    expect(() => parse(xml, { '1trz': { molecules: Array.from({ length: 5_000 }, () => molecule) } })).toThrow('ambiguous');
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createResidueMapping as createMapping, residueMappingSchema } from './residueMapping';
+import { createResidueMapping as createMapping, MAX_MAPPING_RESIDUES, residueMappingSchema } from './residueMapping';
 import type { CoordinateResidue, ResidueMappingRow } from './residueMapping';
 
 const reference = { accession: 'P01308', sequence: 'ACDEFG' };
@@ -89,5 +89,54 @@ describe('explicit residue mapping', () => {
     expect(() => createMapping(document([row()]), reference, { pdbId: '2XYZ', coordinates: [coordinate()] }, 1)).toThrow('different PDB entries');
     expect(() => residueMappingSchema.parse({ ...document([]), unexpected: true })).toThrow();
     expect(createResidueMapping(document([]), reference, [], 1).fromSequence(2)).toEqual({ status: 'unmapped', candidates: [] });
+  });
+
+  it('rejects contradictory chain/internal identities even when an exact address occurs in the coordinates', () => {
+    for (const conflicting of [row({ authSeqId: 'other' }), row({ insertionCode: 'B' }), row({ entityId: '2' }), row({ authAsymId: 'B' })]) {
+      expect(() => createResidueMapping(document([row(), conflicting]), reference, [coordinate()], 1)).toThrow('Conflicting structural');
+      expect(() => createResidueMapping(document([row()]), reference, [coordinate(), coordinate(conflicting)], 1)).toThrow('Conflicting structural');
+    }
+    const next = row({ labelSeqId: 2, position: 3, residue: 'D' });
+    // Repeated author IDs are not used as the primary key: internal positions remain explicit.
+    expect(createResidueMapping(document([row(), next]), reference, [coordinate(), coordinate(next)], 1).fromSequence(3).status).toBe('mapped');
+    expect(createResidueMapping(document([row()]), reference, [coordinate(), coordinate(row({ authSeqId: 'different-in-model-2' }), 2)], 1).fromSequence(2).status).toBe('mapped');
+  });
+
+  it('bounds arrays before visiting members and never relies on a malformed oversized member being parsed', () => {
+    const oversized = new Proxy(new Array<unknown>(MAX_MAPPING_RESIDUES + 1), { get(target, key) {
+      if (key === '0') throw new Error('Visited member before cardinality guard');
+      const value: unknown = Reflect.get(target, key); return value;
+    } });
+    expect(() => createResidueMapping({ ...document([]), rows: oversized }, reference, [], 1)).toThrow('Too many residue records');
+    expect(() => createMapping(document([]), reference, { pdbId: '1TRZ', coordinates: oversized }, 1)).toThrow('Too many residue records');
+  });
+
+  it('deduplicates many identical rows and reuses immutable candidate collections across repeated queries', () => {
+    const mapping = createResidueMapping(document(Array.from({ length: 10_000 }, () => row())), reference, [coordinate()], 1);
+    const first = mapping.fromSequence(2);
+    expect(first.status).toBe('mapped'); expect(first.candidates).toHaveLength(1);
+    expect(mapping.fromSequence(2).candidates).toBe(first.candidates);
+    expect(Object.isFrozen(first)).toBe(true);
+  });
+
+  it('preserves contradictory correspondences and uncovered positions under a large one-to-many mapping', () => {
+    const rows = Array.from({ length: 5_000 }, (_, index) => row({ labelSeqId: index + 1, authSeqId: String(index - 50) }));
+    const mapping = createResidueMapping(document(rows), reference, rows.map(value => coordinate(value)), 1);
+    expect(mapping.fromSequence(2)).toMatchObject({ status: 'ambiguous' });
+    expect(mapping.fromSequence(2).candidates).toHaveLength(5_000);
+    expect(mapping.fromSequence(1)).toEqual({ status: 'unmapped', candidates: [] });
+    for (const position of [Infinity, -Infinity, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER + 1]) expect(mapping.fromSequence(position).status).toBe('unmapped');
+  });
+
+  it('requires common observation for a physical address across accessions and positions', () => {
+    for (const other of [row({ accession: 'P01308-2', notObserved: true }), row({ position: 3, residue: 'D', notObserved: true })]) {
+      expect(() => createResidueMapping(document([row(), other]), reference, [coordinate()], 1)).toThrow('Conflicting residue observation');
+    }
+    expect(createResidueMapping(document([row(), row({ accession: 'P01308-2', position: 3, residue: 'D' })]), reference, [coordinate()], 1).fromSequence(2).status).toBe('mapped');
+  });
+
+  it('requires one UniProt residue identity for an accession and position across chains', () => {
+    expect(() => createResidueMapping(document([row(), row({ labelAsymId: 'Y', authAsymId: 'B', residue: 'D' })]), reference, [coordinate()], 1)).toThrow('Conflicting UniProt residue identity');
+    expect(createResidueMapping(document([row(), row({ labelAsymId: 'Y', authAsymId: 'B', segmentId: 'other-copy' })]), reference, [coordinate()], 1).fromSequence(2).status).toBe('ambiguous');
   });
 });

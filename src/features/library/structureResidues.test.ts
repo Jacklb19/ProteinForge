@@ -12,7 +12,7 @@ import xml from './fixtures/1trz-sifts-excerpt.xml?raw';
 import listing from './fixtures/1trz-residues-excerpt.json';
 import { mappingFromSiftsXml } from './siftsXml';
 import { createResidueMapping } from './residueMapping';
-import { indexStructureResidues, residueFromLoci } from './structureResidues';
+import { indexStructureResidues, MAX_INDEXED_ATOMS, residueFromLoci } from './structureResidues';
 
 let structure: Structure;
 let index: ReturnType<typeof indexStructureResidues>;
@@ -83,5 +83,24 @@ describe('Mol* coordinate adapter with public experimental 1TRZ', () => {
     const transformed = Structure.transform(structure, Mat4.fromTranslation(Mat4(), Vec3.create(1, 0, 0)));
     expect(() => indexStructureResidues(transformed)).toThrow('asymmetric unit');
     expect(residueFromLoci(StructureElement.Loci.all(transformed))).toBeNull();
+  });
+
+  it('does not merge inconsistent nonnumeric author IDs hidden by integer coercion inside a residue', async () => {
+    const source = required(structure.models[0]).sourceData;
+    if (!MmcifFormat.is(source)) throw new Error('Expected real mmCIF source');
+    const atomSite = required(source.data.frame.categories.atom_site);
+    const fields = Object.fromEntries(atomSite.fieldNames.map(name => [name, atomSite.getField(name)]));
+    fields.auth_seq_id = CifField.ofStrings(Array.from({ length: atomSite.rowCount }, (_, i) => required(atomSite.getField('label_asym_id')).str(i) === 'A' && required(atomSite.getField('label_seq_id')).int(i) === 1 ? i % 2 === 0 ? 'author-X' : 'author-Y' : required(atomSite.getField('auth_seq_id')).str(i)));
+    const frame = { ...source.data.frame, categories: { ...source.data.frame.categories, atom_site: CifCategory.ofFields('atom_site', fields) } };
+    const trajectory = await trajectoryFromMmCIF(frame).run();
+    const contradictory = Structure.ofModel(await Task.resolveInContext(trajectory.getFrameAtIndex(0)));
+    expect(() => indexStructureResidues(contradictory)).toThrow('Conflicting coordinate author identity');
+  });
+
+  it('refuses an oversized atom index before enumerating or allocating its unit membership', () => {
+    const oversized = Object.create(structure) as Structure;
+    Object.defineProperty(oversized, 'elementCount', { value: MAX_INDEXED_ATOMS + 1 });
+    Object.defineProperty(oversized, 'units', { get() { throw new Error('Visited atoms before cardinality guard'); } });
+    expect(() => indexStructureResidues(oversized)).toThrow('Too many atoms for residue selection index');
   });
 });
