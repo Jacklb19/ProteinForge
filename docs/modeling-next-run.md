@@ -2,6 +2,8 @@
 
 Guía del **26 de octubre de 2026**. El propietario ejecutará el cuaderno manualmente. Esta guía no instala modelos en Windows, activa servicios o autoriza gastos.
 
+**Ensayo recibido y comprobado:** el propietario ya completó este recorrido el 26 oct y entregó el ZIP. [Validación, métricas y siguiente paso](modeling-run-2026-10-26.md). No es necesario repetirlo para obtener un caso completo; los pasos siguientes quedan como instrucciones de reproducción.
+
 ## Qué existe y qué falta
 
 Ya hay [tres variantes completas de 1UBQ A](design-lab-three-variants.md), de 76 residuos, generadas por ProteinMPNN y predichas por ESMFold. Sus ZIP y métricas fueron comprobados; el Laboratorio actual los puede importar. No hace falta repetirlos para disponer de una demostración. En este workspace el paquete conjunto está en `frontend/artifacts/design-lab/campaign/proteinforge-design-lab-campaign.zip`, ignorado en Git.
