@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createResidueMapping, MAX_MAPPING_RESIDUES } from './residueMapping';
-import type { CoordinateResidue, MappingSelection } from './residueMapping';
+import type { CoordinateResidue, MappingSelection, ReferenceChain } from './residueMapping';
 
 // Internal adapter for the already proposed envelope; no transport or wire schema is added.
 const evidenceSchema = z.object({
@@ -15,6 +15,7 @@ const referenceSchema = z.object({
 export type ReferenceBindingStatus = 'idle' | 'verifying' | 'ready' | 'version-missing' | 'version-mismatch' | 'hash-mismatch' | 'mapping-mismatch' | 'cancelled' | 'error';
 export type ReferenceBindingSelection = MappingSelection | { readonly status: 'unverified'; readonly candidates: readonly [] };
 const unverified: ReferenceBindingSelection = Object.freeze({ status: 'unverified', candidates: Object.freeze([] as const) });
+const noChains: readonly ReferenceChain[] = Object.freeze([]);
 
 async function sequenceHash(sequence: string): Promise<string> {
   // The schema requires exact canonical ASCII. Do not trim, uppercase or hash only mapped positions.
@@ -36,6 +37,7 @@ export function createVerifiedResidueBinding() {
   }
   return {
     get status(): ReferenceBindingStatus { refresh(); return status; },
+    get chains(): readonly ReferenceChain[] { refresh(); return status === 'ready' && mapping ? mapping.chains : noChains; },
     clear(): void { generation += 1; mapping = null; activeSignal = undefined; status = 'idle'; },
     async bind(evidenceInput: unknown, referenceInput: unknown, coordinatesInput: unknown, modelNum: number, signal?: AbortSignal): Promise<ReferenceBindingStatus | 'superseded'> {
       const ticket = ++generation;

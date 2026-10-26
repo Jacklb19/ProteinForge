@@ -40,6 +40,7 @@ export interface ResidueMatch {
   readonly observed: boolean;
   readonly segmentIds: readonly string[];
 }
+export interface ReferenceChain { readonly labelAsymId: string; readonly authAsymId: string }
 export interface MappingSelection {
   readonly status: 'mapped' | 'ambiguous' | 'unmapped' | 'unobserved' | 'sequence-mismatch';
   readonly candidates: readonly ResidueMatch[];
@@ -102,8 +103,10 @@ export function createResidueMapping(input: unknown, referenceInput: unknown, co
   const mismatch = rows.some(row => reference.sequence[row.position - 1] !== row.residue);
   const byPosition = new Map<number, ResidueMatch[]>();
   const byAddress = new Map<string, ResidueMatch[]>();
+  const chains = new Map<string, ReferenceChain>();
   const seen = new Map<string, { match: ResidueMatch; segments: Set<string>; notObserved: boolean }>();
   for (const row of rows) {
+    chains.set(row.labelAsymId, Object.freeze({ labelAsymId: row.labelAsymId, authAsymId: row.authAsymId }));
     const key = residueAddressKey(row);
     const rowKey = JSON.stringify([key, row.position]);
     const existing = seen.get(rowKey);
@@ -141,6 +144,7 @@ export function createResidueMapping(input: unknown, referenceInput: unknown, co
   return {
     pdbId: document.pdbId,
     modelNum,
+    chains: Object.freeze([...chains.values()]),
     provenance: Object.freeze(document.provenance),
     fromSequence(position: number, labelAsymId?: string): MappingSelection {
       if (!Number.isSafeInteger(position) || position < 1 || position > reference.sequence.length) return result(noMatches);
