@@ -58,7 +58,9 @@ test('a reading does not survive the figures it describes', async ({ page }) => 
   await reading.getByRole('button', { name: spanish['assistant.read.analysis'] }).click();
   await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
   // Changing the profile window changes the figures; the previous reading stops being shown.
+  await page.getByRole('tab', { name: spanish['workbench.profile'], exact: true }).click();
   await page.getByRole('radio', { name: '19', exact: true }).click();
+  await page.getByRole('tab', { name: spanish['workbench.summary'], exact: true }).click();
   await expect(reading.getByText(spanish['assistant.sources'])).toHaveCount(0);
   await expect(reading.getByRole('button', { name: spanish['assistant.read.analysis'] })).toBeVisible();
 });
@@ -137,7 +139,7 @@ test('reopening a laboratory dataset retires its reading even when variant ident
   await reading.getByRole('button', { name: spanish['assistant.read.laboratory'] }).click();
   await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
 
-  await page.getByRole('button', { name: spanish['lab.openExample'] }).click();
+  await page.getByRole('tab', { name: spanish['lab.provenanceTab'] }).click();await page.getByRole('button', { name: spanish['lab.openExample'] }).click();
   await expect(reading.getByText(spanish['assistant.sources'])).toHaveCount(0);
   await expect(reading.getByRole('button', { name: spanish['assistant.read.laboratory'] })).toBeEnabled();
 });

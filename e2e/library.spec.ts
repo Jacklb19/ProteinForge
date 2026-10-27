@@ -73,19 +73,20 @@ test('bundled references remain usable without an account and manual edits clear
   await expect(page).toHaveURL(new RegExp(`${ROUTES.library}$`));
   await confirmation.getByRole('button', { name: spanish['library.confirmLoad'] }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['library.lysozyme']);
-  await expect(page.locator('.page-meta')).toContainText('P00698');
+  await expect(page.getByRole('heading', { level: 2, name: spanish['library.lysozyme'], exact: true })).toBeVisible();
+  await expect(page.locator('.subject-summary .page-meta')).toContainText('P00698');
   const editor = await openSequenceEditor(page);
   await expect(editor).toHaveValue(lysozyme);
   await editor.fill(`${lysozyme}A`);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['editor.ownTitle']);
-  await expect(page.locator('.page-meta')).not.toContainText('P00698');
+  await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
+  await expect(page.locator('.subject-summary .page-meta')).not.toContainText('P00698');
 });
 
 test('UniProt search and detail import exact sequence/version without sending editor contents', async ({ page }) => {
   await serveStructure(page);
   await serveUniProt(page, reference);
   await page.goto(ROUTES.library);
+  await page.getByRole('tab', { name: spanish['library.uniprotTitle'] }).click();
   await page.getByRole('button', { name: spanish['library.search'], exact: true }).click();
   await page.getByRole('button', { name: message('library.openEntry', { id: reference.accession }) }).click();
   await expect(page.locator('.entry-detail')).toContainText('versión de entrada 284');
@@ -93,7 +94,7 @@ test('UniProt search and detail import exact sequence/version without sending ed
   await page.locator('.entry-detail').getByRole('button', { name: spanish['library.load'] }).click();
   await page.getByRole('button', { name: spanish['library.confirmLoad'] }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
-  await expect(page.locator('.page-meta')).toContainText(reference.accession);
+  await expect(page.locator('.subject-summary .page-meta')).toContainText(reference.accession);
   await expect(await openSequenceEditor(page)).toHaveValue(sequence);
   // The imported provenance travels with the draft: the reproducible report records the exact versions.
   await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
@@ -168,15 +169,19 @@ test('a failed coordinate download is explicit and never replaced by a fabricate
   await page.route('https://models.rcsb.org/**', (route) => route.fulfill({ status: 503, headers: { 'Access-Control-Allow-Origin': '*' } }));
   // A second annotated structure has no bundled drawing, so its failure has nothing to stand in for it.
   await serveUniProt(page, { ...reference, structures: [...reference.structures, { id: '4INS', method: 'X-ray', resolution: '1.50 A', chains: 'A/C=90-110, B/D=25-54' }] });
+  const refusedDownload = page.waitForResponse(response => response.url().startsWith('https://models.rcsb.org/') && response.status() === 503);
   await page.goto(ROUTES.library);
+  await refusedDownload;
   // The example keeps the drawing of its measured coordinates; the viewer never becomes ready and stays out of reach.
   const status = page.locator('.structure-viewer').getByRole('status');
   await expect(status).toHaveText(spanish['library.viewerError']);
   await expect(page.locator('figure.stage.stage-library')).toBeVisible();
   await expect(page.locator('.structure-canvas')).toHaveAttribute('data-ready', 'false');
-  await expect(status).toHaveClass(/visually-hidden/);
+  await expect(status).not.toHaveClass(/visually-hidden/);
+  await expect(page.getByRole('button', { name: spanish['library.retry'], exact: true })).toBeVisible();
   await expect(page.locator('.structure-viewer .actions button', { hasText: spanish['library.resetView'] })).toBeDisabled();
 
+  await page.getByRole('tab', { name: spanish['library.uniprotTitle'] }).click();
   await page.getByRole('button', { name: spanish['library.search'], exact: true }).click();
   await page.getByRole('button', { name: message('library.openEntry', { id: reference.accession }) }).click();
   await expect(page.locator('.entry-detail')).toBeVisible();

@@ -120,7 +120,7 @@ test('owned project saves current calculations and resumes after reload', async 
   await page.goto(ROUTES.analyze);
   const editor = await openSequenceEditor(page);
   await editor.fill(saved.activeSequence);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['editor.ownTitle']);
+  await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
   await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
   await expect(page.locator('.descriptor-panel .status-message')).toHaveAttribute('data-state', 'current');
   const panel = await openProjectPanel(page);
@@ -180,10 +180,12 @@ test('a conflict keeps edits, and opening a project restores profile and compari
   await page.getByRole('button', { name: spanish['projects.confirmOpen'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
   await expect(await openSequenceEditor(page)).toHaveValue(saved.activeSequence);
+  await page.getByRole('tab', { name: spanish['workbench.profile'], exact: true }).click();
   await expect(page.getByRole('radio', { name: '19', exact: true })).toBeChecked();
   await navigationLink(page, spanish['nav.alignment']).click();
   await expect(page.getByRole('textbox', { name: spanish['alignment.first'], exact: true })).toHaveValue('ACD');
   await expect(alignmentInputs(page).second).toHaveValue('ACE');
+  await page.locator('.comparison-advanced summary').click();
   await expect(page.getByRole('radio', { name: 'BLOSUM80' })).toBeChecked();
   await expect(page.getByRole('radio', { name: spanish['alignment.local'], exact: true })).toBeChecked();
   await navigationLink(page, spanish['nav.analyze']).click();

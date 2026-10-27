@@ -31,18 +31,19 @@ for (const width of [360, 1280]) {
         await expect(provider).toHaveCount(identityEnabled ? 1 : 0);
         if (identityEnabled) {
           await expect(provider.locator('img.provider-mark')).toBeVisible();
-          expect(await provider.locator('img.provider-mark').evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+          await expect.poll(() => provider.locator('img.provider-mark').evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
         }
       }
-      // One centered column without side art: every input spans it and each password toggle sits inside its field.
+      // One main region contains context and form; inputs align and toggles stay within their fields.
       const layout = await page.evaluate(() => {
-        const main = document.querySelector('main.auth-page')?.getBoundingClientRect();
+        const main = document.querySelector('main.auth-layout')?.getBoundingClientRect();
         const form = document.querySelector('.auth-form');
-        if (!main || !form) throw new Error('Missing identity form.');
+        const body = document.querySelector('.workspace-body')?.getBoundingClientRect();
+        if (!main || !form || !body) throw new Error('Missing identity form.');
         const round = (value: number) => Math.round(value * 100) / 100;
         return {
           mains: document.querySelectorAll('main').length,
-          left: main.left, right: document.documentElement.clientWidth - main.right,
+          left: main.left - body.left, right: document.documentElement.clientWidth - main.right,
           inputs: [...form.querySelectorAll('input')].map((input) => round(input.getBoundingClientRect().width)),
           toggles: [...form.querySelectorAll('.password-control')].map((control) => {
             const input = control.querySelector('input')?.getBoundingClientRect();

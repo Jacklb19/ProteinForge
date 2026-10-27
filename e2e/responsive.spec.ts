@@ -23,37 +23,23 @@ test('the site bar fits every primary destination on wide screens and phones', a
       await page.goto(item.path);
       for (const theme of ['light', 'dark'] as const) {
         await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
-        const layout = await page.evaluate(() => {
-          const bar = document.querySelector('header.site-bar')?.getBoundingClientRect();
-          const inner = document.querySelector('.site-bar-inner')?.getBoundingClientRect();
-          const brand = document.querySelector('.site-bar .brand')?.getBoundingClientRect();
-          const end = document.querySelector('.site-bar-end')?.getBoundingClientRect();
-          const navigation = document.querySelector('.site-bar nav');
-          if (!bar || !inner || !brand || !end || !navigation) throw new Error('Missing application frame.');
-          return {
-            barTop: bar.top, barLeft: bar.left, barRight: innerWidth - bar.right,
-            left: inner.left, right: innerWidth - inner.right, brandRight: brand.right, endLeft: end.left, endRight: end.right,
-            navigationShown: navigation.getClientRects().length > 0,
-            current: [...navigation.querySelectorAll('[aria-current="page"]')].map((link) => link.getAttribute('href')),
-            docks: document.querySelectorAll('.primary-navigation, .dock-actions').length,
-          };
-        });
-        // One sticky bar across the top; the former bottom tab bar and floating dock are gone.
-        expect(layout.barTop).toBe(0);
-        expect(layout.barLeft).toBe(0);
-        expect(layout.barRight).toBe(0);
-        expect(layout.docks).toBe(0);
-        expect(layout.current).toEqual([item.path]);
-        expect(layout.brandRight).toBeLessThanOrEqual(layout.endLeft);
-        expect(Math.abs(layout.left - layout.right)).toBeLessThanOrEqual(1);
-        expect(layout.endRight).toBeLessThanOrEqual(width);
+        const sidebar = page.locator('.workspace-sidebar');
+        const bar = page.locator('header.site-bar');
+        expect(await bar.evaluate(element => element.getBoundingClientRect().top)).toBe(0);
         if (width === 360) {
-          expect(layout.navigationShown).toBe(false);
+          await expect(sidebar).toBeHidden();
           await expect(page.getByRole('button', { name: spanish['shell.openMenu'] })).toBeVisible();
         } else {
-          expect(layout.navigationShown).toBe(true);
+          await expect(sidebar).toBeVisible();
           await expect(page.getByRole('button', { name: spanish['shell.openMenu'] })).toBeHidden();
-          await expect(page.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(NAVIGATION_ITEMS.filter(item => !item.signedInOnly).map((entry) => spanish[entry.labelKey]));
+          await expect(sidebar.locator('[aria-current="page"]')).toHaveAttribute('href', item.path);
+          await expect(sidebar.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(NAVIGATION_ITEMS.filter(entry => !entry.signedInOnly).map(entry => spanish[entry.labelKey]));
+          const boxes = await page.evaluate(() => {
+            const sidebar = document.querySelector('.workspace-sidebar'), content = document.querySelector('.workspace-body');
+            if (!sidebar || !content) throw new Error('Missing workspace frame.');
+            return { sidebar: sidebar.getBoundingClientRect().right, content: content.getBoundingClientRect().left };
+          });
+          expect(boxes.sidebar).toBeLessThanOrEqual(boxes.content);
         }
         await assertFits(page);
       }
@@ -66,9 +52,12 @@ for (const width of [360, 768, 1280, 1440] as const) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(ROUTES.analyze);
     await (await openSequenceEditor(page)).fill(sequence);
+    await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
     await expect(residueReader(page)).toBeVisible();
+    await page.getByRole('tab', { name: spanish['workbench.summary'], exact: true }).click();
     await expect(page.getByText(spanish['descriptors.mass'], { exact: true })).toBeVisible();
     await expect(page.getByText(spanish['editor.noInvalid'])).toBeVisible();
+    await page.getByRole('tab', { name: spanish['workbench.profile'], exact: true }).click();
     await expect(page.locator('canvas.hydropathy-chart')).toBeVisible();
 
     for (const theme of ['light', 'dark'] as const) {
@@ -78,8 +67,9 @@ for (const width of [360, 768, 1280, 1440] as const) {
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['privacy.title']);
       await assertFits(page);
       await followNavigation(page, spanish['nav.analyze']);
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['editor.ownTitle']);
+      await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
       await expect(await openSequenceEditor(page)).toHaveValue(sequence);
+      await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
       await expect(residueReader(page)).toBeVisible();
       await assertFits(page);
       await page.screenshot({ path: `artifacts/${theme}-${String(width)}.png`, fullPage: true });

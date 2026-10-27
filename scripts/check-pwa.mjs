@@ -65,6 +65,7 @@ try {
   await expect.poll(() => page.workers().some(worker => worker.url().includes('profile.worker'))).toBe(true);
   const chartWorker = page.workers().find((worker) => worker.url().includes('profile.worker'));
   if (!chartWorker) throw new Error('Offline profile worker is missing.');
+  await page.getByRole('tab', { name: 'Perfil', exact: true }).click();
   const canTransfer = await page.evaluate(() => typeof HTMLCanvasElement.prototype.transferControlToOffscreen === 'function');
   if (canTransfer) {
     await expect.poll(() => chartWorker.evaluate((family) => [...self.fonts].some((face) =>
@@ -86,6 +87,7 @@ try {
   if (!await page.evaluate(() => crossOriginIsolated)) throw new Error('Offline navigation lost cross-origin isolation.');
   process.stdout.write('Offline navigation, alignment workers, and cross-origin isolation verified.\n');
   await page.goto(baseURL + route('generate'));
+  await page.locator('.generator-advanced summary').click();
   await page.getByLabel('Evaluaciones por método').fill('100');
   await page.getByRole('button', { name: 'Buscar y comparar' }).click();
   await page.getByRole('heading', { name: 'Candidatos y comparación' }).waitFor();

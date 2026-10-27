@@ -91,7 +91,7 @@ for (const width of [360, 1280]) {
     const editor = await openSequenceEditor(page); const text = await editor.inputValue();
     await editor.fill(text + 'A');
     await expect(page.locator('.mapped-reference')).toHaveCount(0);
-    await expect(page.locator('.page-meta')).not.toContainText('P01308');
+    await expect(page.locator('.subject-summary .page-meta')).not.toContainText('P01308');
     expect(errors).toEqual([]);
   });
 }

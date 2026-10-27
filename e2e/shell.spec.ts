@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import {
   alignmentVerdict, assertFits, examplePairTitle, followNavigation, identityEnabled, message, openExportMenu, openSequenceEditor, openSiteMenu,
-  residueReader, signInWithEmptyAccount, siteMenu, TEST_ACCOUNT,
+  signInWithEmptyAccount, siteMenu, TEST_ACCOUNT,
 } from './helpers';
 import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
@@ -20,15 +20,15 @@ for (const width of [360, 1280]) {
       await page.goto(ROUTES.workspace);
       await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
       await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['examples.insulinName']);
-      await expect(page.locator('.page-meta')).toContainText('P01308');
-      await expect(residueReader(page)).toBeVisible();
+      await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();
+      await expect(page.locator('.subject-summary .page-meta')).toContainText('P01308');
+      await expect(page.getByRole('tab', { name: spanish['workbench.summary'], exact: true })).toHaveAttribute('aria-selected', 'true');
       await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
-      await expect(page.locator('canvas.hydropathy-chart')).toBeVisible();
+      await expect(page.locator('canvas.hydropathy-chart')).toBeHidden();
       await expect(page.locator('figure.stage.stage-rail')).toBeVisible();
       await assertFits(page);
       const header = await page.evaluate(() => {
-        const brand = document.querySelector('.site-bar .brand')?.getBoundingClientRect();
+        const brand = document.querySelector(innerWidth < 1024 ? '.site-bar .brand' : '.workspace-location')?.getBoundingClientRect();
         const actions = document.querySelector('.site-bar-end')?.getBoundingClientRect();
         if (!brand || !actions) throw new Error('Missing site bar.');
         return { brandRight: brand.right, actionsLeft: actions.left };
@@ -64,7 +64,7 @@ test('first visit opens the example, explains results, exports them and resumes 
   await followNavigation(page, spanish['nav.home']);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['landing.title']);
   await followNavigation(page, spanish['nav.analyze']);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['editor.ownTitle']);
+  await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
   const editor = await openSequenceEditor(page);
   await expect(editor).toHaveValue('ACDEFGHIKLMNPQRSTVWY');
   await editor.fill('AC-DE');
@@ -200,7 +200,7 @@ test('the bar veils after scrolling and the footer keeps only the legal links', 
   await expect(bar).toHaveAttribute('data-scrolled', 'false');
   await expect(page.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(destinations);
   await expect(page.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link', { name: spanish['nav.analyze'], exact: true })).toHaveAttribute('aria-current', 'page');
-  await expect(bar.getByRole('link', { name: spanish['shell.home'] })).toHaveAttribute('href', ROUTES.home);
+  await expect(page.locator('.workspace-sidebar').getByRole('link', { name: spanish['shell.home'] })).toHaveAttribute('href', ROUTES.home);
   await page.evaluate((offset) => { window.scrollTo(0, offset + 200); }, BAR_VEIL_SCROLL_PX);
   await expect(bar).toHaveAttribute('data-scrolled', 'true');
   expect(await bar.evaluate((element) => element.getBoundingClientRect().top)).toBe(0);
@@ -232,7 +232,7 @@ test('a signed-in visitor reaches the profile from the bar and from the phone me
   await page.goto(ROUTES.analyze);
   await assertFits(page);
   const menu = await openSiteMenu(page);
-  await expect(menu.getByRole('radio')).toHaveCount(0);
+  await expect(menu.getByRole('radio')).toHaveCount(5);
   await expect(menu.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveCount(0);
   await assertFits(page);
   await menu.getByRole('link', { name: spanish['nav.profile'], exact: true }).click();
@@ -257,7 +257,7 @@ test('a visitor without a session can create an account and switch language from
 
   // Tablet: destinations and account creation move into the menu; the bar never overflows.
   await page.setViewportSize({ width: 768, height: 900 });
-  await expect(bar.getByRole('navigation', { name: spanish['nav.main'] })).toBeHidden();
+  await expect(page.getByRole('navigation', { name: spanish['nav.main'] })).toBeHidden();
   await expect(signUp).toBeHidden();
   await expect(bar.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toBeVisible();
   await assertFits(page);
@@ -271,13 +271,13 @@ test('a visitor without a session can create an account and switch language from
   // The dialog is renamed with the language, so it is located by its id from here on.
   await expect(page.locator('#site-menu').getByRole('link', { name: english['shell.signIn'], exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('heading', { level: 1, name: english['examples.insulinName'] })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: english['examples.insulinName'] })).toBeVisible();
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   const footer = page.getByRole('contentinfo');
   await expect(footer.getByRole('radio', { name: english['settings.english'], exact: true })).toBeChecked();
   await footer.getByRole('radio', { name: english['settings.spanish'], exact: true }).check();
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-  await expect(page.getByRole('heading', { level: 1, name: spanish['examples.insulinName'] })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'] })).toBeVisible();
   await assertFits(page);
 });

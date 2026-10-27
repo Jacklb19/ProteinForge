@@ -17,10 +17,11 @@ for (const width of [360, 1280]) {
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
       // The page opens on the bundled insulin with its editor closed; the panel holds the overlaid editor.
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['examples.insulinName']);
+      await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();
       await expect(page.locator('#sequence-panel')).toHaveCount(0);
       const input = await openSequenceEditor(page);
       await expect(input).toHaveValue(sequence);
+      await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
       const reader = residueReader(page);
       await expect(reader).toBeVisible();
       // Interface figures are tabular through `font-variant-numeric`, as the descriptor values use them.
@@ -73,6 +74,7 @@ for (const width of [360, 1280]) {
         await input.fill(`${sequence.repeat(12)}?`);
         await expect(input).toHaveAttribute('aria-invalid', 'true');
         await expect(page.locator('.invalid-residue')).toHaveText('?');
+        await page.getByRole('tab', { name: spanish['workbench.summary'], exact: true }).click();
         await expect(page.getByText(spanish['descriptors.invalid'])).toBeVisible();
         const geometry = await page.evaluate(() => {
           const textarea = document.querySelector<HTMLTextAreaElement>('#sequence-input');
@@ -89,6 +91,7 @@ for (const width of [360, 1280]) {
         expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
         await input.fill(sequence);
         await expect(input).toHaveAttribute('aria-invalid', 'false');
+        await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
         await expect(reader).toBeVisible();
       }
       await page.locator('#fasta-file').setInputFiles({ name: 'entries.fasta', mimeType: 'text/plain', buffer: Buffer.from(Array.from({ length: 100 }, (_, index) => `>entry-${String(index)}\n${sequence}`).join('\n')) });
@@ -110,26 +113,30 @@ for (const width of [360, 1280]) {
 test('editor empty and scientific warning states remain accessible', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 });
   await page.goto(ROUTES.analyze);
-  const title = page.getByRole('heading', { level: 1 });
+  const title = page.locator('.subject-summary h2');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['workbench.analyzeTitle']);
   await expect(title).toHaveText(spanish['examples.insulinName']);
+  await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
   // The example opens with one residue chosen, so the linked views show what a selection does.
   await expect(residueReader(page).locator('[data-position="96"]')).toHaveClass(/is-selected/);
   await expect(page.locator('#reader-readout')).toContainText(message('profile.readerBridge', { position: 31 }));
   const input = await openSequenceEditor(page);
   await page.getByRole('button', { name: spanish['editor.clear'], exact: true }).click();
   await expect(title).toHaveText(spanish['editor.emptyTitle']);
-  await expect(page.locator('.page-meta')).toHaveText(spanish['editor.emptyText']);
+  await expect(page.locator('.subject-summary .page-meta')).toHaveText(spanish['editor.emptyText']);
   await expect(input).toHaveValue('');
   await expect(sequencePanelToggle(page)).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('.analysis-columns')).toHaveCount(0);
+  await expect(page.getByRole('tablist')).toHaveCount(0);
   await expect(page.getByRole('button', { name: spanish['projects.save'], exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: spanish['editor.toAlignment'], exact: true })).toHaveCount(0);
   const restore = page.getByRole('button', { name: spanish['editor.restoreExample'] });
   await expect(restore).toBeVisible();
   await input.fill('ACX');
   await expect(title).toHaveText(spanish['editor.ownTitle']);
-  await expect(page.getByText(message('profile.tooShort', { count: 9 }))).toBeVisible();
+  await page.getByRole('tab', { name: spanish['workbench.summary'], exact: true }).click();
   await expect(page.getByText(message('descriptors.excludedOne', { count: 1 }))).toBeVisible();
+  await page.getByRole('tab', { name: spanish['workbench.profile'], exact: true }).click();
+  await expect(page.getByText(message('profile.tooShort', { count: 9 }))).toBeVisible();
   await page.getByRole('radio', { name: '19', exact: true }).check();
   await expect(page.getByText(message('profile.tooShort', { count: 19 }))).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -138,5 +145,6 @@ test('editor empty and scientific warning states remain accessible', async ({ pa
   await restore.click();
   await expect(title).toHaveText(spanish['examples.insulinName']);
   await expect(page.locator('#sequence-panel')).toHaveCount(0);
+  await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
   await expect(residueReader(page).locator('[data-position="96"]')).toHaveClass(/is-selected/);
 });

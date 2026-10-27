@@ -110,7 +110,7 @@ test('the example action opens the workbench with the insulin sequence loaded', 
   await page.goto(ROUTES.home);
   await page.getByRole('link', { name: spanish['landing.analyzeAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['examples.insulinName']);
+  await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();
   await expect(page.getByText(spanish['descriptors.mass'], { exact: true })).toBeVisible();
   await expect(await openSequenceEditor(page)).toHaveValue(insulin);
 });
@@ -162,13 +162,13 @@ test('landing, identity and tools form a complete navigation flow', async ({ pag
   await page.locator('#app-content').getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signUp}$`));
   await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signUpTitle'] })).toBeVisible();
-  await page.getByRole('banner').getByRole('link', { name: spanish['shell.home'] }).click();
+  await page.locator('.workspace-sidebar').getByRole('link', { name: spanish['shell.home'] }).click();
   await expect(page.getByRole('heading', { level: 1, name: spanish['landing.title'] })).toBeVisible();
   await page.getByRole('link', { name: spanish['landing.compareAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(examplePairTitle);
   await expect(alignmentVerdict(page)).toBeVisible();
-  await page.getByRole('banner').getByRole('link', { name: spanish['shell.home'] }).click();
+  await page.locator('.workspace-sidebar').getByRole('link', { name: spanish['shell.home'] }).click();
   await page.getByRole('link', { name: spanish['landing.openDesign'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.generate}$`));
   await expect(page.getByRole('heading', { name: spanish['generator.results'] })).toBeVisible();

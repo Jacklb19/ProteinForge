@@ -89,8 +89,7 @@ export async function routeLoaded(page: Page): Promise<void> {
 }
 
 /**
- * Chooses a theme through the control the current page offers: the radios of Perfil, the phone menu of a
- * signed-out visitor, or the bar toggle, which only flips between light and dark.
+ * Chooses a theme through account settings, the phone menu or desktop preferences.
  */
 export async function chooseTheme(page: Page, theme: keyof typeof themeLabels): Promise<void> {
   await routeLoaded(page);
@@ -103,12 +102,10 @@ export async function chooseTheme(page: Page, theme: keyof typeof themeLabels): 
     await page.keyboard.press('Escape');
     await expect(menu).toBeHidden();
   } else {
-    if (theme === 'system') throw new Error('The bar toggle cannot return to the system theme.');
-    const toggles = { light: spanish['shell.themeToLight'], dark: spanish['shell.themeToDark'] } as const;
-    const target = page.getByRole('button', { name: toggles[theme] });
-    // The toggle offers the opposite of what is shown; flipping twice makes an inherited theme explicit.
-    if (!await target.isVisible()) await page.getByRole('button', { name: toggles[theme === 'light' ? 'dark' : 'light'] }).click();
-    await target.click();
+    const preferences = page.locator('details.preferences-menu');
+    await preferences.locator('summary').click();
+    await preferences.getByRole('radio', { name: themeLabels[theme], exact: true }).check();
+    await page.keyboard.press('Escape');
   }
   if (theme === 'system') await expect(page.locator('html')).not.toHaveAttribute('data-theme');
   else await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -122,7 +119,7 @@ export const examplePairTitle = message('alignment.pairTitle', {
 
 /** Value shown for a term among the alignment figures. */
 export function figureValue(page: Page, term: string): Locator {
-  return page.locator('dl.figures > div').filter({ has: page.locator('dt').getByText(term, { exact: true }) }).locator('dd');
+  return page.locator('dl.figures > div').filter({ has: page.locator('dt').getByText(term, { exact: true }) }).locator('dd').first();
 }
 
 /** Headline of the current alignment result. */
@@ -151,9 +148,9 @@ export async function followNavigation(page: Page, name: string): Promise<void> 
   }
 }
 
-/** Button that opens the sequence panel of Analizar; its name is shortened on phones. */
+/** Button that opens the sequence input panel of Analizar. */
 export function sequencePanelToggle(page: Page): Locator {
-  return page.getByRole('button', { name: new RegExp(`^${spanish['editor.change']}( ${spanish['editor.changeObject']})?$`) });
+  return page.getByRole('button', { name: spanish['editor.inputTitle'], exact: true });
 }
 
 /** Opens the sequence panel of Analizar when it is closed and returns its editor. */
@@ -216,6 +213,8 @@ export async function assertFits(page: Page): Promise<void> {
 
 /** Opens the per-residue table, which is collapsed by default. */
 export async function openValueTable(page: Page): Promise<void> {
+  const profileTab = page.getByRole('tab', { name: spanish['workbench.profile'], exact: true });
+  if (await profileTab.count()) await profileTab.click();
   const disclosure = page.locator('details', { has: page.getByText(spanish['profile.tableToggle']) });
   if (!await disclosure.evaluate((element) => (element as HTMLDetailsElement).open)) {
     await disclosure.locator('summary').click();
