@@ -29,7 +29,7 @@ Los archivos de Atkinson se copiaron sin modificar del paquete npm (`files/atkin
 - **Atkinson sobre Arial.** `size-adjust` del 98,9 %, calculado con fontTools a partir de los avances de texto corrido en español. Las métricas verticales salen de las tablas OS/2: ascendente 984 y descendente 316 sobre 1000.
 - **Plex Mono.** Mantiene los respaldos Consolas y Courier New medidos anteriormente, que conservan el ajuste de líneas durante el intercambio.
 
-Se precargan Bricolage 600, Atkinson 400 y Plex Mono 400. Todas las fuentes usan `font-display: swap` y `font-synthesis: none`, y los cuatro WOFF2 están en la precaché de Workbox.
+Se precargan Bricolage 600 y Atkinson 400, las fuentes del primer texto visible. Plex Mono 400 ya no se precarga (27 oct 2026): sus 49 KB competían con el JavaScript inicial y retrasaban el LCP unos 210 ms con 4G lenta; se descarga al aparecer la primera cifra o secuencia, mientras su respaldo de métricas ajustadas evita desplazamientos (CLS medido ≈ 0). Todas las fuentes usan `font-display: swap` y `font-synthesis: none`, y los cuatro WOFF2 están en la precaché de Workbox.
 
 Pruebas que cubren las fuentes:
 

@@ -55,7 +55,7 @@
       "family": "IBM Plex Mono",
       "weight": 400,
       "role": "sequence",
-      "preload": true,
+      "preload": false,
       "bytes": 49248,
       "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350"
     }
