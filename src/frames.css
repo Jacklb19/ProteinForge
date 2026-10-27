@@ -108,7 +108,8 @@
 
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2xs); padding-inline: var(--space-2xs); padding-block-end: var(--space-md); }
 .sidebar-head .brand { min-width: var(--space-none); font-size: var(--font-size-brand); }
-.sidebar-nav { flex: 1; min-height: var(--space-none); overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: var(--space-lg); padding-block: var(--space-xs); }
+/* The navigation scrolls, which clips its overflow: inline room as wide as the focus ring keeps every ring whole, and the matching negative margin keeps the links where they were. */
+.sidebar-nav { flex: 1; min-height: var(--space-none); margin-inline: calc(-1 * var(--focus-ring-reach)); padding-inline: var(--focus-ring-reach); overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: var(--space-lg); padding-block: var(--space-xs); }
 .sidebar-group ul { display: grid; gap: var(--space-2xs); padding: var(--space-none); list-style: none; }
 .sidebar-group-label { padding: var(--space-2xs) var(--space-sm) var(--space-xs); color: var(--text-secondary); font-size: var(--font-size-note); font-weight: var(--font-weight-strong); }
 .sidebar-link { position: relative; display: flex; align-items: center; gap: var(--space-sm); width: var(--width-full); min-height: var(--size-touch); padding: var(--space-xs) var(--space-sm); border: none; border-radius: var(--radius-control); background: var(--transparent); color: var(--text-secondary); font-size: var(--font-size-small); text-align: start; text-decoration: none; cursor: pointer; transition: background-color var(--duration-feedback) var(--ease-feedback), color var(--duration-feedback) var(--ease-feedback); }
