@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
   /** Commit of the build, set by vite.config.ts; empty when unknown. */
   readonly VITE_APP_BUILD?: string;
+  /** `enabled` offers saving generator searches in Projects; needs a backend with workspace version 3. */
+  readonly VITE_GENERATOR_HISTORY?: string;
 }
 
 interface ImportMeta {

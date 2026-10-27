@@ -15,6 +15,7 @@ import type { ProjectDestination } from './ProjectCard';
 import { ProjectDialog } from './ProjectDialog';
 import type { ProjectIntent } from './ProjectDialog';
 import { LabContext } from '../design-lab/context';
+import { SAVED_RUNS_ID, useGeneratorHistoryMode } from '../generator/historyMode';
 
 /** Search and sorting apply to the whole owned collection before paging. */
 export function ProjectLibrary(): React.JSX.Element {
@@ -28,6 +29,7 @@ export function ProjectLibrary(): React.JSX.Element {
   const [intent, setIntent] = useState<ProjectIntent | null>(null);
   const [name, setName] = useState('');
   const [query, setQuery] = useState<ProjectQuery>(projects.listing);
+  const showRuns = useGeneratorHistoryMode() === 'ready';
   /** Opens a project and goes where its evidence lives; a comparison without analysis opens Alinear. */
   async function open(project: ProjectSummary, destination?: ProjectDestination): Promise<void> {
     const opened = await projects.open(project.id, destination === 'laboratory' ? 'laboratory' : undefined);
@@ -36,6 +38,8 @@ export function ProjectLibrary(): React.JSX.Element {
     const alignment = opened.workspace.alignment;
     const comparisonOnly = !opened.activeSequence && Boolean(alignment.first || alignment.second);
     if (destination === 'laboratory') { void navigate(ROUTES.laboratory); return; }
+    // Saved searches belong to the project open in Analyze, so it opens there and shows them in Design.
+    if (destination === 'generator') { void navigate(`${ROUTES.generate}#${SAVED_RUNS_ID}`); return; }
     void navigate(destination === 'alignment' || (!destination && comparisonOnly) ? ROUTES.alignment : ROUTES.analyze);
   }
 
@@ -67,7 +71,7 @@ export function ProjectLibrary(): React.JSX.Element {
       {projects.items.map(project => (
         <ProjectCard
           key={project.id} project={project} busy={projects.busy}
-          active={project.id === projects.active?.id} dirty={projects.dirty}
+          active={project.id === projects.active?.id} dirty={projects.dirty} showRuns={showRuns}
           onOpen={destination => { requestOpen(project, destination); }}
           onAction={action => {
             setName(action === 'duplicate' ? t('projects.copyName', { name: project.name }).slice(0, MAX_PROJECT_NAME_LENGTH) : project.name);

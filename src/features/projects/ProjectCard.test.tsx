@@ -61,3 +61,17 @@ it('says when a project has no saved evidence instead of inventing it', () => {
   expect(screen.queryByText(message('workbench.projectDetails'))).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: message('projects.openNamed', { name: 'Sin vista previa' }) })).toBeVisible();
 });
+
+it('counts saved generator searches and opens them only where the build offers them', async () => {
+  const user = userEvent.setup();
+  const onOpen = vi.fn();
+  const project = summary('Insulina humana', { ...ANALYSIS, generatorRuns: 3 });
+  const view = render(<LocaleProvider locale="es"><ProjectCard project={project} busy={false} active={false} dirty={false} showRuns onOpen={onOpen} onAction={vi.fn()} /></LocaleProvider>);
+  expect(screen.getByText(message('projects.generatorRuns', { count: '3' }))).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: message('projects.openRunsNamed', { name: 'Insulina humana' }) }));
+  expect(onOpen).toHaveBeenCalledWith('generator');
+  view.unmount();
+  card(project);
+  expect(screen.queryByText(message('projects.generatorRuns', { count: '3' }))).toBeNull();
+  expect(screen.queryByRole('button', { name: message('projects.openRunsNamed', { name: 'Insulina humana' }) })).toBeNull();
+});

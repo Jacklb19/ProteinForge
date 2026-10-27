@@ -4,7 +4,7 @@ export const GENERATOR_CONFIG = {
   maxSeed: 0xffffffff, retained: 5, minimumDistance: 0.1,
   initialTemperature: 1, finalTemperature: 0.01, batchSize: 50,
   minimumGravyScale: 0.01, minimumMassScale: 1, timeoutMs: 60_000,
-  filename: 'proteinforge-candidates.json', referenceSalt: 0x9e3779b9,
+  filename: 'proteinforge-candidates.json', downloadRevokeMs: 1000, referenceSalt: 0x9e3779b9,
 } as const;
 export const GENERATOR_REFERENCES = [
   'https://research.ibm.com/publications/optimization-by-simulated-annealing',
@@ -22,4 +22,6 @@ export const GENERATOR_HISTORY_CONFIG = {
   maxDocumentBytes: 100_000, maxRunBytes: 10_000, maxRuns: 10, origin: 'local-generator',
   methodVersions: [GENERATOR_CONFIG.version], maxReferences: 10, maxReferenceLength: 500, maxRecordedAtLength: 64,
   arms: ['guided', 'reference'], appBuildPattern: /^[0-9a-f]{7,40}$/,
+  // Interface: a longer chosen candidate shows this many residues; figures describe all of it.
+  chosenPrefixResidues: 60, identifierShown: 12, bytesPerKilobyte: 1000,
 } as const;
