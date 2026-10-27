@@ -2,6 +2,12 @@
 
 Actualizado el **26 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes.
 
+## Historial del generador: contratos listos, interfaz pendiente de aprobación — 27 oct
+
+Decisiones del contrato tomadas por delegación y fase backend implementada en backend `dev` (`41ab303`, `22ffd01`, `b07a757`): workspace v3, historial dentro del snapshot, guardia monótona, código `project-requires-current-client`, migración `20261027000000_generator_history.sql` probada solo en PostgreSQL local. [Contrato y decisiones](../../backend/docs/generator-history-contract-proposal.md).
+
+Fase frontend autorizada por el propietario e implementada en `dev` sin ruta visible: código generado desde el protobuf local (`e866e2e`, **sin cambiar el pin**: CI fallará la comprobación de código generado hasta publicar el backend y repinear), contratos Zod/rpcMapping/guardado con versión máxima y conservación de laboratorio e historial, rechazo por tamaño sin truncar, `appBuild` por Vite y reproducción bajo demanda en Worker (`36767fb`, `a4f6fc1`, `66fb9df`, `222dc05`). Maqueta y plan pendientes de aprobación: [propuesta de interfaz](generator-history-ui-proposal-2026-10-27.md). Servidor de la maqueta: configuración `generator-history-mockup`, puerto 5361. No exponer el guardado en la interfaz hasta que el propietario apruebe la maqueta y el backend esté publicado. Orden de publicación cuando se autorice: migración → backend → repin/regeneración → frontend.
+
 ## Rediseño integral aprobado e implementado localmente
 
 El propietario aprobó A «Mesa clara» y el [plan por pantalla](usability-redesign-proposal-2026-10-26.md). Implementación React: navegación lateral, resumen y vistas de análisis, variantes accesibles, separación de comparación/archivos, Biblioteca por fuentes, Proyectos por filas y formularios/legales organizados. [Informe de implementación y comprobación](usability-redesign-implementation-2026-10-26.md). Comprobación final: 446 unitarias, 110 recorridos distintos verificados (2 archivos opcionales no suministrados a E2E), matriz visual 30/30 con 120 configuraciones, tipos/lint/build/PWA correctos. La pasada completa de recorridos necesitó actualizar una aserción antigua de error oculto; Biblioteca repetida 6/6 correcta. No pedir de nuevo selección ni aprobación visual de ese plan.
