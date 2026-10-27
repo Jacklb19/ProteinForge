@@ -96,6 +96,7 @@ Cada fila compara la mediana de 7 cargas con 4G lenta con el paso anterior, en e
      - al cambiar de idioma, antes de aplicarlo.
    - **Sin conexión y en caso de fallo:** la PWA lo precarga, así que quien vuelve con inglés lo lee de la caché. Si no puede cargarse, se queda el idioma por defecto.
    - **Comprobación de uso:** `translateLoaded` falla si se pide un idioma sin cargar. Un error así no puede pasar desapercibido.
+   - **Corrección posterior (`fix(i18n)`):** la E2E completa mostró que, con el inglés todavía en camino, el control de idioma no cambiaba al pulsarlo; parecía que se ignoraba la elección. Ahora el control muestra la elección al instante y los textos cambian al llegar el catálogo. Una prueba unitaria retiene el catálogo para comprobarlo.
 4. **Campos de descriptores reservados.**
    - **Causa:** cuando el Worker respondía después del primer pintado, los cinco campos aparecían de golpe y empujaban el resumen. El desplazamiento fue de 0,14 en 3 de 21 cargas con 4G lenta.
    - **Cambio:** los campos se pintan desde el principio con su etiqueta, su lectura y una marca pendiente oculta a lectores de pantalla, dentro de una lista `aria-busy`.
@@ -184,6 +185,17 @@ Además recorre con el teclado la barra pública, la barra lateral en sus dos an
    - **Obstáculo:** la licencia OFL de Plex reserva el nombre «Plex» para versiones modificadas.
    - **Alternativa:** usar un subconjunto publicado, por ejemplo Fontsource, con su procedencia.
 6. **INP de campo.** Las cifras de interacción son sintéticas. Medir INP p75 real exige telemetría de usuarios con consentimiento, algo que hoy no existe.
+
+## Verificación de cierre
+
+Sobre `abe4463`, sin Auth configurada, como CI (`CI=true`, Supabase vacío):
+
+- Tipos y lint correctos.
+- Pruebas unitarias: 504/504 en 87 archivos, con 2 workers. Cobertura: 85,44 % de sentencias, 76,78 % de ramas, 81,92 % de funciones y 89,21 % de líneas.
+- Build correcto: precaché de 64 entradas, 2.512,66 KiB.
+- `check:pwa` correcto en Chromium 156 y en WebKit 26.6.
+- E2E completas con un worker en el puerto 5315: 137 correctas y 2 omitidas por diseño. Las omitidas requieren evidencia local de Colab; las pruebas de cuenta se ejecutaron con los valores ficticios que `run-e2e` aplica.
+- La primera ejecución completa falló en 5 recorridos que cambiaban a inglés. Esos fallos llevaron a la corrección del control de idioma y no se ocultaron.
 
 ## Repetición
 
