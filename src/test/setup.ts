@@ -25,3 +25,7 @@ Object.defineProperties(HTMLDialogElement.prototype, {
 
 // Failure messages raised in tests read in the default language, as on the interface thread.
 import '../i18n/localize';
+
+// Components under test may show either language; the English catalog is otherwise loaded on demand.
+import { loadCatalog } from '../i18n/catalogs';
+await loadCatalog('en');

@@ -623,6 +623,7 @@ export const spanish = {
   'notFound.action': 'Ir a Analizar',
   'notFound.home': 'Ir a Inicio',
   'errors.missingProvider': 'Falta el proveedor de estado {{name}} en el árbol de componentes.',
+  'errors.catalogMissing': 'El idioma {{locale}} se pidió antes de cargar su catálogo.',
   'errors.invalidResidues': 'La secuencia contiene caracteres no admitidos.',
   'errors.standardResidues': 'La secuencia debe contener solo aminoácidos estándar en mayúsculas.',
   'errors.invalidAlignmentResidues': 'La secuencia de alineamiento contiene caracteres no admitidos.',

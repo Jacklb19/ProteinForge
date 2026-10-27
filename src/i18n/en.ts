@@ -625,6 +625,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'notFound.action': 'Go to Analyze',
   'notFound.home': 'Go to Home',
   'errors.missingProvider': 'The {{name}} state provider is missing from the component tree.',
+  'errors.catalogMissing': 'The {{locale}} language was requested before its catalog loaded.',
   'errors.invalidResidues': 'The sequence contains unsupported characters.',
   'errors.standardResidues': 'The sequence must contain only standard amino acids in uppercase.',
   'errors.invalidAlignmentResidues': 'The alignment sequence contains unsupported characters.',

@@ -1,6 +1,6 @@
 import { useContext, useMemo } from 'react';
 import { languageTags, LocaleContext } from './locale';
-import { translate } from './translate';
+import { translateLoaded } from './catalogs';
 import type { TranslationKey, TranslationVariables } from './translate';
 import { localize } from './localize';
 import type { LocalizedText } from './localized';
@@ -25,7 +25,7 @@ export function useTranslation() {
     };
     return {
       locale,
-      t: (key: TranslationKey, variables: TranslationVariables = {}): string => translate(locale, key, variables),
+      t: (key: TranslationKey, variables: TranslationVariables = {}): string => translateLoaded(locale, key, variables),
       /** Text from a Worker or scientific code, in the active language. */
       localize: (text: LocalizedText): string => localize(locale, text),
       formatNumber,
