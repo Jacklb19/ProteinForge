@@ -8,6 +8,8 @@ const E2E_PUBLIC_ENV = {
   VITE_SUPABASE_URL: 'https://e2e-project.supabase.invalid',
   VITE_SUPABASE_ANON_KEY: 'e2e-public-anon-key',
   VITE_API_BASE_URL: 'https://api.e2e.invalid',
+  // The mocked API accepts workspace version 3, so the suite exercises saving generator searches.
+  VITE_GENERATOR_HISTORY: 'enabled',
 };
 const configured = loadEnv('development', process.cwd(), 'VITE_');
 for (const [name, value] of Object.entries(E2E_PUBLIC_ENV)) {
