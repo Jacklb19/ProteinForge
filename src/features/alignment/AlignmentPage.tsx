@@ -84,7 +84,9 @@ export function AlignmentPage(): React.JSX.Element {
     <main className="page alignment-page">
       <header className="page-head">
         <div className="page-head-text">
+          <p className="page-kicker">{t('nav.alignment')}</p>
           <h1>{title}</h1>
+          <p className="page-purpose">{t('alignment.purpose')}</p>
           <p className="page-meta">{[isExampleInput(currentInput) ? t('editor.exampleTag') : '', meta, metaSecond].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="toolbar">

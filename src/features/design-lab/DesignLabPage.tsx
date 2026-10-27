@@ -1,8 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { PageHeading } from '../../shared/PageHeading';
-import { ROUTES } from '../../shared/navigation';
 import { useLab } from './context';
 import { LAB_CONFIG as C, LAB_ERROR_KEYS } from './config';
 import { downloadLabFile } from './download';
@@ -85,7 +83,7 @@ export function DesignLabPage(): React.JSX.Element {
 
   return (
     <main className="page lab-page">
-      <Link className="lab-breadcrumb" to={ROUTES.generate}>{t('lab.backToGenerator')}</Link>
+      <p className="page-kicker">{t('workbench.laboratory')}</p>
       <PageHeading
         titleKey={dataset ? 'lab.title' : 'lab.pageTitle'}
         titleVariables={{ reference: headingName }}

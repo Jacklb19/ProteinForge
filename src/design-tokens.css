@@ -158,7 +158,19 @@
   --stroke-icon: 1.6px;
   --height-bar: 4.25rem;
   --width-full: 100%;
-  --width-workspace-sidebar: 13.125rem;
+  --width-workspace-sidebar: 15rem;
+  --width-workspace-sidebar-compact: 4.75rem;
+  --width-public: 80rem;
+  --width-public-point: 18rem;
+  --width-public-fact: 9rem;
+  --width-public-heading: 24ch;
+  --width-public-display: 14ch;
+  --width-workspace-sheet: 20rem;
+  --font-size-public-title: clamp(1.75rem, 1.2rem + 1.6vw, 2.25rem);
+  --font-size-public-display: clamp(2.375rem, 1.3rem + 3.4vw, 4.25rem);
+  --space-public-section: clamp(3.5rem, 2rem + 4vw, 5.5rem);
+  --duration-reveal: 560ms;
+  --distance-reveal: 1.125rem;
   --width-workspace-preferences: 22rem;
   --width-workspace-main: 82.5rem;
   --width-content: 76rem;
@@ -176,8 +188,10 @@
   --dash-grid: 2 4;
   --ratio-hero-copy: 1fr;
   --ratio-hero-stage: 1.12fr;
-  --ratio-view-copy: 1fr;
-  --ratio-view-figure: 2fr;
+  --ratio-public-copy: 0.8fr;
+  --ratio-public-figure: 1.2fr;
+  --ratio-public-aside: 0.7fr;
+  --ratio-public-main: 1.3fr;
 
   --height-editor: 11rem;
   --height-alignment-input: 5.5rem;
@@ -333,5 +347,7 @@
   :root {
     --duration-feedback: var(--duration-none);
     --duration-enter: var(--duration-none);
+    --duration-reveal: var(--duration-none);
+    --distance-reveal: 0;
   }
 }
