@@ -35,7 +35,10 @@ describe('App', () => {
     for (const section of PUBLIC_SECTIONS) expect(document.getElementById(section.id)).not.toBeNull();
     expect(screen.queryByRole('navigation', { name: spanish['nav.main'] })).not.toBeInTheDocument();
 
-    expect(screen.getByRole('link', { name: spanish['public.exploreExample'] })).toHaveAttribute('href', ROUTES.analyze);
+    // The account section repeats the example entry only where accounts cannot be created.
+    const examples = screen.getAllByRole('link', { name: spanish['public.exploreExample'] });
+    expect(examples).toHaveLength(readAuthSettings() ? 1 : 2);
+    for (const example of examples) expect(example).toHaveAttribute('href', ROUTES.analyze);
     const bar = document.querySelector<HTMLElement>('.site-bar');
     if (!bar) throw new Error('Missing site bar.');
     expect(within(bar).getByRole('link', { name: spanish['shell.signIn'] })).toHaveAttribute('href', ROUTES.signIn);
