@@ -216,6 +216,12 @@ export async function settle(page: Page): Promise<void> {
   });
 }
 
+/** Applies a theme and waits for its colour transitions, so contrast is measured at rest. */
+export async function setTheme(page: Page, theme: string): Promise<void> {
+  await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+  await settle(page);
+}
+
 /** No horizontal overflow and every visible control keeps a 44 px target. */
 export async function assertFits(page: Page): Promise<void> {
   await settle(page);

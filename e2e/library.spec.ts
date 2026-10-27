@@ -9,7 +9,7 @@ import { ListProjectsResponseSchema } from '../src/gen/proteinforge/project/v1/p
 import { GetEntryRequestSchema, GetEntryResponseSchema, GetResidueMappingRequestSchema, GetResidueMappingResponseSchema, SearchEntriesRequestSchema, SearchEntriesResponseSchema } from '../src/gen/proteinforge/reference/v1/reference_service_pb';
 import { siftsFixture } from './siftsFixture';
 import { GRPC_CODES, fulfillRpc, fulfillRpcError, isRpc, rpcMethod, rpcRequest } from './rpc';
-import { assertFits, message, openExportMenu, openSequenceEditor, storeSession } from './helpers';
+import { assertFits, message, openExportMenu, openSequenceEditor, storeSession, setTheme } from './helpers';
 
 const fixture = (accession: string): string => readFileSync(`src/features/descriptors/fixtures/${accession}.fasta`, 'utf8').split(/\r?\n/).slice(1).join('');
 const BUNDLED = ['P01308', 'P01317', 'P00698', 'P13569'] as const;
@@ -125,7 +125,7 @@ for (const width of [360, 1280]) {
     const viewer = page.getByRole('img', { name: message('library.viewerLabel', { id: '1TRZ' }) });
     await viewer.focus(); await expect(viewer).toBeFocused(); await viewer.press('ArrowRight');
     for (const theme of ['light', 'dark']) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(results.violations).toEqual([]);

@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
-import { alignmentInputs, alignmentVerdict, assertFits, message, navigationLink, openExportMenu } from './helpers';
+import { alignmentInputs, alignmentVerdict, assertFits, message, navigationLink, openExportMenu, setTheme } from './helpers';
 
 test('report choices support keyboard, touch targets and AA in both themes and widths', async ({ page }) => {
   for (const width of [360, 1280]) {
@@ -11,7 +11,7 @@ test('report choices support keyboard, touch targets and AA in both themes and w
     await page.goto(ROUTES.analyze);
     await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
     for (const theme of ['light', 'dark']) {
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       const summary = page.locator('details.toolbar-menu > summary');
       await summary.focus();
       await summary.press('Enter');

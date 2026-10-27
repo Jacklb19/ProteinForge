@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { spanish } from '../src/i18n/es';
-import { interfaceFamily, interfaceFonts, message, openSequenceEditor, residueReader, sequencePanelToggle } from './helpers';
+import { interfaceFamily, interfaceFonts, message, openSequenceEditor, residueReader, sequencePanelToggle, setTheme } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
 
 const sequence = 'MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN';
@@ -66,7 +66,7 @@ for (const width of [360, 1280]) {
         for (const digits of widths ?? []) expect(Math.max(...digits) - Math.min(...digits)).toBeLessThan(0.01);
       }
       for (const theme of ['light', 'dark'] as const) {
-        await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+        await setTheme(page, theme);
         if (!fallback) {
           await page.screenshot({ path: `artifacts/editor-${theme}-${String(width)}.png` });
           await page.screenshot({ path: `artifacts/editor-full-${theme}-${String(width)}.png`, fullPage: true });

@@ -12,7 +12,7 @@ import {
 import { PROJECT_POINTER_PREFIX } from '../src/features/projects/config';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
-import { alignmentInputs, assertFits, followNavigation, message, navigationLink, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT } from './helpers';
+import { alignmentInputs, assertFits, followNavigation, message, navigationLink, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT, setTheme } from './helpers';
 import { fulfillRpc, fulfillRpcError, GRPC_CODES, isRpc, rpcMethod, rpcRequest } from './rpc';
 
 const ID = '00000000-0000-4000-8000-000000000010';
@@ -105,7 +105,7 @@ for (const width of [360, 1280]) test(`a delayed laboratory open preserves newer
   await save.click(); dialog = page.getByRole('dialog');
   await expect(dialog.getByText(spanish['projects.draftChanged'], { exact: true })).toBeVisible();
   for (const theme of ['light', 'dark']) {
-    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await setTheme(page, theme);
     await assertFits(page);
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
     await page.screenshot({ path: `artifacts/laboratory-race-${String(width)}-${theme}.png`, fullPage: true });
@@ -214,7 +214,7 @@ for (const width of [360, 1280]) {
     await page.goto(ROUTES.projects);
     await expect(page.locator('.project-grid')).toContainText(saved.name);
     for (const theme of ['light', 'dark']) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       const results = await new AxeBuilder({ page }).include('.project-library').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(results.violations).toEqual([]);
@@ -226,7 +226,7 @@ for (const width of [360, 1280]) {
     const confirm = page.getByRole('button', { name: spanish['projects.confirmOpen'], exact: true });
     await expect(confirm).toBeVisible();
     for (const theme of ['light', 'dark']) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       const results = await new AxeBuilder({ page }).include('.project-library').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(results.violations).toEqual([]);
@@ -236,7 +236,7 @@ for (const width of [360, 1280]) {
     const panel = await openProjectPanel(page);
     await expect(panel.getByRole('textbox', { name: spanish['projects.name'] })).toHaveValue(saved.name);
     for (const theme of ['light', 'dark']) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       const results = await new AxeBuilder({ page }).include('#project-panel').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(results.violations).toEqual([]);
@@ -328,7 +328,7 @@ for(const width of [360,1280])test(`laboratory project form ${String(width)}px s
   await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
   const button=page.getByRole('button',{name:spanish['lab.saveProject'],exact:true});
   for(const theme of ['light','dark']){
-    await page.evaluate(value=>{document.documentElement.dataset.theme=value;},theme);
+    await setTheme(page, theme);
     await button.click();
     const dialog=page.getByRole('dialog');
     await dialog.getByLabel(spanish['projects.name']).fill('Ubiquitina');

@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { assertFits, examplePairTitle, alignmentVerdict, identityEnabled, message, messagePattern, openSequenceEditor } from './helpers';
+import { assertFits, examplePairTitle, alignmentVerdict, identityEnabled, message, messagePattern, openSequenceEditor, setTheme } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
 
@@ -102,7 +102,7 @@ for (const width of [360, 1280]) {
     await expect(page.getByRole('status')).toHaveCount(0);
 
     for (const theme of ['light', 'dark'] as const) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);

@@ -7,7 +7,7 @@ import { ROUTES } from '../src/shared/navigation';
 import { GetResidueMappingRequestSchema, GetResidueMappingResponseSchema } from '../src/gen/proteinforge/reference/v1/reference_service_pb';
 import { ListProjectsResponseSchema } from '../src/gen/proteinforge/project/v1/project_service_pb';
 import { GRPC_CODES, fulfillRpc, fulfillRpcError, isRpc, rpcMethod, rpcRequest } from './rpc';
-import { assertFits, openSequenceEditor, storeSession } from './helpers';
+import { assertFits, openSequenceEditor, storeSession, setTheme } from './helpers';
 import { siftsFixture } from './siftsFixture';
 
 const ACCOUNT = { id: 'e2e-user', email: 'test@example.org', accessToken: 'e2e-token' };
@@ -67,7 +67,7 @@ for (const width of [360, 1280]) {
     await expect(status).toHaveAttribute('data-mapping-state', 'mapped');
     await expect(page.locator('.mapped-position')).toContainText('P01308:110');
     for (const theme of ['light', 'dark']) {
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
       await settleViewer(page);
@@ -78,7 +78,7 @@ for (const width of [360, 1280]) {
     await expect(page.getByLabel(spanish['mapping.chain'])).toHaveValue('A');
     await expect(status).toHaveAttribute('data-mapping-state', 'mapped');
     for (const theme of ['light', 'dark']) {
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
       await settleViewer(page);

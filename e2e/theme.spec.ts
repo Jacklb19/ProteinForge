@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { chooseTheme, message, openSequenceEditor, openValueTable, residueReader, signInWithEmptyAccount } from './helpers';
+import { chooseTheme, message, openSequenceEditor, openValueTable, residueReader, signInWithEmptyAccount, setTheme } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
 import { RESIDUE_NAMES } from '../src/features/chemistry/config';
@@ -31,7 +31,7 @@ test('light and dark themes pass WCAG AA axe checks', async ({ page }) => {
   await expect(page.locator('tr[aria-selected="true"] th')).toHaveText('10');
 
   for (const theme of ['light', 'dark'] as const) {
-    await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+    await setTheme(page, theme);
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
   }
