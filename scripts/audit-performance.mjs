@@ -11,6 +11,7 @@ if (!Number.isInteger(samples) || samples < 1) throw new Error('AUDIT_SAMPLES mu
 const output = process.env.AUDIT_OUTPUT ?? 'artifacts/quality/performance.json';
 if (!/^artifacts\/quality\/[\w.-]+\.json$/.test(output)) throw new Error('AUDIT_OUTPUT must stay in artifacts/quality.');
 const phases = new Set((process.env.AUDIT_PHASES ?? 'loads,interactions').split(','));
+const destinations = (process.env.AUDIT_ROUTES ?? 'home,analyze').split(',');
 const port = Number(process.env.AUDIT_PORT ?? 5310);
 const baseURL = `http://127.0.0.1:${String(port)}`;
 const navigation = readFileSync('src/shared/navigation.ts', 'utf8');
@@ -44,13 +45,14 @@ const result = {
 
 async function observe(page) {
   await page.addInitScript(() => {
-    const audit = { lcp: null, lcpElement: null, fcp: null, cls: 0, longTasks: [], events: [], since: 0 };
+    const audit = { lcp: null, lcpElement: null, fcp: null, cls: 0, shifts: [], longTasks: [], events: [], since: 0 };
     window.__qualityAudit = audit;
     const describe = element => element ? `${element.tagName.toLowerCase()}${element.className && typeof element.className === 'string' ? '.' + element.className.trim().split(/\s+/).join('.') : ''}` : null;
     for (const [type, receive, options] of [
       ['largest-contentful-paint', entries => { const last = entries.at(-1); audit.lcp = last?.startTime ?? null; audit.lcpElement = describe(last?.element); }, {}],
       ['paint', entries => { for (const entry of entries) if (entry.name === 'first-contentful-paint') audit.fcp = entry.startTime; }, {}],
-      ['layout-shift', entries => { for (const entry of entries) if (!entry.hadRecentInput) audit.cls += entry.value; }, {}],
+      ['layout-shift', entries => { for (const entry of entries) if (!entry.hadRecentInput) { audit.cls += entry.value;
+        audit.shifts.push({ start: entry.startTime, value: entry.value, sources: entry.sources.map(source => describe(source.node)) }); } }, {}],
       ['longtask', entries => { audit.longTasks.push(...entries.map(e => ({ start: e.startTime, duration: e.duration }))); }, {}],
       ['event', entries => { audit.events.push(...entries.filter(e => e.interactionId && e.startTime >= audit.since).map(e => ({ name: e.name, duration: e.duration,
         inputDelayMs: e.processingStart - e.startTime, processingMs: e.processingEnd - e.processingStart, id: e.interactionId }))); }, { durationThreshold: 16 }],
@@ -191,7 +193,7 @@ try {
   // Alternate routes inside each round so slow drift of the host affects both alike.
   if (phases.has('loads')) {
     for (let sample = 0; sample < samples; sample++) {
-      for (const profile of ['4g-cpu4', 'native']) for (const destination of ['home', 'analyze']) await load(profile, destination, sample);
+      for (const profile of ['4g-cpu4', 'native']) for (const destination of destinations) await load(profile, destination, sample);
     }
   }
   if (phases.has('interactions')) {
