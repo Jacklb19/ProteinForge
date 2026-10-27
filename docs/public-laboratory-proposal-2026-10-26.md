@@ -1,6 +1,6 @@
 # Presentación pública y laboratorio — propuesta revisada
 
-26 de octubre de 2026. Dirección solicitada por el propietario después de revisar Mesa clara. **Maqueta y plan pendientes de aprobación; no es una implementación nueva del producto.**
+26 de octubre de 2026. Dirección solicitada por el propietario después de revisar Mesa clara. **Propuesta aprobada por el propietario con el ajuste de ubicar cada control en su sección. Implementada localmente en `dev`; sin publicar.**
 
 ## Qué cambia
 
@@ -88,3 +88,9 @@ Capturas locales: [presentación](../artifacts/public-laboratory-2026-10-26/es-h
 Durante la revisión se corrigieron anchuras táctiles, campos, el nombre accesible de la marca contraída y el ajuste de acciones de la ficha. No se relajan umbrales. Una última pasada conserva el menú de cuenta dentro de la altura de la vista previa. No se repiten baterías de aplicación por una propuesta aislada ni se atribuye certificación de producción/PWA/servicios a esta revisión.
 
 Cierre de entrega de la propuesta: última pasada26/26correcta después de ajustar la altura de la barra de revisión. Menú de cuenta comprobado dentro de la altura visible y animación nativa view() activa sin movimiento reducido; con movimiento reducido se suprimen transiciones/entradas y giro. La barra superior de revisión pertenece solo a la maqueta. Servidor5341 conservado, sesión96901.
+
+## Aprobación posterior y relevo
+
+El propietario respondió «Me gusta» a la pregunta de implementar esta maqueta y el plan, con una condición: cada sección y cada control deben estar correctamente ubicados, delimitados y estructurados. Señaló el botón de tema en mitad de una página como ejemplo a corregir. Se acepta como aprobación con ese ajuste, sin pedir otra maqueta ni confirmación rutinaria. Tema e idioma van en Preferencias; acciones científicas junto a su herramienta; identidad y sesión en Cuenta.
+
+La integración se interrumpió por fin de sesión. Estado exacto y siguiente trabajo en [relevo del rediseño](redesign-handoff-2026-10-26.md). Los avisos anteriores de aprobación pendiente se conservan como historia de la propuesta, no como una decisión actual que haya que volver a solicitar.
