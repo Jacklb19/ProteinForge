@@ -6,7 +6,7 @@ import { english } from '../src/i18n/en';
 import { InterpretRequestSchema, InterpretResponseSchema, Subject } from '../src/gen/proteinforge/assistant/v1/assistant_service_pb';
 import { ROUTES } from '../src/shared/navigation';
 import { required } from '../src/features/design-lab/config';
-import { assertFits, message, storeSession } from './helpers';
+import { assertFits, message, storeSession, setTheme } from './helpers';
 import { fulfillRpc, fulfillRpcError, GRPC_CODES, isRpc, rpcMethod, rpcRequest } from './rpc';
 
 const READING = 'Estos son los resultados de un análisis computacional.\n\nEl punto isoeléctrico es 4,81, el pH en el que la carga neta sería cero.';
@@ -154,7 +154,7 @@ for (const width of [360, 1280]) {
     await reading.getByRole('button', { name: spanish['assistant.read.analysis'] }).click();
     await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
     for (const theme of ['light', 'dark']) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       expect((await new AxeBuilder({ page }).include('.reading').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
       await reading.scrollIntoViewIfNeeded();

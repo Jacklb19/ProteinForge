@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
-import { assertFits, followNavigation, message, openSequenceEditor } from './helpers';
+import { assertFits, followNavigation, message, openSequenceEditor, setTheme } from './helpers';
 import { INITIAL_SEARCH_FORM } from '../src/features/generator/context';
 import type { SearchResult } from '../src/features/generator/search';
 
@@ -42,7 +42,7 @@ for (const width of [360, 1280]) {
     await method.locator('summary').click();
     await expect(method.getByText(spanish['generator.methodText'])).toBeVisible();
     for (const theme of ['light', 'dark'] as const) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { alignmentInputs, alignmentVerdict, chooseTheme, examplePairTitle, figureValue, message } from './helpers';
+import { alignmentInputs, alignmentVerdict, chooseTheme, examplePairTitle, figureValue, message, setTheme } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { BLOCK_COLUMNS, BLOCK_COLUMNS_NARROW, GAP_EXTEND, GAP_OPEN, MAX_ALIGNMENT_RESIDUES } from '../src/features/alignment/config';
 import { ROUTES } from '../src/shared/navigation';
@@ -93,7 +93,7 @@ test('alignment empty, invalid and length limit states remain explicit', async (
     await page.setViewportSize({ width, height: 900 });
     for (const theme of ['light', 'dark'] as const) {
       await page.goto(ROUTES.alignment);
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await expect(alignmentVerdict(page)).toBeVisible();
       const { first, second } = alignmentInputs(page);
       const start = page.getByRole('button', { name: spanish['alignment.start'], exact: true });

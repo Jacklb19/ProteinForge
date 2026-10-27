@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { assertFits, chooseTheme, followNavigation, openSequenceEditor, residueReader } from './helpers';
+import { assertFits, chooseTheme, followNavigation, openSequenceEditor, residueReader, setTheme } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { NAVIGATION_ITEMS, ROUTES } from '../src/shared/navigation';
 
@@ -22,7 +22,7 @@ test('the laboratory frame fits every destination on wide screens and phones', a
     for (const item of NAVIGATION_ITEMS.filter(item => !item.signedInOnly)) {
       await page.goto(item.path);
       for (const theme of ['light', 'dark'] as const) {
-        await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+        await setTheme(page, theme);
         const sidebar = page.locator('.workspace-sidebar');
         const bar = page.locator(width === 360 ? 'header.workspace-bar' : '.workspace-sidebar');
         expect(await bar.evaluate(element => element.getBoundingClientRect().top)).toBe(0);

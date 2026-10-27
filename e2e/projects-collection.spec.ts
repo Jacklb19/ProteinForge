@@ -15,7 +15,7 @@ import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
 import { PREFERENCES_STORAGE_KEY } from '../src/preferences/config';
 import { ROUTES } from '../src/shared/navigation';
-import { assertFits, followNavigation, message, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT } from './helpers';
+import { assertFits, followNavigation, message, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT, setTheme } from './helpers';
 import { fulfillRpc, fulfillRpcError, GRPC_CODES, isRpc, rpcMethod, rpcRequest } from './rpc';
 
 const DATE = '2026-10-19T10:00:00.123456Z';
@@ -166,7 +166,7 @@ for (const width of [360, 1280]) test(`approved cards, menus and confirmation fi
   await page.goto(ROUTES.projects); await page.getByRole('button', { name: spanish['projects.more'] }).click();
   await expect(page.locator('.project-card')).toHaveCount(3);
   for (const theme of ['light','dark']) {
-    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await setTheme(page, theme);
     await page.evaluate(() => document.fonts.ready); await assertFits(page);
     const axe = await new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze(); expect(axe.violations).toEqual([]);
     await page.evaluate(() => { window.scrollTo(0, 0); });

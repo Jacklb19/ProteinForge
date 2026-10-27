@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import {
   alignmentVerdict, assertFits, examplePairTitle, followNavigation, identityEnabled, message, navigationLink, openExportMenu, openPreferences,
-  openPublicSite, openSequenceEditor, openSiteMenu, signInWithEmptyAccount, siteMenu, TEST_ACCOUNT,
+  openPublicSite, openSequenceEditor, openSiteMenu, setTheme, signInWithEmptyAccount, siteMenu, TEST_ACCOUNT,
 } from './helpers';
 import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, ROUTES, SIDEBAR_STORAGE_KEY } from '../src/shared/navigation';
 import { PREFERENCES_STORAGE_KEY } from '../src/preferences/config';
@@ -21,7 +21,7 @@ for (const width of [360, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(ROUTES.workspace);
       await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await expect(page.getByRole('heading', { level: 1, name: spanish['workbench.analyzeTitle'] })).toBeVisible();
       await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();
       await expect(page.locator('.subject-summary .page-meta')).toContainText('P01308');
@@ -376,7 +376,7 @@ for (const width of [360, 1280]) {
       await expect(page.getByRole('link', { name: message('guide.openTool', { tool: spanish[label] }), exact: true })).toHaveAttribute('href', route);
     }
     for (const theme of ['light', 'dark'] as const) {
-      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      await setTheme(page, theme);
       await assertFits(page);
       const axe = await new AxeBuilder({ page }).withTags(AA).analyze();
       expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
