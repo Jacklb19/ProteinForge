@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { LocaleProvider } from '../i18n';
 import { loadPreferences, savePreferences } from './preferences';
@@ -16,6 +16,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
     const stored = loadPreferences();
     return isCatalogLoaded(stored.locale) ? stored : { ...stored, locale: DEFAULT_LOCALE };
   });
+
+  const [requestedLocale, setRequestedLocale] = useState<Locale | null>(null);
+  const latestRequest = useRef<Locale | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = preferences.locale;
@@ -39,11 +42,19 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
 
   const value: PreferencesContextValue = {
     ...preferences,
+    chosenLocale: requestedLocale ?? preferences.locale,
     setLocale: (locale: Locale) => {
-      const apply = (): void => { setPreferences((current) => ({ ...current, locale })); };
-      // Another language arrives as its own chunk; the choice applies once its texts are here.
-      if (isCatalogLoaded(locale)) apply();
-      else void loadCatalog(locale).then(apply, () => { /* The current language stays; the offline cache normally holds both. */ });
+      latestRequest.current = locale;
+      const apply = (): void => {
+        if (latestRequest.current !== locale) return;
+        setRequestedLocale(null);
+        setPreferences((current) => ({ ...current, locale }));
+      };
+      // Another language arrives as its own chunk: the control shows the choice at once and the texts
+      // follow when the catalog is here. If it cannot load, the current language stays.
+      if (isCatalogLoaded(locale)) { apply(); return; }
+      setRequestedLocale(locale);
+      void loadCatalog(locale).then(apply, () => { if (latestRequest.current === locale) setRequestedLocale(null); });
     },
     setTheme: (theme) => { setPreferences((current) => ({ ...current, theme })); },
   };
