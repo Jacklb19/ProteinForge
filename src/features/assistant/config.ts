@@ -11,6 +11,8 @@ export const MAX_LABEL_LENGTH = 120;
 export const MAX_VALUE_LENGTH = 200;
 export const MAX_UNIT_LENGTH = 40;
 export const MAX_READING_LENGTH = 4000;
+/** Identity may take 5 s and the provider 30 s; leave 5 s for transport and validation. */
+export const READING_TIMEOUT_MS = 40_000;
 
 /** Safe categories of a failed reading, as the screen explains them. */
 export const ASSISTANT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
