@@ -14,13 +14,20 @@ import type { Project, ProjectSummary } from './contracts';
 import { DEFAULT_PROJECT_QUERY, PROJECT_POINTER_PREFIX } from './config';
 import type { ProjectQuery } from './config';
 import { ProjectContext } from './projectContext';
-import { captureWorkspace, workspaceInputKey, workspaceVersion } from './snapshot';
+import { captureWorkspace, withGeneratorHistory, workspaceInputKey, workspaceVersion } from './snapshot';
+import type { GeneratorRunSaved, GeneratorRunTarget } from './projectContext';
+import { addGeneratorRun, createGeneratorRun, removeGeneratorRun } from '../generator/history';
+import type { GeneratorRunSelection } from '../generator/history';
+import { APP_BUILD } from '../generator/appBuild';
+import type { WorkspaceSnapshot } from './contracts';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 import { LabContext } from '../design-lab/context';
 import { draftFingerprint } from '../design-lab/state';
 import { sha256 } from '../design-lab/zip';
 
 interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null; attempt: number }
+/** A project created only to keep generator searches starts without analysis or comparison. */
+const EMPTY_WORKSPACE: WorkspaceSnapshot = { schemaVersion: 1, profileWindow: DEFAULT_HYDROPATHY_WINDOW, source: null, descriptors: null, alignment: { first: '', second: '', matrix: DEFAULT_MATRIX, mode: DEFAULT_MODE, result: null } };
 const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, listing: DEFAULT_PROJECT_QUERY, busy: false, error: null, notice: null, attempt: 0 };
 
 function remember(owner: string, id: string | null): void {
@@ -284,6 +291,40 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       if (current.active?.id === project.id && user) remember(user, null);
       setLabBinding(binding=>binding?.project.id===project.id?null:binding);
       setState((value) => ({ ...value, active: value.active?.id === project.id ? null : value.active, items: value.items.filter((item) => item.id !== project.id), notice: 'deleted' }));
+      await relist(service, signal);
+    }); },
+    async saveGeneratorRun(resultJson: string, selection: GeneratorRunSelection | null, target: GeneratorRunTarget): Promise<GeneratorRunSaved | null> {
+      const outcome: { value: GeneratorRunSaved | null } = { value: null };
+      const done = await run(async (service, signal) => {
+        const generatorRun = await createGeneratorRun(resultJson, { recordedAt: new Date().toISOString(), appBuild: APP_BUILD, selection });
+        // Writes the stored project plus the history, never the unsaved drafts of the editor.
+        const base = target.kind === 'active' ? current.active : target.kind === 'project' ? await service.open(target.id, token, signal) : null;
+        signal.throwIfAborted();
+        if (target.kind !== 'new' && !base) throw new ApiError('validation');
+        const { history, added } = await addGeneratorRun(base?.workspace.generatorHistory, generatorRun);
+        if (base && !added) { outcome.value = { project: base.name, added: false }; return; }
+        const workspace = withGeneratorHistory(base?.workspace ?? EMPTY_WORKSPACE, history);
+        const name = base?.name ?? (target.kind === 'new' ? target.name.trim() : '');
+        const project = await service.save({ name, activeSequence: base?.activeSequence ?? '', workspace }, token, base ?? undefined, signal);
+        signal.throwIfAborted();
+        if (project.workspace.generatorHistory?.documentSha256 !== history.documentSha256) throw new ApiError('invalid-response');
+        setState((value) => ({ ...value, active: value.active?.id === project.id ? project : value.active }));
+        setLabBinding((binding) => binding?.project.id === project.id ? { ...binding, project } : binding);
+        outcome.value = { project: project.name, added: true };
+        await relist(service, signal);
+      });
+      return done ? outcome.value : null;
+    },
+    removeGeneratorRun(id: string) { return run(async (service, signal) => {
+      const base = current.active;
+      const history = base?.workspace.generatorHistory;
+      if (!base || !history) throw new ApiError('validation');
+      const next = await removeGeneratorRun(history, id);
+      const project = await service.save({ name: base.name, activeSequence: base.activeSequence, workspace: withGeneratorHistory(base.workspace, next) }, token, base, signal);
+      signal.throwIfAborted();
+      if ((project.workspace.generatorHistory?.documentSha256 ?? null) !== (next?.documentSha256 ?? null)) throw new ApiError('invalid-response');
+      setState((value) => ({ ...value, active: value.active?.id === project.id ? project : value.active }));
+      setLabBinding((binding) => binding?.project.id === project.id ? { ...binding, project } : binding);
       await relist(service, signal);
     }); },
     detach() { if (locked.current) return; if (user) remember(user, null); setState((value) => ({ ...value, active: null, error: null, notice: null })); },
