@@ -15,3 +15,11 @@ export const GENERATOR_REFERENCES = [
 /** Number formats of the compact candidate rows. */
 export const CANDIDATE_GRAVY_FORMAT = { minimumFractionDigits: 3, maximumFractionDigits: 3 } as const;
 export const CANDIDATE_MASS_FORMAT = { maximumFractionDigits: 0 } as const;
+
+/** Saved generator runs inside a project (workspace schemaVersion 3); mirrors backend app/generator_history.py. */
+export const GENERATOR_HISTORY_CONFIG = {
+  kind: 'proteinforge-generator-history', schemaVersion: 1, envelopeVersion: 1, workspaceVersion: 3,
+  maxDocumentBytes: 100_000, maxRunBytes: 10_000, maxRuns: 10, origin: 'local-generator',
+  methodVersions: [GENERATOR_CONFIG.version], maxReferences: 10, maxReferenceLength: 500, maxRecordedAtLength: 64,
+  arms: ['guided', 'reference'], appBuildPattern: /^[0-9a-f]{7,40}$/,
+} as const;

@@ -8,6 +8,8 @@ export const RPC_DETAIL_CODES: Partial<Record<string, ApiErrorCode>> = {
   'projects-schema-unavailable': 'schema',
   'identity-not-configured': 'unavailable',
   'assistant-not-configured': 'unavailable',
+  // Still ABORTED on the wire, so clients without this entry keep treating it as a conflict.
+  'project-requires-current-client': 'requires-current-client',
 };
 /** Only explicit HTTP(S) origins/paths are allowed; credentials and URL fragments are rejected. */
 export function readApiBaseUrl(environment: ImportMetaEnv = import.meta.env): string | null {

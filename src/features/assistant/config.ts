@@ -21,4 +21,5 @@ export const ASSISTANT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
   'rate-limit': 'assistant.rateLimit', validation: 'assistant.validation', unknown: 'assistant.error',
   conflict: 'assistant.error', 'not-found': 'assistant.error', schema: 'assistant.unavailable',
   forbidden: 'assistant.session', 'laboratory-size': 'assistant.validation', 'draft-changed': 'assistant.error',
+  'generator-history-size': 'assistant.validation', 'requires-current-client': 'assistant.error',
 };

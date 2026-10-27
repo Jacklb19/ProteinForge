@@ -3,6 +3,8 @@ import { ALIGNMENT_MODES, GAP_EXTEND, GAP_OPEN, MATRIX_NAMES, MAX_ALIGNMENT_RESI
 import { HYDROPATHY_WINDOWS } from '../descriptors/config';
 import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_NAME_LENGTH, MAX_PROJECT_SEQUENCE_LENGTH, PROJECT_PREVIEW_RESIDUES } from './config';
 import { sequenceSourceSchema } from '../editor/source';
+import { GENERATOR_HISTORY_CONFIG } from '../generator/config';
+import { generatorHistorySnapshotSchema } from '../generator/history';
 
 const sequence = z.string().max(MAX_PROJECT_SEQUENCE_LENGTH).regex(/^[ACDEFGHIKLMNPQRSTVWYUOBZX]*$/);
 export const descriptorResultSchema = z.object({
@@ -16,16 +18,19 @@ export const alignmentResultSchema = z.object({
   parameters: z.object({ matrix: z.enum(MATRIX_NAMES), mode: z.enum(ALIGNMENT_MODES), gapOpen: z.literal(GAP_OPEN), gapExtend: z.literal(GAP_EXTEND), terminalGaps: z.enum(['free', 'not-applicable']) }),
 }).refine((value) => value.alignedFirst.length === value.columns && value.alignedSecond.length === value.columns && value.marks.length === value.columns && value.identities <= value.similarities && value.similarities <= value.columns);
 export const workspaceSchema = z.object({
-  schemaVersion: z.union([z.literal(1), z.literal(2)]), profileWindow: z.union(HYDROPATHY_WINDOWS.map((value) => z.literal(value))),
+  // 1: analysis and comparison; 2: requires a laboratory; 3: laboratory and generator history optional.
+  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]), profileWindow: z.union(HYDROPATHY_WINDOWS.map((value) => z.literal(value))),
   laboratory: z.object({ schemaVersion: z.literal(1), documentJson: z.string().max(1_000_000), documentSha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict().nullish(),
+  generatorHistory: generatorHistorySnapshotSchema.nullish(),
   source: sequenceSourceSchema.nullable().optional(),
   descriptors: z.object({ sequence, excluded: z.number().int().nonnegative(), methodVersion: z.literal(DESCRIPTOR_METHOD_VERSION), result: descriptorResultSchema }).nullable(),
   alignment: z.object({ first: sequence.max(MAX_ALIGNMENT_RESIDUES), second: sequence.max(MAX_ALIGNMENT_RESIDUES), matrix: z.enum(MATRIX_NAMES), mode: z.enum(ALIGNMENT_MODES), result: alignmentResultSchema.nullable() }),
-}).refine(value => (value.schemaVersion === 2) === Boolean(value.laboratory));
+}).refine(value => value.schemaVersion === 3 || ((value.schemaVersion === 2) === Boolean(value.laboratory) && !value.generatorHistory));
 const previewPrefix = z.string().max(PROJECT_PREVIEW_RESIDUES).regex(/^[ACDEFGHIKLMNPQRSTVWYUOBZX]*$/);
 const alignmentMetricsSchema = z.object({ identities: z.number().int().nonnegative(), similarities: z.number().int().nonnegative(), columns: z.number().int().positive().max(MAX_ALIGNMENT_RESIDUES * 2) }).refine(value => value.identities <= value.similarities && value.similarities <= value.columns);
 export const projectPreviewSchema = z.object({
   hasLaboratory: z.boolean().optional(), laboratoryVariants: z.number().int().min(0).max(3).optional(),
+  generatorRuns: z.number().int().min(0).max(GENERATOR_HISTORY_CONFIG.maxRuns).optional(),
   sequenceLength: z.number().int().nonnegative().max(MAX_PROJECT_SEQUENCE_LENGTH), sequencePrefix: previewPrefix,
   excluded: z.number().int().nonnegative(), descriptors: descriptorResultSchema.nullable(),
   source: sequenceSourceSchema.pick({ origin: true, accession: true }).nullable(),

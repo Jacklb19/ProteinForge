@@ -33,7 +33,7 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
       const options = callOptions(signal, session(token));
       const fields = { name: payload.name, activeSequence: payload.activeSequence, workspace: workspaceMessage(payload.workspace) };
       const length=active?toBinary(UpdateProjectRequestSchema,create(UpdateProjectRequestSchema,{...fields,id:active.id,expectedUpdateTime:timestampFromIso(active.updatedAt)})).byteLength:toBinary(CreateProjectRequestSchema,create(CreateProjectRequestSchema,fields)).byteLength;
-      if(length>2_000_000)throw new ApiError(payload.workspace.laboratory?'laboratory-size':'validation');
+      if(length>2_000_000)throw new ApiError(payload.workspace.laboratory?'laboratory-size':payload.workspace.generatorHistory?'generator-history-size':'validation');
       const { project } = await rpc(async () => active
         ? client.updateProject({ ...fields, id: active.id, expectedUpdateTime: timestampFromIso(active.updatedAt) }, options)
         : client.createProject(fields, options));

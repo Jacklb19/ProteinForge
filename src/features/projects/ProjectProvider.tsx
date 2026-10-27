@@ -14,7 +14,7 @@ import type { Project, ProjectSummary } from './contracts';
 import { DEFAULT_PROJECT_QUERY, PROJECT_POINTER_PREFIX } from './config';
 import type { ProjectQuery } from './config';
 import { ProjectContext } from './projectContext';
-import { captureWorkspace, workspaceInputKey } from './snapshot';
+import { captureWorkspace, workspaceInputKey, workspaceVersion } from './snapshot';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 import { LabContext } from '../design-lab/context';
 import { draftFingerprint } from '../design-lab/state';
@@ -249,7 +249,9 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       if(bytes.byteLength>1_000_000)throw new ApiError('laboratory-size');
       const laboratory={schemaVersion:1 as const,documentJson:new TextDecoder().decode(bytes),documentSha256:await sha256(bytes)};
       const base=value.laboratory;
-      const workspace={...(base?.workspace ?? {profileWindow:9 as const,descriptors:null,source:null,alignment:{first:'',second:'',matrix:'BLOSUM62' as const,mode:'global' as const,result:null}}),schemaVersion:2 as const,laboratory};
+      const fields={...(base?.workspace ?? {profileWindow:9 as const,descriptors:null,source:null,alignment:{first:'',second:'',matrix:'BLOSUM62' as const,mode:'global' as const,result:null}}),laboratory};
+      // Keeps a saved generator history and never lowers the stored version.
+      const workspace={...fields,schemaVersion:workspaceVersion(fields,base?.workspace.schemaVersion)};
       const project=await service.save({name:name.trim(),activeSequence:base?.activeSequence ?? lab.drafts[lab.activeId]?.sequence ?? '',workspace},token,copy?undefined:base??undefined,signal);
       signal.throwIfAborted();
       if(project.workspace.laboratory?.documentSha256!==laboratory.documentSha256 || project.workspace.laboratory.documentJson!==laboratory.documentJson)throw new ApiError('invalid-response');
