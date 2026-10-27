@@ -28,6 +28,8 @@ describe('generator history contract', () => {
   it('keeps real exports byte for byte, identified by the SHA-256 of their exact text', async () => {
     const run = await createGeneratorRun(maximumExport, { ...details, appBuild: '0123abc', selection: { arm: 'reference', index: 4 } });
     expect(run.id).toBe(MAXIMUM_EXPORT_SHA256);
+    // Callers may pass richer records; only the run fields are stored.
+    expect(await createGeneratorRun(defaultExport, Object.assign({ text: defaultExport }, details))).not.toHaveProperty('text');
     const history = await historyFixture([defaultExport, maximumExport]);
     const runs = generatorHistoryRuns(history);
     expect(runs.map((item) => item.id)).toEqual([DEFAULT_EXPORT_SHA256, MAXIMUM_EXPORT_SHA256]);

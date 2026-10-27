@@ -124,7 +124,8 @@ export async function verifyGeneratorHistory(envelope: GeneratorHistorySnapshot)
 /** A run from the exact text the generator downloads; a larger export is refused, never shortened. */
 export async function createGeneratorRun(resultJson: string, details: { recordedAt: string; appBuild: string | null; selection: GeneratorRunSelection | null }): Promise<GeneratorRun> {
   if (utf8Bytes(resultJson) > C.maxRunBytes) throw new ApiError('generator-history-size');
-  const parsed = generatorRunSchema.safeParse({ id: await sha256Text(resultJson), origin: C.origin, ...details, resultJson });
+  const { recordedAt, appBuild, selection } = details;
+  const parsed = generatorRunSchema.safeParse({ id: await sha256Text(resultJson), origin: C.origin, recordedAt, appBuild, selection, resultJson });
   if (!parsed.success) throw new ApiError('validation');
   return parsed.data;
 }
