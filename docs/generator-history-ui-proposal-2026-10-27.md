@@ -1,6 +1,6 @@
 # Historial del generador en Proyectos · maqueta y plan por pantallas
 
-Preparada el **27 oct 2026**. **Pendiente de aprobación del propietario** (puerta visual de AGENTS). Los contratos del cliente ya están implementados en `dev` sin ruta visible; esta propuesta decide cómo se presentan. Contrato y decisiones: [propuesta del contrato](../../backend/docs/generator-history-contract-proposal.md).
+Preparada el **27 oct 2026**. **Aprobada por el propietario el 27 oct 2026** («Sí, apruebo la maqueta del historial del generador y su plan por pantallas. Impleméntala en la misma sesión, sin publicar»). Interfaz implementada en `dev` (`214e606`, `b01e52e`, `b0913bd`), oculta salvo con `VITE_GENERATOR_HISTORY=enabled`; sin publicar. Los contratos del cliente ya están implementados en `dev` sin ruta visible; esta propuesta decide cómo se presentan. Contrato y decisiones: [propuesta del contrato](../../backend/docs/generator-history-contract-proposal.md).
 
 ## Maqueta
 
@@ -43,6 +43,17 @@ Corrección encontrada al montar la maqueta: `createGeneratorRun` esparcía camp
 
 Publicar el backend, actualizar el pin y regenerar (orden backend → pin/regeneración → frontend), migración en Supabase, enlazar la secuencia de Analizar con su búsqueda (decisión 10: no en esta fase) y cualquier cambio del algoritmo del generador.
 
-## Pregunta para el propietario
+## Implementación
+
+- **Oculta en producción hasta publicar.** La interfaz solo aparece con `VITE_GENERATOR_HISTORY=enabled` en el entorno del build (`src/features/generator/historyFeature.ts`, documentada en `.env.example`), además de identidad y API configuradas. Vacía por omisión: los builds de Vercel no ofrecen un guardado que la API publicada rechazaría. Activarla requiere publicar migración y backend y actualizar el pin, con autorización expresa. Las pruebas E2E la activan porque su API simulada acepta la versión 3.
+- **Diseñar secuencias:** `ResultActions` pone «Guardar en proyecto» entre «Descargar búsqueda JSON» y «Alinear mejores candidatos»; `useGeneratorSave` añade el destino, el aviso y el diálogo; `SavedRuns` muestra las búsquedas del proyecto abierto en Analizar. «Abrir en Diseñar» restaura condiciones y resultado sin repetir la búsqueda (`GeneratorProvider.restore`). La comprobación usa el Worker de reproducción.
+- **Proyectos:** recuento con `generatorRuns` y «Ver búsquedas» (destino `generator`): abre el proyecto en Analizar con la confirmación de siempre y lleva a Diseñar.
+- **Escritura:** `saveGeneratorRun` (proyecto abierto, otro proyecto o uno nuevo) y `removeGeneratorRun` en `ProjectProvider` escriben el proyecto guardado más el historial, nunca los borradores sin guardar del editor; comprueban topes antes de enviar y verifican el hash devuelto.
+- **Diferencias con la maqueta:** textos definitivos en `es.ts`/`en.ts`; sin proyecto abierto en Analizar, el destino invita a elegir uno y la sección lo explica; «Elegir búsquedas para quitar» lleva a la sección de búsquedas guardadas.
+- **Verificación:** 502 unitarias en 85 archivos (cobertura 89,17 % líneas, 76,87 % ramas), tipos, lint, build y check:pwa correctos. E2E con 1 worker y API simulada (la API local exige Supabase Auth): recorrido nuevo 9/9; generador, Proyectos, colección y laboratorio 35 correctas y 2 omitidas por diseño; repetición final 12/12. Cubren 360/1280 px, es/en, ambos temas, axe AA, 44 px y foco.
+
+## Pregunta respondida
+
+Aprobada el 27 oct 2026. La aprobación llegó primero transmitida por el coordinador de sesiones y el propietario la confirmó después directamente: «Confirmo yo, el propietario, que aprobé la maqueta del historial del generador y su plan por pantallas.» Texto original de la pregunta:
 
 ¿Apruebas implementar esta composición: «Guardar en proyecto» junto a la descarga, vinculado al proyecto abierto en Analizar con opción de cambiarlo, la sección «Búsquedas guardadas en este proyecto» con sus cuatro acciones y la comprobación bajo demanda, y el recuento con «Ver búsquedas» en Proyectos?

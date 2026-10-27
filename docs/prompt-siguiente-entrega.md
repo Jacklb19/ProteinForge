@@ -2,11 +2,11 @@
 
 Actualizado el **26 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes.
 
-## Historial del generador: contratos listos, interfaz pendiente de aprobación — 27 oct
+## Historial del generador: contratos e interfaz aprobada implementados, sin publicar — 27 oct
 
 Decisiones del contrato tomadas por delegación y fase backend implementada en backend `dev` (`41ab303`, `22ffd01`, `b07a757`): workspace v3, historial dentro del snapshot, guardia monótona, código `project-requires-current-client`, migración `20261027000000_generator_history.sql` probada solo en PostgreSQL local. [Contrato y decisiones](../../backend/docs/generator-history-contract-proposal.md).
 
-Fase frontend autorizada por el propietario e implementada en `dev` sin ruta visible: código generado desde el protobuf local (`e866e2e`, **sin cambiar el pin**: CI fallará la comprobación de código generado hasta publicar el backend y repinear), contratos Zod/rpcMapping/guardado con versión máxima y conservación de laboratorio e historial, rechazo por tamaño sin truncar, `appBuild` por Vite y reproducción bajo demanda en Worker (`36767fb`, `a4f6fc1`, `66fb9df`, `222dc05`). Maqueta y plan pendientes de aprobación: [propuesta de interfaz](generator-history-ui-proposal-2026-10-27.md). Servidor de la maqueta: configuración `generator-history-mockup`, puerto 5361. No exponer el guardado en la interfaz hasta que el propietario apruebe la maqueta y el backend esté publicado. Orden de publicación cuando se autorice: migración → backend → repin/regeneración → frontend.
+Fase frontend autorizada por el propietario e implementada en `dev` sin ruta visible: código generado desde el protobuf local (`e866e2e`, **sin cambiar el pin**: CI fallará la comprobación de código generado hasta publicar el backend y repinear), contratos Zod/rpcMapping/guardado con versión máxima y conservación de laboratorio e historial, rechazo por tamaño sin truncar, `appBuild` por Vite y reproducción bajo demanda en Worker (`36767fb`, `a4f6fc1`, `66fb9df`, `222dc05`). Maqueta y plan aprobados por el propietario el 27 oct, aprobación confirmada por él directamente: [propuesta de interfaz](generator-history-ui-proposal-2026-10-27.md). Interfaz implementada (`214e606`, `b01e52e`, `b0913bd`) y oculta salvo con `VITE_GENERATOR_HISTORY=enabled`; no activarla en producción hasta publicar migración y backend y repinear. Servidor de la maqueta: configuración `generator-history-mockup`, puerto 5361. Orden de publicación cuando se autorice: migración → backend → repin/regeneración → frontend.
 
 ## Rediseño integral aprobado e implementado localmente
 
