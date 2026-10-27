@@ -140,7 +140,9 @@ test('owned project saves current calculations and resumes after reload', async 
 test('the profile links to the project collection, which renames and deletes deliberately', async ({ page }) => {
   const data = await mockProjects(page, { ...saved, name: 'Estudio inicial' });
   await page.goto(ROUTES.analyze);
-  await page.getByRole('link', { name: message('shell.account', { email: TEST_ACCOUNT.email }) }).click();
+  const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
+  await sidebar.getByRole('button', { name: new RegExp(TEST_ACCOUNT.email) }).click();
+  await sidebar.getByRole('link', { name: spanish['workbench.account'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
   await expect(page.locator('.project-grid')).toHaveCount(0);
   await page.getByRole('link', { name: spanish['projects.listLink'] }).click();
@@ -349,6 +351,8 @@ test('laboratory drafts survive internal access routes and offer a file before e
   await expect(page.getByRole('button',{name:spanish['lab.saveFile'],exact:true})).toBeEnabled();
   await page.getByRole('main').getByRole('link',{name:spanish['auth.signUpAction'],exact:true}).click();
   await page.getByRole('main').getByRole('link',{name:spanish['auth.signInAction'],exact:true}).click();
+  // Access pages use the public frame; its footer leads back into the laboratory.
+  await page.getByRole('contentinfo').getByRole('link',{name:spanish['public.laboratory'],exact:true}).click();
   await navigationLink(page,spanish['nav.generate']).click();
   await page.getByRole('link',{name:spanish['lab.openLaboratory'],exact:true}).click();
   await expect(page.getByRole('button',{name:spanish['lab.unprotect'],exact:true})).toBeVisible();

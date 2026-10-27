@@ -38,7 +38,7 @@ for (const width of [360, 1280]) {
       const layout = await page.evaluate(() => {
         const main = document.querySelector('main.auth-layout')?.getBoundingClientRect();
         const form = document.querySelector('.auth-form');
-        const body = document.querySelector('.workspace-body')?.getBoundingClientRect();
+        const body = document.querySelector('#app-content')?.getBoundingClientRect();
         if (!main || !form || !body) throw new Error('Missing identity form.');
         const round = (value: number) => Math.round(value * 100) / 100;
         return {
@@ -88,5 +88,5 @@ test('identity screens link to each other and the password toggle reveals the fi
   await page.goto('/nowhere');
   await expect(page.getByRole('heading', { level: 1, name: spanish['notFound.title'] })).toBeVisible();
   await page.getByRole('link', { name: spanish['notFound.home'], exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: spanish['landing.title'] })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: spanish['public.heroTitle'] })).toBeVisible();
 });

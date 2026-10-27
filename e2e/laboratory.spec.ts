@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 import {spanish as es} from '../src/i18n/es';
 import {english as en} from '../src/i18n/en';
 import {ROUTES} from '../src/shared/navigation';
-import {chooseTheme,message} from './helpers';
+import {chooseTheme,message,openPreferences} from './helpers';
 import {LAB_CONFIG as C} from '../src/features/design-lab/config';
 import {required} from '../src/features/design-lab/config';
 import {superpose} from '../src/features/design-lab/geometry';
@@ -68,7 +68,7 @@ test('laboratory file reopens every draft and rejects an invalid replacement ato
 
 test('laboratory English copy and offline-compatible example resources',async({page})=>{
   const external:string[]=[];page.on('request',request=>{if(request.url().startsWith('http')&&!['127.0.0.1','localhost'].includes(new URL(request.url()).hostname))external.push(request.url());});
-  await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);await page.getByRole('radio',{name:'English',exact:true}).check();await expect(page.getByRole('heading',{level:1})).toHaveText('Ubiquitin variants');await expect(page.getByRole('button',{name:en['lab.saveFile']})).toBeVisible();await expect(page.getByText(en['lab.meanConfidence'])).toBeVisible();expect(external).toEqual([]);
+  await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);await (await openPreferences(page)).getByRole('radio',{name:'English',exact:true}).check();await page.keyboard.press('Escape');await expect(page.getByRole('heading',{level:1})).toHaveText('Ubiquitin variants');await expect(page.getByRole('button',{name:en['lab.saveFile']})).toBeVisible();await expect(page.getByText(en['lab.meanConfidence'])).toBeVisible();expect(external).toEqual([]);
 });
 
 test('imports the actual verified Colab campaign when local evidence is provided',async({page})=>{

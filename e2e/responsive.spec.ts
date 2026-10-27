@@ -13,7 +13,7 @@ async function serveStructure(page: Page): Promise<void> {
   }));
 }
 
-test('the site bar fits every primary destination on wide screens and phones', async ({ page }) => {
+test('the laboratory frame fits every destination on wide screens and phones', async ({ page }) => {
   // Thirty page and theme combinations: allow the longer budget slower runners need.
   test.slow();
   await serveStructure(page);
@@ -24,7 +24,7 @@ test('the site bar fits every primary destination on wide screens and phones', a
       for (const theme of ['light', 'dark'] as const) {
         await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
         const sidebar = page.locator('.workspace-sidebar');
-        const bar = page.locator('header.site-bar');
+        const bar = page.locator(width === 360 ? 'header.workspace-bar' : '.workspace-sidebar');
         expect(await bar.evaluate(element => element.getBoundingClientRect().top)).toBe(0);
         if (width === 360) {
           await expect(sidebar).toBeHidden();
@@ -61,11 +61,12 @@ for (const width of [360, 768, 1280, 1440] as const) {
     await expect(page.locator('canvas.hydropathy-chart')).toBeVisible();
 
     for (const theme of ['light', 'dark'] as const) {
-      // The theme is chosen from the shell, and a secondary page is visited before coming back to the draft.
+      // The theme is chosen from Preferences, and a public page is visited before coming back to the draft.
       await chooseTheme(page, theme);
       await page.getByRole('navigation', { name: spanish['footer.navigation'] }).getByRole('link', { name: spanish['nav.privacy'], exact: true }).click();
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['privacy.title']);
       await assertFits(page);
+      await page.getByRole('navigation', { name: spanish['footer.navigation'] }).getByRole('link', { name: spanish['public.laboratory'], exact: true }).click();
       await followNavigation(page, spanish['nav.analyze']);
       await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
       await expect(await openSequenceEditor(page)).toHaveValue(sequence);
