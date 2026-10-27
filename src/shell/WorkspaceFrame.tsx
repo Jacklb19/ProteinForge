@@ -32,7 +32,14 @@ export function WorkspaceFrame(): React.JSX.Element {
   const [compact, setCompact] = useState(readCompact);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
-  const closeMenu = useCallback((): void => { setMenuOpen(false); toggle.current?.focus(); }, []);
+  // Focus returns to the menu button once the dialog has closed; while it is open the page behind is inert.
+  const returnFocus = useRef(false);
+  const closeMenu = useCallback((): void => { returnFocus.current = true; setMenuOpen(false); }, []);
+  useEffect(() => {
+    if (menuOpen || !returnFocus.current) return;
+    returnFocus.current = false;
+    toggle.current?.focus();
+  }, [menuOpen]);
   useEffect(() => { writeCompact(compact); }, [compact]);
 
   return (

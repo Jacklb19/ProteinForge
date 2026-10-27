@@ -99,8 +99,8 @@ ul, ol { padding-inline-start: var(--space-lg); }
 .menu-sheet-head { display: flex; align-items: center; justify-content: space-between; min-height: var(--height-bar); }
 .menu-sheet:not([open]) { display: none; }
 .menu-sheet nav { display: grid; }
-.menu-sheet nav a { display: flex; align-items: center; min-height: var(--size-control); padding-inline: var(--space-2xs); border-block-end: var(--border-width) solid var(--border-subtle); color: var(--text-secondary); font-family: var(--font-display); font-size: var(--font-size-menu); font-weight: var(--font-weight-strong); text-decoration: none; }
-.menu-sheet nav a[aria-current='page'] { color: var(--text-primary); }
+.public-sheet nav a { display: flex; align-items: center; min-height: var(--size-control); padding-inline: var(--space-2xs); border-block-end: var(--border-width) solid var(--border-subtle); color: var(--text-secondary); font-family: var(--font-display); font-size: var(--font-size-menu); font-weight: var(--font-weight-strong); text-decoration: none; }
+.public-sheet nav a[aria-current='page'] { color: var(--text-primary); }
 .menu-sheet-end { display: grid; gap: var(--space-md); }
 
 .app-content { flex: 1; width: var(--width-full); }

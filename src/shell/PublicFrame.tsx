@@ -43,7 +43,14 @@ export function PublicFrame(): React.JSX.Element {
     window.addEventListener('scroll', update, { passive: true });
     return () => { window.removeEventListener('scroll', update); };
   }, []);
-  const closeMenu = useCallback((): void => { setMenuOpen(false); toggle.current?.focus(); }, []);
+  // Focus returns to the menu button once the dialog has closed; while it is open the page behind is inert.
+  const returnFocus = useRef(false);
+  const closeMenu = useCallback((): void => { returnFocus.current = true; setMenuOpen(false); }, []);
+  useEffect(() => {
+    if (menuOpen || !returnFocus.current) return;
+    returnFocus.current = false;
+    toggle.current?.focus();
+  }, [menuOpen]);
 
   return (
     <div className="app public-frame">

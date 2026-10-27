@@ -44,7 +44,7 @@ export function GuidePage(): React.JSX.Element {
             <p>{t('profile.scaleNote')}</p>
             <ul>{HYDROPATHY_WINDOWS.map(size => <li key={size}>{t(WINDOW_PURPOSE_KEYS[size], { count: formatNumber(size) })}</li>)}</ul>
             <p>{t('profile.chouFasmanNote')}</p>
-            <ul>{METHOD_REFERENCES.map(reference => <li key={reference.url}><a href={reference.url} target="_blank" rel="noreferrer">{t(reference.labelKey)}</a></li>)}</ul>
+            <ul>{METHOD_REFERENCES.map(reference => <li key={reference.url}><a className="inline-link" href={reference.url} target="_blank" rel="noreferrer">{t(reference.labelKey)}</a></li>)}</ul>
           </GuideSection>
 
           <GuideSection section={GUIDE_SECTIONS.comparison}>

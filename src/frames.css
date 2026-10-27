@@ -50,7 +50,8 @@
 .public-evidence { display: grid; gap: var(--space-md); min-width: var(--space-none); }
 .public-evidence figcaption { display: grid; gap: var(--space-2xs); color: var(--text-secondary); font-size: var(--font-size-small); }
 .public-evidence figcaption strong { color: var(--text-primary); }
-.public-evidence .backbone, .public-evidence .stage-canvas { min-height: var(--height-stage-rail); }
+.public-model { position: relative; height: var(--height-lab-figure); background: var(--bg-subtle); border-radius: var(--radius-control); overflow: hidden; }
+.public-model .backbone-view { inset: var(--space-none); }
 .public-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--width-full), var(--width-public-fact)), 1fr)); gap: var(--space-md); }
 .public-facts div { display: grid; gap: var(--space-2xs); padding-block-start: var(--space-xs); border-block-start: var(--border-width) solid var(--border-subtle); }
 .public-facts dt { color: var(--text-secondary); font-size: var(--font-size-small); }
@@ -78,10 +79,24 @@
   to { opacity: 1; transform: none; }
 }
 .reveal[data-revealed='true'] { animation: reveal-section var(--duration-reveal) var(--ease-enter) both; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal[data-revealed='true'] { animation: none; }
+}
 
 /* Tool headings: the tool's name above a subject title, then what the tool is for. */
 .page-kicker { color: var(--text-secondary); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
 .page-purpose { max-width: var(--width-copy); margin-block: var(--space-2xs); color: var(--text-secondary); }
+
+/* Guide: methods grouped by question, each with a way back to its tool. */
+.guide-sections { display: grid; gap: var(--space-2xl); max-width: var(--width-copy); }
+.guide-section { display: grid; gap: var(--space-sm); justify-items: start; scroll-margin-block-start: var(--space-lg); }
+.guide-section:focus { outline: none; }
+.guide-section > p, .guide-section li { color: var(--text-secondary); }
+.guide-terms { display: grid; gap: var(--space-md); width: var(--width-full); }
+.guide-terms div { display: grid; gap: var(--space-2xs); padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
+.guide-terms dt { font-weight: var(--font-weight-strong); }
+.guide-terms dd { color: var(--text-secondary); }
+.guide-method { display: block; margin-block-start: var(--space-2xs); font-size: var(--font-size-small); }
 
 /* Laboratory frame --------------------------------------------------------- */
 .workspace { display: grid; grid-template-columns: var(--width-workspace-sidebar) minmax(0, 1fr); align-items: start; min-height: 100dvh; }
@@ -112,6 +127,7 @@
 
 /* Compact rail: icons keep their names for assistive technology and show them on hover or focus. */
 .workspace[data-compact='true'] .sidebar-head { flex-direction: column; padding-inline: var(--space-none); }
+.workspace[data-compact='true'] .sidebar-head .brand { min-width: var(--size-touch); justify-content: center; }
 .workspace[data-compact='true'] .sidebar-head .brand-name, .workspace[data-compact='true'] .sidebar-group-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .workspace[data-compact='true'] .sidebar-group + .sidebar-group { padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
 .workspace[data-compact='true'] .sidebar-nav { gap: var(--space-sm); }
@@ -145,6 +161,7 @@
   .public-frame .site-bar-session .button-primary { display: none; }
   .public-hero { padding-block-start: var(--space-lg); }
   .public-hero .stage { order: 1; }
+  .public-strand { order: 2; }
   .public-hero .hero-actions .button { flex: 1 1 100%; }
   .public-cta { padding: var(--space-xl) var(--space-md); }
 }

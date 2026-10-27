@@ -11,7 +11,9 @@ export function LandingLabExample(): React.JSX.Element | null {
   if (!sample) return null;
   const model = traceModel(sample.sequenceSha256, sample.sequence, sample.keys, sample.ca as [number, number, number][]);
   return <figure className="public-evidence">
-    <BackboneView label={t('public.labFigureLabel', { id: example.reference.id })} colorMode={DEFAULT_COLOR_MODE} model={model} showEnds />
+    <div className="public-model">
+      <BackboneView label={t('public.labFigureLabel', { id: example.reference.id })} colorMode={DEFAULT_COLOR_MODE} model={model} showEnds />
+    </div>
     <figcaption>
       <strong>{t('public.labFigureTitle')}</strong>
       <span>{t('public.labFigureFacts', {
