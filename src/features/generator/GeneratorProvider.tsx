@@ -38,6 +38,16 @@ export function GeneratorProvider({ children }: { children: ReactNode }): React.
       instance.postMessage({ id, parameters: parsed.data } satisfies SearchRequest);
     } catch { stop(); setStatus('error'); setProgress(null); }
   }, [form, stop]);
-  const value = useMemo(() => ({ form, setForm, result, progress, status, run, cancel }), [form, setForm, result, progress, status, run, cancel]);
+  const restore = useCallback((saved: SearchResult) => {
+    stop();
+    const { length, budget, seed, gravy, massDa } = saved.parameters;
+    setFormState({
+      length: String(length), budget: String(budget), seed: String(seed),
+      gravyEnabled: gravy.enabled, gravyMinimum: String(gravy.minimum), gravyMaximum: String(gravy.maximum),
+      massEnabled: massDa.enabled, massMinimum: String(massDa.minimum), massMaximum: String(massDa.maximum),
+    });
+    setResult(saved); setStatus('done'); setProgress(null);
+  }, [stop]);
+  const value = useMemo(() => ({ form, setForm, result, progress, status, run, cancel, restore }), [form, setForm, result, progress, status, run, cancel, restore]);
   return <GeneratorContext.Provider value={value}>{children}</GeneratorContext.Provider>;
 }

@@ -6,6 +6,19 @@ const paths = {
   eyeOff: 'M3 3l18 18M10.6 10.6A3 3 0 0 0 13.4 13.4M9.9 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6A17 17 0 0 0 2 12s4 7 10 7a10 10 0 0 0 4.3-.9',
   menu: 'M4 7h16M4 12h16M4 17h16',
   close: 'M6 6l12 12M18 6L6 18',
+  analyze: 'M4 18V6m0 12h16M8 14l3-4 4 3 5-8',
+  compare: 'M4 7h16M4 17h16m-4-14 4 4-4 4M8 13l-4 4 4 4',
+  design: 'm15 3 6 6M4 20l3-7L17 3l4 4L11 17l-7 3ZM7 13l4 4',
+  laboratory: 'M8 3h8M10 3v7L4 20h16l-6-10V3M8 15h8',
+  library: 'M4 4h6l2 2 2-2h6v16h-6l-2 2-2-2H4V4Zm8 2v16',
+  projects: 'M3 6h7l2 3h9v11H3V6Z',
+  help: 'M12 17v.1M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 2M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z',
+  settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2',
+  collapse: 'M4 4h16v16H4V4ZM9 4v16m8-12-4 4 4 4',
+  expand: 'M4 4h16v16H4V4ZM9 4v16m4-12 4 4-4 4',
+  arrow: 'M4 12h16m-6-6 6 6-6 6',
+  user: 'M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM4 21v-3a8 8 0 0 1 16 0v3',
+  globe: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20ZM2 12h20M12 2c-5 5-5 15 0 20 5-5 5-15 0-20Z',
 } as const;
 
 export type IconName = keyof typeof paths;

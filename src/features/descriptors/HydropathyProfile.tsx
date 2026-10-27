@@ -30,6 +30,9 @@ interface ReceivedProfile {
 }
 
 interface Props {
+  /** Visibility only: computation and selection survive view changes. */
+  view?: 'all' | 'sequence' | 'profile' | 'structure' | 'none';
+  panelId?: string;
   text: string;
   windowSize?: HydropathyWindow;
   onWindowChange?: (value: HydropathyWindow) => void;
@@ -41,7 +44,7 @@ interface Props {
 }
 
 /** The sequence, its profile drawn off the main thread and the per-residue tendencies, linked by one selection. */
-export function HydropathyProfile({ text, windowSize: controlledWindow, onWindowChange, selected: controlledSelected, onSelect, annotations = null }: Props): React.JSX.Element {
+export function HydropathyProfile({ text, windowSize: controlledWindow, onWindowChange, selected: controlledSelected, onSelect, annotations = null, view = 'all', panelId }: Props): React.JSX.Element {
   const { t, formatNumber, locale, localize } = useTranslation();
   const themeRevision = useThemeRevision();
   const [localWindow, setLocalWindow] = useState<HydropathyWindow>(DEFAULT_HYDROPATHY_WINDOW);
@@ -62,7 +65,7 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
   const currentRequest = useRef(0);
   const sentSequence = useRef('');
   const sentWindow = useRef<HydropathyWindow>(DEFAULT_HYDROPATHY_WINDOW);
-  const previousAppearance = useRef({ themeRevision, locale });
+  const previousAppearance = useRef({ themeRevision, locale, view });
 
   useEffect(() => {
     try {
@@ -147,11 +150,11 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
       };
       worker.current.postMessage(request);
     };
-    if (previousAppearance.current.themeRevision !== themeRevision || previousAppearance.current.locale !== locale) redraw();
-    previousAppearance.current = { themeRevision, locale };
+    if (previousAppearance.current.themeRevision !== themeRevision || previousAppearance.current.locale !== locale || previousAppearance.current.view !== view) redraw();
+    previousAppearance.current = { themeRevision, locale, view };
     window.addEventListener('resize', redraw);
     return () => { window.removeEventListener('resize', redraw); };
-  }, [themeRevision, locale]);
+  }, [themeRevision, locale, view]);
 
   const invalid = validation.invalidPositions.length > 0;
   const tooShort = !invalid && validation.sequence.length > 0 && validation.sequence.length < windowSize;
@@ -226,7 +229,8 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
   return (
     <>
       {shownSequence.length > 0 && (
-        <section aria-labelledby="sequence-title" className={`section reader-section${invalid ? ' stale-reader' : ''}`}>
+        <section id={panelId ? `${panelId}-sequence-panel` : undefined} role={panelId && view !== 'structure' ? 'tabpanel' : undefined}
+          aria-labelledby={panelId && view !== 'structure' ? `${panelId}-sequence-tab` : 'sequence-title'} hidden={view !== 'all' && view !== 'sequence' && view !== 'structure'} className={`section reader-section${invalid ? ' stale-reader' : ''}`}>
           <h2 id="sequence-title">{t('profile.readerTitle')}</h2>
           {annotations && (
             <SequenceRibbon sequence={shownSequence} annotations={annotations} selected={activeSelection} onSelect={setSelected} label={t('profile.mapLabel')} />
@@ -243,6 +247,8 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
           <p id="reader-readout" className="reader-readout" aria-live="polite">{readoutName && <strong>{readoutName}</strong>}{readoutName ? ' · ' : ''}{readout}</p>
         </section>
       )}
+      <div id={panelId ? `${panelId}-profile-panel` : undefined} role={panelId ? 'tabpanel' : undefined}
+        aria-labelledby={panelId ? `${panelId}-profile-tab` : undefined} hidden={view !== 'all' && view !== 'profile'}>
       <section aria-labelledby="profile-title" className="section profile-panel">
         <div className="section-header">
           <h2 id="profile-title">{t('profile.title')}</h2>
@@ -324,6 +330,7 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
           </details>
         </section>
       )}
+      </div>
     </>
   );
 }

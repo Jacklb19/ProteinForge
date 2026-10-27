@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { assertFits, chooseTheme, message, signInWithEmptyAccount, TEST_ACCOUNT, token } from './helpers';
+import { assertFits, chooseTheme, signInWithEmptyAccount, TEST_ACCOUNT, token } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
 import { SESSION_STORAGE_KEY } from '../src/features/auth/config';
@@ -62,7 +62,7 @@ test('profile holds the account, its projects and its data choices, and signs ou
   for (const title of ['projects.title', 'settings.account', 'account.appearance', 'settings.language', 'account.privacy'] as const) {
     await expect(page.getByRole('region', { name: spanish[title], exact: true })).toBeVisible();
   }
-  await expect(page.getByRole('link', { name: message('shell.account', { email: TEST_ACCOUNT.email }) })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('complementary', { name: spanish['shell.sidebar'] }).getByRole('button', { name: new RegExp(TEST_ACCOUNT.email) })).toBeVisible();
   await expect(page.getByRole('radio', { name: spanish['settings.spanish'], exact: true })).toBeChecked();
   await expect(page.getByRole('radio', { name: spanish['settings.system'], exact: true })).toBeChecked();
   await expect(page.getByRole('link', { name: spanish['account.policyAction'], exact: true })).toHaveAttribute('href', ROUTES.privacy);

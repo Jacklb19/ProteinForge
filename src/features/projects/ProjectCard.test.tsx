@@ -33,6 +33,7 @@ it('offers one destination for an analysis and both for a mixed project', async 
   await user.click(screen.getByRole('button', { name: message('projects.openAlignmentNamed', { name: 'Mixto' }) }));
   expect(onOpen.mock.calls).toEqual([['analyze'], ['alignment']]);
   // Saved evidence is shown as it was stored, never recalculated by the card.
+  await user.click(screen.getByText(message('workbench.projectDetails')));
   const metrics = screen.getByRole('region', { name: message('projects.comparison') });
   expect(metrics).toHaveTextContent('80%');
   expect(metrics).toHaveTextContent('81,8%');
@@ -57,5 +58,20 @@ it('announces a comparison without analysis and a laboratory with its variants',
 it('says when a project has no saved evidence instead of inventing it', () => {
   card(summary('Sin vista previa', null));
   expect(screen.getByText(message('projects.noPreview'))).toBeVisible();
+  expect(screen.queryByText(message('workbench.projectDetails'))).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: message('projects.openNamed', { name: 'Sin vista previa' }) })).toBeVisible();
+});
+
+it('counts saved generator searches and opens them only where the build offers them', async () => {
+  const user = userEvent.setup();
+  const onOpen = vi.fn();
+  const project = summary('Insulina humana', { ...ANALYSIS, generatorRuns: 3 });
+  const view = render(<LocaleProvider locale="es"><ProjectCard project={project} busy={false} active={false} dirty={false} showRuns onOpen={onOpen} onAction={vi.fn()} /></LocaleProvider>);
+  expect(screen.getByText(message('projects.generatorRuns', { count: '3' }))).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: message('projects.openRunsNamed', { name: 'Insulina humana' }) }));
+  expect(onOpen).toHaveBeenCalledWith('generator');
+  view.unmount();
+  card(project);
+  expect(screen.queryByText(message('projects.generatorRuns', { count: '3' }))).toBeNull();
+  expect(screen.queryByRole('button', { name: message('projects.openRunsNamed', { name: 'Insulina humana' }) })).toBeNull();
 });

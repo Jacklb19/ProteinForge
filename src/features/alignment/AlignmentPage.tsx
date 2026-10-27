@@ -84,7 +84,9 @@ export function AlignmentPage(): React.JSX.Element {
     <main className="page alignment-page">
       <header className="page-head">
         <div className="page-head-text">
+          <p className="page-kicker">{t('nav.alignment')}</p>
           <h1>{title}</h1>
+          <p className="page-purpose">{t('alignment.purpose')}</p>
           <p className="page-meta">{[isExampleInput(currentInput) ? t('editor.exampleTag') : '', meta, metaSecond].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="toolbar">
@@ -115,6 +117,10 @@ export function AlignmentPage(): React.JSX.Element {
             <textarea id="alignment-second" spellCheck={false} value={second} onChange={(event) => { update({ second: event.target.value }); }} />
           </div>
         </div>
+        <div className="comparison-controls">
+        <details className="disclosure comparison-advanced">
+          <summary>{t('workbench.compareParameters')}</summary>
+          <p className="field-help">{t('workbench.compareHelp')}</p>
         <div className="alignment-parameters">
           <SegmentedControl
             legend={t('alignment.mode')}
@@ -128,6 +134,8 @@ export function AlignmentPage(): React.JSX.Element {
             value={matrix}
             onChange={(value) => { update({ matrix: value }); }}
           />
+        </div>
+        </details>
           <div className="alignment-actions">
             {status === 'running' && <button className="button button-secondary" type="button" onClick={worker.cancel}>{t('alignment.cancel')}</button>}
             <button className="button button-primary" type="button" onClick={start} disabled={status === 'running'}>{t('alignment.start')}</button>
@@ -148,10 +156,10 @@ export function AlignmentPage(): React.JSX.Element {
             <p className="verdict">{t('alignment.verdict', { count: formatNumber(result.identities), total: formatNumber(result.columns) })}</p>
             {changes && <p className="verdict-note">{t('alignment.matureNote', { regions: mature.map((region) => t(region.labelKey)).join(t('alignment.regionJoin')), inside: formatNumber(changes.inside), outside: formatNumber(changes.outside) })}</p>}
             <dl className="figures">
-              <div><dt>{t('alignment.identity')}</dt><dd>{percent(result.identities, result.columns)}</dd></div>
-              <div><dt>{t('alignment.similarity')}</dt><dd>{percent(result.similarities, result.columns)}</dd></div>
+              <div><dt>{t('alignment.identity')}</dt><dd>{percent(result.identities, result.columns)}</dd><dd className="figure-explanation">{t('workbench.identityHelp')}</dd></div>
+              <div><dt>{t('alignment.similarity')}</dt><dd>{percent(result.similarities, result.columns)}</dd><dd className="figure-explanation">{t('workbench.similarityHelp')}</dd></div>
               <div><dt>{t('alignment.gaps')}</dt><dd>{formatNumber(gaps)}</dd></div>
-              <div><dt>{t('alignment.score')}</dt><dd>{formatNumber(result.score)}</dd></div>
+              <div><dt>{t('alignment.score')}</dt><dd>{formatNumber(result.score)}</dd><dd className="figure-explanation">{t('workbench.scoreHelp')}</dd></div>
             </dl>
             <AlignmentMap result={result} annotations={annotations} label={t('alignment.mapLabel', { identical: formatNumber(result.identities), total: formatNumber(result.columns) })} />
             <AlignmentMapKey />

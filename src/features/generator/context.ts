@@ -13,6 +13,8 @@ export interface GeneratorState {
   result: SearchResult | null; progress: SearchProgress | null;
   status: 'idle' | 'running' | 'done' | 'cancelled' | 'error' | 'invalid';
   run: () => void; cancel: () => void;
+  /** Shows a saved result with its own conditions, without searching again. */
+  restore: (result: SearchResult) => void;
 }
 export const GeneratorContext = createContext<GeneratorState | null>(null);
 export function useGenerator(): GeneratorState { return useRequiredContext(GeneratorContext, 'GeneratorProvider'); }

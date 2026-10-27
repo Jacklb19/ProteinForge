@@ -1,8 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { PageHeading } from '../../shared/PageHeading';
-import { ROUTES } from '../../shared/navigation';
 import { useLab } from './context';
 import { LAB_CONFIG as C, LAB_ERROR_KEYS } from './config';
 import { downloadLabFile } from './download';
@@ -14,6 +12,7 @@ import { LabVariantsTable } from './LabVariantsTable';
 import { ReadingSection } from '../assistant/ReadingSection';
 import { laboratoryFacts } from '../assistant/facts';
 import { LabProjectControls } from './LabProjectControls';
+import { ViewTabs } from '../../shared/ViewTabs';
 
 function ReplaceDialog({ onClose, onConfirm, returnFocus }: {
   onClose: () => void;
@@ -47,6 +46,7 @@ export function DesignLabPage(): React.JSX.Element {
   const file = useRef<HTMLInputElement>(null), undo = useRef<HTMLButtonElement>(null), openButton = useRef<HTMLButtonElement>(null);
   const [pending, setPending] = useState<{ value: File | 'example'; returnFocus: HTMLElement | null } | null>(null);
   const [replacement, setReplacement] = useState('A');
+  const [view, setView] = useState<'structure' | 'comparison' | 'files'>('structure');
   const { openExample } = lab;
   useEffect(() => { if (lab.dataset === null && lab.status === 'idle') openExample(); }, [lab.dataset, lab.status, openExample]);
 
@@ -66,11 +66,6 @@ export function DesignLabPage(): React.JSX.Element {
     }
     if (value === 'example') lab.openExample(); else lab.openFile(value);
   }
-  function jump(id: string): void {
-    const heading = document.getElementById(id);
-    heading?.scrollIntoView({ block: 'start' });
-    heading?.focus({ preventScroll: true });
-  }
   function restore(): void { lab.restore(); undo.current?.focus({ preventScroll: true }); }
   function exportPdb(): void {
     if (!variant || modified) return;
@@ -88,11 +83,11 @@ export function DesignLabPage(): React.JSX.Element {
 
   return (
     <main className="page lab-page">
-      <Link className="lab-breadcrumb" to={ROUTES.generate}>{t('lab.backToGenerator')}</Link>
+      <p className="page-kicker">{t('workbench.laboratory')}</p>
       <PageHeading
         titleKey={dataset ? 'lab.title' : 'lab.pageTitle'}
         titleVariables={{ reference: headingName }}
-        introduction={dataset ? 'lab.introduction' : 'lab.emptyIntroduction'}
+        introduction={dataset ? 'workbench.labIntro' : 'lab.emptyIntroduction'}
         introductionVariables={{ reference: dataset?.reference.id ?? '', chain: dataset?.reference.chain ?? '', length: dataset?.reference.sequence.length ?? 0 }}
       >
         <button ref={openButton} type="button" className="button button-secondary" disabled={busy} onClick={() => { file.current?.click(); }}>{t('lab.openFile')}</button>
@@ -105,6 +100,7 @@ export function DesignLabPage(): React.JSX.Element {
         onChange={event => { const selected = event.currentTarget.files?.[0]; event.currentTarget.value = ''; if (selected) open(selected); }}
       />
       <p className="field-help">{dataset ? t(dataset.source === 'example' ? 'lab.exampleScope' : 'lab.importScope') : t('lab.noResult')}</p>
+      {dataset && <p className="page-meta lab-reference-meta">{dataset.reference.id} · {t('mapping.chain')} {dataset.reference.chain} · {t('editor.residueCount', { count: formatNumber(dataset.reference.sequence.length) })}</p>}
 
       {busy && (
         <div className="lab-import-status">
@@ -123,12 +119,16 @@ export function DesignLabPage(): React.JSX.Element {
       {lab.exported && <p className="status-message" role="status">{t('lab.exportReady')}</p>}
 
       {dataset && variant && draft && selectedKey && aa && <>
-        <nav className="lab-section-links" aria-label={t('lab.sectionNavigation')}>
-          <button type="button" onClick={() => { jump('lab-structure'); }}>{t('lab.structureTab')}</button>
-          <button type="button" onClick={() => { jump('lab-variants-title'); }}>{t('lab.comparisonTab')}</button>
-          <button type="button" onClick={() => { jump('lab-file-tools'); }}>{t('lab.provenanceTab')}</button>
+        <nav className="lab-variant-picker" aria-label={t('lab.variantsTitle')}>
+          {dataset.variants.map(item => <button key={item.id} type="button" className="button button-secondary" aria-label={t('lab.variant', { sample: item.sample })} aria-pressed={item.id === lab.activeId} disabled={busy} onClick={() => { lab.selectVariant(item.id); }}>
+            <span>{t('lab.variant', { sample: item.sample })}</span><span className="field-help">{t(lab.drafts[item.id]?.sequence !== item.sequence ? 'lab.draftState' : 'lab.resultState')}</span>
+          </button>)}
         </nav>
+        <ViewTabs id="laboratory" label={t('workbench.labViews')} value={view} onChange={setView} options={[
+          { value: 'structure', label: t('workbench.structure') }, { value: 'comparison', label: t('lab.comparisonTab') }, { value: 'files', label: t('lab.provenanceTab') },
+        ]} />
 
+        <div id="laboratory-structure-panel" role="tabpanel" aria-labelledby="laboratory-structure-tab" hidden={view !== 'structure'}>
         <div className="lab-workbench">
           <LabViewer reference={dataset.reference} variant={variant} selected={lab.selected} modified={modified} busy={busy} onSelect={lab.selectResidue} onRestore={restore} />
           <LabInspector
@@ -141,8 +141,12 @@ export function DesignLabPage(): React.JSX.Element {
         </div>
 
         <LabSequence sequence={draft.sequence} reference={dataset.reference.sequence} selected={lab.selected} protectedPositions={draft.protectedPositions} disabled={busy} onSelect={lab.selectResidue} />
+        </div>
+        <div id="laboratory-comparison-panel" role="tabpanel" aria-labelledby="laboratory-comparison-tab" hidden={view !== 'comparison'}>
         <LabVariantsTable dataset={dataset} drafts={lab.drafts} activeId={lab.activeId} busy={busy} number={number} onSelect={lab.selectVariant} />
+        </div>
 
+        <div id="laboratory-files-panel" role="tabpanel" aria-labelledby="laboratory-files-tab" hidden={view !== 'files'}>
         <section className="lab-file-tools" id="lab-file-tools" tabIndex={-1}>
           <h2>{t('lab.fileTools')}</h2>
           <div className="actions">
@@ -166,6 +170,7 @@ export function DesignLabPage(): React.JSX.Element {
             <p className="field-help">{t('lab.provenanceScope')}</p>
           </details>
         </section>
+        </div>
 
         {/* Reads the active variant; an edited draft is read as a draft, without its past figures. */}
         <ReadingSection

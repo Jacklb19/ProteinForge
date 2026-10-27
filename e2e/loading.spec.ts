@@ -10,8 +10,8 @@ test('anonymous analysis keeps the service transport deferred until a service is
   const requested: string[] = [];
   page.on('request', request => requested.push(new URL(request.url()).pathname));
   await page.goto(ROUTES.home);
-  await expect(page.locator('.view-fact')).toBeVisible();
-  await followNavigation(page, spanish['nav.analyze']);
+  await expect(page.locator('.stage-hero canvas')).toBeVisible();
+  await page.locator('.hero-actions').getByRole('link', { name: spanish['public.exploreExample'], exact: true }).click();
   await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
   // Both development module URLs and production chunk names are covered.
   expect(requested.filter(path => /\/(?:rpc|apiClient|projectApi)[.-]|\/gen\/proteinforge\//.test(path))).toEqual([]);

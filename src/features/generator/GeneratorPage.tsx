@@ -8,9 +8,28 @@ import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { useGenerator, parseSearchForm } from './context';
 import { GENERATOR_CONFIG as C } from './config';
-import type { SearchArm } from './search';
+import type { SearchArm, SearchResult } from './search';
+import { downloadSearch } from './download';
+import { SavedRuns } from './GeneratorHistory';
+import { useGeneratorSave } from './useGeneratorSave';
 import { residueClass } from '../chemistry/config';
 import { ChemistryLegend } from '../chemistry/ChemistryLegend';
+
+/** The result's own actions; saving to a project sits next to the download of the same file. */
+function ResultActions({ result, unavailable, onCompare }: { result: SearchResult; unavailable: boolean; onCompare: () => void }): React.JSX.Element {
+  const { t } = useTranslation();
+  const save = useGeneratorSave(result, unavailable);
+  return (
+    <>
+      <div className="actions">
+        <button type="button" className="button button-secondary" disabled={unavailable} onClick={() => { downloadSearch(JSON.stringify(result, null, 2)); }}>{t('generator.download')}</button>
+        {save.button}
+        <button type="button" className="button button-secondary" disabled={unavailable} onClick={onCompare}>{t('generator.compare')}</button>
+      </div>
+      {save.details}
+    </>
+  );
+}
 
 /** RF17 searches only explicitly calculated properties; every output remains an academic candidate. */
 export function GeneratorPage(): React.JSX.Element {
@@ -36,12 +55,6 @@ export function GeneratorPage(): React.JSX.Element {
     if (!first || !second) return;
     alignment.update({ first: first.sequence, second: second.sequence, result: null, resultInput: null, warnings: [] });
     setPending(null); void navigate(ROUTES.alignment);
-  }
-  function download(): void {
-    if (!result || unavailable) return;
-    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = C.filename; link.click();
-    setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
   }
 
   type NumericField = 'length' | 'budget' | 'seed' | 'gravyMinimum' | 'gravyMaximum' | 'massMinimum' | 'massMaximum';
@@ -103,9 +116,14 @@ export function GeneratorPage(): React.JSX.Element {
         <h2>{t('generator.conditions')}</h2>
         <div className="generator-inputs">
           {numeric('length', 'generator.length', C.minLength, C.maxLength, 1)}
+        </div>
+        <details className="disclosure generator-advanced">
+          <summary>{t('workbench.advanced')}</summary>
+          <div className="generator-inputs">
           {numeric('budget', 'generator.budget', C.minBudget, C.maxBudget, 1)}
           {numeric('seed', 'generator.seed', 1, C.maxSeed, 1)}
-        </div>
+          </div>
+        </details>
         <p className="field-help">{t('generator.bounds')}</p>
 
         <div className="generator-targets">
@@ -181,10 +199,7 @@ export function GeneratorPage(): React.JSX.Element {
           <ChemistryLegend />
           <div className="candidate-columns">{candidates(result.guided, 'generator.guided')}{candidates(result.reference, 'generator.reference')}</div>
 
-          <div className="actions">
-            <button type="button" className="button button-secondary" disabled={unavailable} onClick={download}>{t('generator.download')}</button>
-            <button type="button" className="button button-secondary" disabled={unavailable} onClick={() => { compare(); }}>{t('generator.compare')}</button>
-          </div>
+          <ResultActions result={result} unavailable={unavailable} onCompare={() => { compare(); }} />
 
           {pending && !unavailable && (
             <div className="project-confirm" role="group" aria-label={t('generator.replace')}>
@@ -195,6 +210,8 @@ export function GeneratorPage(): React.JSX.Element {
           )}
         </section>
       )}
+
+      <SavedRuns />
 
       <p className="field-help">{t('generator.scope')}</p>
       <details className="disclosure generator-method">

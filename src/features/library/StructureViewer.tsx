@@ -18,7 +18,7 @@ interface ResidueSelection {
 
 interface Props {
   pdbId: string;
-  /** Shown until the viewer is ready; with it, a failed download stays quiet instead of reporting an error. */
+  /** Shown until the viewer is ready; it remains available on failure alongside the error and retry. */
   placeholder?: ReactNode;
   /** Optional bridge; no mapping service or sequence-index assumption is built into the viewer. */
   residueSelection?: ResidueSelection;
@@ -157,7 +157,8 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); rotate(event.key === 'ArrowLeft' ? -1 : 1); }
       if (event.key === '+' || event.key === '-') { event.preventDefault(); zoom(event.key === '+'); }
     }}><canvas ref={canvas} aria-hidden="true" /></div></div>
-    <p className={covered ? 'visually-hidden' : 'status-message'} role="status" data-state={state === 'error' && !covered ? 'error' : undefined}>{t(state === 'loading' ? 'library.viewerLoading' : state === 'ready' ? 'library.viewerReady' : 'library.viewerError')}</p>
+    <p className={covered && state !== 'error' ? 'visually-hidden' : 'status-message'} role="status" data-state={state === 'error' ? 'error' : undefined}>{t(state === 'loading' ? 'library.viewerLoading' : state === 'ready' ? 'library.viewerReady' : 'library.viewerError')}</p>
+    {covered && state === 'error' && <button className="button button-secondary" type="button" onClick={() => { setAttempt(value => value + 1); }}>{t('library.retry')}</button>}
     <div className="actions" hidden={covered}>
       <button className="button button-secondary" type="button" disabled={state !== 'ready'} onClick={() => { rotate(-1); }}>{t('library.rotateLeft')}</button>
       <button className="button button-secondary" type="button" disabled={state !== 'ready'} onClick={() => { rotate(1); }}>{t('library.rotateRight')}</button>

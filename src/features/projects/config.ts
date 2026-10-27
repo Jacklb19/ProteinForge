@@ -22,6 +22,7 @@ export const DESCRIPTOR_METHOD_VERSION = 'proteinforge-descriptors-v1';
 export const PROJECT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
   'draft-changed': 'projects.draftChanged',
   'laboratory-size':'lab.projectSize', 'rate-limit': 'projects.rateLimit',
+  'generator-history-size': 'generator.historySize', 'requires-current-client': 'projects.requiresCurrentClient',
   network: 'projects.network', timeout: 'projects.timeout', cancelled: 'projects.cancelled', session: 'projects.session',
   unavailable: 'projects.unavailable', 'invalid-response': 'projects.invalidResponse', unknown: 'projects.error',
   conflict: 'projects.conflict', 'not-found': 'projects.notFound', validation: 'projects.validation', schema: 'projects.schema', forbidden: 'projects.forbidden',

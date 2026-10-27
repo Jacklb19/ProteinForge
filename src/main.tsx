@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import './design-tokens.css';
 import './fonts.css';
 import './index.css';
+import './workbench.css';
+import './frames.css';
 import App from './App';
 
 const container = document.getElementById('root');

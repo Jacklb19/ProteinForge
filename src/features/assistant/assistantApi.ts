@@ -3,7 +3,7 @@ import { AssistantService, Subject } from '../../gen/proteinforge/assistant/v1/a
 import { ApiError, validated } from '../api/apiClient';
 import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { isoFromTimestamp } from '../api/timestamps';
-import { MAX_FACTS, MAX_LABEL_LENGTH, MAX_READING_LENGTH, MAX_UNIT_LENGTH, MAX_VALUE_LENGTH } from './config';
+import { MAX_FACTS, MAX_LABEL_LENGTH, MAX_READING_LENGTH, MAX_UNIT_LENGTH, MAX_VALUE_LENGTH, READING_TIMEOUT_MS } from './config';
 import type { ReadingSubject } from './config';
 
 const SUBJECT_MESSAGES: Record<ReadingSubject, Subject> = {
@@ -39,7 +39,7 @@ export function createAssistantApi(baseUrl: string, fetchImplementation?: FetchL
       // Shape first: a request the contract would reject never reaches the network or the budget.
       if (facts.length === 0 || facts.length > MAX_FACTS) throw new ApiError('validation');
       const checked = facts.map((fact) => validated(factSchema, fact));
-      const response = await rpc(() => client.interpret({ subject: SUBJECT_MESSAGES[subject], language, facts: checked }, callOptions(signal, token)));
+      const response = await rpc(() => client.interpret({ subject: SUBJECT_MESSAGES[subject], language, facts: checked }, { ...callOptions(signal, token), timeoutMs: READING_TIMEOUT_MS }));
       return validated(readingSchema, {
         text: response.text,
         model: response.model,

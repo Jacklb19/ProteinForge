@@ -17,6 +17,7 @@ import type {Project,ProjectWrite} from './contracts';
 import type {ProjectApi} from './projectApi';
 import {ApiError} from '../api/apiClient';
 import {sha256} from '../design-lab/zip';
+import {historyFixture} from '../../test/generatorHistoryFixture';
 
 let lab:LabState,bytes:Uint8Array<ArrayBuffer>,stored:Project;
 const analysis:Project={id:'00000000-0000-4000-8000-000000000010',name:'Analysis',activeSequence:'ACD',status:'draft',createdAt:'2026-10-12T08:00:00.123456Z',updatedAt:'2026-10-12T08:00:00.123456Z',workspace:{schemaVersion:1,profileWindow:9,descriptors:null,alignment:{first:'',second:'',matrix:'BLOSUM62',mode:'global',result:null}}};
@@ -44,6 +45,15 @@ it('creates independently of analysis binding and preserves its inputs when open
  await click('open');expect(lab.openDocument).toHaveBeenCalledWith(expect.objectContaining({byteLength:bytes.byteLength}),stored.workspace.laboratory?.documentSha256);
  expect(state()).toMatchObject({active:analysis.id,lab:stored.id,sequence:'ACD'});
  await click('save');expect(service.save).toHaveBeenLastCalledWith(expect.anything(),'owner-token',expect.objectContaining({id:stored.id}),expect.any(AbortSignal));
+});
+it('keeps a saved generator history and version 3 when saving the laboratory',async()=>{
+ const history=await historyFixture();stored={...stored,workspace:{...stored.workspace,schemaVersion:3,generatorHistory:history}};
+ const service=api();mount(service);await ready();await click('open');await click('save');
+ expect(vi.mocked(service.save).mock.calls[0]?.[0].workspace).toMatchObject({schemaVersion:3,generatorHistory:history,laboratory:{documentSha256:stored.workspace.laboratory?.documentSha256}});
+});
+it('reports a newer stored project apart from a conflict and keeps binding and draft',async()=>{
+ const service=api();mount(service);await ready();await click('open');vi.mocked(service.save).mockRejectedValueOnce(new ApiError('requires-current-client'));await click('save');
+ expect(state()).toMatchObject({lab:stored.id,error:'requires-current-client'});expect(lab.markSaved).not.toHaveBeenCalled();
 });
 it('keeps binding and draft on conflict and offers a version-independent copy',async()=>{
  const service=api();mount(service);await ready();await click('open');vi.mocked(service.save).mockRejectedValueOnce(new ApiError('conflict'));await click('save');

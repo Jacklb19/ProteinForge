@@ -3,10 +3,12 @@ import type { Plugin, ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { translate } from './src/i18n/translate';
 import { DEFAULT_LOCALE } from './src/i18n/config';
 import { FONT_FILES, fontUrl } from './src/theme/fonts';
 import {LAB_CONFIG} from './src/features/design-lab/config';
+import { resolveBuildCommit } from './src/features/generator/buildCommit';
 
 const tokens = readFileSync(new URL('./src/design-tokens.css', import.meta.url), 'utf8');
 /** First declaration of a design token, which holds the light theme value. */
@@ -23,6 +25,12 @@ const fontPreloads = FONT_FILES.filter((font) => font.preload)
   .join('\n    ');
 const appIcon = readFileSync(new URL('./src/shared/app-icon.svg', import.meta.url), 'utf8')
   .replaceAll('{{surface}}', surface).replaceAll('{{accent}}', accent).replaceAll('{{stroke}}', stroke);
+
+/** Provenance of saved generator runs; never fails the build when git is unavailable (CI, Vercel). */
+const appBuild = resolveBuildCommit(process.env, () => {
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: new URL('.', import.meta.url), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  return { commit: git('rev-parse', 'HEAD'), dirty: git('status', '--porcelain', '--untracked-files=no') !== '' };
+});
 
 const isolationHeaders = {
   'Cross-Origin-Opener-Policy': 'same-origin',
@@ -101,8 +109,11 @@ export default defineConfig({
       cleanupOutdatedCaches: true,
     },
   })],
+  define: { 'import.meta.env.VITE_APP_BUILD': JSON.stringify(appBuild ?? '') },
+  optimizeDeps: { entries: ['index.html', 'src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}', '!src/test/**', '!src/gen/**/*_connect.ts'] },
   server: {
     port: 5173,
+    watch: { ignored: ['**/artifacts/**', '**/coverage/**', '**/test-results/**', '**/tmp/**'] },
     headers: isolationHeaders,
   },
   preview: {

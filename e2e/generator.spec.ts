@@ -19,6 +19,7 @@ for (const width of [360, 1280]) {
     const results = page.getByRole('heading', { name: spanish['generator.results'] });
     const details = (budget: number, length: number) => page.getByText(message('generator.runDetails', { seed: initial.seed, budget, length }));
     await page.goto(ROUTES.generate);
+    await page.locator('.generator-advanced summary').click();
     // The page runs the search with its initial form on arrival; results appear without pressing anything.
     await expect(done).toBeVisible();
     await expect(results).toBeVisible();
@@ -67,6 +68,7 @@ for (const width of [360, 1280]) {
     await expect(page.getByRole('textbox', { name: spanish['alignment.first'] })).toHaveValue(result.guided.candidates[0]?.sequence ?? '');
     await expect(page.getByRole('textbox', { name: spanish['alignment.second'] })).toHaveValue(result.reference.candidates[0]?.sequence ?? '');
     await page.goto(ROUTES.generate);
+    await page.locator('.generator-advanced summary').click();
     await expect(done).toBeVisible();
     await page.getByLabel(spanish['generator.budget']).fill('100');
     await page.getByRole('button', { name: spanish['generator.run'] }).click();
@@ -76,7 +78,7 @@ for (const width of [360, 1280]) {
     await page.getByRole('button', { name: spanish['generator.analyze'] }).first().click();
     await page.getByRole('button', { name: spanish['generator.confirm'] }).click();
     await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['editor.ownTitle']);
+    await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
     await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
     await expect(await openSequenceEditor(page)).toHaveValue(chosen);
     await followNavigation(page, spanish['nav.generate']);
@@ -87,6 +89,7 @@ for (const width of [360, 1280]) {
 }
 test('cancellation terminates the Worker without presenting partial candidates', async ({ page }) => {
   await page.goto(ROUTES.generate);
+    await page.locator('.generator-advanced summary').click();
   const run = page.getByRole('button', { name: spanish['generator.run'] });
   await expect(page.getByRole('status').filter({ hasText: spanish['generator.done'] })).toBeVisible();
   await expect(page.getByText(message('generator.runDetails', initial))).toBeVisible();

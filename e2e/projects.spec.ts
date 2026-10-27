@@ -120,7 +120,7 @@ test('owned project saves current calculations and resumes after reload', async 
   await page.goto(ROUTES.analyze);
   const editor = await openSequenceEditor(page);
   await editor.fill(saved.activeSequence);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['editor.ownTitle']);
+  await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
   await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
   await expect(page.locator('.descriptor-panel .status-message')).toHaveAttribute('data-state', 'current');
   const panel = await openProjectPanel(page);
@@ -140,7 +140,9 @@ test('owned project saves current calculations and resumes after reload', async 
 test('the profile links to the project collection, which renames and deletes deliberately', async ({ page }) => {
   const data = await mockProjects(page, { ...saved, name: 'Estudio inicial' });
   await page.goto(ROUTES.analyze);
-  await page.getByRole('link', { name: message('shell.account', { email: TEST_ACCOUNT.email }) }).click();
+  const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
+  await sidebar.getByRole('button', { name: new RegExp(TEST_ACCOUNT.email) }).click();
+  await sidebar.getByRole('link', { name: spanish['workbench.account'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
   await expect(page.locator('.project-grid')).toHaveCount(0);
   await page.getByRole('link', { name: spanish['projects.listLink'] }).click();
@@ -180,10 +182,12 @@ test('a conflict keeps edits, and opening a project restores profile and compari
   await page.getByRole('button', { name: spanish['projects.confirmOpen'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
   await expect(await openSequenceEditor(page)).toHaveValue(saved.activeSequence);
+  await page.getByRole('tab', { name: spanish['workbench.profile'], exact: true }).click();
   await expect(page.getByRole('radio', { name: '19', exact: true })).toBeChecked();
   await navigationLink(page, spanish['nav.alignment']).click();
   await expect(page.getByRole('textbox', { name: spanish['alignment.first'], exact: true })).toHaveValue('ACD');
   await expect(alignmentInputs(page).second).toHaveValue('ACE');
+  await page.locator('.comparison-advanced summary').click();
   await expect(page.getByRole('radio', { name: 'BLOSUM80' })).toBeChecked();
   await expect(page.getByRole('radio', { name: spanish['alignment.local'], exact: true })).toBeChecked();
   await navigationLink(page, spanish['nav.analyze']).click();
@@ -347,6 +351,8 @@ test('laboratory drafts survive internal access routes and offer a file before e
   await expect(page.getByRole('button',{name:spanish['lab.saveFile'],exact:true})).toBeEnabled();
   await page.getByRole('main').getByRole('link',{name:spanish['auth.signUpAction'],exact:true}).click();
   await page.getByRole('main').getByRole('link',{name:spanish['auth.signInAction'],exact:true}).click();
+  // Access pages use the public frame; its footer leads back into the laboratory.
+  await page.getByRole('contentinfo').getByRole('link',{name:spanish['public.laboratory'],exact:true}).click();
   await navigationLink(page,spanish['nav.generate']).click();
   await page.getByRole('link',{name:spanish['lab.openLaboratory'],exact:true}).click();
   await expect(page.getByRole('button',{name:spanish['lab.unprotect'],exact:true})).toBeVisible();

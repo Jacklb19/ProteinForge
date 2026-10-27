@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AuthContext } from './authContext';
 import type { AuthContextValue, AuthStatus } from './authContext';
-import { createAuthApi, parseFragmentSession } from './authApi';
+import { AuthError, createAuthApi, parseFragmentSession } from './authApi';
 import type { AuthApi } from './authApi';
 import { readAuthSettings, SESSION_REFRESH_MARGIN_SECONDS } from './config';
 import type { AuthSettings } from './config';
@@ -61,6 +61,7 @@ export function AuthProvider({ children, settings, api }: Props): React.JSX.Elem
     setSession(next);
     saveSession(next);
     setStatus(next ? 'signed-in' : 'anonymous');
+    if (!next) setRecoveryPending(false);
   }, []);
 
   useEffect(() => {
@@ -113,7 +114,7 @@ export function AuthProvider({ children, settings, api }: Props): React.JSX.Elem
       await client.recover(email, `${window.location.origin}${ROUTES.recover}`);
     },
     async updatePassword(password) {
-      if (!client || !session) return;
+      if (!client || !session) throw new AuthError('session_expired');
       await client.updatePassword(session.accessToken, password);
       setRecoveryPending(false);
     },

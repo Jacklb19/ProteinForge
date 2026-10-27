@@ -12,12 +12,12 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proteinforge/project/v1/workspace.proto.
  */
 export const file_proteinforge_project_v1_workspace: GenFile = /*@__PURE__*/
-  fileDesc("Cidwcm90ZWluZm9yZ2UvcHJvamVjdC92MS93b3Jrc3BhY2UucHJvdG8SF3Byb3RlaW5mb3JnZS5wcm9qZWN0LnYxIrYCCglXb3Jrc3BhY2USFgoOc2NoZW1hX3ZlcnNpb24YASABKAUSFgoOcHJvZmlsZV93aW5kb3cYAiABKAUSNwoGc291cmNlGAMgASgLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuU2VxdWVuY2VTb3VyY2USQAoLZGVzY3JpcHRvcnMYBCABKAsyKy5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZXNjcmlwdG9yU25hcHNob3QSPQoJYWxpZ25tZW50GAUgASgLMioucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQWxpZ25tZW50U25hcHNob3QSPwoKbGFib3JhdG9yeRgGIAEoCzIrLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkxhYm9yYXRvcnlTbmFwc2hvdCJcChJMYWJvcmF0b3J5U25hcHNob3QSFgoOc2NoZW1hX3ZlcnNpb24YASABKAUSFQoNZG9jdW1lbnRfanNvbhgCIAEoCRIXCg9kb2N1bWVudF9zaGEyNTYYAyABKAkigQIKDlNlcXVlbmNlU291cmNlEjUKBm9yaWdpbhgBIAEoDjIlLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlNvdXJjZU9yaWdpbhIRCglhY2Nlc3Npb24YAiABKAkSEAoIc2VxdWVuY2UYAyABKAkSGgoNZW50cnlfdmVyc2lvbhgEIAEoBUgAiAEBEh0KEHNlcXVlbmNlX3ZlcnNpb24YBSABKAVIAYgBARIxCg1yZXRyaWV2ZV90aW1lGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIQCg5fZW50cnlfdmVyc2lvbkITChFfc2VxdWVuY2VfdmVyc2lvbiKLAQoSRGVzY3JpcHRvclNuYXBzaG90EhAKCHNlcXVlbmNlGAEgASgJEhAKCGV4Y2x1ZGVkGAIgASgFEhYKDm1ldGhvZF92ZXJzaW9uGAMgASgJEjkKBnJlc3VsdBgEIAEoCzIpLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkRlc2NyaXB0b3JSZXN1bHQikQEKEERlc2NyaXB0b3JSZXN1bHQSDwoHbWFzc19kYRgBIAEoARIZChFpc29lbGVjdHJpY19wb2ludBgCIAEoARIZChFpbnN0YWJpbGl0eV9pbmRleBgDIAEoARIXCg9hbGlwaGF0aWNfaW5kZXgYBCABKAESDQoFZ3JhdnkYBSABKAESDgoGbGVuZ3RoGAYgASgFIt8BChFBbGlnbm1lbnRTbmFwc2hvdBINCgVmaXJzdBgBIAEoCRIOCgZzZWNvbmQYAiABKAkSOwoGbWF0cml4GAMgASgOMisucHJvdGVpbmZvcmdlLnByb2plY3QudjEuU3Vic3RpdHV0aW9uTWF0cml4EjQKBG1vZGUYBCABKA4yJi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5BbGlnbm1lbnRNb2RlEjgKBnJlc3VsdBgFIAEoCzIoLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkFsaWdubWVudFJlc3VsdCLbAQoPQWxpZ25tZW50UmVzdWx0EhUKDWFsaWduZWRfZmlyc3QYASABKAkSFgoOYWxpZ25lZF9zZWNvbmQYAiABKAkSDQoFbWFya3MYAyABKAkSDQoFc2NvcmUYBCABKAESEgoKaWRlbnRpdGllcxgFIAEoBRIUCgxzaW1pbGFyaXRpZXMYBiABKAUSDwoHY29sdW1ucxgHIAEoBRJACgpwYXJhbWV0ZXJzGAggASgLMiwucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQWxpZ25tZW50UGFyYW1ldGVycyLsAQoTQWxpZ25tZW50UGFyYW1ldGVycxI7CgZtYXRyaXgYASABKA4yKy5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5TdWJzdGl0dXRpb25NYXRyaXgSNAoEbW9kZRgCIAEoDjImLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkFsaWdubWVudE1vZGUSEAoIZ2FwX29wZW4YAyABKAESEgoKZ2FwX2V4dGVuZBgEIAEoARI8Cg10ZXJtaW5hbF9nYXBzGAUgASgOMiUucHJvdGVpbmZvcmdlLnByb2plY3QudjEuVGVybWluYWxHYXBzKmMKDFNvdXJjZU9yaWdpbhIdChlTT1VSQ0VfT1JJR0lOX1VOU1BFQ0lGSUVEEAASGQoVU09VUkNFX09SSUdJTl9DQVRBTE9HEAESGQoVU09VUkNFX09SSUdJTl9VTklQUk9UEAIqnwEKElN1YnN0aXR1dGlvbk1hdHJpeBIjCh9TVUJTVElUVVRJT05fTUFUUklYX1VOU1BFQ0lGSUVEEAASIAocU1VCU1RJVFVUSU9OX01BVFJJWF9CTE9TVU00NRABEiAKHFNVQlNUSVRVVElPTl9NQVRSSVhfQkxPU1VNNjIQAhIgChxTVUJTVElUVVRJT05fTUFUUklYX0JMT1NVTTgwEAMqZAoNQWxpZ25tZW50TW9kZRIeChpBTElHTk1FTlRfTU9ERV9VTlNQRUNJRklFRBAAEhkKFUFMSUdOTUVOVF9NT0RFX0dMT0JBTBABEhgKFEFMSUdOTUVOVF9NT0RFX0xPQ0FMEAIqZwoMVGVybWluYWxHYXBzEh0KGVRFUk1JTkFMX0dBUFNfVU5TUEVDSUZJRUQQABIWChJURVJNSU5BTF9HQVBTX0ZSRUUQARIgChxURVJNSU5BTF9HQVBTX05PVF9BUFBMSUNBQkxFEAJiBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("Cidwcm90ZWluZm9yZ2UvcHJvamVjdC92MS93b3Jrc3BhY2UucHJvdG8SF3Byb3RlaW5mb3JnZS5wcm9qZWN0LnYxIoQDCglXb3Jrc3BhY2USFgoOc2NoZW1hX3ZlcnNpb24YASABKAUSFgoOcHJvZmlsZV93aW5kb3cYAiABKAUSNwoGc291cmNlGAMgASgLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuU2VxdWVuY2VTb3VyY2USQAoLZGVzY3JpcHRvcnMYBCABKAsyKy5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZXNjcmlwdG9yU25hcHNob3QSPQoJYWxpZ25tZW50GAUgASgLMioucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQWxpZ25tZW50U25hcHNob3QSPwoKbGFib3JhdG9yeRgGIAEoCzIrLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkxhYm9yYXRvcnlTbmFwc2hvdBJMChFnZW5lcmF0b3JfaGlzdG9yeRgHIAEoCzIxLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkdlbmVyYXRvckhpc3RvcnlTbmFwc2hvdCJcChJMYWJvcmF0b3J5U25hcHNob3QSFgoOc2NoZW1hX3ZlcnNpb24YASABKAUSFQoNZG9jdW1lbnRfanNvbhgCIAEoCRIXCg9kb2N1bWVudF9zaGEyNTYYAyABKAkiYgoYR2VuZXJhdG9ySGlzdG9yeVNuYXBzaG90EhYKDnNjaGVtYV92ZXJzaW9uGAEgASgFEhUKDWRvY3VtZW50X2pzb24YAiABKAkSFwoPZG9jdW1lbnRfc2hhMjU2GAMgASgJIoECCg5TZXF1ZW5jZVNvdXJjZRI1CgZvcmlnaW4YASABKA4yJS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Tb3VyY2VPcmlnaW4SEQoJYWNjZXNzaW9uGAIgASgJEhAKCHNlcXVlbmNlGAMgASgJEhoKDWVudHJ5X3ZlcnNpb24YBCABKAVIAIgBARIdChBzZXF1ZW5jZV92ZXJzaW9uGAUgASgFSAGIAQESMQoNcmV0cmlldmVfdGltZRgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBCEAoOX2VudHJ5X3ZlcnNpb25CEwoRX3NlcXVlbmNlX3ZlcnNpb24iiwEKEkRlc2NyaXB0b3JTbmFwc2hvdBIQCghzZXF1ZW5jZRgBIAEoCRIQCghleGNsdWRlZBgCIAEoBRIWCg5tZXRob2RfdmVyc2lvbhgDIAEoCRI5CgZyZXN1bHQYBCABKAsyKS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZXNjcmlwdG9yUmVzdWx0IpEBChBEZXNjcmlwdG9yUmVzdWx0Eg8KB21hc3NfZGEYASABKAESGQoRaXNvZWxlY3RyaWNfcG9pbnQYAiABKAESGQoRaW5zdGFiaWxpdHlfaW5kZXgYAyABKAESFwoPYWxpcGhhdGljX2luZGV4GAQgASgBEg0KBWdyYXZ5GAUgASgBEg4KBmxlbmd0aBgGIAEoBSLfAQoRQWxpZ25tZW50U25hcHNob3QSDQoFZmlyc3QYASABKAkSDgoGc2Vjb25kGAIgASgJEjsKBm1hdHJpeBgDIAEoDjIrLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlN1YnN0aXR1dGlvbk1hdHJpeBI0CgRtb2RlGAQgASgOMiYucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQWxpZ25tZW50TW9kZRI4CgZyZXN1bHQYBSABKAsyKC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5BbGlnbm1lbnRSZXN1bHQi2wEKD0FsaWdubWVudFJlc3VsdBIVCg1hbGlnbmVkX2ZpcnN0GAEgASgJEhYKDmFsaWduZWRfc2Vjb25kGAIgASgJEg0KBW1hcmtzGAMgASgJEg0KBXNjb3JlGAQgASgBEhIKCmlkZW50aXRpZXMYBSABKAUSFAoMc2ltaWxhcml0aWVzGAYgASgFEg8KB2NvbHVtbnMYByABKAUSQAoKcGFyYW1ldGVycxgIIAEoCzIsLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkFsaWdubWVudFBhcmFtZXRlcnMi7AEKE0FsaWdubWVudFBhcmFtZXRlcnMSOwoGbWF0cml4GAEgASgOMisucHJvdGVpbmZvcmdlLnByb2plY3QudjEuU3Vic3RpdHV0aW9uTWF0cml4EjQKBG1vZGUYAiABKA4yJi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5BbGlnbm1lbnRNb2RlEhAKCGdhcF9vcGVuGAMgASgBEhIKCmdhcF9leHRlbmQYBCABKAESPAoNdGVybWluYWxfZ2FwcxgFIAEoDjIlLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlRlcm1pbmFsR2FwcypjCgxTb3VyY2VPcmlnaW4SHQoZU09VUkNFX09SSUdJTl9VTlNQRUNJRklFRBAAEhkKFVNPVVJDRV9PUklHSU5fQ0FUQUxPRxABEhkKFVNPVVJDRV9PUklHSU5fVU5JUFJPVBACKp8BChJTdWJzdGl0dXRpb25NYXRyaXgSIwofU1VCU1RJVFVUSU9OX01BVFJJWF9VTlNQRUNJRklFRBAAEiAKHFNVQlNUSVRVVElPTl9NQVRSSVhfQkxPU1VNNDUQARIgChxTVUJTVElUVVRJT05fTUFUUklYX0JMT1NVTTYyEAISIAocU1VCU1RJVFVUSU9OX01BVFJJWF9CTE9TVU04MBADKmQKDUFsaWdubWVudE1vZGUSHgoaQUxJR05NRU5UX01PREVfVU5TUEVDSUZJRUQQABIZChVBTElHTk1FTlRfTU9ERV9HTE9CQUwQARIYChRBTElHTk1FTlRfTU9ERV9MT0NBTBACKmcKDFRlcm1pbmFsR2FwcxIdChlURVJNSU5BTF9HQVBTX1VOU1BFQ0lGSUVEEAASFgoSVEVSTUlOQUxfR0FQU19GUkVFEAESIAocVEVSTUlOQUxfR0FQU19OT1RfQVBQTElDQUJMRRACYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * Snapshot of the work a project keeps: the active sequence's provenance, its calculated
  * descriptors and the current comparison. Mirrors the validated JSON workspace of
- * app/projects.py (schemaVersion 1 or 2). Results are stored only when they match their inputs;
+ * app/projects.py (schemaVersion 1, 2 or 3). Results are stored only when they match their inputs;
  * the API rejects stale or inconsistent snapshots with INVALID_ARGUMENT.
  *
  * Alphabet: sequences use the 20 standard residues plus U, O, B, Z and X, uppercase.
@@ -26,7 +26,8 @@ export const file_proteinforge_project_v1_workspace: GenFile = /*@__PURE__*/
  */
 export type Workspace = Message<"proteinforge.project.v1.Workspace"> & {
   /**
-   * 1 for legacy snapshots; 2 when laboratory is present.
+   * 1 for legacy snapshots; 2 requires laboratory; 3 makes laboratory and generator_history
+   * optional. The server refuses to replace a stored version with a lower one.
    *
    * @generated from field: int32 schema_version = 1;
    */
@@ -62,6 +63,13 @@ export type Workspace = Message<"proteinforge.project.v1.Workspace"> & {
    * @generated from field: proteinforge.project.v1.LaboratorySnapshot laboratory = 6;
    */
   laboratory?: LaboratorySnapshot | undefined;
+
+  /**
+   * Only with schema_version 3.
+   *
+   * @generated from field: proteinforge.project.v1.GeneratorHistorySnapshot generator_history = 7;
+   */
+  generatorHistory?: GeneratorHistorySnapshot | undefined;
 };
 
 /**
@@ -105,6 +113,42 @@ export type LaboratorySnapshot = Message<"proteinforge.project.v1.LaboratorySnap
  */
 export const LaboratorySnapshotSchema: GenMessage<LaboratorySnapshot> = /*@__PURE__*/
   messageDesc(file_proteinforge_project_v1_workspace, 1);
+
+/**
+ * Portable proteinforge-generator-history v1 JSON: up to 10 local generator runs, each the exact
+ * exported result text identified by its SHA-256. Shape is validated; candidates are not recalculated.
+ *
+ * @generated from message proteinforge.project.v1.GeneratorHistorySnapshot
+ */
+export type GeneratorHistorySnapshot = Message<"proteinforge.project.v1.GeneratorHistorySnapshot"> & {
+  /**
+   * Always 1 for the envelope.
+   *
+   * @generated from field: int32 schema_version = 1;
+   */
+  schemaVersion: number;
+
+  /**
+   * At most 100,000 UTF-8 bytes; each run's exported result at most 10,000 bytes.
+   *
+   * @generated from field: string document_json = 2;
+   */
+  documentJson: string;
+
+  /**
+   * Lowercase SHA-256 of the exact UTF-8 document_json bytes.
+   *
+   * @generated from field: string document_sha256 = 3;
+   */
+  documentSha256: string;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.GeneratorHistorySnapshot.
+ * Use `create(GeneratorHistorySnapshotSchema)` to create a new message.
+ */
+export const GeneratorHistorySnapshotSchema: GenMessage<GeneratorHistorySnapshot> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_workspace, 2);
 
 /**
  * Where a reference sequence came from. Any manual edit removes it.
@@ -154,7 +198,7 @@ export type SequenceSource = Message<"proteinforge.project.v1.SequenceSource"> &
  * Use `create(SequenceSourceSchema)` to create a new message.
  */
 export const SequenceSourceSchema: GenMessage<SequenceSource> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_workspace, 2);
+  messageDesc(file_proteinforge_project_v1_workspace, 3);
 
 /**
  * Descriptors calculated in the browser for the standard residues of `sequence`.
@@ -192,7 +236,7 @@ export type DescriptorSnapshot = Message<"proteinforge.project.v1.DescriptorSnap
  * Use `create(DescriptorSnapshotSchema)` to create a new message.
  */
 export const DescriptorSnapshotSchema: GenMessage<DescriptorSnapshot> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_workspace, 3);
+  messageDesc(file_proteinforge_project_v1_workspace, 4);
 
 /**
  * @generated from message proteinforge.project.v1.DescriptorResult
@@ -246,7 +290,7 @@ export type DescriptorResult = Message<"proteinforge.project.v1.DescriptorResult
  * Use `create(DescriptorResultSchema)` to create a new message.
  */
 export const DescriptorResultSchema: GenMessage<DescriptorResult> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_workspace, 4);
+  messageDesc(file_proteinforge_project_v1_workspace, 5);
 
 /**
  * The two sequences being compared and, when current, their alignment.
@@ -289,7 +333,7 @@ export type AlignmentSnapshot = Message<"proteinforge.project.v1.AlignmentSnapsh
  * Use `create(AlignmentSnapshotSchema)` to create a new message.
  */
 export const AlignmentSnapshotSchema: GenMessage<AlignmentSnapshot> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_workspace, 5);
+  messageDesc(file_proteinforge_project_v1_workspace, 6);
 
 /**
  * Gotoh alignment computed in the browser (Rust/WebAssembly).
@@ -349,7 +393,7 @@ export type AlignmentResult = Message<"proteinforge.project.v1.AlignmentResult">
  * Use `create(AlignmentResultSchema)` to create a new message.
  */
 export const AlignmentResultSchema: GenMessage<AlignmentResult> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_workspace, 6);
+  messageDesc(file_proteinforge_project_v1_workspace, 7);
 
 /**
  * @generated from message proteinforge.project.v1.AlignmentParameters
@@ -390,7 +434,7 @@ export type AlignmentParameters = Message<"proteinforge.project.v1.AlignmentPara
  * Use `create(AlignmentParametersSchema)` to create a new message.
  */
 export const AlignmentParametersSchema: GenMessage<AlignmentParameters> = /*@__PURE__*/
-  messageDesc(file_proteinforge_project_v1_workspace, 7);
+  messageDesc(file_proteinforge_project_v1_workspace, 8);
 
 /**
  * @generated from enum proteinforge.project.v1.SourceOrigin

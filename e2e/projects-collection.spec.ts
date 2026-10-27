@@ -109,7 +109,9 @@ test('search covers later pages, resets the token and does not fetch full snapsh
 test('copying preserves the current draft and pointer, and a comparison-only project opens Align', async ({ page }) => {
   const data = await mockCollection(page);
   await page.addInitScript(({ key, id }) => { localStorage.setItem(key, id); }, { key: `${PROJECT_POINTER_PREFIX}${TEST_ACCOUNT.id}`, id: HUMAN });
-  await page.goto(ROUTES.analyze); const editor = await openSequenceEditor(page); await editor.fill('ACDE');
+  await page.goto(ROUTES.analyze);
+  await expect((await openProjectPanel(page)).getByRole('textbox', { name: spanish['projects.name'] })).toHaveValue('Insulina humana');
+  const editor = await openSequenceEditor(page); await editor.fill('ACDE');
   await followNavigation(page, spanish['nav.projects']);
   await page.getByLabel(message('projects.actionsNamed', { name: 'Insulina humana' }), { exact: true }).click();
   await page.getByRole('button', { name: message('projects.duplicateNamed', { name: 'Insulina humana' }) }).click();
@@ -141,6 +143,7 @@ test('a mixed project restores its saved comparison parameters and result, and o
   await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
   await expect(page.locator('#alignment-first')).toHaveValue(first);
   await expect(page.locator('#alignment-second')).toHaveValue(second);
+  await page.locator('.comparison-advanced summary').click();
   await expect(page.getByRole('radio', { name: 'BLOSUM80' })).toBeChecked();
   await expect(page.getByRole('radio', { name: spanish['alignment.global'] })).toBeChecked();
   await expect(page.getByText(message('alignment.verdict', { count: '88', total: '110' }))).toBeVisible();
@@ -153,6 +156,7 @@ test('a mixed project restores its saved comparison parameters and result, and o
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
   await expect(await openSequenceEditor(page)).toHaveValue(analysed);
   await followNavigation(page, spanish['nav.alignment']);
+  await page.locator('.comparison-advanced summary').click();
   await expect(page.getByRole('radio', { name: 'BLOSUM80' })).toBeChecked();
   await expect(page.locator('#alignment-second')).toHaveValue(second);
 });

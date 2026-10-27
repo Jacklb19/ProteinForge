@@ -37,6 +37,9 @@ export function ProfilePage(): React.JSX.Element {
         </div>
         <button className="button button-secondary" type="button" onClick={() => { void auth.signOut(); }}>{t('settings.signOut')}</button>
       </header>
+      <nav className="profile-index" aria-label={t('workbench.account')}>
+        <a href="#account-title">{t('settings.account')}</a><a href="#appearance-title">{t('account.appearance')}</a><a href="#privacy-title">{t('account.privacy')}</a>
+      </nav>
 
       <section className="profile-row" aria-labelledby="project-library-title">
         <h2 id="project-library-title">{t('projects.title')}</h2>

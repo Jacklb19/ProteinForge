@@ -13,8 +13,8 @@ test('cached Workers keep their isolation policy across reloads and internal nav
   page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });
   for (let visit = 0; visit < 2; visit++) {
     await page.goto(ROUTES.home);
-    await expect(page.locator('.view-fact')).toBeVisible();
-    await page.locator('.hero-actions a').first().click();
+    await expect(page.locator('.stage-hero canvas')).toBeVisible();
+    await page.locator(`.hero-actions a[href="${ROUTES.analyze}"]`).click();
     await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
     await page.goto(ROUTES.alignment);
     await expect(page.locator('.verdict')).toBeVisible();
@@ -28,6 +28,7 @@ test('cached Workers keep their isolation policy across reloads and internal nav
 test('the profile either draws in its Worker or exposes the calculated table without canvas transfer', async ({ page, browserName }) => {
   await page.goto(ROUTES.analyze);
   await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
+  await page.getByRole('tab', { name: spanish['workbench.profile'], exact: true }).click();
   const canTransfer = await page.evaluate(() => typeof HTMLCanvasElement.prototype.transferControlToOffscreen === 'function');
   if (canTransfer) {
     await expect(page.locator('canvas.hydropathy-chart')).toBeVisible();

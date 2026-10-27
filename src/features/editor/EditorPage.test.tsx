@@ -7,9 +7,9 @@ import { spanish } from '../../i18n/es';
 import { DEFAULT_LOCALE } from '../../i18n/config';
 import { translate } from '../../i18n/translate';
 
-const CHANGE_SEQUENCE = `${spanish['editor.change']} ${spanish['editor.changeObject']}`;
+const CHANGE_SEQUENCE = spanish['editor.inputTitle'];
 
-/** The label is split so narrow toolbars can shorten it; the button is matched by its full visible text. */
+/** The input action keeps the same visible and accessible name at every width. */
 function changeButton(): HTMLElement {
   return screen.getByRole('button', { name: (_, element) => element.textContent === CHANGE_SEQUENCE });
 }
@@ -56,7 +56,7 @@ describe('EditorPage', () => {
 
   it('starts an empty draft with the sequence panel open and nothing to save or align', () => {
     render(<EditorPage />, { wrapper: WorkspaceProviders });
-    expect(screen.getByRole('heading', { level: 1, name: spanish['editor.emptyTitle'] })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: spanish['editor.emptyTitle'] })).toBeInTheDocument();
     const toggle = changeButton();
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(toggle).toHaveAttribute('aria-controls', 'sequence-panel');
@@ -65,7 +65,7 @@ describe('EditorPage', () => {
     expect(screen.queryByRole('button', { name: spanish['editor.toAlignment'] })).not.toBeInTheDocument();
     expect(screen.queryByText(spanish['report.export'])).not.toBeInTheDocument();
     fireEvent.change(screen.getByRole('textbox', { name: spanish['editor.label'] }), { target: { value: 'ACDE' } });
-    expect(screen.getByRole('heading', { level: 1, name: spanish['editor.ownTitle'] })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'] })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: spanish['editor.label'] })).toHaveValue('ACDE');
     expect(screen.getByRole('button', { name: spanish['projects.save'] })).toHaveAttribute('aria-expanded', 'false');
     expect(screen.getByText(spanish['report.export']).tagName).toBe('SUMMARY');
@@ -76,7 +76,7 @@ describe('EditorPage', () => {
 
   it('opens on the bundled example and keeps its editor behind the change button', () => {
     render(<EditorPage />, { wrapper: ExampleProviders });
-    expect(screen.getByRole('heading', { level: 1, name: spanish['examples.insulinName'] })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: spanish['examples.insulinName'] })).toBeInTheDocument();
     const toggle = changeButton();
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('textbox', { name: spanish['editor.label'] })).not.toBeInTheDocument();
@@ -92,13 +92,13 @@ describe('EditorPage', () => {
     expect(screen.queryByRole('button', { name: spanish['editor.restoreExample'] })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: spanish['editor.clear'] }));
-    expect(screen.getByRole('heading', { level: 1, name: spanish['editor.emptyTitle'] })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: spanish['editor.emptyTitle'] })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: spanish['editor.label'] })).toHaveValue('');
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.queryByRole('button', { name: spanish['editor.clear'] })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: spanish['editor.restoreExample'] }));
-    expect(screen.getByRole('heading', { level: 1, name: spanish['examples.insulinName'] })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: spanish['examples.insulinName'] })).toBeInTheDocument();
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('textbox', { name: spanish['editor.label'] })).not.toBeInTheDocument();
     fireEvent.click(toggle);

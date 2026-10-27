@@ -1,2 +1,4 @@
 # Generated contracts are reproducible across Windows and Linux checkouts.
 src/gen/** text eol=lf
+# Exact generator exports: their SHA-256 identifies each saved run.
+src/test/generator-exports/*.json text eol=lf

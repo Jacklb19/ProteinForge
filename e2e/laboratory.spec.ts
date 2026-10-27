@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 import {spanish as es} from '../src/i18n/es';
 import {english as en} from '../src/i18n/en';
 import {ROUTES} from '../src/shared/navigation';
-import {chooseTheme,message} from './helpers';
+import {chooseTheme,message,openPreferences} from './helpers';
 import {LAB_CONFIG as C} from '../src/features/design-lab/config';
 import {required} from '../src/features/design-lab/config';
 import {superpose} from '../src/features/design-lab/geometry';
@@ -18,7 +18,7 @@ test('exports the public edited draft with explicit fixed residue mapping',async
   await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
   await page.locator('[data-position="1"]').click();await page.getByRole('combobox',{name:es['lab.replaceWith']}).selectOption('R');await page.getByRole('button',{name:es['lab.applyReplacement']}).click();
   for(const index of [1,6,41]){await page.locator(`[data-position="${String(index)}"]`).click();await page.getByRole('button',{name:es['lab.protect'],exact:true}).click();}
-  const promise=page.waitForEvent('download');await page.getByRole('button',{name:es['lab.downloadDraft']}).click();const download=await promise;await download.saveAs('artifacts/laboratory-public-draft-v2.json');
+  const promise=page.waitForEvent('download');await page.getByRole('tab', { name: es['lab.provenanceTab'] }).click();await page.getByRole('button',{name:es['lab.downloadDraft']}).click();const download=await promise;await download.saveAs('artifacts/laboratory-public-draft-v2.json');
   const draft=JSON.parse(readFileSync('artifacts/laboratory-public-draft-v2.json','utf8')) as {schemaVersion:number;sequence:string;source:{variantSequence:string;variantSequenceSha256:string};protectedPositions:{chainPosition:number;residue:string;referenceKey:{chain:string;number:number;insertion:string}}[];constraintStatus:string};
   expect(draft.schemaVersion).toBe(2);expect(draft.sequence).toBe(required(fixture.samples[0]).sequence.slice(0,1)+'R'+required(fixture.samples[0]).sequence.slice(2));
   expect(createHash('sha256').update(draft.source.variantSequence).digest('hex')).toBe(draft.source.variantSequenceSha256);expect(draft.constraintStatus).toBe('not-executed');
@@ -63,12 +63,12 @@ test('laboratory file reopens every draft and rejects an invalid replacement ato
   await expect(page.getByText(es['lab.exportReady'])).toBeVisible();await page.reload();await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);await expect(page.locator('.lab-figure canvas')).toHaveCount(1);
   await page.locator('input[type=file]').setInputFiles(savedPath);await expect(page.getByText(es['lab.draftTitle'],{exact:true})).toBeVisible();await expect(page.locator('[data-position="2"]')).toHaveAttribute('data-protected','true');await expect(page.locator('[data-position="2"]')).toHaveText('R');
   await page.locator('input[type=file]').setInputFiles({name:'invalid-laboratory.json',mimeType:'application/json',buffer:Buffer.from('{"kind":"wrong"}')});await expect(page.getByRole('alert')).toHaveText(es['lab.errorWorkspace']);await expect(page.locator('[data-position="2"]')).toHaveText('R');
-  await page.getByRole('button',{name:es['lab.unprotect'],exact:true}).click();await page.getByRole('button',{name:es['lab.openExample']}).click();const dialog=page.getByRole('dialog',{name:es['lab.dialogTitle']});await expect(dialog).toBeVisible();await expect(dialog.getByRole('button',{name:es['lab.keepCurrent']})).toBeFocused();await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(page.getByRole('button',{name:es['lab.openExample']})).toBeFocused();
+  await page.getByRole('button',{name:es['lab.unprotect'],exact:true}).click();await page.getByRole('tab', { name: es['lab.provenanceTab'] }).click();await page.getByRole('button',{name:es['lab.openExample']}).click();const dialog=page.getByRole('dialog',{name:es['lab.dialogTitle']});await expect(dialog).toBeVisible();await expect(dialog.getByRole('button',{name:es['lab.keepCurrent']})).toBeFocused();await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(page.getByRole('button',{name:es['lab.openExample']})).toBeFocused();
 });
 
 test('laboratory English copy and offline-compatible example resources',async({page})=>{
   const external:string[]=[];page.on('request',request=>{if(request.url().startsWith('http')&&!['127.0.0.1','localhost'].includes(new URL(request.url()).hostname))external.push(request.url());});
-  await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);await page.getByRole('radio',{name:'English',exact:true}).check();await expect(page.getByRole('heading',{level:1})).toHaveText('Ubiquitin variants');await expect(page.getByRole('button',{name:en['lab.saveFile']})).toBeVisible();await expect(page.getByText(en['lab.meanConfidence'])).toBeVisible();expect(external).toEqual([]);
+  await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);await (await openPreferences(page)).getByRole('radio',{name:'English',exact:true}).check();await page.keyboard.press('Escape');await expect(page.getByRole('heading',{level:1})).toHaveText('Ubiquitin variants');await expect(page.getByRole('button',{name:en['lab.saveFile']})).toBeVisible();await expect(page.getByText(en['lab.meanConfidence'])).toBeVisible();expect(external).toEqual([]);
 });
 
 test('imports the actual verified Colab campaign when local evidence is provided',async({page})=>{

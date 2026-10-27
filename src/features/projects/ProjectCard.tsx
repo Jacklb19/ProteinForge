@@ -5,12 +5,12 @@ import { SequenceRibbon } from '../chemistry/SequenceRibbon';
 import type { ProjectSummary } from './contracts';
 import { PROJECT_MASS_DA_PER_KDA, PROJECT_PREVIEW_PRECISION, PROJECT_RELATIVE_INTERVALS, PROJECT_RELATIVE_NOW_SECONDS } from './config';
 
-export type ProjectDestination = 'analyze' | 'alignment' | 'laboratory';
+export type ProjectDestination = 'analyze' | 'alignment' | 'laboratory' | 'generator';
 export type ProjectAction = 'rename' | 'duplicate' | 'delete';
-interface Props { project: ProjectSummary; busy: boolean; active: boolean; dirty: boolean; onOpen: (destination?: ProjectDestination) => void; onAction: (action: ProjectAction) => void }
+interface Props { project: ProjectSummary; busy: boolean; active: boolean; dirty: boolean; showRuns?: boolean; onOpen: (destination?: ProjectDestination) => void; onAction: (action: ProjectAction) => void }
 
 /** Saved scientific evidence; rendering never calculates or retrieves a full project. */
-export function ProjectCard({ project, busy, active, dirty, onOpen, onAction }: Props): React.JSX.Element {
+export function ProjectCard({ project, busy, active, dirty, showRuns = false, onOpen, onAction }: Props): React.JSX.Element {
   const { t, locale, formatDate, formatNumber } = useTranslation();
   const menu = useRef<HTMLDetailsElement>(null);
   const preview = project.preview;
@@ -46,10 +46,14 @@ export function ProjectCard({ project, busy, active, dirty, onOpen, onAction }: 
       <p className="project-kind">{t(comparison ? preview.sequenceLength ? 'projects.mixed' : 'projects.comparison' : 'projects.analysis')}</p>
       <h2>{project.name}</h2>
       {preview?.hasLaboratory && <p className="project-origin">{t(preview.laboratoryVariants === 1 ? 'lab.projectVariantsOne' : 'lab.projectVariants', { count: preview.laboratoryVariants ?? 0 })}</p>}
+      {showRuns && Boolean(preview?.generatorRuns) && <p className="project-origin">{t(preview?.generatorRuns === 1 ? 'projects.generatorRunsOne' : 'projects.generatorRuns', { count: formatNumber(preview?.generatorRuns ?? 0) })}</p>}
       {source && <p className="project-origin">{t(source.origin === 'catalog' ? 'projects.catalogSource' : 'projects.uniprotSource', { accession: source.accession })}</p>}
       {preview && <p className="project-length">{comparison && !preview.sequenceLength ? t('projects.comparisonLengths', { first: formatNumber(comparison.firstLength), second: formatNumber(comparison.secondLength) }) : t('fasta.residues', { count: formatNumber(preview.sequenceLength) })}</p>}
       {active && <p className="field-help project-active">{t(dirty ? 'projects.activeDirty' : 'projects.active')}</p>}
-      {preview ? <>
+      {!preview && <p className="field-help project-evidence-note">{t('projects.noPreview')}</p>}
+      {comparison && !comparison.result && <p className="field-help">{t('projects.noAlignment')} {comparison.matrix} · {t(`alignment.${comparison.mode}`)}</p>}
+      {preview && <details className="project-scientific-details"><summary>{t('workbench.projectDetails')}</summary>
+
         {ribbon(preview.sequencePrefix, preview.sequenceLength)}
         {descriptors ? <dl className="project-metrics">
           {metric(t('projects.mass'), t('projects.massUnit', { value: formatNumber(descriptors.massDa / PROJECT_MASS_DA_PER_KDA, { minimumFractionDigits: precision.mass, maximumFractionDigits: precision.mass }) }))}
@@ -65,15 +69,17 @@ export function ProjectCard({ project, busy, active, dirty, onOpen, onAction }: 
             {metric(t('alignment.identity'), formatNumber(comparison.result.identities / comparison.result.columns, { style: 'percent', maximumFractionDigits: precision.percent }))}
             {metric(t('alignment.similarity'), formatNumber(comparison.result.similarities / comparison.result.columns, { style: 'percent', maximumFractionDigits: precision.percent }))}
             {metric(t(`alignment.${comparison.mode}`), comparison.matrix)}
-          </dl> : <p className="field-help">{t('projects.noAlignment')} {comparison.matrix} · {t(`alignment.${comparison.mode}`)}</p>}
+          </dl> : null}
         </section>}
-      </> : <p className="field-help project-evidence-note">{t('projects.noPreview')}</p>}
+
+      </details>}
     </div>
     <footer className="project-card-footer">
       <time dateTime={project.updatedAt} title={formatDate(new Date(project.updatedAt), { dateStyle: 'medium', timeStyle: 'short' })}>{relative}</time>
       <div className="project-open-actions">
         {preview?.hasLaboratory && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('lab.openProjectNamed',{name:project.name})} onClick={()=>{onOpen('laboratory');}}>{t('lab.openProject')}<span aria-hidden="true"> ↗</span></button>}
         {(Boolean(preview?.sequenceLength) || !comparison) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t(comparison ? 'projects.openAnalysisNamed' : 'projects.openNamed', { name: project.name })} onClick={() => { onOpen(preview ? 'analyze' : undefined); }}>{t(preview ? 'projects.openAnalysis' : 'projects.open')}<span aria-hidden="true"> ↗</span></button>}
+        {showRuns && Boolean(preview?.generatorRuns) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openRunsNamed', { name: project.name })} onClick={() => { onOpen('generator'); }}>{t('projects.openRuns')}<span aria-hidden="true"> ↗</span></button>}
         {comparison && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openAlignmentNamed', { name: project.name })} onClick={() => { onOpen('alignment'); }}>{t('projects.openAlignment')}<span aria-hidden="true"> ↗</span></button>}
       </div>
     </footer>

@@ -36,7 +36,7 @@ test('PDF, JSON and profile/alignment CSV are generated locally from the current
   page.on('request', (request) => { if (!new URL(request.url()).hostname.match(/^(localhost|127\.0\.0\.1)$/)) outbound.push(request.url()); });
   await page.goto(ROUTES.analyze);
   // The page opens on the bundled insulin, already analyzed.
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['examples.insulinName']);
+  await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();
   await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
   let popover = await openExportMenu(page);
   for (const option of ['report.pdf', 'report.json', 'report.profileCsv', 'report.download'] as const) {
