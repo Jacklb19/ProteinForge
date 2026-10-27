@@ -27,6 +27,8 @@ SIFTS autenticado real comprobado en producción con P01308/1TRZ: ambigüedad A/
 
 ## Reglas vigentes
 
+Continuación del diagnóstico Groq: `backend/scripts/diagnose_assistant.py` permite preflight local de presencia y análisis sin red de un cuerpo de error REST/Connect/gRPC-Web, sin imprimir datos privados. 16/16 pruebas del asistente/diagnóstico; seis del lector repetidas tras endurecerlo, correctas. Preflight real local: identidad y asistente configurados; no prueba clave válida ni Vercel. Navegador publicado sin sesión; propietario iniciará sesión al llegar a casa. No repetir lectura por su cuenta ni dar la causa por confirmada. Código servido, secretos y configuración remota intactos. El [plan vigente](plan-desarrollo.md) separa diagnóstico, rediseño en otra conversación y futuras decisiones RF-18/inferencia. Conservar cambios de interfaz en curso; esta continuación solo cambia herramienta/tests backend y documentación.
+
 Trabajar en dev. Autor y committer exclusivamente Jacklb19 <jose.burbanob@campusucc.edu.co>, sin firmas, coautores o menciones a herramientas de IA en Git/GitHub. Commits pequeños en inglés; documentación/respuestas en español. Cada texto visible en es/en en el mismo cambio. No forzar AGENTS, PROGRESS, propuestas, artifacts, secretos o dependencias al índice.
 
 Costo cero estricto, sin tarjeta ni modelos en Windows. No cambios de servicios/secretos, SQL remoto, cuentas nuevas o gastos por esta continuación. La autorización actual se limita a publicar esta entrega; no se extiende a entregas futuras. No repetir migraciones ya aplicadas por el propietario.

@@ -12,6 +12,8 @@ La regresión recorre el cliente gRPC-Web real con respuestas simuladas: falta d
 
 Para cerrar el incidente hace falta el código RPC y el mensaje estable de la respuesta fallida, junto con su `X-Request-Id` si está disponible. No compartir `Authorization`, cookies, claves, un HAR completo ni datos privados. `FAILED_PRECONDITION`/`assistant-not-configured` acredita configuración ausente en ese proceso; `UNAVAILABLE` debe distinguirse por su mensaje (`assistant-provider-error`, `assistant-unreachable`, `assistant-invalid-response`, `assistant-incomplete` o `assistant-unverified-figure`). La captura visual por sí sola no distingue esos casos. Esta continuación no repite la solicitud real ni consume cuota remota.
 
+Continuación del diagnóstico del 26 oct: se abrió `/analyze` publicado y el navegador no tenía sesión. El propietario iniciará sesión al llegar a casa. No se solicitó otra lectura ni se consumió cuota. Preparada una [herramienta local sin red](../../backend/docs/assistant.md#diagnóstico-local-sin-llamadas-a-groq--26-oct) para comprobar presencia de configuración local o reconocer el cuerpo guardado de un error REST/Connect/gRPC-Web sin imprimir texto privado. No comprueba la configuración remota ni soluciona por sí sola el fallo. La respuesta RPC real sigue siendo el siguiente dato necesario.
+
 ## Uso y datos enviados
 
 Con sesión y una API configurada, «Leer estas propiedades» o «Leer estos resultados» solicita una explicación en el idioma activo. Sin sesión ofrece iniciar sesión y regresar a la pantalla. La solicitud es deliberada, sin chat ni historial.
