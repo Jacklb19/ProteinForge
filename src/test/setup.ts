@@ -22,3 +22,6 @@ Object.defineProperties(HTMLDialogElement.prototype, {
   showModal: { configurable: true, value(this: HTMLDialogElement) { this.setAttribute('open', ''); } },
   close: { configurable: true, value(this: HTMLDialogElement) { this.removeAttribute('open'); } },
 });
+
+// Failure messages raised in tests read in the default language, as on the interface thread.
+import '../i18n/localize';

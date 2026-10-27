@@ -2,7 +2,7 @@ import { useContext, useMemo } from 'react';
 import { languageTags, LocaleContext } from './locale';
 import { translate } from './translate';
 import type { TranslationKey, TranslationVariables } from './translate';
-import { localize } from './localized';
+import { localize } from './localize';
 import type { LocalizedText } from './localized';
 import { NUMBER_FORMAT_CACHE_SIZE } from './config';
 

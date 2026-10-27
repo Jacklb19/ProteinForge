@@ -1,31 +1,36 @@
-import { DEFAULT_LOCALE, languageTags } from './config';
-import type { Locale } from './config';
-import { translate } from './translate';
 import type { TranslationKey, TranslationVariables } from './translate';
 
 /**
  * Text produced where the visitor's language is unknown (Workers, scientific code). It travels as
  * a catalog key with raw values; the interface translates and formats it in the active language.
+ * This module stays free of the catalogs, so every Worker that imports it ships without them.
  */
 export interface LocalizedText {
   key: TranslationKey;
   variables?: TranslationVariables;
 }
 
-/** Translates a localized text, formatting numeric values for the locale. */
-export function localize(locale: Locale, text: LocalizedText): string {
-  const format = new Intl.NumberFormat(languageTags[locale]);
-  const variables = Object.fromEntries(Object.entries(text.variables ?? {}).map(([name, value]) => [name, typeof value === 'number' ? format.format(value) : value]));
-  return translate(locale, text.key, variables);
+let describeFailure: ((text: LocalizedText) => string) | null = null;
+
+/**
+ * Lets a thread that already holds the catalogs write failure messages in the default language.
+ * Elsewhere, such as in a Worker, the message is the catalog key: it is only read in logs.
+ */
+export function describeFailuresWith(describe: (text: LocalizedText) => string): void {
+  describeFailure = describe;
+}
+
+function failureMessage(text: LocalizedText): string {
+  return describeFailure?.(text) ?? text.key;
 }
 
 interface Localized { readonly text: LocalizedText }
 
-/** Failure with a catalog key. The message, in the default language, is only for logs and tests. */
+/** Failure with a catalog key. The message is only for logs and tests; the interface shows `text`. */
 export class LocalizedError extends Error implements Localized {
   readonly text: LocalizedText;
   constructor(key: TranslationKey, variables?: TranslationVariables) {
-    super(localize(DEFAULT_LOCALE, { key, variables }));
+    super(failureMessage({ key, variables }));
     this.name = 'LocalizedError';
     this.text = { key, variables };
   }
@@ -35,7 +40,7 @@ export class LocalizedError extends Error implements Localized {
 export class LocalizedRangeError extends RangeError implements Localized {
   readonly text: LocalizedText;
   constructor(key: TranslationKey, variables?: TranslationVariables) {
-    super(localize(DEFAULT_LOCALE, { key, variables }));
+    super(failureMessage({ key, variables }));
     this.name = 'LocalizedRangeError';
     this.text = { key, variables };
   }
