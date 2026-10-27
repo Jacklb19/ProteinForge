@@ -56,7 +56,10 @@ async function walk(page: Page, region: Locator, stops: number): Promise<{ name:
         const frame = parent.getBoundingClientRect();
         if (box.left - reach < frame.left - 0.5 || box.right + reach > frame.right + 0.5) clipped = true;
       }
-      const name = active.getAttribute('aria-label') ?? active.textContent.trim();
+      // Name sources in the order assistive technology reads them; axe checks the full computation.
+      const labelledBy = active.getAttribute('aria-labelledby')?.split(' ').map(id => document.getElementById(id)?.textContent ?? '').join(' ');
+      const labels = 'labels' in active ? [...((active as HTMLInputElement).labels ?? [])].map(label => label.textContent).join(' ') : '';
+      const name = (active.getAttribute('aria-label') ?? (labelledBy || labels || active.textContent)).trim();
       return { name, ring, clipped };
     });
     // Stops before the region (such as the skip link) are passed over; leaving it ends the walk.
@@ -173,5 +176,22 @@ test('every keyboard stop in the public bar and both sidebar widths is named and
     expect(stops.length, state).toBeGreaterThan(5);
     expect(stops.filter(stop => !stop.name || !stop.ring || stop.clipped), state).toEqual([]);
     if (state === 'expanded') await sidebar.getByRole('button', { name: spanish['shell.collapseSidebar'] }).click();
+  }
+});
+
+test('every keyboard stop in both phone menus is named and shows an unclipped focus ring', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 900 });
+  for (const route of [ROUTES.home, ROUTES.analyze]) {
+    await page.goto(route);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.getByRole('button', { name: spanish['shell.openMenu'] }).click();
+    const menu = page.getByRole('dialog', { name: spanish['shell.menu'] });
+    await expect(menu).toBeVisible();
+    // The menu opens with focus on its close button; the walk covers every other stop once.
+    const stops = await walk(page, menu, 30);
+    expect(stops.length, route).toBeGreaterThan(3);
+    expect(stops.filter(stop => !stop.name || !stop.ring || stop.clipped), route).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
   }
 });
