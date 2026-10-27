@@ -2,11 +2,11 @@
 
 Actualizado el **26 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes.
 
-## Nueva prioridad: experiencia y rediseño integral
+## Rediseño integral aprobado e implementado localmente
 
-El propietario solicita analizar y mejorar todas las secciones, con organización, explicaciones científicas correctas y calidad de presentación comercial, dentro del alcance real del proyecto. [Auditoría, valoraciones y plan por pantalla](usability-redesign-proposal-2026-10-26.md). Tres direcciones navegables en `artifacts/usability-redesign-2026-10-26/prototype/`, fuera de Git/build; A «Mesa clara» recomendada. Vista local en puerto 5331 con `index.html` explícito, según el informe. 14 pantallas, 112 configuraciones de idioma/anchura/tema comprobadas; batería de maqueta 16/16 y regresiones finales 4/4. La aplicación React todavía conserva su diseño actual.
+El propietario aprobó A «Mesa clara» y el [plan por pantalla](usability-redesign-proposal-2026-10-26.md). Implementación React: navegación lateral, resumen y vistas de análisis, variantes accesibles, separación de comparación/archivos, Biblioteca por fuentes, Proyectos por filas y formularios/legales organizados. [Informe de implementación y comprobación](usability-redesign-implementation-2026-10-26.md). Comprobación final: 446 unitarias, 110 recorridos distintos verificados (2 archivos opcionales no suministrados a E2E), matriz visual 30/30 con 120 configuraciones, tipos/lint/build/PWA correctos. La pasada completa de recorridos necesitó actualizar una aserción antigua de error oculto; Biblioteca repetida 6/6 correcta. No pedir de nuevo selección ni aprobación visual de ese plan.
 
-Se presentó la decisión de dirección y aprobación del plan conforme al AGENTS local; comprobar la respuesta posterior del propietario antes de implementar. La selección sustituirá el marco visual pertinente, sin ampliar algoritmos, inferencia, contratos, persistencia o autorizaciones de publicación. La revisión automática externa de `src` fue rechazada por no garantizar permanencia local del código; se hizo inspección local/navegador sin subir fuentes. Los pendientes anteriores se conservan y no se reabren ensayos/migraciones/publicaciones ya terminados.
+Fuentes vigentes: docs/diseno-visual.md, docs/pantallas.md y .21st/DESIGN.md. La evidencia de maquetas se conserva separada de las capturas del producto en artifacts/usability-redesign-2026-10-26/. Vista previa local actual en puerto 5340, servidor de desarrollo de esta entrega; no confundir con despliegue público. Backend y contratos sin cambios. No push, merge ni despliegue autorizados para este rediseño. Los pendientes anteriores se conservan; no reabrir ensayos, migraciones ni publicaciones ya completados.
 
 ## Publicación completada y pendientes reales
 

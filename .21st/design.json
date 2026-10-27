@@ -209,7 +209,7 @@
   "constraints": {
     "must": [
       "Keep scientific calculations in Workers and WASM",
-      "Use centralized Spanish copy, configuration and tokens",
+      "Use paired Spanish and English catalogs, centralized configuration and tokens",
       "Preserve keyboard navigation, 44px targets and reduced motion",
       "Show implemented and planned capabilities truthfully"
     ],
@@ -226,7 +226,8 @@
     "2026-10-11: user requests a friendly app: /app task welcome, warm ivory/deep navy surfaces, green accent, guided example, descriptor explanations and meaningful CSS motion; no scientific algorithm changes.",
     "2026-10-12: preserve identity; desktop public masthead, full computed sample strip, task dividers, grouped metrics and coherent library/report/candidate tools; Mol* stays demand-loaded.",
     "2026-10-19: user selected A, Sequence collection: dedicated Projects route, three-column scientific preview cards on desktop, one column on phones, flat existing navigation and chemistry-only color.",
-    "2026-10-20: user selected A, Structure workbench, for the laboratory: structure and residue inspector first, sequence and variants below; implementation plan approved, chemistry-only color and existing primitives."
+    "2026-10-20: user selected A, Structure workbench, for the laboratory: structure and residue inspector first, sequence and variants below; implementation plan approved, chemistry-only color and existing primitives.",
+    "2026-10-26: user approved A, Mesa clara, and the full screen plan in docs/usability-redesign-proposal-2026-10-26.md. Persistent desktop sidebar, summary-first analysis with related views, separate laboratory comparison/files, concise project rows, global bilingual preferences. Preserve scientific renderers, chemistry-only color, source provenance and existing contracts."
   ],
   "evidence": [
     {

@@ -1,6 +1,6 @@
 # Revisión integral de experiencia y propuesta visual
 
-26 de octubre de 2026. **Propuesta para elegir y aprobar; no sustituye todavía la interfaz React.** Petición: revisar todas las secciones, hacer comprensible lo que muestran y dar al producto una presentación organizada, coherente y con calidad comercial, respetando su alcance académico.
+26 de octubre de 2026. **A «Mesa clara» y el plan aprobados por el propietario; implementación React terminada y verificada localmente.** Petición: revisar todas las secciones, hacer comprensible lo que muestran y dar al producto una presentación organizada, coherente y con calidad comercial, respetando su alcance académico.
 
 ## Diagnóstico
 
@@ -107,4 +107,8 @@ Antes de integrar el rediseño elegido: tipos/lint/build, pruebas de módulos co
 
 Criterios de aceptación de la experiencia: identificar ejemplo frente a trabajo propio; encontrar cómo introducir secuencia; localizar las propiedades sin recorrer todo el perfil; llegar al Laboratorio desde navegación; elegir variante sin buscar al final; distinguir predicción/borrador; guardar y reconocer qué se conserva. Son objetivos de la propuesta. La mejora de comprensión y éxito de tarea debe comprobarse después con personas, no darse por medida mediante esta auditoría.
 
-La implementación no requiere nuevas tablas, servicios, gastos, contratos o publicación remota. Backend no cambia por esta propuesta. Trabajar en `dev`, conservar ambas lenguas y mantener las capacidades existentes. La aprobación visual y del plan es la decisión pendiente; cualquier push/merge/despliegue futuro conserva su autorización separada.
+La implementación no requiere nuevas tablas, servicios, gastos, contratos o publicación remota. Backend no cambia por esta propuesta. Trabajar en `dev`, conservar ambas lenguas y mantener las capacidades existentes. El propietario aprobó A «Mesa clara» y el plan; cualquier push/merge/despliegue futuro conserva su autorización separada.
+
+## Aprobación e integración
+
+El propietario seleccionó explícitamente «A · Mesa clara: navegación lateral, resumen primero y detalles por vistas». Esa respuesta autoriza el rediseño React del plan; no hace falta volver a pedir la selección. La evidencia de esta sección anterior corresponde a la auditoría/maquetas. La implementación y su comprobación se registran por separado en [informe de implementación](usability-redesign-implementation-2026-10-26.md). No se atribuyen pruebas de las maquetas al producto.
