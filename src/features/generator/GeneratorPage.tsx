@@ -103,9 +103,14 @@ export function GeneratorPage(): React.JSX.Element {
         <h2>{t('generator.conditions')}</h2>
         <div className="generator-inputs">
           {numeric('length', 'generator.length', C.minLength, C.maxLength, 1)}
+        </div>
+        <details className="disclosure generator-advanced">
+          <summary>{t('workbench.advanced')}</summary>
+          <div className="generator-inputs">
           {numeric('budget', 'generator.budget', C.minBudget, C.maxBudget, 1)}
           {numeric('seed', 'generator.seed', 1, C.maxSeed, 1)}
-        </div>
+          </div>
+        </details>
         <p className="field-help">{t('generator.bounds')}</p>
 
         <div className="generator-targets">

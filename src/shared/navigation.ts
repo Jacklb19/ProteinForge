@@ -25,7 +25,8 @@ export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey
   { path: ROUTES.home, labelKey: 'nav.home', end: true },
   { path: ROUTES.analyze, labelKey: 'nav.analyze', end: false },
   { path: ROUTES.alignment, labelKey: 'nav.alignment', end: false },
-  { path: ROUTES.generate, labelKey: 'nav.generate', end: false },
+  { path: ROUTES.generate, labelKey: 'nav.generate', end: true },
+  { path: ROUTES.laboratory, labelKey: 'workbench.laboratory', end: false },
   { path: ROUTES.library, labelKey: 'nav.library', end: false },
   { path: ROUTES.projects, labelKey: 'nav.projects', end: false, signedInOnly: true },
 ];

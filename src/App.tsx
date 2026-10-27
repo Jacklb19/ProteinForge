@@ -15,8 +15,6 @@ import { useAuth } from './features/auth/authContext';
 import { PreferencesProvider } from './preferences/PreferencesProvider';
 import { usePreferences } from './preferences/usePreferences';
 import { LOCALE_LABEL_KEYS, THEMES, THEME_LABEL_KEYS } from './preferences/config';
-import { resolveTheme, toggledTheme } from './preferences/theme';
-import { useThemeRevision } from './theme/useThemeRevision';
 import { useTranslation } from './i18n';
 import { LOCALES } from './i18n/config';
 import type { Locale } from './i18n/config';
@@ -27,7 +25,6 @@ import { RouteBoundary } from './shared/RouteBoundary';
 import { SegmentedControl } from './shared/SegmentedControl';
 import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, REDIRECTS, ROUTES } from './shared/navigation';
 
-const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 const MENU_ID = 'site-menu';
 const DesignLabPage = lazy(async () => ({ default: (await import('./features/design-lab/DesignLabPage')).DesignLabPage }));
 const ProfilePage = lazy(async () => ({ default: (await import('./features/profile/ProfilePage')).ProfilePage }));
@@ -40,26 +37,28 @@ const SignInPage = lazy(async () => ({ default: (await import('./features/auth/S
 const SignUpPage = lazy(async () => ({ default: (await import('./features/auth/SignUpPage')).SignUpPage }));
 const RecoverPage = lazy(async () => ({ default: (await import('./features/auth/RecoverPage')).RecoverPage }));
 
-/** Visitors without a session flip between light and dark from the bar; Perfil keeps the three-way choice. */
-function ThemeToggle(): React.JSX.Element {
+/** Preferences stay in the same place before and after signing in. */
+function PreferencesMenu(): React.JSX.Element {
   const { t } = useTranslation();
-  const { theme, setTheme } = usePreferences();
-  useThemeRevision();
-  const prefersDark = window.matchMedia(DARK_SCHEME_QUERY).matches;
-  const shown = resolveTheme(theme, prefersDark);
-  return (
-    <button
-      className="button button-icon only-wide"
-      type="button"
-      aria-label={shown === 'dark' ? t('shell.themeToLight') : t('shell.themeToDark')}
-      onClick={() => { setTheme(toggledTheme(theme, prefersDark)); }}
-    >
-      <Icon name={shown === 'dark' ? 'sun' : 'moon'} />
-    </button>
-  );
+  const { theme, setTheme, locale, setLocale } = usePreferences();
+  const menu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const close = (event: PointerEvent): void => { if (menu.current && !menu.current.contains(event.target as Node)) menu.current.open = false; };
+    document.addEventListener('pointerdown', close);
+    return () => { document.removeEventListener('pointerdown', close); };
+  }, []);
+  return <details className="preferences-menu only-wide" ref={menu} onKeyDown={event => {
+    if (event.key === 'Escape' && menu.current) { menu.current.open = false; menu.current.querySelector('summary')?.focus(); }
+  }}>
+    <summary>{t('workbench.preferences')}</summary>
+    <div className="preferences-popover">
+      <SegmentedControl legend={t('account.appearance')} options={THEMES.map(value => ({ value, label: t(THEME_LABEL_KEYS[value]) }))} value={theme} onChange={setTheme} />
+      <LanguageChoice locale={locale} onChange={setLocale} />
+    </div>
+  </details>;
 }
 
-/** Language for visitors without a session; signed-in visitors set it in Perfil. */
+/** Shared language preference in the shell, footer and account. */
 function LanguageChoice({ locale, onChange }: { locale: Locale; onChange: (locale: Locale) => void }): React.JSX.Element {
   const { t } = useTranslation();
   return (
@@ -127,16 +126,11 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
           {NAVIGATION_ITEMS.filter(item => !item.signedInOnly || status === 'signed-in').map((item) => <NavLink key={item.path} to={item.path} end={item.end} onClick={closeSheet}>{t(item.labelKey)}</NavLink>)}
         </nav>
         <div className="menu-sheet-end">
+          <SegmentedControl legend={t('account.appearance')} options={THEMES.map(value => ({ value, label: t(THEME_LABEL_KEYS[value]) }))} value={theme} onChange={setTheme} />
+          <LanguageChoice locale={locale} onChange={setLocale} />
           {status === 'signed-in'
             ? <Link className="button button-secondary button-large button-wide" to={ROUTES.profile} onClick={closeSheet}>{t('nav.profile')}</Link>
             : <>
-              <SegmentedControl
-                legend={t('account.appearance')}
-                options={THEMES.map((value) => ({ value, label: t(THEME_LABEL_KEYS[value]) }))}
-                value={theme}
-                onChange={setTheme}
-              />
-              <LanguageChoice locale={locale} onChange={setLocale} />
               {status !== 'disabled' && <Link className="button button-primary button-large button-wide" to={ROUTES.signUp} onClick={closeSheet}>{t('auth.signUpAction')}</Link>}
               <Link className="button button-secondary button-large button-wide" to={ROUTES.signIn} onClick={closeSheet}>{t('shell.signIn')}</Link>
             </>}
@@ -148,6 +142,11 @@ function MenuSheet({ onClose }: { onClose: () => void }): React.JSX.Element {
 function SiteBar(): React.JSX.Element {
   const { t } = useTranslation();
   const { status, session } = useAuth();
+  const { pathname } = useLocation();
+  const current = NAVIGATION_ITEMS.find(item => item.path === pathname);
+  const secondary = pathname === ROUTES.privacy ? 'privacy.title' : pathname === ROUTES.terms ? 'terms.title'
+    : pathname === ROUTES.signIn ? 'auth.signInTitle' : pathname === ROUTES.signUp ? 'auth.signUpTitle'
+      : pathname === ROUTES.recover ? 'auth.recoverTitle' : pathname === ROUTES.profile ? 'nav.profile' : 'notFound.title';
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -159,15 +158,16 @@ function SiteBar(): React.JSX.Element {
     return () => { window.removeEventListener('scroll', update); };
   }, []);
 
-  const closeMenu = useCallback((): void => { setMenuOpen(false); toggle.current?.focus(); }, []);
+  const closeMenu = useCallback((): void => { setMenuOpen(false); toggle.current?.focus(); }, [setMenuOpen]);
   const signedIn = status === 'signed-in' && session !== null;
 
   return (
     <header className="site-bar" data-scrolled={scrolled}>
       <div className="site-bar-inner">
-        <Link to={ROUTES.home} className="brand" aria-label={t('shell.home')}><BrandMark /><span>{t('app.name')}</span></Link>
-        <SiteNavigation label={t('nav.main')} />
+        <Link to={ROUTES.home} className="brand only-narrow" aria-label={t('shell.home')}><BrandMark /><span>{t('app.name')}</span></Link>
+        <p className="workspace-location only-wide">{t('workbench.workspace')}<span aria-hidden="true"> / </span><strong>{current ? t(current.labelKey) : t(secondary)}</strong></p>
         <div className="site-bar-end">
+          <PreferencesMenu />
           {signedIn
             ? (
               <NavLink className="account-link" to={ROUTES.profile} aria-label={t('shell.account', { email: session.user.email })}>
@@ -176,7 +176,6 @@ function SiteBar(): React.JSX.Element {
               </NavLink>
             )
             : <>
-              <ThemeToggle />
               <Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link>
               {status !== 'disabled' && <Link className="button button-primary only-wide" to={ROUTES.signUp}>{t('auth.signUpAction')}</Link>}
             </>}
@@ -234,6 +233,13 @@ function ApplicationRoutes(): React.JSX.Element {
   return (
     <div className="app">
       <a className="skip-link" href="#app-content">{t('shell.skip')}</a>
+      <aside className="workspace-sidebar">
+        <Link to={ROUTES.home} className="brand" aria-label={t('shell.home')}><BrandMark /><span>{t('app.name')}</span></Link>
+        <p className="workspace-nav-label">{t('workbench.exploration')}</p>
+        <SiteNavigation label={t('nav.main')} />
+        <Link className="workspace-account" to={ROUTES.profile}>{t('workbench.account')}</Link>
+      </aside>
+      <div className="workspace-body">
       <SiteBar />
       <div className="app-content" id="app-content" ref={content} tabIndex={-1}>
         <RouteBoundary key={location.pathname}>
@@ -259,6 +265,7 @@ function ApplicationRoutes(): React.JSX.Element {
         </RouteBoundary>
       </div>
       <SiteFooter />
+      </div>
     </div>
   );
 }

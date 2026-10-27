@@ -84,7 +84,7 @@ function placeholders(text: string): string[] {
 /** Keys whose English text must differ from the Spanish one; a sample across every screen. */
 const TRANSLATED_SAMPLE: readonly (keyof typeof spanish)[] = [
   'nav.home', 'nav.analyze', 'nav.alignment', 'nav.generate', 'nav.library', 'nav.profile', 'shell.signIn', 'settings.signOut',
-  'landing.title', 'app.title', 'generator.title', 'alignment.title', 'alignment.regionJoin', 'library.title', 'library.insulin',
+  'workbench.homeLead', 'app.title', 'generator.title', 'alignment.title', 'alignment.regionJoin', 'library.title', 'library.insulin',
   'profile.title', 'descriptors.mass', 'projects.save', 'report.export', 'auth.signUpTitle', 'account.title', 'privacy.title',
   'terms.title', 'legal.updated', 'notFound.title', 'errors.invalidFasta', 'chemistry.cysteine', 'regions.chainA',
 ];

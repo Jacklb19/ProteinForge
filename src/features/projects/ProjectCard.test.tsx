@@ -33,6 +33,7 @@ it('offers one destination for an analysis and both for a mixed project', async 
   await user.click(screen.getByRole('button', { name: message('projects.openAlignmentNamed', { name: 'Mixto' }) }));
   expect(onOpen.mock.calls).toEqual([['analyze'], ['alignment']]);
   // Saved evidence is shown as it was stored, never recalculated by the card.
+  await user.click(screen.getByText(message('workbench.projectDetails')));
   const metrics = screen.getByRole('region', { name: message('projects.comparison') });
   expect(metrics).toHaveTextContent('80%');
   expect(metrics).toHaveTextContent('81,8%');
@@ -57,5 +58,6 @@ it('announces a comparison without analysis and a laboratory with its variants',
 it('says when a project has no saved evidence instead of inventing it', () => {
   card(summary('Sin vista previa', null));
   expect(screen.getByText(message('projects.noPreview'))).toBeVisible();
+  expect(screen.queryByText(message('workbench.projectDetails'))).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: message('projects.openNamed', { name: 'Sin vista previa' }) })).toBeVisible();
 });

@@ -20,6 +20,7 @@ import { MappedStructure } from './MappedStructure';
 import { isCurrentReference } from './referenceView';
 import type { ReferenceView } from './referenceView';
 import type { MappingLoader } from './mappingTypes';
+import { ViewTabs } from '../../shared/ViewTabs';
 
 const INSULIN_ACCESSION = 'P01308';
 const INSULIN_STRUCTURE: PdbReference = { id: '1TRZ', method: 'X-ray', resolution: '1.60 Å', chains: 'A/C=90-110, B/D=25-54' };
@@ -34,6 +35,7 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
   const auth = useAuth(); const draft = useSequenceDraft(); const navigate = useNavigate();
   const client = useMemo(() => { const url = readApiBaseUrl(); return url ? createLibraryApi(url) : null; }, []);
   const [query, setQuery] = useState(UNIPROT_DEFAULT_QUERY);
+  const [sourceView, setSourceView] = useState<'catalog' | 'uniprot'>('catalog');
   const [items, setItems] = useState<EntrySummary[] | null>(null);
   const restored = isCurrentReference(draft.referenceView, draft.text, draft.source) ? draft.referenceView : null;
   const [entry, setEntry] = useState<UniProtEntry | null>(restored?.entry ?? null);
@@ -88,8 +90,11 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
       <PageHeading titleKey="library.title" introduction="library.introduction">
         <Link className="button button-secondary" to={ROUTES.analyze}>{t('library.back')}</Link>
       </PageHeading>
+      <ViewTabs id="library" label={t('workbench.libraryViews')} value={sourceView} onChange={setSourceView} options={[
+        { value: 'catalog', label: t('library.catalogTitle') }, { value: 'uniprot', label: t('library.uniprotTitle') },
+      ]} />
 
-      <section className="library-section" aria-labelledby="catalog-title">
+      <section className="library-section" id="library-catalog-panel" role="tabpanel" aria-labelledby="library-catalog-tab" hidden={sourceView !== 'catalog'}>
         <h2 id="catalog-title">{t('library.catalogTitle')}</h2>
         <ul className="reference-listing">
           {REFERENCE_CATALOG.map((reference) => (
@@ -123,7 +128,7 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
         </section>
       )}
 
-      <section className="library-section" aria-labelledby="uniprot-title">
+      <section className="library-section" id="library-uniprot-panel" role="tabpanel" aria-labelledby="library-uniprot-tab" hidden={sourceView !== 'uniprot'}>
         <h2 id="uniprot-title">{t('library.uniprotTitle')}</h2>
         <p className="field-help">{t('library.searchHelp')}</p>
 
@@ -197,7 +202,7 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
       </section>
 
       <section className="library-section" aria-labelledby="structure-title">
-        <h2 id="structure-title">{t('library.structureTitle')}</h2>
+        <h2 id="structure-title">{t('workbench.libraryEntry')} · {entry?.name ?? t('examples.insulinName')}</h2>
         <p className="field-help">{t(entry ? 'library.structureHelp' : 'library.structureExample')}</p>
 
         <MappedStructure reference={referenceSource} structures={references} pdbId={structure?.id ?? ''} position={position} chain={chain}

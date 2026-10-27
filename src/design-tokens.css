@@ -158,6 +158,9 @@
   --stroke-icon: 1.6px;
   --height-bar: 4.25rem;
   --width-full: 100%;
+  --width-workspace-sidebar: 13.125rem;
+  --width-workspace-preferences: 22rem;
+  --width-workspace-main: 82.5rem;
   --width-content: 76rem;
   --width-copy: 65ch;
   --width-lead: 34ch;

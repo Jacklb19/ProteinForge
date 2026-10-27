@@ -49,7 +49,10 @@ export function ProjectCard({ project, busy, active, dirty, onOpen, onAction }: 
       {source && <p className="project-origin">{t(source.origin === 'catalog' ? 'projects.catalogSource' : 'projects.uniprotSource', { accession: source.accession })}</p>}
       {preview && <p className="project-length">{comparison && !preview.sequenceLength ? t('projects.comparisonLengths', { first: formatNumber(comparison.firstLength), second: formatNumber(comparison.secondLength) }) : t('fasta.residues', { count: formatNumber(preview.sequenceLength) })}</p>}
       {active && <p className="field-help project-active">{t(dirty ? 'projects.activeDirty' : 'projects.active')}</p>}
-      {preview ? <>
+      {!preview && <p className="field-help project-evidence-note">{t('projects.noPreview')}</p>}
+      {comparison && !comparison.result && <p className="field-help">{t('projects.noAlignment')} {comparison.matrix} · {t(`alignment.${comparison.mode}`)}</p>}
+      {preview && <details className="project-scientific-details"><summary>{t('workbench.projectDetails')}</summary>
+
         {ribbon(preview.sequencePrefix, preview.sequenceLength)}
         {descriptors ? <dl className="project-metrics">
           {metric(t('projects.mass'), t('projects.massUnit', { value: formatNumber(descriptors.massDa / PROJECT_MASS_DA_PER_KDA, { minimumFractionDigits: precision.mass, maximumFractionDigits: precision.mass }) }))}
@@ -65,9 +68,10 @@ export function ProjectCard({ project, busy, active, dirty, onOpen, onAction }: 
             {metric(t('alignment.identity'), formatNumber(comparison.result.identities / comparison.result.columns, { style: 'percent', maximumFractionDigits: precision.percent }))}
             {metric(t('alignment.similarity'), formatNumber(comparison.result.similarities / comparison.result.columns, { style: 'percent', maximumFractionDigits: precision.percent }))}
             {metric(t(`alignment.${comparison.mode}`), comparison.matrix)}
-          </dl> : <p className="field-help">{t('projects.noAlignment')} {comparison.matrix} · {t(`alignment.${comparison.mode}`)}</p>}
+          </dl> : null}
         </section>}
-      </> : <p className="field-help project-evidence-note">{t('projects.noPreview')}</p>}
+
+      </details>}
     </div>
     <footer className="project-card-footer">
       <time dateTime={project.updatedAt} title={formatDate(new Date(project.updatedAt), { dateStyle: 'medium', timeStyle: 'short' })}>{relative}</time>

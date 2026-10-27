@@ -23,6 +23,11 @@ export function LegalPage({ titleKey, introduction, sections }: Props): React.JS
     <main className="page legal-page">
       <PageHeading titleKey={titleKey} introduction={introduction} />
       <p className="legal-updated"><time dateTime={LEGAL_UPDATED_DATE}>{t('legal.updated')}</time></p>
+      <div className="legal-layout">
+      <nav className="legal-index" aria-label={t('workbench.legalIndex')}>
+        {sections.map(section => <a key={section.titleKey} href={`#${section.titleKey}`}>{t(section.titleKey)}</a>)}
+        <a href="#legal-contact">{t('legal.contactTitle')}</a>
+      </nav>
       <div className="legal-sections">
         {sections.map((section) => (
           <section key={section.titleKey} className="legal-section" aria-labelledby={section.titleKey}>
@@ -35,6 +40,7 @@ export function LegalPage({ titleKey, introduction, sections }: Props): React.JS
           <p>{t('legal.contactText')}</p>
           <a className="legal-contact" href={SUPPORT_EMAIL_URL}>{SUPPORT_EMAIL}</a>
         </section>
+      </div>
       </div>
       <nav className="legal-links" aria-label={t('legal.navigation')}>
         <Link className="button button-secondary" to={ROUTES.privacy}>{t('nav.privacy')}</Link>

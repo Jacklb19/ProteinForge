@@ -101,8 +101,10 @@ export default defineConfig({
       cleanupOutdatedCaches: true,
     },
   })],
+  optimizeDeps: { entries: ['index.html', 'src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}', '!src/test/**', '!src/gen/**/*_connect.ts'] },
   server: {
     port: 5173,
+    watch: { ignored: ['**/artifacts/**', '**/coverage/**', '**/test-results/**', '**/tmp/**'] },
     headers: isolationHeaders,
   },
   preview: {

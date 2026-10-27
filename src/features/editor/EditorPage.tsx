@@ -23,10 +23,12 @@ import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorRepor
 import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
 import { isCurrentReference } from '../library/referenceView';
+import { ViewTabs } from '../../shared/ViewTabs';
 
 const MappedStructure = lazy(() => import('../library/MappedStructure').then(module => ({ default: module.MappedStructure })));
 
 type Panel = 'sequence' | 'project' | null;
+type AnalysisView = 'summary' | 'sequence' | 'profile' | 'structure';
 const SEQUENCE_PANEL_ID = 'sequence-panel';
 const PROJECT_PANEL_ID = 'project-panel';
 
@@ -44,6 +46,7 @@ export function EditorPage(): React.JSX.Element {
   const [panel, setPanel] = useState<Panel>(() => (text === '' ? 'sequence' : null));
   const [localSelected, setLocalSelected] = useState<number | null>(() => annotationsFor(source)?.highlight ?? null);
   const activeView = isCurrentReference(referenceView, text, source) ? referenceView : null;
+  const [view, setView] = useState<AnalysisView>(() => activeView ? 'structure' : 'summary');
   const selected = activeView ? activeView.position : localSelected;
   const setSelected = (position: number | null): void => {
     setLocalSelected(position);
@@ -123,12 +126,12 @@ export function EditorPage(): React.JSX.Element {
     <main className="page analysis-page">
       <header className="page-head">
         <div className="page-head-text">
-          <h1>{title}</h1>
-          <p className="page-meta">{hasInput ? meta : t('editor.emptyText')}</p>
+          <h1>{t('workbench.analyzeTitle')}</h1>
+          <p className="page-meta">{t('workbench.analyzeIntro')}</p>
         </div>
         <div className="toolbar">
-          <button className="button button-secondary" type="button" aria-label={t('editor.inputTitle')} aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
-            <span>{t('editor.change')}<span className="label-long"> {t('editor.changeObject')}</span></span>
+          <button className="button button-primary" type="button" aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
+            {t('editor.inputTitle')}
           </button>
           {hasInput && <button className="button button-secondary" type="button" aria-expanded={panel === 'project'} aria-controls={PROJECT_PANEL_ID} onClick={() => { toggle('project'); }}>{t('projects.save')}</button>}
           <ReportActions>
@@ -139,10 +142,13 @@ export function EditorPage(): React.JSX.Element {
             }}>{t('report.download')}</button>}
           </ReportActions>
           {residueCount > 0 && invalidPositions.length === 0 && (
-            <button className="button button-primary" type="button" onClick={sendToAlignment}>{t('editor.toAlignment')}</button>
+            <button className="button button-secondary" type="button" onClick={sendToAlignment}>{t('editor.toAlignment')}</button>
           )}
         </div>
       </header>
+      <section className="subject-summary" aria-label={title}>
+        <h2>{title}</h2><p className="page-meta">{hasInput ? meta : t('editor.emptyText')}</p>
+      </section>
 
       {sequencePanelOpen && (
         <section id={SEQUENCE_PANEL_ID} className="tool-panel" aria-labelledby="sequence-panel-title">
@@ -189,45 +195,45 @@ export function EditorPage(): React.JSX.Element {
         </section>
       )}
 
-      {hasInput && (
-        <div className="analysis-columns">
-          <div className="analysis-main">
-            <HydropathyProfile text={text} windowSize={profileWindow} onWindowChange={setProfileWindow} selected={selected} onSelect={setSelected} annotations={annotations} />
-          </div>
-          <aside className="analysis-rail">
+      {hasInput && <>
+        <ViewTabs id="analysis" label={t('workbench.analysisViews')} value={view} onChange={setView}
+          options={(['summary', 'sequence', 'profile', 'structure'] as const).map(value => ({ value, label: t(`workbench.${value}`) }))} />
+        <div id="analysis-summary-panel" role="tabpanel" aria-labelledby="analysis-summary-tab" hidden={view !== 'summary'} className="analysis-summary">
             <DescriptorPanel data={descriptors} />
+            <p className="notice">{t('workbench.analysisScope')}</p>
+            <div className="analysis-overview-grid">
             {residueCount > 0 && invalidPositions.length === 0 && (
               <section aria-labelledby="composition-title">
                 <h3 id="composition-title">{t('chemistry.composition')}</h3>
                 <CompositionBar sequence={validation.sequence} />
               </section>
             )}
-            {activeView ? <section aria-label={t('library.structureTitle')}>
+            {annotations && <StructureStage variant="rail" annotations={annotations} selected={selected} onSelect={setSelected}
+              caption={<>{t('structure.measured')} · <button className="button button-quiet" type="button" onClick={() => { setView('structure'); }}>{t('structure.openViewer')}</button></>} />}
+            </div>
+            {descriptorResult && descriptors.status === 'current' && invalidPositions.length === 0 && <ReadingSection
+              subject="analysis" revision={`${validation.sequence}:${String(profileWindow)}`}
+              build={() => analysisFacts({ t, formatNumber }, validation.sequence, descriptorResult, profileWindow)} />}
+        </div>
+        <HydropathyProfile text={text} windowSize={profileWindow} onWindowChange={setProfileWindow} selected={selected} onSelect={setSelected} annotations={annotations}
+          view={view === 'sequence' || view === 'profile' || (view === 'structure' && activeView) ? view : 'none'} panelId="analysis" />
+        <div id="analysis-structure-panel" role="tabpanel" aria-labelledby="analysis-structure-tab" hidden={view !== 'structure'}>
+            {view === 'structure' && (activeView ? <section aria-label={t('library.structureTitle')}>
               <h3>{t('library.structureTitle')}</h3>
               <Suspense fallback={<p className="status-message">{t('library.viewerLoading')}</p>}><MappedStructure compact reference={activeView.source} structures={activeView.structures} pdbId={activeView.pdbId} position={selected} chain={activeView.chain}
                 onStructure={pdbId => { setReferenceView({ ...activeView, pdbId, chain: null, position: null }); }}
                 onSelect={(position, chain) => { setReferenceView({ ...activeView, position, chain }); }} /></Suspense>
-            </section> : annotations && (
+            </section> : annotations ? (
               <StructureStage
-                variant="rail"
+                variant="library"
                 annotations={annotations}
                 selected={selected}
                 onSelect={setSelected}
                 caption={<>{t('structure.measured')} · <Link className="inline-link" to={ROUTES.library}>{t('structure.openViewer')}</Link></>}
               />
-            )}
-          </aside>
+            ) : <p className="notice">{t('workbench.noStructure')} <Link className="inline-link" to={ROUTES.library}>{t('nav.library')}</Link></p>)}
         </div>
-      )}
-
-      {/* Closes the sheet: the reading of everything above, asked for on purpose. */}
-      {hasInput && descriptorResult && descriptors.status === 'current' && invalidPositions.length === 0 && (
-        <ReadingSection
-          subject="analysis"
-          revision={`${validation.sequence}:${String(profileWindow)}`}
-          build={() => analysisFacts({ t, formatNumber }, validation.sequence, descriptorResult, profileWindow)}
-        />
-      )}
+      </>}
     </main>
   );
 }

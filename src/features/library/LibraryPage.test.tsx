@@ -32,6 +32,7 @@ it('queries public references on demand, validates provenance and imports after 
   await waitFor(() => { expect(screen.getByTestId('viewer')).toHaveTextContent('1TRZ'); });
   expect(screen.getByLabelText(spanish['library.structureChoose'])).toHaveValue('1TRZ');
   expect(fetcher).not.toHaveBeenCalled();
+  await user.click(screen.getByRole('tab', { name: spanish['library.uniprotTitle'] }));
   await user.type(screen.getByLabelText(spanish['library.query']), ' human');
   await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
   await screen.findByRole('button', { name: spanish['library.openEntry'].replace('{{id}}', 'P01308') });
@@ -57,7 +58,7 @@ it('queries public references on demand, validates provenance and imports after 
 it('aborts cancelled lookups, ignores their late response and displays real provider errors', async () => {
   const user = userEvent.setup(); let resolve: (value: Response) => void = () => undefined;
   const fetcher = vi.fn().mockReturnValue(new Promise<Response>((done) => { resolve = done; })); vi.stubGlobal('fetch', fetcher);
-  renderPage(); await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
+  renderPage(); await user.click(screen.getByRole('tab', { name: spanish['library.uniprotTitle'] })); await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
   await user.click(screen.getByRole('button', { name: spanish['projects.cancel'] }));
   await act(async () => { resolve(searchResponse(false)); await Promise.resolve(); });
   expect(screen.queryByRole('button', { name: spanish['library.openEntry'].replace('{{id}}', 'P01308') })).not.toBeInTheDocument();
@@ -72,11 +73,12 @@ it('keeps bundled references usable without identity or a configured API', async
   await user.click(screen.getAllByRole('button', { name: spanish['library.load'] })[0] ?? screen.getByRole('button', { name: 'existing draft' }));
   expect(screen.getByTestId('draft')).toHaveTextContent('MALWMR');
   rendered.unmount(); vi.stubEnv('VITE_API_BASE_URL', ''); renderPage();
+  await user.click(screen.getByRole('tab', { name: spanish['library.uniprotTitle'] }));
   expect(screen.getByText(spanish['library.config'])).toBeVisible();
 });
 it('rejects a detail whose sequence does not match its declared length', async () => {
   const user = userEvent.setup(); vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(searchResponse(false)).mockResolvedValueOnce(entryResponse({ ...entry, sequence: 'AC' })));
-  renderPage(); await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
+  renderPage(); await user.click(screen.getByRole('tab', { name: spanish['library.uniprotTitle'] })); await user.click(screen.getByRole('button', { name: spanish['library.search'] }));
   await user.click(await screen.findByRole('button', { name: spanish['library.openEntry'].replace('{{id}}', 'P01308') }));
   await screen.findByText(spanish['library.error']); expect(screen.queryByText('Public annotation')).not.toBeInTheDocument();
 });

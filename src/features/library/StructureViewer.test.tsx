@@ -1,4 +1,5 @@
-import { act, render, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import StructureViewer from './StructureViewer';
 import type { CoordinateResidue } from './residueMapping';
@@ -53,6 +54,20 @@ function deferred<T>() {
   const promise = new Promise<T>(done => { resolve = done; });
   return { promise, resolve };
 }
+
+it('keeps the measured fallback while exposing a failed download and a working retry', async () => {
+  const user = userEvent.setup();
+  vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 503 }));
+  render(<StructureViewer pdbId="1TRZ" placeholder={<p>Measured 1TRZ</p>} />);
+  const status = screen.getByRole('status');
+  await waitFor(() => { expect(status).toHaveTextContent(spanish['library.viewerError']); });
+  expect(status).not.toHaveClass('visually-hidden');
+  expect(screen.getByText('Measured 1TRZ')).toBeVisible();
+  await user.click(screen.getByRole('button', { name: spanish['library.retry'] }));
+  await waitFor(() => { expect(status).toHaveTextContent(spanish['library.viewerReady']); });
+  expect(screen.queryByText('Measured 1TRZ')).not.toBeInTheDocument();
+  expect(fetch).toHaveBeenCalledTimes(2);
+});
 
 it('leaves the existing viewer unchanged when no selection bridge is supplied', async () => {
   const view = render(<StructureViewer pdbId="1TRZ" />);

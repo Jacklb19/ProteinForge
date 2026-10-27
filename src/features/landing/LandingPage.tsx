@@ -51,12 +51,21 @@ export function LandingPage(): React.JSX.Element {
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-copy">
           <h1 id="hero-title" className="display">{t('landing.title')}</h1>
-          <p className="lead">{t('landing.lead')}</p>
+          <p className="lead">{t('workbench.homeLead')}</p>
           <div className="hero-actions">
             <Link className="button button-primary button-large" to={ROUTES.analyze}>{t('landing.analyzeAction')}</Link>
             <Link className="button button-secondary button-large" to={ROUTES.alignment}>{t('landing.compareAction')}</Link>
           </div>
           <p className="hero-note">{t('landing.note')}</p>
+          <nav className="home-tasks" aria-label={t('workbench.exploration')}>
+            {([
+              ['workbench.homeAnalyze', 'workbench.homeAnalyzeHelp', ROUTES.analyze],
+              ['workbench.homeCompare', 'workbench.homeCompareHelp', ROUTES.alignment],
+              ['workbench.homeLab', 'workbench.homeLabHelp', ROUTES.laboratory],
+            ] as const).map(([title, help, route]) => <Link key={route} to={route}>
+              <span><strong>{t(title)}</strong><span className="field-help">{t(help)}</span></span><span aria-hidden="true">↗</span>
+            </Link>)}
+          </nav>
         </div>
         {annotations && <StructureStage variant="hero" annotations={annotations} selected={selected} onSelect={setSelected} />}
       </section>
