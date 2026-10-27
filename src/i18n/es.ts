@@ -246,6 +246,7 @@ export const spanish = {
   'descriptors.excluded': '{{count}} residuos U, O, B, Z o X excluidos de los descriptores.',
   'descriptors.excludedOne': '{{count}} residuo U, O, B, Z o X excluido de los descriptores.',
   'descriptors.invalid': 'Los resultados están desactualizados. Corrige las posiciones inválidas para recalcular.',
+  'descriptors.pendingValue': '—',
   'descriptors.calculating': 'Calculando descriptores…',
   'descriptors.error': 'No se pudieron calcular los descriptores.',
   'descriptors.workerMessage': '{{message}}',

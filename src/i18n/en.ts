@@ -248,6 +248,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'descriptors.excluded': '{{count}} U, O, B, Z or X residues excluded from the descriptors.',
   'descriptors.excludedOne': '{{count}} U, O, B, Z or X residue excluded from the descriptors.',
   'descriptors.invalid': 'The results are out of date. Fix the invalid positions to recalculate.',
+  'descriptors.pendingValue': '—',
   'descriptors.calculating': 'Calculating descriptors…',
   'descriptors.error': 'The descriptors could not be calculated.',
   'descriptors.workerMessage': '{{message}}',
