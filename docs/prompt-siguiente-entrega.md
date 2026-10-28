@@ -43,7 +43,7 @@ El propietario delegó las decisiones técnicas y pidió consolidar documentaci�
 
 ## Orden de continuación
 
-1. Implementar las propuestas de rendimiento 1, 5 y 2 en una rama aislada desde `dev`, midiendo cada cambio por separado como en la pasada anterior. Objetivo: ampliar el margen de Analizar y reducir las tareas largas de carga.
+1. Pestaña «Dominios» de Biblioteca, aprobada por el propietario el 28 oct con la condición de usar solo los tokens y clases de la app: catálogo verificado (`b23110f`) e implementación en `parallel/domains`, sin publicar.
 2. Activar el historial del generador en producción según el apartado anterior, con el propietario.
 3. Recorrido con Supabase local y dos cuentas reales para cerrar el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 de octubre que revisa él esa parte.
 4. Pendientes antiguos que siguen abiertos: aislamiento por ID con segunda cuenta en producción, recorrido SIFTS con JWT real y lectura autenticada del asistente comprobada en prosa.
