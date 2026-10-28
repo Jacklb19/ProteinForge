@@ -11,8 +11,8 @@ import { assertFits, message, setTheme } from './helpers';
 
 const catalog = JSON.parse(readFileSync('src/features/domains/catalog.json', 'utf8')) as DomainCatalog;
 const sh3 = catalog.domains.filter((domain) => domain.kind === 'sh3');
+if (sh3.length < 2) throw new Error('The catalogue needs two SH3 parts.');
 const [first, second] = sh3;
-if (!first || !second) throw new Error('The catalogue needs two SH3 parts.');
 const stretch = (domain: DomainEntry): string => message('domains.stretch', { kind: message('domains.kindSh3'), start: String(domain.feature.start), end: String(domain.feature.end) });
 
 /** Library opens on the example structure, so its coordinates are served before navigating. */
