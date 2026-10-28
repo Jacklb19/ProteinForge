@@ -196,3 +196,17 @@ El comando genera ambos builds bajo la salida indicada y usa solo ajustes públi
 Las entregas S5/S7 están integradas en el frontend canónico. Tipos, lint, build, 436 unitarias y 76 recorridos Chromium afectados completados; dos casos de Colab inicialmente omitidos se repitieron con sus archivos reales y pasaron. PWA integrada correcta, con Mol* excluido del uso offline. Capturas de Biblioteca/Analizar a 360 y 1280 px revisadas en ambos temas. No se repitieron las mediciones históricas de rendimiento ni se atribuyen a este árbol cifras nuevas de LCP/INP.
 
 RNF-04 añade [auditoría HTTP local del backend](../../backend/docs/local-api-load.md): 500 solicitudes reales de loopback en 300,006 s, cero errores y p95 de 16,262 ms. Identidad y almacenamiento simulados, sin carga externa, SQL o Vercel. No certifica capacidad máxima ni rendimiento de producción. Se conservan los límites de WebKit offline, Safari, versiones anteriores y dispositivos físicos indicados arriba.
+
+## Rendimiento, WebKit sin conexión y accesibilidad — 27 oct 2026
+
+Detalle, cifras crudas y propuestas en [performance-2026-10-27.md](performance-2026-10-27.md). Resumen:
+
+- **RNF-03.** Medición sobre el producto rediseñado, 7 cargas por ruta con 4G lenta y CPU ×4 en `vite preview`. LCP mediano de Inicio: 2.495 → 2.150 ms. LCP mediano de Analizar: 3.198 → 2.449 ms (p75 2.457).
+  - **Causas corregidas:** catálogos de idioma dentro de cada Worker, precarga de Plex Mono y catálogo inglés en el paquete inicial.
+  - **Desplazamiento:** CLS de Analizar de 0,14 → 0,007 al reservar los campos de descriptores.
+  - **Alcance:** no acredita producción ni dispositivos físicos.
+- **RNF-01.** Interacciones sintéticas con CPU ×4: p75 de 48 ms y máximo de 144 ms, por debajo de 200 ms.
+  - **Tareas largas que persisten:** al cargar, unos 135 ms de evaluación y unos 165 ms de render; en algunas interacciones, de 54 a 68 ms.
+  - **Pendiente:** queda como propuesta de arquitectura. **No es INP de campo.**
+- **WebKit sin conexión.** Se corrige la lectura del 25 y 26 de octubre: el «internal error» lo produce la emulación `setOffline` de Playwright en WebKit/Windows. Ocurre igual en un sitio de control mínimo, con o sin aislamiento. Con el servidor realmente parado, el producto recarga y responde desde su Service Worker. `check:pwa` usa ahora esa caída real y pasa completo en WebKit 26.6 y Chromium 156. No certifica Safari.
+- **Accesibilidad.** Nueva matriz AA en es/en, 360/1280, claro/oscuro, menús, Preferencias, barra lateral compacta y expandida, Cuenta y Guía, con recorridos de teclado. Se corrigió el recorte del anillo de foco en la navegación desplazable de la barra lateral.

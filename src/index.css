@@ -330,10 +330,10 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .fasta-entry[aria-selected='true'] { background: var(--bg-selected); box-shadow: inset var(--border-width-indicator) var(--space-none) var(--text-primary); }
 
 .property-list { display: grid; }
-.property { display: grid; gap: var(--space-3xs); min-width: var(--space-none); padding-block: var(--space-sm); border-block-end: var(--border-width) solid var(--border-subtle); }
-.property:last-child { border-block-end: none; }
-.property dt { color: var(--text-secondary); font-size: var(--font-size-small); }
-.property dd { font-family: var(--font-sequence); font-size: var(--font-size-stat); line-height: var(--line-height-heading); overflow-wrap: anywhere; }
+:is(.property, .property-pending) { display: grid; gap: var(--space-3xs); min-width: var(--space-none); padding-block: var(--space-sm); border-block-end: var(--border-width) solid var(--border-subtle); }
+:is(.property, .property-pending):last-child { border-block-end: none; }
+:is(.property, .property-pending) dt { color: var(--text-secondary); font-size: var(--font-size-small); }
+:is(.property, .property-pending) dd { font-family: var(--font-sequence); font-size: var(--font-size-stat); line-height: var(--line-height-heading); overflow-wrap: anywhere; }
 .property-unit { color: var(--text-secondary); font-size: var(--font-size-small); }
 .descriptor-explanation { display: block; margin-block-start: var(--space-3xs); color: var(--text-secondary); font-family: var(--font-ui); font-size: var(--font-size-note); line-height: var(--line-height-base); }
 .stale-descriptors dd { color: var(--text-secondary); }
@@ -598,7 +598,7 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
   .alignment-actions { margin-inline-start: var(--space-none); }
   .composition-list, .generator-inputs, .generator-targets, .candidate-columns { grid-template-columns: minmax(0, 1fr); }
   .rail-properties .property-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-md); }
-  .rail-properties .property dd { font-size: var(--font-size-stat-compact); }
+  .rail-properties :is(.property, .property-pending) dd { font-size: var(--font-size-stat-compact); }
   .profile-head .button { width: var(--width-full); }
   .site-footer-inner { padding-block: var(--space-md); }
   .site-footer-inner nav { margin-inline-start: var(--space-none); width: var(--width-full); }

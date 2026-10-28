@@ -4,12 +4,14 @@ import { createHash } from 'node:crypto';
 import { chromium, expect } from '@playwright/test';
 import { preview } from 'vite';
 
-// Run against a production build, with one isolated browser and no owner session.
-// Numbers describe this host and explicit emulation, never certified four-core hardware or field INP.
-const samples = Number(process.env.AUDIT_SAMPLES ?? 5);
+// Run against a production build (`npm run build`), with one isolated browser and no owner session.
+// Numbers describe this host and explicit emulation, never certified mobile hardware or field INP.
+const samples = Number(process.env.AUDIT_SAMPLES ?? 7);
 if (!Number.isInteger(samples) || samples < 1) throw new Error('AUDIT_SAMPLES must be a positive integer.');
 const output = process.env.AUDIT_OUTPUT ?? 'artifacts/quality/performance.json';
 if (!/^artifacts\/quality\/[\w.-]+\.json$/.test(output)) throw new Error('AUDIT_OUTPUT must stay in artifacts/quality.');
+const phases = new Set((process.env.AUDIT_PHASES ?? 'loads,interactions').split(','));
+const destinations = (process.env.AUDIT_ROUTES ?? 'home,analyze').split(',');
 const port = Number(process.env.AUDIT_PORT ?? 5310);
 const baseURL = `http://127.0.0.1:${String(port)}`;
 const navigation = readFileSync('src/shared/navigation.ts', 'utf8');
@@ -18,27 +20,41 @@ const route = name => {
   if (!value) throw new Error(`Missing route ${name}.`);
   return value;
 };
+
+// Lighthouse's mobile "slow 4G" profile: 150 ms round trip, 1.6 Mbit/s down, 750 kbit/s up, CPU ×4.
+const PROFILES = {
+  native: null,
+  '4g-cpu4': { latency: 150, downloadThroughput: 1_600_000 / 8, uploadThroughput: 750_000 / 8, cpu: 4 },
+  'cpu4': { cpu: 4 },
+};
+const MOBILE = { width: 360, height: 900 };
+const DESKTOP = { width: 1280, height: 900 };
+
 const server = await preview({ preview: { host: '127.0.0.1', port, strictPort: true } });
 let browser;
 const result = {
   recordedAt: new Date().toISOString(),
   build: { indexSha256: createHash('sha256').update(readFileSync('dist/index.html')).digest('hex') },
   host: { platform: platform(), release: release(), cpu: cpus()[0]?.model, logicalCpus: cpus().length, memoryBytes: totalmem() },
-  conditions: { samples, viewport: { width: 360, height: 900 }, serviceWorkers: 'blocked', cache: 'fresh context per cold load',
-    interactions: { profile: 'native', eventDurationThresholdMs: 16, note: 'Absent Event Timing entries are not zero latency; synthetic laboratory sample, not field INP.' },
-    throttled: { downloadBitsPerSecond: 1_600_000, uploadBitsPerSecond: 750_000, latencyMs: 150, cpuSlowdown: 4 },
-    note: 'Vite preview over localhost, without deployed CDN/TLS; CDP emulation, not physical mobile/four-core hardware or field INP.' },
-  loads: [], alignments: [], navigation: [], interactions: [], errors: [],
+  conditions: { samples, mobile: MOBILE, desktop: DESKTOP, serviceWorkers: 'blocked', cache: 'fresh context per cold load',
+    profiles: PROFILES, motion: 'browser default (no reduced motion)',
+    events: { durationThresholdMs: 16, note: 'Event Timing reports interactions of 16 ms or more, rounded to 8 ms. An absent entry is counted as 16 ms, an upper bound.' },
+    note: 'Vite preview over localhost, without deployed CDN/TLS; CDP emulation, not physical mobile hardware or field INP.' },
+  loads: [], interactions: [], errors: [],
 };
 
 async function observe(page) {
   await page.addInitScript(() => {
-    const audit = { lcp: null, longTasks: [], events: [], eventSince: 0 };
+    const audit = { lcp: null, lcpElement: null, fcp: null, cls: 0, shifts: [], longTasks: [], events: [], since: 0 };
     window.__qualityAudit = audit;
+    const describe = element => element ? `${element.tagName.toLowerCase()}${element.className && typeof element.className === 'string' ? '.' + element.className.trim().split(/\s+/).join('.') : ''}` : null;
     for (const [type, receive, options] of [
-      ['largest-contentful-paint', entries => { audit.lcp = entries.at(-1)?.startTime ?? null; }, {}],
+      ['largest-contentful-paint', entries => { const last = entries.at(-1); audit.lcp = last?.startTime ?? null; audit.lcpElement = describe(last?.element); }, {}],
+      ['paint', entries => { for (const entry of entries) if (entry.name === 'first-contentful-paint') audit.fcp = entry.startTime; }, {}],
+      ['layout-shift', entries => { for (const entry of entries) if (!entry.hadRecentInput) { audit.cls += entry.value;
+        audit.shifts.push({ start: entry.startTime, value: entry.value, sources: entry.sources.map(source => describe(source.node)) }); } }, {}],
       ['longtask', entries => { audit.longTasks.push(...entries.map(e => ({ start: e.startTime, duration: e.duration }))); }, {}],
-      ['event', entries => { audit.events.push(...entries.filter(e => e.interactionId && e.startTime >= audit.eventSince).map(e => ({ name: e.name, duration: e.duration,
+      ['event', entries => { audit.events.push(...entries.filter(e => e.interactionId && e.startTime >= audit.since).map(e => ({ name: e.name, duration: e.duration,
         inputDelayMs: e.processingStart - e.startTime, processingMs: e.processingEnd - e.processingStart, id: e.interactionId }))); }, { durationThreshold: 16 }],
     ]) {
       if (PerformanceObserver.supportedEntryTypes.includes(type)) {
@@ -52,125 +68,162 @@ async function observe(page) {
   });
 }
 
-async function snapshot(page) {
-  return page.evaluate(() => ({ ...window.__qualityAudit,
-    resources: performance.getEntriesByType('resource').map(e => ({ name: new URL(e.name).pathname, bytes: e.transferSize,
-      encodedBytes: e.encodedBodySize, decodedBytes: e.decodedBodySize, duration: e.duration })),
-    isolated: crossOriginIsolated, hardwareConcurrency: navigator.hardwareConcurrency,
-    eventTimingSupported: PerformanceObserver.supportedEntryTypes.includes('event'),
-  }));
+async function throttle(context, page, name) {
+  const profile = PROFILES[name];
+  if (!profile) return;
+  const cdp = await context.newCDPSession(page);
+  if (profile.latency) {
+    await cdp.send('Network.enable');
+    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: profile.latency,
+      downloadThroughput: profile.downloadThroughput, uploadThroughput: profile.uploadThroughput });
+  }
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile.cpu });
+}
+
+const median = values => { const sorted = [...values].sort((a, b) => a - b); const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2; };
+const p75 = values => [...values].sort((a, b) => a - b)[Math.ceil(values.length * .75) - 1];
+
+async function load(profile, destination, sample) {
+  const context = await browser.newContext({ viewport: MOBILE, serviceWorkers: 'block' });
+  const page = await context.newPage();
+  await observe(page);
+  await throttle(context, page, profile);
+  const started = performance.now();
+  await page.goto(baseURL + route(destination));
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 30_000 });
+  await page.evaluate(() => document.fonts.ready);
+  if (destination === 'analyze') await expect(page.locator('.descriptor-panel .property')).toHaveCount(5, { timeout: 30_000 });
+  const readyMs = performance.now() - started;
+  // Fixed observation window for late paints and worker-delivered content; no input before LCP.
+  await page.waitForTimeout(2500);
+  const data = await page.evaluate(() => ({ ...window.__qualityAudit,
+    navigation: (({ responseStart, domContentLoadedEventEnd, loadEventEnd }) => ({ ttfb: responseStart, domContentLoaded: domContentLoadedEventEnd, load: loadEventEnd }))(performance.getEntriesByType('navigation')[0]),
+    resources: performance.getEntriesByType('resource').map(e => ({ name: new URL(e.name).pathname, type: e.initiatorType, bytes: e.transferSize,
+      decodedBytes: e.decodedBodySize, start: e.startTime, end: e.responseEnd })) }));
+  delete data.events;
+  const blocking = data.longTasks.reduce((sum, task) => sum + Math.max(0, task.duration - 50), 0);
+  result.loads.push({ profile, destination, sample, readyMs, totalBlockingMs: blocking, ...data });
+  await context.close();
+}
+
+/** One measured action: Event Timing grouped by interaction and the long tasks around it. */
+async function measure(page, profile, name, action, ready, expected = 1) {
+  await page.evaluate(() => { window.__qualityAudit.events = []; window.__qualityAudit.longTasks = []; window.__qualityAudit.since = performance.now(); });
+  const started = performance.now();
+  await action();
+  await ready();
+  const elapsedMs = performance.now() - started;
+  // Event Timing entries arrive after the next paint; wait for delivery before reading them.
+  await page.waitForTimeout(300);
+  const data = await page.evaluate(() => ({ events: window.__qualityAudit.events, longTasks: window.__qualityAudit.longTasks }));
+  const groups = new Map();
+  for (const event of data.events) {
+    const current = groups.get(event.id);
+    if (!current || event.duration > current.duration) groups.set(event.id, event);
+  }
+  result.interactions.push({ profile, name, elapsedMs, expected, interactions: [...groups.values()], longTasks: data.longTasks });
+}
+
+async function interactions(profile, sample) {
+  const context = await browser.newContext({ viewport: DESKTOP, serviceWorkers: 'block' });
+  const page = await context.newPage();
+  await observe(page);
+  await page.goto(baseURL + route('home'));
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await throttle(context, page, profile);
+  const tools = page.locator('#tools');
+  await tools.scrollIntoViewIfNeeded();
+  for (const tab of ['compare', 'design', 'laboratory', 'analyze']) {
+    await measure(page, profile, 'public-tool-tab', () => page.locator(`#public-tools-${tab}-tab`).click(),
+      () => expect(page.locator(`#public-tools-${tab}-panel`)).toBeVisible());
+  }
+  await page.evaluate(() => { window.scrollTo(0, 0); });
+  const preferences = page.locator('.site-bar .preferences-menu');
+  await measure(page, profile, 'preferences-open', () => preferences.locator('summary').click(),
+    () => expect(preferences).toHaveAttribute('open', ''));
+  const theme = sample % 2 === 0 ? 'dark' : 'light';
+  await measure(page, profile, 'theme-change', () => preferences.locator(`input[value="${theme}"]`).check({ force: true }),
+    () => expect(page.locator('html')).toHaveAttribute('data-theme', theme));
+  await preferences.locator('summary').click();
+
+  await page.goto(baseURL + route('analyze'));
+  await expect(page.locator('.descriptor-panel .property')).toHaveCount(5, { timeout: 30_000 });
+  for (const label of ['collapse', 'expand']) {
+    await measure(page, profile, 'sidebar-toggle', () => page.locator('.sidebar-toggle').click(),
+      () => expect(page.locator('.workspace')).toHaveAttribute('data-compact', label === 'collapse' ? 'true' : 'false'));
+  }
+  for (const view of ['sequence', 'profile', 'structure', 'summary']) {
+    await measure(page, profile, 'analysis-view', () => page.locator(`#analysis-${view}-tab`).click(),
+      () => expect(page.locator(`#analysis-${view}-tab`)).toHaveAttribute('aria-selected', 'true'));
+  }
+  await page.locator('button[aria-controls="sequence-panel"]').click();
+  const editor = page.locator('#sequence-input');
+  await editor.click();
+  await editor.press('Control+End');
+  await measure(page, profile, 'sequence-typing', () => editor.pressSequentially('ACDEFGHIKLMNPQRSTVWY'),
+    () => expect(editor).toHaveValue(/ACDEFGHIKLMNPQRSTVWY\s*$/), 20);
+
+  await page.setViewportSize(MOBILE);
+  const menuButton = page.locator('.workspace-bar button[aria-controls]');
+  await measure(page, profile, 'menu-open', () => menuButton.click(), () => expect(page.locator('dialog.workspace-sheet')).toBeVisible());
+  await measure(page, profile, 'menu-close', () => page.keyboard.press('Escape'), () => expect(page.locator('dialog.workspace-sheet')).toBeHidden());
+  await page.setViewportSize(DESKTOP);
+
+  await page.goto(baseURL + route('generate'));
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await measure(page, profile, 'generator-search', () => page.getByRole('button', { name: 'Buscar y comparar' }).click(),
+    () => expect(page.getByRole('heading', { name: 'Candidatos y comparación' })).toBeVisible({ timeout: 60_000 }));
+
+  await page.goto(baseURL + route('laboratory'));
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(3, { timeout: 30_000 });
+  await measure(page, profile, 'laboratory-position', () => page.locator('[data-position="2"]').click(),
+    () => expect(page.locator('.lab-inspector select')).toBeVisible());
+  const variant = page.locator('.lab-variant-picker button').nth(1);
+  await measure(page, profile, 'laboratory-variant', () => variant.click(), () => expect(variant).toHaveAttribute('aria-pressed', 'true'));
+  await measure(page, profile, 'laboratory-view', () => page.locator('#laboratory-comparison-tab').click(),
+    () => expect(page.locator('#laboratory-comparison-panel')).toBeVisible());
+  await context.close();
 }
 
 try {
   browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
     ?? (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined) });
   result.browser = browser.version();
-  for (const profile of ['native', '4g-cpu4']) {
-    for (const destination of ['home', 'analyze']) {
-      for (let sample = 0; sample < samples; sample++) {
-        const context = await browser.newContext({ viewport: result.conditions.viewport, serviceWorkers: 'block', reducedMotion: 'reduce' });
-        const page = await context.newPage();
-        await observe(page);
-        if (profile !== 'native') {
-          const cdp = await context.newCDPSession(page);
-          await cdp.send('Network.enable');
-          await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150, downloadThroughput: 1_600_000 / 8, uploadThroughput: 750_000 / 8 });
-          await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-        }
-        const started = performance.now();
-        await page.goto(baseURL + route(destination));
-        await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-        await page.evaluate(() => document.fonts.ready);
-        if (destination === 'analyze') await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
-        const readyMs = performance.now() - started;
-        // Fixed observation window, including late paints/worker-delivered content; no user input before LCP.
-        await page.waitForTimeout(2000);
-        result.loads.push({ profile, destination, sample, readyMs, ...await snapshot(page) });
-        await context.close();
-      }
+  // Alternate routes inside each round so slow drift of the host affects both alike.
+  if (phases.has('loads')) {
+    for (let sample = 0; sample < samples; sample++) {
+      for (const profile of ['4g-cpu4', 'native']) for (const destination of destinations) await load(profile, destination, sample);
     }
   }
-  const context = await browser.newContext({ viewport: result.conditions.viewport, serviceWorkers: 'block', reducedMotion: 'reduce' });
-  const page = await context.newPage();
-  await observe(page);
-  await page.goto(baseURL + route('alignment'));
-  await expect(page.locator('.verdict')).toBeVisible();
-  for (let sample = 0; sample < samples; sample++) {
-    const sequence = 'ACDEFGHIKLMNPQRSTVWY'.repeat(100);
-    await page.locator('#alignment-first').fill(sequence);
-    await page.locator('#alignment-second').fill(sequence);
-    await page.evaluate(() => { window.__qualityAudit.longTasks = []; window.__qualityAudit.events = []; window.__qualityAudit.eventSince = performance.now(); });
-    const started = performance.now();
-    await page.locator('.alignment-actions .button-primary').click();
-    await expect(page.locator('.verdict')).toContainText('2.000 de 2.000');
-    result.alignments.push({ sample, elapsedMs: performance.now() - started, ...await snapshot(page) });
+  if (phases.has('interactions')) {
+    for (let sample = 0; sample < Math.min(samples, 5); sample++) for (const profile of ['cpu4', 'native']) await interactions(profile, sample);
   }
-  await page.setViewportSize({ width: 1280, height: 900 });
-  for (const destination of ['home', 'analyze', 'alignment']) {
-    const target = route(destination);
-    await page.evaluate(() => { window.__qualityAudit.events = []; window.__qualityAudit.eventSince = performance.now(); window.__qualityAudit.longTasks = []; });
-    const started = performance.now();
-    await page.locator(`header .site-nav a[href="${target}"]`).click();
-    await expect(page).toHaveURL(baseURL + target);
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    const elapsedMs = performance.now() - started;
-    await page.waitForTimeout(250);
-    result.navigation.push({ destination, elapsedMs, ...await snapshot(page) });
-  }
-  await page.goto(baseURL + route('analyze'));
-  await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
-  await page.setViewportSize({ width: 360, height: 900 });
-  async function interaction(name, sample, action, ready) {
-    await page.evaluate(() => { window.__qualityAudit.events = []; window.__qualityAudit.eventSince = performance.now(); window.__qualityAudit.longTasks = []; });
-    const started = performance.now();
-    await action(); await ready();
-    const elapsedMs = performance.now() - started;
-    // Event Timing is delivered asynchronously; durations below its 16 ms threshold can be absent.
-    await page.waitForTimeout(250);
-    const data = await snapshot(page);
-    const groups = new Map();
-    for (const event of data.events) groups.set(event.id, Math.max(groups.get(event.id) ?? 0, event.duration));
-    result.interactions.push({ name, sample, elapsedMs, eventDurationsMs: [...groups.values()], ...data });
-  }
-  for (let sample = 0; sample < samples; sample++) {
-    await interaction('menu-open', sample, () => page.locator('button[aria-controls="site-menu"]').click(),
-      () => expect(page.locator('#site-menu')).toBeVisible());
-    const theme = sample % 2 === 0 ? 'dark' : 'light';
-    await interaction('theme-change', sample, () => page.locator(`#site-menu input[value="${theme}"]`).check(),
-      () => expect(page.locator('html')).toHaveAttribute('data-theme', theme));
-    await interaction('menu-close', sample, () => page.locator('#site-menu .menu-sheet-head button').click(),
-      () => expect(page.locator('#site-menu')).toBeHidden());
-    const windowSize = sample % 2 === 0 ? '19' : '9';
-    await interaction('profile-window', sample, () => page.locator(`input[value="${windowSize}"]`).check(),
-      () => expect(page.locator(`input[value="${windowSize}"]`)).toBeChecked());
-  }
-  await page.locator('button[aria-controls="sequence-panel"]').click();
-  const editor = page.locator('#sequence-input');
-  for (let sample = 0; sample < samples; sample++) {
-    await editor.fill('');
-    await expect(page.locator('.descriptor-panel .property')).toHaveCount(0);
-    await interaction('sequence-typing-20', sample, () => editor.pressSequentially('ACDEFGHIKLMNPQRSTVWY'),
-      () => expect(editor).toHaveValue('ACDEFGHIKLMNPQRSTVWY'));
-  }
-  await context.close();
 } finally {
   await browser?.close();
-  await server.httpServer.close();
+  await new Promise(resolve => server.httpServer.close(resolve));
   mkdirSync('artifacts/quality', { recursive: true });
   writeFileSync(output, JSON.stringify(result, null, 2) + '\n');
 }
-const p75 = values => [...values].sort((a, b) => a - b)[Math.ceil(values.length * .75) - 1];
-for (const profile of ['native', '4g-cpu4']) for (const destination of ['home', 'analyze']) {
+
+const summary = { output, errors: result.errors, loads: [], interactions: [] };
+for (const profile of ['4g-cpu4', 'native']) for (const destination of ['home', 'analyze']) {
   const rows = result.loads.filter(row => row.profile === profile && row.destination === destination);
-  console.info(JSON.stringify({ profile, destination, lcpP75Ms: p75(rows.map(row => row.lcp)),
+  if (!rows.length) continue;
+  const elements = Object.entries(Object.groupBy(rows, row => row.lcpElement ?? 'none')).map(([element, list]) => `${element} ×${String(list.length)}`);
+  summary.loads.push({ profile, destination, lcpMedianMs: median(rows.map(row => row.lcp)), lcpP75Ms: p75(rows.map(row => row.lcp)),
+    fcpMedianMs: median(rows.map(row => row.fcp)), clsMax: Math.max(...rows.map(row => row.cls ?? 0)), tbtMedianMs: median(rows.map(row => row.totalBlockingMs)),
     maxTaskMs: Math.max(0, ...rows.flatMap(row => row.longTasks.map(task => task.duration))),
-    bytes: rows[0]?.resources.reduce((sum, resource) => sum + resource.bytes, 0) }));
+    bytesMedian: median(rows.map(row => row.resources.reduce((sum, resource) => sum + resource.bytes, 0))), lcpElements: elements });
 }
-console.info(JSON.stringify({ alignmentP75Ms: p75(result.alignments.map(row => row.elapsedMs)), errors: result.errors, output }));
-for (const name of new Set(result.interactions.map(row => row.name))) {
-  const rows = result.interactions.filter(row => row.name === name);
-  const durations = rows.flatMap(row => row.eventDurationsMs);
-  console.info(JSON.stringify({ interaction: name, samples: rows.length, reportedInteractionCount: durations.length,
-    reportedP75Ms: durations.length ? p75(durations) : null, reportedMaxMs: durations.length ? Math.max(...durations) : null }));
+for (const profile of ['cpu4', 'native']) for (const name of new Set(result.interactions.map(row => row.name))) {
+  const rows = result.interactions.filter(row => row.profile === profile && row.name === name);
+  if (!rows.length) continue;
+  // Interactions below the 16 ms threshold leave no entry; each missing one counts as 16 ms.
+  const durations = rows.flatMap(row => [...row.interactions.map(event => event.duration),
+    ...Array.from({ length: Math.max(0, (row.expected ?? 1) - row.interactions.length) }, () => 16)]);
+  summary.interactions.push({ profile, name, actions: rows.length, interactions: durations.length, p75Ms: p75(durations), maxMs: Math.max(...durations),
+    elapsedMedianMs: Math.round(median(rows.map(row => row.elapsedMs))), longestTaskMs: Math.max(0, ...rows.flatMap(row => row.longTasks.map(task => task.duration))) });
 }
+console.info(JSON.stringify(summary, null, 1));
 if (result.errors.length) process.exitCode = 1;

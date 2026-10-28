@@ -138,6 +138,8 @@
   --border-width-residue: 3px;
   --outline-width-focus: 3px;
   --outline-offset-focus: 2px;
+  /* How far a focus ring reaches outside its control; scrolling containers leave this much room. */
+  --focus-ring-reach: calc(var(--outline-width-focus) + var(--outline-offset-focus));
   --shadow-floating: 0 1px 2px var(--shadow-color), 0 8px 24px var(--shadow-color);
   --shadow-raised: 0 0 0 1px var(--border-subtle);
 

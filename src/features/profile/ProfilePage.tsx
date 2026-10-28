@@ -14,7 +14,7 @@ type PasswordState = 'idle' | 'sending' | 'sent' | 'error';
 /** Account, appearance, language and data preferences; the project collection has its own screen. */
 export function ProfilePage(): React.JSX.Element {
   const { t } = useTranslation();
-  const { locale, theme, setLocale, setTheme } = usePreferences();
+  const { chosenLocale, theme, setLocale, setTheme } = usePreferences();
   const auth = useAuth();
   const [password, setPassword] = useState<PasswordState>('idle');
 
@@ -77,7 +77,7 @@ export function ProfilePage(): React.JSX.Element {
           <SegmentedControl
             legend={t('settings.language')}
             options={LOCALES.map((value) => ({ value, label: t(LOCALE_LABEL_KEYS[value]) }))}
-            value={locale}
+            value={chosenLocale}
             onChange={setLocale}
           />
         </div>
