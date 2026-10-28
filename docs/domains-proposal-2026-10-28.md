@@ -1,6 +1,6 @@
 # Dominios documentados y ensamblado — propuesta de interfaz
 
-Preparada el **28 oct 2026**. **Pendiente de aprobación del propietario.** No hay interfaz implementada: esta propuesta decide cómo se presenta antes de escribir ninguna pantalla. El catálogo de datos sí está confirmado en `parallel/domains` (`b23110f`), sin ruta visible y sin que ninguna pantalla lo use todavía.
+Preparada el **28 oct 2026**. **Aprobada por el propietario el 28 oct 2026** con una condición: «Sí, pero con los colores de toda la app y así». Es decir, la pantalla usa solo los tokens y las clases que ya existen (colores, espacios, radios, bordes y tipografías de `src/design-tokens.css`), sin valores propios. La maqueta se rehízo así antes de implementar. Implementación en `parallel/domains`, sin publicar. El catálogo de datos sí está confirmado en `parallel/domains` (`b23110f`), sin ruta visible y sin que ninguna pantalla lo use todavía.
 
 Maqueta: `artifacts/domains-2026-10-28/index.html`, servida en el puerto 5327 desde la raíz del worktree. Capturas en `artifacts/domains-2026-10-28/capturas/` a 1280 y 360 px, en español e inglés y en ambos temas. La maqueta enlaza las hojas de estilo reales de la app (`src/design-tokens.css`, `src/index.css`, `src/frames.css`, `src/workbench.css`) y lee el catálogo real, así que no puede alejarse del diseño publicado.
 
@@ -39,6 +39,10 @@ Es el mismo apartado con el panel lateral poblado, no otra ruta.
 | Filtro sin resultados | El recuento dice 0 y se ofrece limpiar el filtro; el panel no cambia |
 | Sin sesión | Todo funciona salvo «Guardar en proyecto», que explica que necesita la sesión, como ya hace Proyectos |
 | Borrador con texto en Analizar | «Analizar el ensamblado» pide confirmación antes de reemplazarlo, con el diálogo que ya existe en Biblioteca |
+
+## Diseño
+
+Solo tokens y clases existentes: ningún color, espacio, radio, borde ni tamaño de letra nuevo. Tarjetas con `--radius-surface` y `--bg-raised`, la pieza elegida con `--bg-selected`, etiquetas con `--radius-pill`, el panel con `--bg-subtle`, la nota con `--border-width-residue`. Los nombres de las fuentes (UniProtKB, InterPro, PDB) se muestran traducidos desde i18n, no tal como vienen en el archivo de datos, que hoy guarda «PDB (vía SIFTS en UniProt)» en español.
 
 ## Accesibilidad y formas
 
