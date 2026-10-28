@@ -1,9 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { updateInvalidPositions, splitStandardResidues, validateSequence } from './sequence';
 import { FastaLoader } from './FastaLoader';
 import type { FastaEntry } from './fasta';
-import { VALIDATION_DELAY_MS } from './config';
+import { OPEN_PROJECT_STATE, VALIDATION_DELAY_MS } from './config';
 import { DEFAULT_EXAMPLE } from './examples';
 import { annotationsFor } from './annotations';
 import { useSequenceDraft } from './sequenceDraft';
@@ -28,6 +28,8 @@ import { ViewTabs } from '../../shared/ViewTabs';
 const MappedStructure = lazy(() => import('../library/MappedStructure').then(module => ({ default: module.MappedStructure })));
 
 type Panel = 'sequence' | 'project' | null;
+const opensProject = (state: unknown): boolean =>
+  typeof state === 'object' && state !== null && 'panel' in state && state.panel === OPEN_PROJECT_STATE.panel;
 type AnalysisView = 'summary' | 'sequence' | 'profile' | 'structure';
 const SEQUENCE_PANEL_ID = 'sequence-panel';
 const PROJECT_PANEL_ID = 'project-panel';
@@ -38,12 +40,14 @@ export function EditorPage(): React.JSX.Element {
   const { text, setText, profileWindow, setProfileWindow, source, setSource, referenceView, setReferenceView } = useSequenceDraft();
   const alignment = useAlignmentDraft();
   const navigate = useNavigate();
+  const location = useLocation();
   const descriptors = useDescriptors(text);
   const validation = useMemo(() => validateSequence(text), [text]);
   const additional = splitStandardResidues(validation.sequence).excluded;
   const [invalidPositions, setInvalidPositions] = useState<number[]>([]);
-  // An empty draft opens with the editor ready; it stays open while the visitor types.
-  const [panel, setPanel] = useState<Panel>(() => (text === '' ? 'sequence' : null));
+  // An empty draft opens with the editor ready; it stays open while the visitor types. A sequence brought
+  // from Library to be saved opens with project saving shown.
+  const [panel, setPanel] = useState<Panel>(() => (text === '' ? 'sequence' : opensProject(location.state) ? 'project' : null));
   const [localSelected, setLocalSelected] = useState<number | null>(() => annotationsFor(source)?.highlight ?? null);
   const activeView = isCurrentReference(referenceView, text, source) ? referenceView : null;
   const [view, setView] = useState<AnalysisView>(() => activeView ? 'structure' : 'summary');

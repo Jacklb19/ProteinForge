@@ -576,7 +576,7 @@ export const spanish = {
   'domains.analyzeAssembly': 'Analizar el ensamblado',
   'domains.download': 'Descargar FASTA',
   'domains.save': 'Guardar en proyecto',
-  'domains.saveHelp': 'Se abre en Analizar con el guardado de proyectos a la vista.',
+  'domains.saveHelp': 'Se abre en Analizar con el guardado de proyectos abierto.',
   'domains.saveNeedsSession': 'Guardar en un proyecto necesita tu sesión.',
   'domains.confirmLoad': 'Usar esta secuencia',
   'domains.kindSh3': 'SH3',

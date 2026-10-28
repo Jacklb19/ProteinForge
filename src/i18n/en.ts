@@ -578,7 +578,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'domains.analyzeAssembly': 'Analyze the assembly',
   'domains.download': 'Download FASTA',
   'domains.save': 'Save to project',
-  'domains.saveHelp': 'Opens in Analyze with project saving in view.',
+  'domains.saveHelp': 'Opens in Analyze with project saving open.',
   'domains.saveNeedsSession': 'Saving to a project needs your session.',
   'domains.confirmLoad': 'Use this sequence',
   'domains.kindSh3': 'SH3',

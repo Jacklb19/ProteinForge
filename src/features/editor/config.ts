@@ -1,6 +1,9 @@
 import insulinFasta from '../descriptors/fixtures/P01308.fasta?raw';
 import type { TranslationKey } from '../../i18n';
 
+/** Router state that opens Analyze with project saving shown, for a sequence brought from another screen. */
+export const OPEN_PROJECT_STATE = { panel: 'project' } as const;
+
 /** Delay before revalidating the editor after typing stops. */
 export const VALIDATION_DELAY_MS = 45;
 
