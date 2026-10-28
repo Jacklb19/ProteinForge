@@ -1,5 +1,7 @@
 # Definición vigente de ProteinForge
 
+Estado del 28 oct 2026: publicados frontend `main` `84f9da5` y backend `main` `18d9444`, con CI y Vercel correctos. Están publicados el rediseño «Mesa clara», la presentación pública separada del laboratorio, la selección SIFTS, el asistente, Proyectos, el laboratorio y el historial del generador, este último oculto hasta activar `VITE_GENERATOR_HISTORY` en Vercel. En `dev` del frontend está integrada además la pasada de rendimiento y accesibilidad (`0b22b4a`), sin publicar. Por decisión del propietario de esta fecha, el modelado se queda en el cuaderno manual de Colab, la inferencia desde la app queda aplazada, la forma de novo fuera del alcance y el catálogo de dominios no iniciado. La verificación se limita a lo necesario: Safari en dispositivo real, lector de pantalla e INP de campo son límites documentados, no pendientes. El [plan](plan-desarrollo.md), las [decisiones](decisiones.md) y el [relevo](prompt-siguiente-entrega.md) recogen evidencia y límites; las capturas fechadas inferiores conservan la evolución anterior.
+
 Estado del 26 oct 2026: laboratorio, guardado en Proyectos y RF-11/Groq publicados; [recorrido del laboratorio registrado](laboratory-activation.md), lectura autenticada del asistente en producción por comprobar. Selección SIFTS Biblioteca/Analizar y suministro autenticado integrados y verificados localmente, pendientes de publicación. La prueba manual ZeroGPU produjo un rediseño fragmentario; siguen abiertas forma de novo, inferencia estructural desde la app y persistencia de predicciones. El [plan actualizado](plan-desarrollo.md) recoge evidencia y límites; las capturas de estado fechadas inferiores conservan la evolución anterior.
 
 Actualización de implementación del 21 oct 2026: Proyectos, migraciones, publicación y confirmación de correo ya resueltos según las verificaciones posteriores; inglés implementado. El [laboratorio A](laboratory.md) añade tres resultados reales de Colab, importación, selección secuencia/3D, edición/restricciones y guardar/reabrir archivo local. El [recorrido condicionado manual](design-lab-constraints.md) también está ejecutado y comprobado. El [guardado completo en Proyectos](laboratory-projects.md) está implementado y comprobado localmente. Quedan su activación remota, predicción nueva desde la app y forma de novo. La tabla del 12 oct de abajo conserva la captura anterior; el [plan actualizado](plan-desarrollo.md) determina lo restante.
@@ -18,15 +20,15 @@ Un candidato que cumple intervalos de descriptores no queda validado como prote�
 
 | Capacidad | Estado actual |
 |---|---|
-| Editor, FASTA, validación ampliada | Implementados; catálogo inicial de tres referencias completas, dominios/ensamblado pendientes |
-| Descriptores, hidropatía y propensiones clásicas | Implementados en Workers |
-| Alineamiento global/local | Implementado en Rust/WASM y Workers |
-| Preferencias, temas y recursos locales sin conexión | Implementados; inglés completo y sincronización pendientes |
-| Backend y base de datos | Health/identidad/CRUD/UniProt e integración frontend implementados; seis pruebas RLS PostgreSQL reales. Migración/publicación y JWT real pendientes |
-| UniProt, catálogo, visor 3D y selección sincronizada | Referencias/UniProt/Mol* experimental implementados; cobertura anotada, SIFTS/selección sincronizada pendientes |
-| Cuentas, persistencia, asistente y PDF/CSV | Cuenta/proyectos e informes PDF/JSON/CSV implementados localmente; entrega SMTP/flujo Google completo, activación remota e interpretación pendientes |
-| Generación y comparación de candidatos | RF17 local implementado, límites/configuración y evidencia en [candidatos](candidates.md) |
-| Predicción externa de candidatos | Prueba puntual del servicio realizada; integración pendiente |
+| Editor, FASTA, validación ampliada | Implementados y publicados; catálogo inicial de tres referencias completas. El catálogo de dominios con ensamblado no se ha iniciado |
+| Descriptores, hidropatía y propensiones clásicas | Implementados en Workers y publicados |
+| Alineamiento global/local | Implementado en Rust/WASM y Workers, publicado |
+| Preferencias, temas y recursos locales sin conexión | Implementados y publicados, con inglés completo. La sincronización diferida al recuperar red sigue pendiente |
+| Backend y base de datos | Health/identidad/CRUD/UniProt/SIFTS/asistente implementados y publicados; seis pruebas RLS PostgreSQL reales y migraciones aplicadas por el propietario. Recorrido con JWT real y aislamiento por ID con segunda cuenta pendientes |
+| UniProt, catálogo, visor 3D y selección sincronizada | Implementados y publicados, incluida la selección SIFTS bidireccional comprobada en producción con P01308/1TRZ; cobertura anotada. Mol* experimental, sin predicción |
+| Cuentas, persistencia, asistente y PDF/CSV | Cuenta, proyectos, laboratorio guardado, asistente e informes PDF/JSON/CSV implementados y publicados. Entrega SMTP, flujo Google completo, TOTP y la comprobación de la prosa del asistente siguen pendientes |
+| Generación y comparación de candidatos | RF17 implementado y publicado, con límites/configuración y evidencia en [candidatos](candidates.md). El historial de búsquedas en Proyectos está implementado y publicado, oculto hasta activar `VITE_GENERATOR_HISTORY` |
+| Predicción externa de candidatos | Aplazada por decisión del 28 oct: sin ejecutor gratuito cuyos términos permitan este uso. El modelado se hace con el cuaderno manual de Colab y sus resultados se importan |
 
 No se incluyen entrenamiento de modelos, cómputo estructural pesado en Vercel, simulación molecular, validación clínica, alineamiento múltiple, búsqueda BLAST completa ni colaboración simultánea. La generación se hará mediante un algoritmo específico, separado del asistente conversacional.
 
@@ -65,15 +67,15 @@ Las historias originales HU-01 a HU-10 permanecen en el archivo histórico; sus 
 
 | ID | Criterio vigente |
 |---|---|
-| RNF-01 | Cómputo pesado fuera del hilo principal; objetivo tareas menores de 50 ms e INP p75 menor de 200 ms. Pendiente auditoría |
+| RNF-01 | Cómputo pesado fuera del hilo principal; objetivo tareas menores de 50 ms e INP p75 menor de 200 ms. Auditado el 27 oct y cumplido solo en parte: interacciones sintéticas con CPU ×4 en p75 de 48 ms, pero persisten tareas de más de 50 ms al cargar. El INP de campo exigiría telemetría con consentimiento y queda fuera del alcance |
 | RNF-02 | Dos secuencias de 2.000 residuos en menos de 5 s en equipo medio de cuatro núcleos. Medición local disponible, certificación de equipo pendiente |
-| RNF-03 | Objetivo LCP menor de 2,5 s en 4G simulada; pendiente |
+| RNF-03 | Objetivo LCP menor de 2,5 s en 4G simulada. Cumplido en medición local del 27 oct con `vite preview`, 4G lenta y CPU ×4: 2.150 ms en Inicio y 2.449 ms en Analizar, este último con 43 ms de margen en p75. No acredita producción ni dispositivos físicos |
 | RNF-04 | Objetivo API: 100 peticiones/minuto durante 5 minutos; medir al existir backend, no aplicar carga al proveedor de predicción |
 | RNF-05 | Objetivo de disponibilidad de aplicación 99 % mensual, sin garantizar disponibilidad de APIs públicas; degradación explícita |
 | RNF-06 | TLS, secretos de servicios exclusivamente en servidor y autorización por recurso |
 | RNF-07 | Procesamiento local; guardado y envíos externos deliberados. Predicción envía secuencia con consentimiento |
 | RNF-08 | Accesibilidad WCAG 2.1 AA; contraste, foco y teclado desde el diseño |
-| RNF-09 | Compatibilidad objetivo en últimas dos versiones de Chrome, Firefox, Edge y Safari; alcance real de verificación documentado |
+| RNF-09 | Compatibilidad objetivo en últimas dos versiones de Chrome, Firefox, Edge y Safari. Alcance real verificado: Chromium 156, Firefox 155 y WebKit 26.6 en Windows, con la batería sin conexión completa en Chromium y WebKit. Safari en dispositivo real y lectores de pantalla quedan como límite documentado por decisión del 28 oct, no como pendiente |
 | RNF-10 | Cobertura mínima 70 % en cálculo y análisis estático sin errores. V8 no mide cobertura interna de Rust |
 | RNF-11 | Errores del backend con identificador de correlación sin exponer secretos ni secuencias |
 | RNF-12 | Costo cero, sin tarjeta ni recursos de pago; confirmar límites oficiales al implementar |
@@ -125,8 +127,8 @@ El cronograma antiguo se conserva como historial, no como bloqueo por conversaci
 2. API/proyectos/UniProt implementados con versiones fijas y RLS PostgreSQL real; activar migraciones/publicación y comprobar JWT real/runtime objetivo.
 3. Nueva dirección visual aprobada y recorrido integrado de catálogo/UniProt/visor experimental; conservar los mecanismos de accesibilidad y cálculo existentes.
 4. RF17 implementado con comparación reproducible; ampliar solo con evidencia de propiedades/estrategias admitidas.
-5. RF-18: integración de predicción, consentimiento, almacenamiento y visor, con respaldo para presentación.
-6. Completar interpretación, selección sincronizada, dominios/ensamblado, inglés/rendimiento; historial de generación y sincronización si se concreta su política. Proyectos/informes locales ya implementados, activación remota pendiente.
+5. RF-18: aplazado el 28 oct. El laboratorio importa y compara resultados del cuaderno manual de Colab, que sirve de respaldo para la presentación; la predicción desde la app espera un ejecutor gratuito admisible.
+6. Interpretación, selección sincronizada, inglés y rendimiento ya están implementados y publicados, y el historial de generación también, pendiente de activarlo en Vercel. Quedan la sincronización diferida, el catálogo de dominios con ensamblado —no iniciado— y los pendientes de identidad: SMTP, flujo Google completo y TOTP.
 
 La petición del 11 de octubre autoriza continuar el desarrollo completo con dirección visual v3 aprobada. El [plan actualizado](plan-desarrollo.md) ordena la web pública/app, conexión de identidad, proyectos, datos/visor, informes, generación y predicción. No se impone una fecha ni un sprint; las rutas/payloads nuevos y el esquema de candidatos se concretan al abordar cada entregable.
 

@@ -1,12 +1,32 @@
 # Estado y siguiente trabajo
 
+## Estado del 28 oct 2026
+
+Publicado y verde: frontend `main` `84f9da5`, backend `main` `18d9444`, con CI y Vercel correctos. En `dev` del frontend, el merge `0b22b4a` integra la pasada de rendimiento y accesibilidad (doce commits `a90f5aa`…`9d274da`); backend `dev` sigue en `acfea11`. Lo que hay en `dev` por encima de `main` no está publicado y necesita autorización expresa.
+
+**RNF-03 cumplido en medición local** y **RNF-01 cumplido solo en parte**: LCP mediano con 4G lenta y CPU ×4 de 2.150 ms en Inicio y 2.449 ms en Analizar, interacciones sintéticas en p75 de 48 ms, pero persisten tareas de más de 50 ms al cargar. El «internal error» de WebKit sin conexión era de la emulación de Playwright, no del producto. Un defecto real de accesibilidad corregido: anillo de foco recortado en la barra lateral. [Detalle y propuestas](performance-2026-10-27.md), [resumen](quality-s7.md). Verificación del merge sin Auth y como CI: tipos, lint, 504 unitarias en 87 archivos, cobertura 85,44/76,78/81,92/89,21 %, build y `check:pwa` correctos; la batería E2E completa quedó **en ejecución** y debe comprobarse antes de cerrar la integración.
+
+El historial del generador ya está implementado y publicado: la decisión sugerida el 26 oct queda resuelta. Falta solo activarlo: el propietario declara haber aplicado `20261027000000_generator_history.sql` el 28 oct, sin inspección desde coordinación, y queda pendiente añadir `VITE_GENERATOR_HISTORY=enabled` al proyecto de Vercel del frontend y redesplegar. Hasta entonces producción no ofrece guardar búsquedas, que es lo previsto.
+
+Decisiones tomadas por delegación el 28 oct, con su detalle en [decisiones](decisiones.md) y [relevo](prompt-siguiente-entrega.md): se implementan las propuestas de rendimiento 1 (código por rutas con precarga por cabeceras `Link`, sin tocar la CSP), 5 (subconjunto publicado de Plex Mono) y 2 (diferir zod si no enreda los proveedores), y se descartan por ahora la 3, la 4 y la 6. El alcance de pruebas se reduce a lo necesario, y Safari en dispositivo, lector de pantalla e INP de campo pasan a límites documentados. En modelado se mantiene el cuaderno manual de Colab; inferencia desde la app queda aplazada y forma de novo fuera del alcance. El catálogo de dominios no se inició: su sesión fue detenida por el clasificador de seguridad de Anthropic y no dejó commits.
+
+### Orden de continuación
+
+1. Comprobar el resultado de la batería E2E en curso sobre `dev` `0b22b4a`.
+2. Implementar las propuestas de rendimiento 1, 5 y 2 en una rama aislada desde `dev`, midiendo cada cambio por separado.
+3. Activar el historial del generador en producción con el propietario y comprobar un guardado real con su sesión.
+4. Recorrido con Supabase local y dos cuentas reales para el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 oct que revisa él esa parte.
+5. Pendientes antiguos que siguen abiertos: aislamiento por ID con segunda cuenta en producción, recorrido SIFTS con JWT real y lectura autenticada del asistente comprobada en prosa.
+
+Las entradas siguientes conservan el histórico anterior a esta fecha; no reabren publicaciones, migraciones ni aprobaciones ya resueltas.
+
 **Comprobación de Groq del 26 oct por la noche:** la configuración actual y el redespliegue del propietario permiten lecturas autenticadas reales en Analizar y Laboratorio. Ese pendiente de conexión queda comprobado, sin certificar toda la prosa: se observó una proporción incorrecta con cifras válidas. [Correcciones locales](assistant.md#comprobación-autenticada-y-mejoras-locales--26-oct-noche): plazo específico del asistente de 40 s y rechazo conservador de cantidades verbales no suministradas. No publicados; el último ensayo real local fue descartado por el verificador. No repetir configuración, migraciones o ensayos ya recibidos ni interpretar esta evidencia como autorización de publicación o nueva inferencia estructural. Siguiente decisión sugerida: RF-18/historial acotado, conservando las propuestas de ejecutor y de novo como pendientes.
 
 **Estado vigente tras la publicación del 26 oct:** SIFTS ya está publicado y comprobado con sesión real para P01308/1TRZ, posiciones 90/110. Laboratorio y Proyectos están publicados; la migración del 21 oct ya está aplicada y la reapertura de comparación fue comprobada por el propietario. El ZIP nuevo del propietario también está validado. No repetir esos pasos. El pin actual del frontend apunta al backend publicado `a3edaf1d7a43ada2b2bbf9113ff9ccef7f123a57`; los cierres inferiores son históricos y no vuelven a abrir aquella publicación.
 
 La corrección posterior de clasificación de errores del asistente está implementada y probada localmente, sin publicar. Falta capturar el error RPC real para atribuir la causa del fallo de Groq; una [herramienta local sin red](../../backend/docs/assistant.md#diagnóstico-local-sin-llamadas-a-groq--26-oct) ayuda a reconocer respuestas guardadas sin imprimir datos privados. El propietario iniciará sesión al llegar a casa. Otro chat trabaja en el rediseño; no modificar sus cambios desde este diagnóstico.
 
-Orden de continuación propuesto:
+Orden de continuación propuesto el 26 oct, conservado como histórico; el vigente es el de arriba:
 
 1. Con sesión del propietario, obtener código/mensaje estable y referencia de la lectura fallida; corregir la causa comprobada y verificar una lectura real en Analizar y Laboratorio. Mantener la comprobación de cifras. Configuración remota, claves y nuevas publicaciones necesitan autorización específica.
 2. Completar y verificar el rediseño en la conversación que lo está implementando, conservando ambos idiomas y los recorridos de Laboratorio/Proyectos.
@@ -48,7 +68,9 @@ Actualizado el 12 oct 2026 tras acordar el laboratorio didáctico. Entrega compr
 | Cuenta | REST Auth/recuperación/refresco/Google por redirección existentes; lectura autorizada 12 oct 18:20 UTC: Google/correo/registro habilitados, confirmación requerida | SMTP y acceso Google/JWT completo sin verificar; cinco tablas públicas siguen 404/PGRST205, sin migrar |
 | RF18/asistente | Propuesta concreta con consentimiento/validación/cache en [candidatos](candidates.md) | Proveedor/límites/retención/contrato pendientes; sin envío privado habilitado |
 
-## Prioridad siguiente
+## Prioridad siguiente del 12 oct 2026 (histórica)
+
+Esta lista pertenece a la captura del 12 oct y se conserva por trazabilidad; la prioridad vigente es la del estado del 28 oct, arriba.
 
 1. [Laboratorio de diseño](design-lab-roadmap.md): primero comprobar un caso pequeño de forma → secuencia → predicción, con archivos reales, recursos/tiempo y procedencia. Meta: dos o tres diseños para demo, sin entrenamiento propio ni GPU permanente.
 2. Sobre esa evidencia construir «Diseña tu proteína»: visor central, selección secuencia/3D, sustitución/deshacer, posiciones protegidas, variantes y comparación. Distinguir referencia/diseño/predicción. Parámetros avanzados secundarios y exploración local sin cuenta.

@@ -1,90 +1,68 @@
 # Relevo de desarrollo — ProteinForge
 
-Actualizado el **26 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes.
+Actualizado el **28 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes. Las versiones anteriores de este relevo están en [archive/relevo-2026-10-27.md](archive/relevo-2026-10-27.md); describen su momento y no son instrucciones vigentes.
 
-## Historial del generador: contratos e interfaz aprobada implementados, sin publicar — 27 oct
+## Estado publicado
 
-Decisiones del contrato tomadas por delegación y fase backend implementada en backend `dev` (`41ab303`, `22ffd01`, `b07a757`): workspace v3, historial dentro del snapshot, guardia monótona, código `project-requires-current-client`, migración `20261027000000_generator_history.sql` probada solo en PostgreSQL local. [Contrato y decisiones](../../backend/docs/generator-history-contract-proposal.md).
+| Repositorio | `main` | `dev` |
+|---|---|---|
+| Frontend | `84f9da5` | `0b22b4a` |
+| Backend | `18d9444` | `acfea11` |
 
-Fase frontend autorizada por el propietario e implementada en `dev` sin ruta visible: código generado desde el protobuf local (`e866e2e`, pin actualizado después al backend publicado `18d9444` con regeneración idéntica), contratos Zod/rpcMapping/guardado con versión máxima y conservación de laboratorio e historial, rechazo por tamaño sin truncar, `appBuild` por Vite y reproducción bajo demanda en Worker (`36767fb`, `a4f6fc1`, `66fb9df`, `222dc05`). Maqueta y plan aprobados por el propietario el 27 oct, aprobación confirmada por él directamente: [propuesta de interfaz](generator-history-ui-proposal-2026-10-27.md). Interfaz implementada (`214e606`, `b01e52e`, `b0913bd`) y oculta salvo con `VITE_GENERATOR_HISTORY=enabled`; no activarla en producción hasta publicar migración y backend y repinear. Servidor de la maqueta: configuración `generator-history-mockup`, puerto 5361. Orden de publicación cuando se autorice: migración → backend → repin/regeneración → frontend.
+Ambos `main` se publicaron el 27 de octubre con CI y Vercel correctos; los remotos conservan únicamente `dev` y `main`. Lo que hay en `dev` por encima de `main` todavía no está publicado y necesita autorización expresa del propietario.
 
-## Rediseño integral aprobado e implementado localmente
+El frontend fija el backend publicado `18d9444` en `buf.gen.yaml`; la regeneración fue idéntica. Si cambia el contrato, el orden sigue siendo **migración → backend → repin/regeneración → frontend**.
 
-El propietario aprobó A «Mesa clara» y el [plan por pantalla](usability-redesign-proposal-2026-10-26.md). Implementación React: navegación lateral, resumen y vistas de análisis, variantes accesibles, separación de comparación/archivos, Biblioteca por fuentes, Proyectos por filas y formularios/legales organizados. [Informe de implementación y comprobación](usability-redesign-implementation-2026-10-26.md). Comprobación final: 446 unitarias, 110 recorridos distintos verificados (2 archivos opcionales no suministrados a E2E), matriz visual 30/30 con 120 configuraciones, tipos/lint/build/PWA correctos. La pasada completa de recorridos necesitó actualizar una aserción antigua de error oculto; Biblioteca repetida 6/6 correcta. No pedir de nuevo selección ni aprobación visual de ese plan.
+## Integrado en `dev` el 28 de octubre: rendimiento y accesibilidad
 
-Fuentes vigentes: docs/diseno-visual.md, docs/pantallas.md y .21st/DESIGN.md. La evidencia de maquetas se conserva separada de las capturas del producto en artifacts/usability-redesign-2026-10-26/. Vista previa local actual en puerto 5340, servidor de desarrollo de esta entrega; no confundir con despliegue público. Backend y contratos sin cambios. No push, merge ni despliegue autorizados para este rediseño. Los pendientes anteriores se conservan; no reabrir ensayos, migraciones ni publicaciones ya completados.
+El merge `0b22b4a` incorpora los doce commits `a90f5aa`…`9d274da` de la pasada de rendimiento y accesibilidad, antes aislada en `parallel/performance`. [Detalle, cifras crudas y propuestas](performance-2026-10-27.md); resumen en [calidad](quality-s7.md).
 
-## Publicación completada y pendientes reales
+- **RNF-03 cumplido en medición local:** LCP mediano con 4G lenta y CPU ×4 baja de 2.495 a 2.150 ms en Inicio y de 3.198 a 2.449 ms en Analizar. Analizar supera el objetivo por 43 ms en p75, margen estrecho. Causas corregidas: catálogos de idioma dentro de cada Worker, precarga de la monoespaciada y catálogo inglés en el paquete inicial. El precaché de la PWA baja de 3.463 a 2.512 KiB.
+- **RNF-01 cumplido solo en parte:** las interacciones sintéticas con CPU ×4 quedan en p75 de 48 ms y máximo de 144 ms, por debajo de 200 ms, pero al cargar persisten tareas de más de 50 ms (unos 135 ms de evaluación y unos 165 ms de render). No son INP de campo.
+- **WebKit sin conexión:** el «internal error» registrado el 25 y 26 de octubre lo produce la emulación `setOffline` de Playwright en WebKit/Windows, no el producto. Con el servidor realmente parado, la aplicación recarga desde su Service Worker; `check:pwa` usa ahora esa caída real y pasa en WebKit 26.6 y Chromium 156. No certifica Safari.
+- **Accesibilidad:** matriz AA nueva en es/en, 360/1280 px, claro/oscuro, con recorridos de teclado. Encontró y corrigió un defecto real: el anillo de foco quedaba recortado en la navegación desplazable de la barra lateral.
 
-**Comprobación posterior, 26 oct por la noche:** el propietario actualizó `GROQ_API_KEY` en Production y redesplegó `protein-back` fuera de esta conversación. Con su sesión, las lecturas de insulina en Analizar (22:29 COT) y 1UBQ variante 1 en Laboratorio (22:30 COT) respondieron con procedencia real. El fallo anterior no se reproduce; no inferir retrospectivamente su causa ni pedir recrear claves. Se observó un error semántico: 42 de 76 descrito como menos de la mitad. Mejoras locales posteriores: plazo específico del asistente de 40 s y rechazo conservador de proporciones verbales no suministradas, con pruebas de reproducción; [detalle y límites](assistant.md#comprobación-autenticada-y-mejoras-locales--26-oct-noche). Una llamada real local final fue rechazada por el verificador; no afirmar éxito científico o verificación completa de prosa. Sin publicar estas correcciones, cambiar contratos, SQL remoto o ejecutar inferencia estructural. Las notas inferiores conservan la investigación histórica anterior a esta comprobación.
+Verificación del merge, sin Auth configurada y como CI: tipos y lint correctos; **504 unitarias en 87 archivos**; cobertura 85,44 / 76,78 / 81,92 / 89,21 %, mínimos intactos; build correcto; `check:pwa` correcto. La batería E2E completa quedó **en ejecución** en el checkout principal (puerto 5190, un trabajador): comprobar su resultado antes de dar la integración por cerrada o preparar cualquier publicación.
 
-**Publicación autorizada expresamente el 26 oct:** el propietario responde «sí» a publicar dev y actualizar main de ambos repositorios, backend primero y frontend después de actualizar/regenerar el contrato. No repetir esa petición para esta entrega. También aprobó maqueta y suministro SIFTS: «Sí, implementar interfaz y suministro SIFTS».
+## Historial del generador: pendiente solo de activarlo
 
-Backend dev `1443dd9` y main `a3edaf1d7a43ada2b2bbf9113ff9ccef7f123a57` publicados; CI de ambos correcta, incluida Python 3.14. Frontend dev `2e2f02f` y main `6ff8db11c1b78b42258d8a0bde77ff773e52d308` publicados después de actualizar el pin al backend publicado y regenerar sin diferencias. CI general, WASM y despliegues correctos. No repetir esta publicación; futuras entregas requieren su propia autorización. Conservar el orden backend→pin/regeneración→frontend cuando vuelva a cambiar el contrato.
+Contrato, backend, cliente e interfaz están implementados y publicados en `main`; la interfaz permanece oculta salvo con `VITE_GENERATOR_HISTORY=enabled`. [Contrato](../../backend/docs/generator-history-contract-proposal.md), [interfaz aprobada](generator-history-ui-proposal-2026-10-27.md).
 
-SIFTS autenticado real comprobado en producción con P01308/1TRZ: ambigüedad A/C, cadena A explícita y posiciones UniProt 90→autor A:1 y 110→A:21; transferencia Biblioteca/Analizar y coordenadas cargadas. Sesión existente restaurada por el navegador, sin extraer credenciales, guardar proyectos o enviar secuencias privadas. Una lectura de cifras públicas con Groq mostró error: falta diagnóstico; no atribuirlo a clave/modelo/proveedor sin evidencia. Clave/retención y acceso directo por ID con segunda cuenta siguen sin certificar. No repetir migraciones ya aplicadas.
+1. **Migración:** el propietario declara que aplicó `20261027000000_generator_history.sql` en Supabase remoto el 28 de octubre. No se ha inspeccionado desde coordinación, porque la cuenta de Supabase conectada allí corresponde a otro proyecto. Queda como declaración suya, pendiente de comprobación; no volver a pedirla ni repetirla.
+2. **Activación:** falta añadir `VITE_GENERATOR_HISTORY=enabled` al entorno de producción del proyecto de Vercel **del frontend** y volver a desplegar. Es una variable de build de Vite: un redespliegue con caché previa no la aplica. Mientras no exista, producción no ofrece guardar búsquedas, que es el comportamiento deseado.
+3. Tras activarla, comprobar un guardado real con sesión del propietario y el recuento en Proyectos.
 
-## Próxima conversación: orden propuesto
+## Decisiones tomadas por delegación el 28 de octubre
 
-1. Distinguir evidencia existente de pruebas nuevas: **ya hay tres rediseños completos de 1UBQ A con predicción ESMFold, métricas y ZIP importable**. No afirmar que ProteinForge carece de diseños completos. Ver [tres variantes](design-lab-three-variants.md) y [guía de ejecución rápida](modeling-next-run.md). El CIF fragmentario de RFD4 es otro ensayo y no sustituye esos resultados.
-2. **Ensayo manual del propietario recibido y validado el 26 oct**: `C:\Users\josel\Desktop\proteinforge-design-lab-results.zip`, 86.952 bytes, SHA-256 `a67aebbac04b9fbed6e8c1ed52119f8880284c68c412131efc543dd48bbf6909`. Importador real y auditoría de coordenadas correctos: 76 residuos/592 átomos, pLDDT medio 93,3856, pTM 0,863246, RMSD 0,821844 Å sobre las 76 posiciones. Reproduce muestra 1 previa con semilla 42; no prometer secuencia nueva. [Resultado y límites](modeling-run-2026-10-26.md). No volver a pedir este ZIP o repetir el ensayo para conseguir un caso completo; falta únicamente el cuaderno ejecutado con salidas si se quiere ampliar trazabilidad.
-3. Si el objetivo sigue siendo RFD4/ZeroGPU: obtener allí una entrada/salida completa y predicción independiente. El cuaderno actual usa ProteinMPNN+ESMFold sobre 1UBQ; no valida automáticamente cualquier CIF de RFD4. Falta esa adaptación y no hay ejecutor propio gratuito habilitado.
-4. Diagnosticar el error real de Groq en producción sin solicitar/exponer secretos. Diagnóstico local posterior: faltaba clasificar `assistant-not-configured` (`FAILED_PRECONDITION`/9), que producía el mismo mensaje genérico observado; corrección local y regresiones en cliente/backend/navegador, sin nueva llamada real. No demuestra la causa del incidente: falta el código RPC/mensaje estable de esa respuesta y su referencia de solicitud, sin tokens ni HAR completo. Ver [diagnóstico](assistant.md#diagnóstico-local-del-26-oct-2026). Conservar validación de cifras; no desactivarla para aparentar éxito.
-5. Acordar ejecutor público viable a costo cero, consentimiento, cuotas/cancelación/fallos, importación y persistencia RF-18/historial antes de ampliar contratos o interfaz. [Inferencia](app-inference-proposal.md), [persistencia](prediction-storage-proposal.md), [forma de novo](de-novo-proposal.md) siguen siendo propuestas, no aprobaciones generales.
-6. Cerrar límites S7: WebKit offline/Safari/dispositivos, mediciones de rendimiento de campo y aislamiento por ID con segunda cuenta. Dominios/ensamblado siguen pendientes del alcance general. Sin prometer función o estabilidad experimental.
+El propietario delegó las decisiones técnicas y pidió consolidar documentación. Registradas también en [decisiones](decisiones.md).
+
+- **Rendimiento.** Se implementan las propuestas 1 (separar el código inicial por rutas con precarga mediante cabeceras `Link`, sin tocar la CSP `script-src 'self'`), 5 (subconjunto **publicado** de IBM Plex Mono con su procedencia, sin generarlo aquí por la reserva de nombre de la OFL) y 2 (diferir zod, solo si no enreda los proveedores de estado). Se descartan por ahora la 3 (primer render en transición: únicamente volver a medirla cuando la 1 dé margen), la 4 (`content-visibility` en las secciones públicas, por el riesgo de recortar anillos de foco) y la 6 (INP de campo, que exigiría telemetría de usuarios con consentimiento).
+- **Alcance de pruebas.** Se mantienen solo las necesarias: tipos, lint, unitarias con cobertura, build, `check:pwa` en Chromium y la batería E2E completa en Chromium con un trabajador, más la matriz de accesibilidad existente a 360/1280 px en es/en y ambos temas. Safari en dispositivo real, lector de pantalla e INP de campo pasan a **límites conocidos documentados**, no tareas pendientes. No añadir recorridos E2E nuevos salvo como regresión de un fallo real.
+- **Modelado.** El cuaderno manual de Colab sigue siendo la vía oficial y documentada. [Inferencia desde la app](app-inference-proposal.md) queda aplazada y solo se reabre si aparece un ejecutor gratuito cuyos términos permitan este uso. [Forma de novo](de-novo-proposal.md) queda fuera del alcance de la asignatura, porque depende del mismo ejecutor. Ninguna de las dos propuestas se borra.
+- **Catálogo de dominios.** La sesión que lo preparaba fue detenida por el clasificador de seguridad de Anthropic y no dejó ningún commit. En `worktree-domains` quedó sin confirmar `src/features/domains/catalog.json`, 108.946 bytes, generado el 27 de octubre por un script de `artifacts/` (carpeta ignorada). Tarea **no iniciada**: no reintentarla ni reformularla para esquivar ese límite; si el propietario la quiere, debe replantearse con él.
+
+## Orden de continuación
+
+1. Comprobar el resultado de la batería E2E en curso sobre `dev` `0b22b4a`.
+2. Implementar las propuestas de rendimiento 1, 5 y 2 en una rama aislada desde `dev`, midiendo cada cambio por separado como en la pasada anterior. Objetivo: ampliar el margen de Analizar y reducir las tareas largas de carga.
+3. Activar el historial del generador en producción según el apartado anterior, con el propietario.
+4. Recorrido con Supabase local y dos cuentas reales para cerrar el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 de octubre que revisa él esa parte.
+5. Pendientes antiguos que siguen abiertos: aislamiento por ID con segunda cuenta en producción, recorrido SIFTS con JWT real y lectura autenticada del asistente comprobada en prosa.
+
+## Copias de trabajo
+
+| Copia | Rama | Estado | Puertos |
+|---|---|---|---|
+| `worktree-performance` | `parallel/performance` | Ya integrada en `dev` (`0b22b4a`); sin commits pendientes | 5310–5319, E2E 5315 |
+| `worktree-domains` | `parallel/domains` | En `92e81a3`, sin commits propios; solo el JSON sin confirmar descrito arriba | 5320–5329, E2E 5325 |
+| Coordinación | `frontend/dev`, `backend/dev` | Documentación general e integración | 5330–5339; E2E de verificación en 5190 |
+
+Las copias `worktree-quality`, `worktree-sifts` y `worktree-auth` se eliminaron el 27 de octubre tras comprobar con `git cherry` que no faltaba ningún commit en `dev`; sus evidencias están en `artifacts/worktree-evidence/`, ignorada. Se conserva el stash antiguo «discarded: interface redesign v3». [Plan de desarrollo paralelo](../../parallel-development.md).
 
 ## Reglas vigentes
 
-Continuación del diagnóstico Groq: `backend/scripts/diagnose_assistant.py` permite preflight local de presencia y análisis sin red de un cuerpo de error REST/Connect/gRPC-Web, sin imprimir datos privados. 16/16 pruebas del asistente/diagnóstico; seis del lector repetidas tras endurecerlo, correctas. Preflight real local: identidad y asistente configurados; no prueba clave válida ni Vercel. Navegador publicado sin sesión; propietario iniciará sesión al llegar a casa. No repetir lectura por su cuenta ni dar la causa por confirmada. Código servido, secretos y configuración remota intactos. El [plan vigente](plan-desarrollo.md) separa diagnóstico, rediseño en otra conversación y futuras decisiones RF-18/inferencia. Conservar cambios de interfaz en curso; esta continuación solo cambia herramienta/tests backend y documentación.
+Trabajar en `dev`. Autor y committer exclusivamente Jacklb19 <jose.burbanob@campusucc.edu.co>, sin firmas, coautores ni menciones a herramientas o agentes de IA en Git y GitHub, tampoco en mensajes de merge o PR; comprobarlo antes de cada push. Commits pequeños en inglés con pathspec explícito; documentación y respuestas en español. Cada texto visible va en `src/i18n/es.ts` y `src/i18n/en.ts` en el mismo cambio. No forzar al índice AGENTS, PROGRESS, propuestas, artifacts, secretos ni dependencias.
 
-Trabajar en dev. Autor y committer exclusivamente Jacklb19 <jose.burbanob@campusucc.edu.co>, sin firmas, coautores o menciones a herramientas de IA en Git/GitHub. Commits pequeños en inglés; documentación/respuestas en español. Cada texto visible en es/en en el mismo cambio. No forzar AGENTS, PROGRESS, propuestas, artifacts, secretos o dependencias al índice.
+Costo cero estricto, sin tarjeta ni modelos en Windows. Sin push, merge, despliegue, migraciones remotas, cambios de servicios o secretos y sin cuentas nuevas salvo autorización expresa y fechada del propietario. La autorización de publicación del 27 de octubre quedó consumida y no cubre lo que entre después en `dev`. No repetir migraciones ya aplicadas ni reabrir aprobaciones visuales existentes: «Mesa clara», la presentación pública separada del laboratorio y el historial del generador están aprobados e implementados.
 
-Costo cero estricto, sin tarjeta ni modelos en Windows. No cambios de servicios/secretos, SQL remoto, cuentas nuevas o gastos por esta continuación. La autorización actual se limita a publicar esta entrega; no se extiende a entregas futuras. No repetir migraciones ya aplicadas por el propietario.
-
-## S5: implementación integrada y publicada
-
-[Maqueta y plan aprobados](references.md). Biblioteca añade posición, cadena y estado, conservando catálogo/consulta/visor y confirmación de reemplazo. «Ver selección en Analizar» transfiere una referencia exacta en memoria. Analizar conserva lector/editor/perfil; ese contexto abre el visor general en el lateral de forma diferida. El ejemplo habitual conserva su dibujo inmediato. No hay lector/editor nuevo en Biblioteca.
-
-Selección bidireccional por filas SIFTS y coordenadas reales, con cadena explícita ante copias ambiguas. Conserva posición UniProt, autor textual/null, inserción, huecos y modelo; no interpola intervalos. Versión conocida y SHA-256 de toda la secuencia antes de habilitar selección. Editar, retirar procedencia, cambiar referencia/PDB/modelo/sesión o recibir respuesta nueva cierra el vínculo; respuestas/hashes antiguos no lo reactivan. Fallos de índice/mapeo dejan cámara y coordenadas válidas disponibles. Sin persistencia nueva o cambios del laboratorio.
-
-Backend `b1fdbd8`: GET /v1/pdb/{pdb_id}/residue-mapping?accession=...&sequence_version=... y ReferenceService.GetResidueMapping, autenticados. UniProt fresco, versión/hash completos y accession exacta, sin recibir secuencias privadas. Presupuesto existente de referencias: 20/minuto por identidad/proceso; plazo de 20 s después de autenticar, fuentes y descargas acotadas. Caché pública por PDB: 300 s, cuatro entradas/4 MB serializados, sin identidad/secuencias/SQL. Respuesta REST y RPC binario/JSON completa hasta 2.000.000 bytes, sin truncamiento. Isoformas no habilitadas por este contrato. [Contrato y pruebas](../../backend/docs/sifts.md).
-
-Tercera entrega S5 integrada: `b8e7499/65842bb/6f275d9/8f622fa`; las previas también están incorporadas. En worktree-sifts el generado sigue como diferencia local intencional, idéntico al canónico, fuera de sus commits para no duplicar `0f3166e`: conservar hasta decidir el cierre de esa copia.
-
-## S7: calidad y límites
-
-Integrados cierre de sesión durante imports aplazados, lecturas por propietario, diálogo móvil modal que aísla el fondo, contraste WebKit y reutilización numérica medida. CORP same-origin y cabeceras también en 304 conservan COOP/COEP. WASM verifica bytes y revalidación sin aceptar errores como éxito. [Evidencia](quality-s7.md).
-
-Firefox 155 y WebKit 26.6 se ejecutaron en Windows. WebKit no transfiere canvas al Worker: aviso/tabla calculada comprobados, batería gráfica completa sin certificar. PWA limpia Chromium/Firefox comprobada; WebKit offline registra error interno. Windows/WebKit no certifica Safari, dispositivos físicos, lectores de pantalla o las dos versiones objetivo.
-
-La transición online de PWA instalada a5de1cf→1893ff3 pasó en WebKit con el mismo origen/perfil: borrador conservado mientras espera; proyecto guardado recuperado tras cerrar/reabrir; descriptores/WASM funcionan con recursos antiguos sin CORP. No se invalidaron masivamente. No certifica recuperar texto sin guardar tras cerrar, árbol canónico posterior, producción u offline. Auditoría incorporada en `76efdb5/05a2ec4`; no cambia producto.
-
-## Verificación combinada del 26 oct
-
-- Frontend: tipos/lint/build correctos; **436 unitarias/77 archivos**. Cobertura 86,34/77,21/83,13/89,87 %, mínimos intactos. Build: 47 recursos/2902,96 KiB; avisos previos Vite/fuentes/chunk conservados.
-- **76 recorridos Chromium completados**: 74 correctos en la matriz de 14 archivos; dos casos Colab inicialmente omitidos al faltar sus rutas, repetidos con campaña/resultado condicionado reales y 2/2 correctos. Incluye shell, responsive, loading, assistant, library, SIFTS, projects, collection, reports, editor, laboratorio, compatibilidad, alineamiento y WASM. Auth/RPC simulados; BinaryCIF/ZIP reales. Sin sesiones o escrituras del propietario.
-- PWA del build integrado en 5331 correcta: navegación, fuentes, Workers/WASM, PDF, laboratorio/cuaderno/edición/archivo offline; Mol* excluido.
-- Capturas Biblioteca/Analizar a 360 y 1280 px, ambos temas, inspeccionadas. Cabecera fija en medio de la captura completa corresponde al desplazamiento al tomarla.
-- Backend: 104 totales, 92 correctas y 12 SQL omitidas sin base. Python 3.13.14 local; Python 3.14 comprobado después en CI al publicar. Buf lint/regeneración reproducibles; dos espacios finales emitidos por el generador Python se conservan sin editarlo a mano.
-- Servicio Connect con identidad **simulada** y tres fuentes HTTPS reales: 102 filas, SV1, hash completo y 16.713 bytes JSON. Smoke offline con coordenadas reales: 102 ida/vuelta, 51 posiciones UniProt únicas y mutación fuera de cobertura rechazada.
-- [Carga HTTP local](../../backend/docs/local-api-load.md): 500 solicitudes/300,006 s, cero errores, p95 de 16,262 ms. Identidad/almacenamiento simulados; no carga de proveedores reales, SQL o Vercel.
-
-Logs frontend/artifacts/integration-2026-10-26-* y backend/artifacts/quality/local-api-load.json, ignorados. No atribuir LCP/INP de campo al nuevo árbol por mediciones históricas.
-
-## Modelado: primera ejecución nueva en ZeroGPU
-
-El 26 oct la demo oficial RFD4 devolvió Design 1 en el ejemplo público Inverse folding 2KL8, Thinking low, un diseño, semilla 42. El propietario autorizó expresamente **solo perfil público HF Jacklb** para el Space oficial; no repositorios privados/escritura/pagos. La concesión inicial se bloqueó automáticamente sin ese permiso; se completó tras recibirlo. Sin tarjeta, PRO, servicio propio o modelos Windows.
-
-El propietario indicó C:\Users\josel\Desktop\designs\design-1.cif tras fallar la devolución de ruta de descarga; original intacto, copia validada en frontend/artifacts/modeling/rfd4-2kl8-2026-10-26. CIF de 80.169 bytes, 403 átomos/59 residuos, cadena A/modelo 1, coordenadas finitas y secuencia coherente. **Fragmentos 1–7/28–79, salto CA de 21,425 Å y C–N de 23,688 Å**: no tratar como cadena completa lista para el laboratorio. Sin pLDDT certificado, pesos/versiones completos, predicción independiente, utilidad biológica o medición de GPU/cuota/tiempo. Ejecución gratuita probada; diseño completo útil e inferencia desde la app pendientes. CIF/FASTA/capturas/informe solo locales e ignorados.
-
-El formulario HF del 23 oct bloqueó alojamiento propio Gradio/Docker solicitando PRO; no se creó servicio. No prometer gratuidad al registrar tarjeta en Modal. Demo compartida no implica capacidad ilimitada ni permiso de backend público. Colab sigue manual, sin túneles. Laboratorio actual conserva los tres rediseños 1UBQ y sus ZIP comprobados.
-
-## Copias y siguiente paso
-
-- **ProteinForge · S7 calidad y rendimiento**: 01a16ab0-a33d-7853-96bb-4e1376d07849, worktree-quality, parallel/quality, puertos 5310–5319. Entrega cerrada e integrada; conservar evidencia.
-- **ProteinForge · S5 sincronización 3D**: 01a16ab0-c9f9-7440-83ad-acb1096f8745, worktree-sifts, parallel/sifts, puertos 5320–5329. Entrega cerrada e integrada; generado local intencional indicado arriba.
-- Coordinación: frontend/dev, backend/dev y documentos generales, puertos 5330–5339. [Plan local](../../parallel-development.md).
-
-No archivar/eliminar copias o ramas sin conservar cambios/evidencias; no rebase ni escritura concurrente mientras estén activas. Seguimientos a esos dos chats autorizados en esta tarea; no extender a mensajes ajenos.
-
-La publicación, la comprobación básica real SIFTS y la validación del ZIP nuevo del propietario ya terminaron. Consultar ambos PROGRESS antes de repetir operaciones. Continuar por las prioridades de arriba, sin reabrir aprobaciones SIFTS o migraciones antiguas. No iniciar inferencia, consumir cuota o modificar cuentas por esta revisión del resultado. Mantener límites S7/Groq/modelado y decisiones pendientes antes de ampliar importador o DesignService.
+Interfaz nueva: se entregan maquetas y un plan por pantallas para que el propietario los apruebe antes de programar. Esa regla sigue en pie para cualquier pantalla que no esté ya aprobada.
