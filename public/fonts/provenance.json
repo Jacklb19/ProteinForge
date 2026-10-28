@@ -17,9 +17,9 @@
     {
       "family": "IBM Plex Mono",
       "license": "OFL-ibm-plex.txt",
-      "source": "https://github.com/IBM/plex/tree/763c36ef9117782905ae010056dfbe8fd2653a25",
+      "source": "https://registry.npmjs.org/@fontsource/ibm-plex-mono/-/ibm-plex-mono-5.3.0.tgz",
       "upstream": "https://github.com/IBM/plex",
-      "version": "1.1.0"
+      "version": "@fontsource/ibm-plex-mono 5.3.0, latin subset"
     }
   ],
   "files": [
@@ -56,8 +56,8 @@
       "weight": 400,
       "role": "sequence",
       "preload": false,
-      "bytes": 49248,
-      "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350"
+      "bytes": 14708,
+      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7"
     }
   ]
 }
