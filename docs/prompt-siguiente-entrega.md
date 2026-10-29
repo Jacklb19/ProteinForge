@@ -6,7 +6,7 @@ Actualizado el **29 de octubre de 2026**. Leer este documento completo, los AGEN
 
 | Repositorio | `main` | `dev` |
 |---|---|---|
-| Frontend | `09989b0` | `d5419eb` |
+| Frontend | `09989b0` | `4050ae1` |
 | Backend | `18d9444` | `cbff97e` |
 
 El frontend se publicó el **29 de octubre**: el merge `65a0b74` llevó a `main` la pasada de rendimiento, el subconjunto de IBM Plex Mono y la pestaña «Dominios». Esa primera publicación **falló en CI** por un defecto de idioma; el arreglo `869ce2d` se publicó enseguida como `09989b0` y dejó ambas ramas en verde.
@@ -44,6 +44,31 @@ Seis cadenas llevaban zod al arranque; la sexta (`generator/context.ts`) la enco
 
 Las dos omitidas requieren evidencia local de Colab. La integración queda verificada; publicar sigue necesitando autorización.
 
+## Integrado en `dev` el 29 de octubre: RNF-03 corregido y `BackboneView`
+
+El merge `4050ae1` incorpora los nueve commits `a50f03b`…`ac3b149` de `parallel/perf-components`. [Detalle y todas las cifras](performance-components-2026-10-29.md).
+
+**Lo primero es una corrección, no una mejora.** El proyecto daba RNF-03 por cumplido desde el 28 de octubre. **No lo está en Analizar.** Aquella cifra salía de siete cargas, y con siete cargas el intervalo de un p75 no tiene cota superior: se puede calcular un número, pero no sostenerlo. Una prueba unitaria deja fijada esa limitación para que no vuelva a pasar.
+
+Medido con `scripts/measure-lcp.mjs` y `scripts/lcp-stats.mjs`, que sirven las dos builds a la vez, alternan el orden de carga en cada ronda con 4G lenta y CPU ×4, y dan intervalos del 95 % sin suponer normalidad, repitiendo cada comparación con los puertos intercambiados:
+
+| Ruta | p75 en cinco tandas | Cargas bajo 2,5 s | Veredicto |
+|---|---|---|---|
+| Inicio | 2.226–2.264 ms | 220 de 220 | **cumple**, cota superior ≤ 2.272 ms |
+| Analizar | 2.526–2.556 ms | del 11 al 28 % | **no cumple** |
+
+El ruido de esta máquina, medido comparando una build consigo misma, es de unos 36 ms en Inicio y 21 ms en Analizar; con 30 pares se distinguen efectos de unos 20 y 10 ms. Así que **no es ruido**: a Analizar le faltan entre 25 y 60 ms, y acreditarlo exigiría bajar el p75 unos 60–80 ms.
+
+**`BackboneView`, adoptado** (`b1ebe5c`). Al montarse pintaba tres veces lo mismo; ahora pinta una, lee la paleta una vez por tema y calcula los colores de cada residuo una sola vez. CPU propia en Analizar de 113 a 60 ms (**−49 ms** [−66; −43], 10 de 10 cargas más rápidas) y en Inicio −12 ms [−16; −1]. Una prueba registra cada orden de dibujo del lienzo en cinco casos, confirmada **antes** de optimizar (`9a1ed06`) e idéntica después: lo que se ve no cambia.
+
+**`HydropathyProfile`, ensayado y revertido** (`58b9488`). No reconstruir sus vistas por residuo y aplicar el resultado del Worker en una transición no dio efecto medible: +2 ms [−3; +5] con 50 pares, sin cambio en LCP ni en bloqueo. `src/features/descriptors` queda idéntico a `dev`.
+
+**El LCP no se mueve** con ninguno de los dos: Inicio −5 ms [−22; +3] y Analizar +7 ms [−7; +24] con 40 pares. Bajar la CPU de un componente no es bajar el LCP, y aquí está medido en lugar de supuesto. Ninguno de los dos estaba en el camino de los 60–80 ms que faltan.
+
+**Hallazgo nuevo, sin resolver y sin tocar:** sin «reducir movimiento» activado, el giro en reposo de Inicio consume unos 1,85 s de CPU de cada 4,5 s con CPU ×4. No afecta al LCP, pero compite con las interacciones. Reducirlo cambiaría lo que se ve, así que es **propuesta para el propietario**, no tarea.
+
+**Verificación del merge** en el checkout principal, sin Auth y como CI: tipos correctos (11 s), lint correcto (41 s), **695 unitarias en 96 archivos** todas correctas (41 s), cobertura **87,64 / 78,97 / 83,78 / 91,50 %**, build correcto (17 s), `check:pwa` correcto (5 s) y batería E2E completa con un trabajador en el puerto 5190: **141 correctas y 2 omitidas** por diseño de 143, en 7,6 minutos. Esta batería es la que la sesión del frente no pudo ejecutar; se corrió aquí sobre el árbol integrado, que es lo que cuenta.
+
 ## Integrado en `dev` el 29 de octubre: segundo factor, solo la capa de cliente
 
 El merge `d5419eb` incorpora los siete commits `fde6360`…`d172464` de `parallel/auth-totp`, más el merge `6311593` con el que esa rama absorbió `dev` para resolver el único choque, en `src/features/auth/authApi.ts`, contra la carga diferida de esquemas de `b352eae`. Se resolvió fusionando `dev` dentro de la rama, **sin rebase**, igual que había hecho `parallel/perf-routes`. El resultado conserva las dos intenciones: zod sigue fuera del arranque y el cliente MFA se descarga en su primer uso.
@@ -77,10 +102,10 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 ## Orden de continuación
 
-1. **Publicación aplazada por decisión del propietario el 29 de octubre.** Se le ofreció publicar `dev` `9927ce9` (zod fuera del arranque), ya verificado, y respondió que espera a que entreguen los dos frentes abiertos para publicarlo todo junto. No volver a pedirlo hasta entonces; la autorización se pide de nuevo cuando los frentes estén integrados y verificados.
+1. **Pedir autorización para publicar `dev`.** El propietario aplazó la publicación el 29 de octubre para que saliera todo junto cuando entregaran los dos frentes. **Ya entregaron, están integrados y verificados**, así que la condición se cumplió: `dev` lleva zod fuera del arranque, la capa de cliente del segundo factor, la corrección de `BackboneView` y el método de medición. Publicar sigue necesitando su autorización expresa y fechada.
 2. Activar el historial del generador en producción según el apartado anterior, con el propietario.
 3. Llevar al propietario la [propuesta de pantallas del segundo factor](auth-totp-ui-proposal-2026-10-29.md) con sus cuatro decisiones. Sin su aprobación no se programa ninguna pantalla, y la capa de cliente ya integrada se queda sin usar, que es el comportamiento correcto.
-4. Integrar y verificar lo que entregue el frente de rendimiento (`BackboneView` e `HydropathyProfile` con medición repetible). El del segundo factor ya está integrado.
+4. Decidir sobre el **giro en reposo de Inicio** (1,85 s de CPU de cada 4,5 s sin «reducir movimiento»): reducirlo cambiaría lo que se ve, así que es decisión del propietario. Y, si se quiere acreditar RNF-03 en Analizar, buscar los 60–80 ms donde de verdad están, con `scripts/measure-lcp.mjs` como método, no a ojo. Los dos frentes abiertos el 29 oct ya están integrados y verificados.
 5. Recorrido con Supabase local y dos cuentas reales para cerrar el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 de octubre que revisa él esa parte.
 6. Pendientes antiguos que siguen abiertos: aislamiento por ID con segunda cuenta en producción, recorrido SIFTS con JWT real y lectura autenticada del asistente comprobada en prosa.
 
@@ -88,7 +113,7 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 | Copia | Rama | Estado | Puertos |
 |---|---|---|---|
-| `worktree-perf-components` | `parallel/perf-components` | Abierta el 29 oct: medición repetible de LCP y después `BackboneView` e `HydropathyProfile` | 5340–5349, E2E 5345 |
+| `worktree-perf-components` | `parallel/perf-components` | Entregada e **integrada en `dev`** el 29 oct (`4050ae1`), sin commits pendientes. Se puede retirar | 5340–5349, E2E 5345 |
 | `worktree-auth-totp` | `parallel/auth-totp` | Entregada e **integrada en `dev`** el 29 oct (`d5419eb`), sin commits pendientes. Se puede retirar cuando el propietario decida sobre la propuesta de pantallas | 5350–5359, E2E 5355 |
 | Coordinación | `frontend/dev`, `backend/dev` | Documentación general e integración | 5330–5339; E2E de verificación en 5190 |
 
