@@ -110,3 +110,62 @@ describe('BackboneView drawing', () => {
     expect(digest(recorder.marks)).toBe('b65efac42f87b5f5');
   });
 });
+
+describe('BackboneView repaints', () => {
+  const paints = () => recorder.marks.filter((mark) => 'clear' in (mark as object)).length;
+  let fonts: { status: FontFaceSetLoadStatus; ready: Promise<unknown> };
+
+  beforeEach(() => {
+    // Browsers report every observed element once on observe; the stage is already painted by then.
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(private readonly report: () => void) {}
+      observe() { this.report(); }
+      disconnect() { /* nothing observed */ }
+    });
+    fonts = { status: 'loaded', ready: Promise.resolve() };
+    Object.defineProperty(document, 'fonts', { configurable: true, get: () => fonts });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    Reflect.deleteProperty(document, 'fonts');
+  });
+
+  it('paints a mounted stage once when its size and fonts are already settled', async () => {
+    render(<BackboneView label="Insulin" colorMode="chemistry" showEnds />);
+    await act(async () => { await fonts.ready; });
+    expect(paints()).toBe(1);
+  });
+
+  it('paints the labels again once a loading font arrives', async () => {
+    let arrive: (value?: unknown) => void = () => undefined;
+    fonts = { status: 'loading', ready: new Promise((resolve) => { arrive = resolve; }) };
+    render(<BackboneView label="Insulin" colorMode="chemistry" showEnds />);
+    expect(paints()).toBe(1);
+    await act(async () => { arrive(); await fonts.ready; });
+    expect(paints()).toBe(2);
+  });
+
+  it('does not repaint when a parent re-renders with an equal selection', () => {
+    const { rerender } = render(<BackboneView label="Insulin" colorMode="chemistry" selected={{ chain: 'A', number: 7 }} selectedLabel="Cysteine A7" />);
+    rerender(<BackboneView label="Insulin" colorMode="chemistry" selected={{ chain: 'A', number: 7 }} selectedLabel="Cysteine A7" />);
+    expect(paints()).toBe(1);
+    rerender(<BackboneView label="Insulin" colorMode="chemistry" selected={{ chain: 'A', number: 20 }} selectedLabel="Cysteine A20" />);
+    expect(paints()).toBe(2);
+  });
+
+  it('paints again when the stage is resized', () => {
+    let report = () => undefined as unknown;
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(callback: () => void) { report = callback; }
+      observe() { /* reported below */ }
+      disconnect() { /* nothing observed */ }
+    });
+    render(<BackboneView label="Insulin" colorMode="chemistry" />);
+    report();
+    expect(paints()).toBe(1);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
+    report();
+    expect(paints()).toBe(2);
+  });
+});
