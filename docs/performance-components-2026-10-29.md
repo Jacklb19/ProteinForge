@@ -62,7 +62,7 @@ $env:LCP_A='artifacts/lcp-builds/869ce2d-maps'; $env:LCP_B='artifacts/lcp-builds
 
 ## Cambios
 
-Ninguno cambia lo que se ve, la química del color, los textos ni la composición. No hay textos nuevos de interfaz, así que los catálogos no cambian.
+Queda adoptado solo el de BackboneView. Ninguno de los ensayados cambia lo que se ve, la química del color, los textos ni la composición. No hay textos nuevos de interfaz, así que los catálogos no cambian.
 
 ### BackboneView (`b1ebe5c`)
 
@@ -74,7 +74,9 @@ Está en Inicio (escenario con giro en reposo) y también en Analizar (la miniat
 
 **Comprobación de que no cambia nada visible:** `BackboneView.test.tsx` registra cada marca pintada en el lienzo —trazo con su recorrido, color, grosor, extremos y transformación; rectángulos y textos con su estilo, fuente y opacidad— y fija su huella en cinco casos: química con extremos de cadena, hidropatía con selección rotulada, cadenas sobre una referencia a densidad 2, giro por teclado y cambio a tema oscuro. La prueba se confirmó en `9a1ed06` **antes** de optimizar, y las cinco huellas son idénticas después. Las cuatro pruebas nuevas de repintado fallan con el código anterior y pasan con el nuevo.
 
-### HydropathyProfile (`f24c328`, `14cdb45`)
+### HydropathyProfile (`f24c328`, `14cdb45`): ensayado y revertido en `58b9488`
+
+No midió ninguna mejora (ver resultados), así que se revirtió con un commit nuevo, sin reescribir historia. Se describe aquí lo que se probó.
 
 En Analizar se monta siempre, aunque en la vista Resumen, la inicial, todas sus secciones están ocultas.
 
@@ -122,3 +124,83 @@ El CLS máximo es 0,00005 en Inicio y 0,007 en Analizar, como en la auditoría.
 - No es cuestión de ruido. Con la máquina en reposo, todo el intervalo del p75 queda por encima de 2,5 s, y solo 1 de 40 cargas bajó del objetivo.
 - El 27 de octubre se midieron 2.449 ms de mediana con 7 cargas. Esa cifra no se repite hoy. Puede deberse a lo que `dev` ha incorporado desde entonces o a las condiciones de aquella noche; con 7 cargas sin intervalo no hay forma de saber cuál de las dos.
 - Inicio sí queda acreditado de forma repetible, con un margen que es unas diez veces la dispersión.
+
+## Antes y después
+
+Mismas condiciones que la calibración, con el carril asignado y la máquina en reposo: CPU ocupada de mediana un 12–15 %. Autorizado por el propietario el 29 de octubre. Datos en `artifacts/quality/lcp-*-2026-10-29.json`, ignorado. Cada comparación se hizo dos veces, la segunda con los puertos intercambiados, y se combinan los pares para cancelar el posible sesgo del puerto.
+
+### Coste propio de cada componente (perfil atribuido)
+
+Se comparan 10 pares por ruta: `869ce2d` contra `14cdb45`, ambos con mapas de fuente. Los archivos de BackboneView son idénticos en `14cdb45` y en `b1ebe5c`, así que su fila vale para el cambio adoptado. Las cifras son tiempo propio muestreado en la ventana de carga con CPU ×4: mediana, con el intervalo del 95 % entre corchetes.
+
+| Escenario | BackboneView antes → después | Diferencia emparejada | Script total, diferencia | HydropathyProfile antes → después |
+|---|---:|---:|---:|---:|
+| Inicio, movimiento reducido | 76 [72; 81] → **65** [59; 72] ms | −12 [−16; −1] ms, 9 de 10 más rápidas | −18 [−27; +6] ms | No está en la ruta |
+| Analizar, movimiento reducido | 113 [102; 130] → **60** [58; 67] ms | **−49** [−66; −43] ms, 10 de 10 | −42 [−73; −25] ms | 15 → 16 ms, +2 [−3; +5] |
+| Inicio, con giro en reposo | 1.864 [1.846; 1.881] → 1.842 [1.809; 1.860] ms | −32 [−53; +4] ms | −36 [−71; −10] ms | No está en la ruta |
+| Analizar, con movimiento | 128 [114; 145] → **82** [73; 87] ms | **−45** [−65; −30] ms, 10 de 10 | −45 [−53; −16] ms | 15 → 17 ms, +1 [−3; +6] |
+
+- **BackboneView: mejora real y repetible.** Con movimiento reducido, que es el perfil del que salían los 113 ms, su coste en Analizar baja a la mitad y en Inicio un 15 %. La reducción coincide con los dos pintados redundantes que se eliminaron. Esos 113 ms se reproducen exactamente en Analizar.
+- **HydropathyProfile: su propio código cuesta unos 15 ms y no cambia.** Lo que memorizar ahorraría es trabajo de React en otras partes de la página, y no aparece ni en el script total ni en el LCP, abajo. **Revertido.**
+- **Hallazgo — el giro en reposo de Inicio.** Con movimiento, BackboneView consume **unos 1,85 s de CPU** en los ~4,5 s que dura la ventana con CPU ×4, alrededor del 40 % del hilo principal.
+  - No toca el LCP, porque el giro empieza después del primer pintado, ni crea tareas largas, porque ningún fotograma supera los 50 ms.
+  - Sí compite con cualquier interacción mientras la portada está visible.
+  - El coste es el trazado: unos 1.500 trazos de lienzo por fotograma, tres por cada uno de los ~500 segmentos. Mis cambios solo le quitan un 2 %.
+  - Reducirlo de verdad exige dibujar menos o con menos frecuencia, y eso cambia lo que se ve: lo dejo como propuesta para el propietario, sin implementar.
+
+### LCP y bloqueo
+
+| Comparación (pares) | Ruta | LCP, diferencia B − A [IC 95 %] | B más rápida / más lenta | Bloqueo, diferencia | Mayor tarea, diferencia |
+|---|---|---:|---:|---:|---:|
+| `869ce2d` → `14cdb45`, los dos componentes (50) | Inicio | +3 [−5; +12] ms | 21 / 29 | +1 [−3; +9] ms | — |
+| | Analizar | +6 [−6; +17] ms | 20 / 30 | −1 [−6; +5] ms | — |
+| `869ce2d` → `b1ebe5c`, solo BackboneView (40) | Inicio | −5 [−22; +3] ms | 25 / 15 | −5 [−12; +3] ms | 0 [−4; +2] ms |
+| | Analizar | +7 [−7; +24] ms | 18 / 22 | +2 [−10; +10] ms | +1 [−3; +4] ms |
+
+**Ningún cambio mueve el LCP ni el bloqueo de forma detectable.** Lo que el procedimiento permite afirmar es lo siguiente:
+
+- BackboneView adoptado no empeora el LCP de Inicio y, como mucho, lo empeora 24 ms en Analizar (cota superior del intervalo). Lo más probable, por la mediana, es que no cambie.
+- El ahorro de CPU de BackboneView, unos 45–49 ms en Analizar, ocurre en tareas que no están en el camino del LCP y que no superan los 50 ms, así que no se ve ni en el LCP ni en el bloqueo.
+- La transición de HydropathyProfile tampoco adelantó las cifras de descriptores: +6 ms [−6; +17] con los dos cambios juntos.
+
+### RNF-03, en todas las tandas del día
+
+| Tanda (hora UTC) | Build | Inicio p75 [IC] | Analizar mediana | Analizar p75 [IC] | Cargas de Analizar < 2.500 ms |
+|---|---|---:|---:|---:|---:|
+| A/A (16:46) | `869ce2d` | 2.255 [2.243; 2.272] | 2.541 | 2.555 [2.546; 2.566] | 1 / 40 |
+| A/B (17:09 + 17:19) | `869ce2d` | 2.245 [2.237; 2.255] | 2.526 | 2.543 [2.532; 2.545] | 7 / 50 |
+| A/B (17:09 + 17:19) | `14cdb45` | 2.252 [2.245; 2.264] | 2.528 | 2.556 [2.545; 2.573] | 9 / 50 |
+| A/B (17:34 + 17:41) | `869ce2d` | 2.236 [2.229; 2.248] | 2.512 | 2.526 [2.518; 2.533] | 11 / 40 |
+| A/B (17:34 + 17:41) | `b1ebe5c` | 2.230 [2.220; 2.235] | 2.511 | 2.531 [2.521; 2.562] | 11 / 40 |
+
+**Respuesta sobre RNF-03, de forma repetible en este equipo, con 4G lenta y CPU ×4:**
+
+- **Inicio se cumple.** En las cinco filas la cota superior del p75 queda entre 2.235 y 2.272 ms, y las 220 cargas bajan de 2,5 s.
+- **Analizar no se cumple, ni antes ni después de este trabajo.** En las cinco filas la cota inferior del p75 queda por encima de 2.500 ms, entre 2.518 y 2.546. El veredicto no depende del ruido: lo que varía entre tandas, unos 30 ms de deriva en la mediana del mismo build a lo largo de una hora, desplaza las cifras pero no las lleva por debajo del objetivo.
+- **Cuánto falta:** el p75 de Analizar está entre 25 y 60 ms por encima de 2,5 s. Para acreditarlo con este procedimiento, el cambio tendría que bajar el p75 al menos unos 60–80 ms, para que la cota superior quede por debajo del objetivo en todas las tandas. Los dos componentes de este encargo no están en ese camino. Lo que sí está, según la auditoría y el seguimiento del 28 de octubre, es la evaluación del JavaScript inicial y el primer render de los proveedores de estado.
+
+## Verificación
+
+Ejecutada en este worktree con `CI=true` y `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` vacías, sobre `14cdb45`, antes de revertir HydropathyProfile:
+
+- tipos y lint correctos;
+- **637/637 pruebas unitarias en 92 archivos**, con 2 trabajadores; cobertura del 87,3 % en sentencias, 78,23 % en ramas, 83,37 % en funciones y 91,19 % en líneas;
+- build correcto, con precaché de 65 entradas y 2.578,52 KiB;
+- `check:pwa` correcto en Chromium, en el puerto 5346.
+
+Repetida sobre el árbol final, ya con HydropathyProfile revertido y en las mismas condiciones:
+
+- tipos y lint correctos;
+- **636/636 pruebas unitarias en 92 archivos**, una menos que antes: la prueba de memorización, que se revirtió con su código. Cobertura del 87,31 % en sentencias, 78,3 % en ramas, 83,36 % en funciones y 91,21 % en líneas;
+- build correcto, con precaché de 65 entradas y 2.578,15 KiB, y el fragmento inicial de 356,96 kB (110,32 kB comprimido);
+- `check:pwa` correcto en Chromium.
+
+**La batería E2E no se ejecutó en esta rama:** el control de permisos de la sesión la bloqueó y queda pendiente de autorización expresa.
+
+## Límites
+
+- `vite preview` en local, sin CDN, TLS ni HTTP/2 real. La emulación de CPU ×4 no es un teléfono.
+- Las tandas son de un solo equipo y de una sola tarde. La deriva entre tandas, unos 30 ms en la mediana de Analizar, es mayor que el efecto que se quería medir; por eso las comparaciones son siempre emparejadas.
+- El perfil atribuido es un muestreo y añade su propia sobrecarga. Sus cifras sirven para comparar dentro de la misma tanda, no como tiempos absolutos.
+- No se midió ninguna interacción, es decir RNF-01, ni el efecto del giro en reposo sobre ellas. Tampoco se ejecutó la batería E2E en esta rama.
+- La prueba de huellas del lienzo usa un contexto registrado en jsdom: garantiza que las órdenes de pintado y su estado son idénticos, no la rasterización de un navegador concreto.
