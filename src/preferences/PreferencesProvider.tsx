@@ -1,19 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { LocaleProvider } from '../i18n';
 import { loadPreferences, savePreferences } from './preferences';
 import { PreferencesContext } from './preferencesContext';
 import type { PreferencesContextValue } from './preferencesContext';
-import { translate } from '../i18n/translate';
+import { isCatalogLoaded, loadCatalog, translateLoaded } from '../i18n/catalogs';
+import { DEFAULT_LOCALE } from '../i18n/config';
+import type { Locale } from '../i18n/config';
 import { BROWSER_COLOR_TOKEN } from './config';
 
 /** Makes local appearance and language preferences available to routes. */
 export function PreferencesProvider({ children }: { children: ReactNode }): React.JSX.Element {
-  const [preferences, setPreferences] = useState(loadPreferences);
+  // A stored language whose catalog could not be fetched falls back to the default one.
+  const [preferences, setPreferences] = useState(() => {
+    const stored = loadPreferences();
+    return isCatalogLoaded(stored.locale) ? stored : { ...stored, locale: DEFAULT_LOCALE };
+  });
+
+  const [requestedLocale, setRequestedLocale] = useState<Locale | null>(null);
+  const latestRequest = useRef<Locale | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = preferences.locale;
-    document.title = translate(preferences.locale, 'app.title');
+    document.title = translateLoaded(preferences.locale, 'app.title');
     if (preferences.theme === 'system') {
       delete document.documentElement.dataset.theme;
     } else {
@@ -33,7 +42,20 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
 
   const value: PreferencesContextValue = {
     ...preferences,
-    setLocale: (locale) => { setPreferences((current) => ({ ...current, locale })); },
+    chosenLocale: requestedLocale ?? preferences.locale,
+    setLocale: (locale: Locale) => {
+      latestRequest.current = locale;
+      const apply = (): void => {
+        if (latestRequest.current !== locale) return;
+        setRequestedLocale(null);
+        setPreferences((current) => ({ ...current, locale }));
+      };
+      // Another language arrives as its own chunk: the control shows the choice at once and the texts
+      // follow when the catalog is here. If it cannot load, the current language stays.
+      if (isCatalogLoaded(locale)) { apply(); return; }
+      setRequestedLocale(locale);
+      void loadCatalog(locale).then(apply, () => { if (latestRequest.current === locale) setRequestedLocale(null); });
+    },
     setTheme: (theme) => { setPreferences((current) => ({ ...current, theme })); },
   };
 

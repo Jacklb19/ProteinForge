@@ -99,12 +99,17 @@ describe('descriptors in the editor', () => {
         data: { id: first.id, result: calculateDescriptors('ACDE') },
       }));
     });
-    expect(screen.queryByText(spanish['descriptors.mass'])).not.toBeInTheDocument();
+    // The stale answer is discarded: the fields keep their place, marked as pending and busy.
+    const fields = screen.getByText(spanish['descriptors.mass']).closest('dl');
+    expect(fields).toHaveAttribute('aria-busy', 'true');
+    expect(within(fields as HTMLElement).getAllByText(spanish['descriptors.pendingValue'])).toHaveLength(5);
+    expect(screen.getByText(spanish['descriptors.calculating'])).toHaveAttribute('role', 'status');
     act(() => {
       worker.onmessage?.(new MessageEvent('message', {
         data: { id: second.id, result: calculateDescriptors('ACDF') },
       }));
     });
-    expect(screen.getByText(spanish['descriptors.mass'])).toBeInTheDocument();
+    expect(fields).not.toHaveAttribute('aria-busy');
+    expect(within(fields as HTMLElement).queryByText(spanish['descriptors.pendingValue'])).not.toBeInTheDocument();
   });
 });

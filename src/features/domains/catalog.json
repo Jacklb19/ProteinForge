@@ -1,0 +1,3087 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-27T07:24:33.790Z",
+  "generator": "artifacts/domains-2026-10-27/fetch-domains.mjs",
+  "criteria": {
+    "minOverlapOfShorter": 0.8,
+    "minOverlapOfLonger": 0.5,
+    "maxResolutionAngstrom": 3.5,
+    "reviewedOnly": true,
+    "alphabet": "ACDEFGHIKLMNPQRSTVWY"
+  },
+  "summaryNote": {
+    "es": "Resúmenes de función propios, breves, a partir de la descripción de la familia en InterPro y la anotación de UniProt. No demuestran la función de una secuencia ensamblada.",
+    "en": "Own short function summaries based on the InterPro family description and the UniProt annotation. They do not demonstrate the function of an assembled sequence."
+  },
+  "domains": [
+    {
+      "id": "P12931-sh3-84-145",
+      "kind": "sh3",
+      "accession": "P12931",
+      "entryName": "SRC_HUMAN",
+      "entryVersion": 278,
+      "sequenceVersion": 3,
+      "protein": "Proto-oncogene tyrosine-protein kinase Src",
+      "gene": "SRC",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH3",
+        "start": 84,
+        "end": 145,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "GGVTTFVALYDYESRTETDLSFKKGERLQIVNNTEGDWWLAHSLSTGQTGYIPSNYVAPSDS",
+      "sequenceSha256": "fce6a9d7757a2029e8e81bee3fbc6d10aaf3667093bb265f1ae015c685279564",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00018",
+        "name": "SH3 domain",
+        "start": 90,
+        "end": 137
+      },
+      "structure": {
+        "pdb": "8JN8",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.9,
+        "chains": "A",
+        "start": 1,
+        "end": 536
+      },
+      "summary": {
+        "es": "Se une a motivos ricos en prolina (PxxP) de proteínas de señalización.",
+        "en": "Binds proline-rich (PxxP) motifs of signalling proteins."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P12931.json",
+          "retrievedAt": "2026-10-27T07:23:23.220Z",
+          "sha256": "9af5ce8ca56560159d123566bd3a72de390bb0683d484bea9a12e70dcb7cdd1a"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P12931/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:24.573Z",
+          "sha256": "5301d5a1933adb87a69add34bb1964c70d81ec3de74d93990973a008f65b2800"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/8JN8",
+          "retrievedAt": "2026-10-27T07:23:23.220Z",
+          "sha256": "9af5ce8ca56560159d123566bd3a72de390bb0683d484bea9a12e70dcb7cdd1a"
+        }
+      ]
+    },
+    {
+      "id": "P62993-sh3-1-1-58",
+      "kind": "sh3",
+      "accession": "P62993",
+      "entryName": "GRB2_HUMAN",
+      "entryVersion": 231,
+      "sequenceVersion": 1,
+      "protein": "Growth factor receptor-bound protein 2",
+      "gene": "GRB2",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH3 1",
+        "start": 1,
+        "end": 58,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "MEAIAKYDFKATADDELSFKRGDILKVLNEECDQNWYKAELNGKDGFIPKNYIEMKPH",
+      "sequenceSha256": "0eab66aad357526e81c66e04af61df320b198754aa860c6abd710861c3559ff6",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00018",
+        "name": "SH3 domain",
+        "start": 4,
+        "end": 50
+      },
+      "structure": {
+        "pdb": "8DGO",
+        "method": "X-ray",
+        "resolutionAngstrom": 2.3,
+        "chains": "A/B",
+        "start": 1,
+        "end": 217
+      },
+      "summary": {
+        "es": "Se une a motivos ricos en prolina (PxxP) de proteínas de señalización.",
+        "en": "Binds proline-rich (PxxP) motifs of signalling proteins."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P62993.json",
+          "retrievedAt": "2026-10-27T07:23:25.299Z",
+          "sha256": "8c26a1c65a7e903af68f3e9a54e7eac8e62c7716f2592806fed094fda56c431f"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P62993/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:26.702Z",
+          "sha256": "de58a968af08061bfc94ace24f96d2536190d3ca0d6415b5fb0e239d7e7ce016"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/8DGO",
+          "retrievedAt": "2026-10-27T07:23:25.299Z",
+          "sha256": "8c26a1c65a7e903af68f3e9a54e7eac8e62c7716f2592806fed094fda56c431f"
+        }
+      ]
+    },
+    {
+      "id": "P62993-sh3-2-156-215",
+      "kind": "sh3",
+      "accession": "P62993",
+      "entryName": "GRB2_HUMAN",
+      "entryVersion": 231,
+      "sequenceVersion": 1,
+      "protein": "Growth factor receptor-bound protein 2",
+      "gene": "GRB2",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH3 2",
+        "start": 156,
+        "end": 215,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "QQPTYVQALFDFDPQEDGELGFRRGDFIHVMDNSDPNWWKGACHGQTGMFPRNYVTPVNR",
+      "sequenceSha256": "8a8033afd4433aafebe89fc7e9ddaa0621a244ef1bf580204ee908b28d20ac08",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00018",
+        "name": "SH3 domain",
+        "start": 162,
+        "end": 206
+      },
+      "structure": {
+        "pdb": "8DGO",
+        "method": "X-ray",
+        "resolutionAngstrom": 2.3,
+        "chains": "A/B",
+        "start": 1,
+        "end": 217
+      },
+      "summary": {
+        "es": "Se une a motivos ricos en prolina (PxxP) de proteínas de señalización.",
+        "en": "Binds proline-rich (PxxP) motifs of signalling proteins."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P62993.json",
+          "retrievedAt": "2026-10-27T07:23:25.299Z",
+          "sha256": "8c26a1c65a7e903af68f3e9a54e7eac8e62c7716f2592806fed094fda56c431f"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P62993/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:26.702Z",
+          "sha256": "de58a968af08061bfc94ace24f96d2536190d3ca0d6415b5fb0e239d7e7ce016"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/8DGO",
+          "retrievedAt": "2026-10-27T07:23:25.299Z",
+          "sha256": "8c26a1c65a7e903af68f3e9a54e7eac8e62c7716f2592806fed094fda56c431f"
+        }
+      ]
+    },
+    {
+      "id": "P00519-sh3-61-121",
+      "kind": "sh3",
+      "accession": "P00519",
+      "entryName": "ABL1_HUMAN",
+      "entryVersion": 294,
+      "sequenceVersion": 4,
+      "protein": "Tyrosine-protein kinase ABL1",
+      "gene": "ABL1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH3",
+        "start": 61,
+        "end": 121,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "NDPNLFVALYDFVASGDNTLSITKGEKLRVLGYNHNGEWCEAQTKNGQGWVPSNYITPVNS",
+      "sequenceSha256": "b27198fe2cce7e56dcac70a4b9da5e993f3903ade780ccd84d88c8817a222a28",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00018",
+        "name": "SH3 domain",
+        "start": 67,
+        "end": 113
+      },
+      "structure": {
+        "pdb": "5OAZ",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.03,
+        "chains": "A/B",
+        "start": 60,
+        "end": 121
+      },
+      "summary": {
+        "es": "Se une a motivos ricos en prolina (PxxP) de proteínas de señalización.",
+        "en": "Binds proline-rich (PxxP) motifs of signalling proteins."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P00519.json",
+          "retrievedAt": "2026-10-27T07:23:27.458Z",
+          "sha256": "5b0171beb95c871df1f6556a2eb198976a3834c9ea3a8134dab893f3947b72db"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P00519/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:28.175Z",
+          "sha256": "b22c0eaef23dbd6c9004e91901c162eed97a5258b0c8299c2e06748fb03eac10"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5OAZ",
+          "retrievedAt": "2026-10-27T07:23:27.458Z",
+          "sha256": "5b0171beb95c871df1f6556a2eb198976a3834c9ea3a8134dab893f3947b72db"
+        }
+      ]
+    },
+    {
+      "id": "P07751-sh3-967-1026",
+      "kind": "sh3",
+      "accession": "P07751",
+      "entryName": "SPTN1_CHICK",
+      "entryVersion": 190,
+      "sequenceVersion": 3,
+      "protein": "Spectrin alpha chain, non-erythrocytic 1",
+      "gene": "SPTAN1",
+      "organism": "Gallus gallus",
+      "taxonId": 9031,
+      "feature": {
+        "type": "Domain",
+        "description": "SH3",
+        "start": 967,
+        "end": 1026,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "TGKELVLALYDYQEKSPREVTMKKGDILTLLNSTNKDWWKVEVNDRQGFVPAAYVKKLDP",
+      "sequenceSha256": "c0587af97c0f51dfd40e7ab2b2854a1f599fec985680b2344d417ccb5282ffcb",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00018",
+        "name": "SH3 domain",
+        "start": 974,
+        "end": 1018
+      },
+      "structure": {
+        "pdb": "1NEG",
+        "method": "X-ray",
+        "resolutionAngstrom": 2.3,
+        "chains": "A",
+        "start": 965,
+        "end": 1029
+      },
+      "summary": {
+        "es": "Se une a motivos ricos en prolina (PxxP) de proteínas de señalización.",
+        "en": "Binds proline-rich (PxxP) motifs of signalling proteins."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P07751.json",
+          "retrievedAt": "2026-10-27T07:23:28.811Z",
+          "sha256": "3363c90f03f2242eefcdb74f1964f6a217a28ce81577eddb87b5ede6a24f0407"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P07751/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:30.427Z",
+          "sha256": "906229062cd53f1a0c2e017b80f3e0784c2e7709715a803e6f32ffeb1fae5634"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1NEG",
+          "retrievedAt": "2026-10-27T07:23:28.811Z",
+          "sha256": "3363c90f03f2242eefcdb74f1964f6a217a28ce81577eddb87b5ede6a24f0407"
+        }
+      ]
+    },
+    {
+      "id": "P16333-sh3-1-2-61",
+      "kind": "sh3",
+      "accession": "P16333",
+      "entryName": "NCK1_HUMAN",
+      "entryVersion": 251,
+      "sequenceVersion": 1,
+      "protein": "SH2/SH3 adapter protein NCK1",
+      "gene": "NCK1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH3 1",
+        "start": 2,
+        "end": 61,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "AEEVVVVAKFDYVAQQEQELDIKKNERLWLLDDSKSWWRVRNSMNKTGFVPSNYVERKNS",
+      "sequenceSha256": "c9a42583be12c5e7d4ef6eb9313bb17e3721039873d7674ff6d006e7d4bb9cca",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00018",
+        "name": "SH3 domain",
+        "start": 8,
+        "end": 53
+      },
+      "structure": {
+        "pdb": "5QU8",
+        "method": "X-ray",
+        "resolutionAngstrom": 0.93,
+        "chains": "A",
+        "start": 1,
+        "end": 61
+      },
+      "summary": {
+        "es": "Se une a motivos ricos en prolina (PxxP) de proteínas de señalización.",
+        "en": "Binds proline-rich (PxxP) motifs of signalling proteins."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P16333.json",
+          "retrievedAt": "2026-10-27T07:23:31.074Z",
+          "sha256": "13a0e558fa7d64470e1f07a5b6271904657f21d43327fe35c56fbe719b57b4f1"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P16333/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:33.120Z",
+          "sha256": "f7b3c1a18100b39a1eafcee8d4a186cbd5cbc778d4e5e0efda69d589438c5380"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5QU8",
+          "retrievedAt": "2026-10-27T07:23:31.074Z",
+          "sha256": "13a0e558fa7d64470e1f07a5b6271904657f21d43327fe35c56fbe719b57b4f1"
+        }
+      ]
+    },
+    {
+      "id": "P12931-sh2-151-248",
+      "kind": "sh2",
+      "accession": "P12931",
+      "entryName": "SRC_HUMAN",
+      "entryVersion": 278,
+      "sequenceVersion": 3,
+      "protein": "Proto-oncogene tyrosine-protein kinase Src",
+      "gene": "SRC",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH2",
+        "start": 151,
+        "end": 248,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "WYFGKITRRESERLLLNAENPRGTFLVRESETTKGAYCLSVSDFDNAKGLNVKHYKIRKLDSGGFYITSRTQFNSLQQLVAYYSKHADGLCHRLTTVC",
+      "sequenceSha256": "232757990a28330f2c1826387b00af42ad941d94373d10c9cb1c20cf4b594a48",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00017",
+        "name": "SH2 domain",
+        "start": 151,
+        "end": 233
+      },
+      "structure": {
+        "pdb": "1FMK",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.5,
+        "chains": "A",
+        "start": 86,
+        "end": 536
+      },
+      "summary": {
+        "es": "Reconoce tirosinas fosforiladas en su contexto de secuencia.",
+        "en": "Recognises phosphorylated tyrosines in their sequence context."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P12931.json",
+          "retrievedAt": "2026-10-27T07:23:23.220Z",
+          "sha256": "9af5ce8ca56560159d123566bd3a72de390bb0683d484bea9a12e70dcb7cdd1a"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P12931/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:24.573Z",
+          "sha256": "5301d5a1933adb87a69add34bb1964c70d81ec3de74d93990973a008f65b2800"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1FMK",
+          "retrievedAt": "2026-10-27T07:23:23.220Z",
+          "sha256": "9af5ce8ca56560159d123566bd3a72de390bb0683d484bea9a12e70dcb7cdd1a"
+        }
+      ]
+    },
+    {
+      "id": "P62993-sh2-60-152",
+      "kind": "sh2",
+      "accession": "P62993",
+      "entryName": "GRB2_HUMAN",
+      "entryVersion": 231,
+      "sequenceVersion": 1,
+      "protein": "Growth factor receptor-bound protein 2",
+      "gene": "GRB2",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH2",
+        "start": 60,
+        "end": 152,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "WFFGKIPRAKAEEMLSKQRHDGAFLIRESESAPGDFSLSVKFGNDVQHFKVLRDGAGKYFLWVVKFNSLNELVDYHRSTSVSRNQQIFLRDIE",
+      "sequenceSha256": "38ad206fd784e8517f038a18d188f26eaa2a044024ace02a50a52d33416043ba",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00017",
+        "name": "SH2 domain",
+        "start": 60,
+        "end": 135
+      },
+      "structure": {
+        "pdb": "6ICG",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.15,
+        "chains": "A/B",
+        "start": 60,
+        "end": 152
+      },
+      "summary": {
+        "es": "Reconoce tirosinas fosforiladas en su contexto de secuencia.",
+        "en": "Recognises phosphorylated tyrosines in their sequence context."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P62993.json",
+          "retrievedAt": "2026-10-27T07:23:25.299Z",
+          "sha256": "8c26a1c65a7e903af68f3e9a54e7eac8e62c7716f2592806fed094fda56c431f"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P62993/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:26.702Z",
+          "sha256": "de58a968af08061bfc94ace24f96d2536190d3ca0d6415b5fb0e239d7e7ce016"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/6ICG",
+          "retrievedAt": "2026-10-27T07:23:25.299Z",
+          "sha256": "8c26a1c65a7e903af68f3e9a54e7eac8e62c7716f2592806fed094fda56c431f"
+        }
+      ]
+    },
+    {
+      "id": "P00519-sh2-127-217",
+      "kind": "sh2",
+      "accession": "P00519",
+      "entryName": "ABL1_HUMAN",
+      "entryVersion": 294,
+      "sequenceVersion": 4,
+      "protein": "Tyrosine-protein kinase ABL1",
+      "gene": "ABL1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "SH2",
+        "start": 127,
+        "end": 217,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "WYHGPVSRNAAEYLLSSGINGSFLVRESESSPGQRSISLRYEGRVYHYRINTASDGKLYVSSESRFNTLAELVHHHSTVADGLITTLHYPA",
+      "sequenceSha256": "ef5d26002a339079b8f228f8de3c731c46787116c7954223786c7e7a7d3badf6",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00017",
+        "name": "SH2 domain",
+        "start": 127,
+        "end": 202
+      },
+      "structure": {
+        "pdb": "5DC4",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.48,
+        "chains": "A",
+        "start": 112,
+        "end": 232
+      },
+      "summary": {
+        "es": "Reconoce tirosinas fosforiladas en su contexto de secuencia.",
+        "en": "Recognises phosphorylated tyrosines in their sequence context."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P00519.json",
+          "retrievedAt": "2026-10-27T07:23:27.458Z",
+          "sha256": "5b0171beb95c871df1f6556a2eb198976a3834c9ea3a8134dab893f3947b72db"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P00519/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:28.175Z",
+          "sha256": "b22c0eaef23dbd6c9004e91901c162eed97a5258b0c8299c2e06748fb03eac10"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5DC4",
+          "retrievedAt": "2026-10-27T07:23:27.458Z",
+          "sha256": "5b0171beb95c871df1f6556a2eb198976a3834c9ea3a8134dab893f3947b72db"
+        }
+      ]
+    },
+    {
+      "id": "P12931-protein-kinase-270-523",
+      "kind": "kinase",
+      "accession": "P12931",
+      "entryName": "SRC_HUMAN",
+      "entryVersion": 278,
+      "sequenceVersion": 3,
+      "protein": "Proto-oncogene tyrosine-protein kinase Src",
+      "gene": "SRC",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Protein kinase",
+        "start": 270,
+        "end": 523,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "LRLEVKLGQGCFGEVWMGTWNGTTRVAIKTLKPGTMSPEAFLQEAQVMKKLRHEKLVQLYAVVSEEPIYIVTEYMSKGSLLDFLKGETGKYLRLPQLVDMAAQIASGMAYVERMNYVHRDLRAANILVGENLVCKVADFGLARLIEDNEYTARQGAKFPIKWTAPEAALYGRFTIKSDVWSFGILLTELTTKGRVPYPGMVNREVLDQVERGYRMPCPPECPESLHDLMCQCWRKEPEERPTFEYLQAFLEDYF",
+      "sequenceSha256": "33e819fb993928373654a4987b5ce2452a2546d72a594a91019be7340db29725",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF07714",
+        "name": "Protein tyrosine and serine/threonine kinase",
+        "start": 271,
+        "end": 518
+      },
+      "structure": {
+        "pdb": "1FMK",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.5,
+        "chains": "A",
+        "start": 86,
+        "end": 536
+      },
+      "summary": {
+        "es": "Transfiere el fosfato del ATP a residuos de proteínas diana.",
+        "en": "Transfers phosphate from ATP to residues of target proteins."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P12931.json",
+          "retrievedAt": "2026-10-27T07:23:23.220Z",
+          "sha256": "9af5ce8ca56560159d123566bd3a72de390bb0683d484bea9a12e70dcb7cdd1a"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P12931/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:24.573Z",
+          "sha256": "5301d5a1933adb87a69add34bb1964c70d81ec3de74d93990973a008f65b2800"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1FMK",
+          "retrievedAt": "2026-10-27T07:23:23.220Z",
+          "sha256": "9af5ce8ca56560159d123566bd3a72de390bb0683d484bea9a12e70dcb7cdd1a"
+        }
+      ]
+    },
+    {
+      "id": "P31016-pdz-3-313-393",
+      "kind": "pdz",
+      "accession": "P31016",
+      "entryName": "DLG4_RAT",
+      "entryVersion": 249,
+      "sequenceVersion": 1,
+      "protein": "Disks large homolog 4",
+      "gene": "Dlg4",
+      "organism": "Rattus norvegicus",
+      "taxonId": 10116,
+      "feature": {
+        "type": "Domain",
+        "description": "PDZ 3",
+        "start": 313,
+        "end": 393,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "RIVIHRGSTGLGFNIVGGEDGEGIFISFILAGGPADLSGELRKGDQILSVNGVDLRNASHEQAAIALKNAGQTVTIIAQYK",
+      "sequenceSha256": "a3c71bf4fff3e7033ec94e6f582d818800c752aa113fd821b7d83b4a07d8ea85",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00595",
+        "name": "PDZ domain",
+        "start": 314,
+        "end": 388
+      },
+      "structure": {
+        "pdb": "5HEY",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.5,
+        "chains": "A",
+        "start": 302,
+        "end": 402
+      },
+      "summary": {
+        "es": "Se une a extremos C-terminales cortos y organiza complejos de membrana.",
+        "en": "Binds short C-terminal tails and scaffolds membrane complexes."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P31016.json",
+          "retrievedAt": "2026-10-27T07:23:33.785Z",
+          "sha256": "9d9ef5264121179eb31882fd70b0b69aa0ddaa1dcc3dbee10608aba18001cb28"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P31016/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:36.815Z",
+          "sha256": "027c74b280627e9d6d86639bdacdaccd3890afc4f50f75d2a12e482d5607808f"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5HEY",
+          "retrievedAt": "2026-10-27T07:23:33.785Z",
+          "sha256": "9d9ef5264121179eb31882fd70b0b69aa0ddaa1dcc3dbee10608aba18001cb28"
+        }
+      ]
+    },
+    {
+      "id": "P78352-pdz-1-65-151",
+      "kind": "pdz",
+      "accession": "P78352",
+      "entryName": "DLG4_HUMAN",
+      "entryVersion": 257,
+      "sequenceVersion": 3,
+      "protein": "Disks large homolog 4",
+      "gene": "DLG4",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "PDZ 1",
+        "start": 65,
+        "end": 151,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "EITLERGNSGLGFSIAGGTDNPHIGDDPSIFITKIIPGGAAAQDGRLRVNDSILFVNEVDVREVTHSAAVEALKEAGSIVRLYVMRR",
+      "sequenceSha256": "a2e73eaa31d4f1f0975361965d74dcb0aa21681b2d66820ecacd2d79bc4ada8a",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00595",
+        "name": "PDZ domain",
+        "start": 65,
+        "end": 149
+      },
+      "structure": {
+        "pdb": "6SPV",
+        "method": "X-ray",
+        "resolutionAngstrom": 2.04,
+        "chains": "A",
+        "start": 55,
+        "end": 249
+      },
+      "summary": {
+        "es": "Se une a extremos C-terminales cortos y organiza complejos de membrana.",
+        "en": "Binds short C-terminal tails and scaffolds membrane complexes."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P78352.json",
+          "retrievedAt": "2026-10-27T07:23:37.497Z",
+          "sha256": "457bac02a7781c42e01287070f92a6e3e3af80f984a0170c216c7ceb2af89b45"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P78352/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:38.970Z",
+          "sha256": "3cb880c22333323729cb34aa717731fc64616659dd46ddb5d7467b2ddaffe263"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/6SPV",
+          "retrievedAt": "2026-10-27T07:23:37.497Z",
+          "sha256": "457bac02a7781c42e01287070f92a6e3e3af80f984a0170c216c7ceb2af89b45"
+        }
+      ]
+    },
+    {
+      "id": "Q07157-pdz-1-23-110",
+      "kind": "pdz",
+      "accession": "Q07157",
+      "entryName": "ZO1_HUMAN",
+      "entryVersion": 251,
+      "sequenceVersion": 3,
+      "protein": "Tight junction protein 1",
+      "gene": "TJP1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "PDZ 1",
+        "start": 23,
+        "end": 110,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "TVTLHRAPGFGFGIAISGGRDNPHFQSGETSIVISDVLKGGPAEGQLQENDRVAMVNGVSMDNVEHAFAVQQLRKSGKNAKITIRRKK",
+      "sequenceSha256": "b410d090c8ccaf9ee389be0f52532d07a8331c109f5440da2c9bf7da1a8b4058",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00595",
+        "name": "PDZ domain",
+        "start": 23,
+        "end": 106
+      },
+      "structure": {
+        "pdb": "2H2B",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.6,
+        "chains": "A",
+        "start": 18,
+        "end": 110
+      },
+      "summary": {
+        "es": "Se une a extremos C-terminales cortos y organiza complejos de membrana.",
+        "en": "Binds short C-terminal tails and scaffolds membrane complexes."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/Q07157.json",
+          "retrievedAt": "2026-10-27T07:23:39.668Z",
+          "sha256": "940111641e4d7e47dd972fd0b774ae18d5ab01c2ee801e96c9016eed29cd31dc"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/Q07157/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:42.434Z",
+          "sha256": "2c60bab471740481fdebb4caec5ad7e61297b108395b7fbbb8518995eabaa590"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/2H2B",
+          "retrievedAt": "2026-10-27T07:23:39.668Z",
+          "sha256": "940111641e4d7e47dd972fd0b774ae18d5ab01c2ee801e96c9016eed29cd31dc"
+        }
+      ]
+    },
+    {
+      "id": "P46937-ww-1-171-204",
+      "kind": "ww",
+      "accession": "P46937",
+      "entryName": "YAP1_HUMAN",
+      "entryVersion": 234,
+      "sequenceVersion": 2,
+      "protein": "Transcriptional coactivator YAP1",
+      "gene": "YAP1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "WW 1",
+        "start": 171,
+        "end": 204,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "VPLPAGWEMAKTSSGQRYFLNHIDQTTTWQDPRK",
+      "sequenceSha256": "2fa52ea7f974282ef75a6e2ef1a135fd2be65e8be5d93b4606535e555b665e2f",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00397",
+        "name": "WW domain",
+        "start": 173,
+        "end": 202
+      },
+      "structure": {
+        "pdb": "4REX",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.6,
+        "chains": "A",
+        "start": 165,
+        "end": 209
+      },
+      "summary": {
+        "es": "Módulo de unos 35 residuos que reconoce motivos ricos en prolina.",
+        "en": "Module of about 35 residues that recognises proline-rich motifs."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P46937.json",
+          "retrievedAt": "2026-10-27T07:23:43.117Z",
+          "sha256": "9c4f327a535099c347011dd56d99560d46a5f19c589a311a2f713946070f7ffa"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P46937/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:45.061Z",
+          "sha256": "9a1855842c2a4134dd5216f5d891e5059fdcd05e010278380f4f26080d475c49"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/4REX",
+          "retrievedAt": "2026-10-27T07:23:43.117Z",
+          "sha256": "9c4f327a535099c347011dd56d99560d46a5f19c589a311a2f713946070f7ffa"
+        }
+      ]
+    },
+    {
+      "id": "Q13526-ww-5-39",
+      "kind": "ww",
+      "accession": "Q13526",
+      "entryName": "PIN1_HUMAN",
+      "entryVersion": 232,
+      "sequenceVersion": 1,
+      "protein": "Peptidyl-prolyl cis-trans isomerase NIMA-interacting 1",
+      "gene": "PIN1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "WW",
+        "start": 5,
+        "end": 39,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "EKLPPGWEKRMSRSSGRVYYFNHITNASQWERPSG",
+      "sequenceSha256": "9116995b041cd4bafc5d37746b1f175e2e5f64ff3dd67a2cf120444383251779",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00397",
+        "name": "WW domain",
+        "start": 7,
+        "end": 37
+      },
+      "structure": {
+        "pdb": "1PIN",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.35,
+        "chains": "A",
+        "start": 1,
+        "end": 163
+      },
+      "summary": {
+        "es": "Módulo de unos 35 residuos que reconoce motivos ricos en prolina.",
+        "en": "Module of about 35 residues that recognises proline-rich motifs."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/Q13526.json",
+          "retrievedAt": "2026-10-27T07:23:45.771Z",
+          "sha256": "fdd9556b417f44ed52a2ece73e115267cb7d39957399da599169fa246173b4a7"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/Q13526/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:46.400Z",
+          "sha256": "f9fa9c4077e55e90481548b613275d2f4350b012f03a0ba7294daaa109dd3eaa"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1PIN",
+          "retrievedAt": "2026-10-27T07:23:45.771Z",
+          "sha256": "fdd9556b417f44ed52a2ece73e115267cb7d39957399da599169fa246173b4a7"
+        }
+      ]
+    },
+    {
+      "id": "Q13526-ppic-52-163",
+      "kind": "ppiase",
+      "accession": "Q13526",
+      "entryName": "PIN1_HUMAN",
+      "entryVersion": 232,
+      "sequenceVersion": 1,
+      "protein": "Peptidyl-prolyl cis-trans isomerase NIMA-interacting 1",
+      "gene": "PIN1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "PpiC",
+        "start": 52,
+        "end": 163,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "PARVRCSHLLVKHSQSRRPSSWRQEKITRTKEEALELINGYIQKIKSGEEDFESLASQFSDCSSAKARGDLGAFSRGQMQKPFEDASFALRTGEMSGPVFTDSGIHIILRTE",
+      "sequenceSha256": "a04bce6456ab25e61a4465f4cc23c57b5613d7c2b70bdfbb181ac5a52f1865d4",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00639",
+        "name": "PPIC-type PPIASE domain",
+        "start": 59,
+        "end": 162
+      },
+      "structure": {
+        "pdb": "3I6C",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.3,
+        "chains": "A/B",
+        "start": 45,
+        "end": 163
+      },
+      "summary": {
+        "es": "Cataliza la isomerización cis-trans de enlaces prolil-peptídicos.",
+        "en": "Catalyses cis–trans isomerisation of prolyl peptide bonds."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/Q13526.json",
+          "retrievedAt": "2026-10-27T07:23:45.771Z",
+          "sha256": "fdd9556b417f44ed52a2ece73e115267cb7d39957399da599169fa246173b4a7"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/Q13526/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:46.400Z",
+          "sha256": "f9fa9c4077e55e90481548b613275d2f4350b012f03a0ba7294daaa109dd3eaa"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/3I6C",
+          "retrievedAt": "2026-10-27T07:23:45.771Z",
+          "sha256": "fdd9556b417f44ed52a2ece73e115267cb7d39957399da599169fa246173b4a7"
+        }
+      ]
+    },
+    {
+      "id": "P08046-c2h2-type-1-336-360",
+      "kind": "c2h2",
+      "accession": "P08046",
+      "entryName": "EGR1_MOUSE",
+      "entryVersion": 224,
+      "sequenceVersion": 2,
+      "protein": "Early growth response protein 1",
+      "gene": "Egr1",
+      "organism": "Mus musculus",
+      "taxonId": 10090,
+      "feature": {
+        "type": "Zinc finger",
+        "description": "C2H2-type 1",
+        "start": 336,
+        "end": 360,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "YACPVESCDRRFSRSDELTRHIRIH",
+      "sequenceSha256": "c1963d6294091bc86b23bb3efdc240bdc59ef1aa0f2b146509a415228d6c0bc5",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00096",
+        "name": "Zinc finger, C2H2 type",
+        "start": 336,
+        "end": 360
+      },
+      "structure": {
+        "pdb": "1A1H",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.6,
+        "chains": "A",
+        "start": 333,
+        "end": 421
+      },
+      "summary": {
+        "es": "Dedo de zinc: dos Cys y dos His coordinan Zn²⁺; en factores de transcripción une ADN.",
+        "en": "Zinc finger: two Cys and two His coordinate Zn²⁺; in transcription factors it binds DNA."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P08046.json",
+          "retrievedAt": "2026-10-27T07:23:47.094Z",
+          "sha256": "f67223c3df7c8e29a8b973fb23426a31e319d421d82189ae1af7134ff2663d67"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P08046/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:48.653Z",
+          "sha256": "7bb8be7fb3a1f529477d7d59a09008030855c458b19c91ba748a7ff9a419178a"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1A1H",
+          "retrievedAt": "2026-10-27T07:23:47.094Z",
+          "sha256": "f67223c3df7c8e29a8b973fb23426a31e319d421d82189ae1af7134ff2663d67"
+        }
+      ]
+    },
+    {
+      "id": "P08046-c2h2-type-2-366-388",
+      "kind": "c2h2",
+      "accession": "P08046",
+      "entryName": "EGR1_MOUSE",
+      "entryVersion": 224,
+      "sequenceVersion": 2,
+      "protein": "Early growth response protein 1",
+      "gene": "Egr1",
+      "organism": "Mus musculus",
+      "taxonId": 10090,
+      "feature": {
+        "type": "Zinc finger",
+        "description": "C2H2-type 2",
+        "start": 366,
+        "end": 388,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "FQCRICMRNFSRSDHLTTHIRTH",
+      "sequenceSha256": "070ee807c5efeb8e8f07e6729245f008609703062ea59b5120a85ac1297715c2",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00096",
+        "name": "Zinc finger, C2H2 type",
+        "start": 366,
+        "end": 388
+      },
+      "structure": {
+        "pdb": "1LLM",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.5,
+        "chains": "C/D",
+        "start": 363,
+        "end": 412
+      },
+      "summary": {
+        "es": "Dedo de zinc: dos Cys y dos His coordinan Zn²⁺; en factores de transcripción une ADN.",
+        "en": "Zinc finger: two Cys and two His coordinate Zn²⁺; in transcription factors it binds DNA."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P08046.json",
+          "retrievedAt": "2026-10-27T07:23:47.094Z",
+          "sha256": "f67223c3df7c8e29a8b973fb23426a31e319d421d82189ae1af7134ff2663d67"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P08046/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:48.653Z",
+          "sha256": "7bb8be7fb3a1f529477d7d59a09008030855c458b19c91ba748a7ff9a419178a"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1LLM",
+          "retrievedAt": "2026-10-27T07:23:47.094Z",
+          "sha256": "f67223c3df7c8e29a8b973fb23426a31e319d421d82189ae1af7134ff2663d67"
+        }
+      ]
+    },
+    {
+      "id": "P08046-c2h2-type-3-394-416",
+      "kind": "c2h2",
+      "accession": "P08046",
+      "entryName": "EGR1_MOUSE",
+      "entryVersion": 224,
+      "sequenceVersion": 2,
+      "protein": "Early growth response protein 1",
+      "gene": "Egr1",
+      "organism": "Mus musculus",
+      "taxonId": 10090,
+      "feature": {
+        "type": "Zinc finger",
+        "description": "C2H2-type 3",
+        "start": 394,
+        "end": 416,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "FACDICGRKFARSDERKRHTKIH",
+      "sequenceSha256": "7a064cf808ae80274966ca39ff2287c49e1d82385a53a6112b31d554d1edc93f",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00096",
+        "name": "Zinc finger, C2H2 type",
+        "start": 394,
+        "end": 416
+      },
+      "structure": {
+        "pdb": "1A1H",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.6,
+        "chains": "A",
+        "start": 333,
+        "end": 421
+      },
+      "summary": {
+        "es": "Dedo de zinc: dos Cys y dos His coordinan Zn²⁺; en factores de transcripción une ADN.",
+        "en": "Zinc finger: two Cys and two His coordinate Zn²⁺; in transcription factors it binds DNA."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P08046.json",
+          "retrievedAt": "2026-10-27T07:23:47.094Z",
+          "sha256": "f67223c3df7c8e29a8b973fb23426a31e319d421d82189ae1af7134ff2663d67"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P08046/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:48.653Z",
+          "sha256": "7bb8be7fb3a1f529477d7d59a09008030855c458b19c91ba748a7ff9a419178a"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1A1H",
+          "retrievedAt": "2026-10-27T07:23:47.094Z",
+          "sha256": "f67223c3df7c8e29a8b973fb23426a31e319d421d82189ae1af7134ff2663d67"
+        }
+      ]
+    },
+    {
+      "id": "P01834-ig-like-6-103",
+      "kind": "ig",
+      "accession": "P01834",
+      "entryName": "IGKC_HUMAN",
+      "entryVersion": 221,
+      "sequenceVersion": 2,
+      "protein": "Immunoglobulin kappa constant",
+      "gene": "IGKC",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Ig-like",
+        "start": 6,
+        "end": 103,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "PSVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFN",
+      "sequenceSha256": "1520a45002907d7b11a5725a7723c0fff1905cf726c3c405decc4a6e07fafc26",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF07654",
+        "name": "Immunoglobulin C1-set domain",
+        "start": 8,
+        "end": 94
+      },
+      "structure": {
+        "pdb": "5EWI",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.6,
+        "chains": "L",
+        "start": 1,
+        "end": 107
+      },
+      "summary": {
+        "es": "Sándwich β típico de anticuerpos y receptores de superficie.",
+        "en": "β-sandwich typical of antibodies and cell-surface receptors."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P01834.json",
+          "retrievedAt": "2026-10-27T07:23:49.363Z",
+          "sha256": "4d7e7e9f7d850b73f0a2bd22f003965d61c0e1f0e450a3734e9ae1e400d0a2bf"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P01834/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:51.021Z",
+          "sha256": "ce6dec7e6b81d7ea7ad753f042166ad94605608f723e26466305b1a73e3515c5"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5EWI",
+          "retrievedAt": "2026-10-27T07:23:49.363Z",
+          "sha256": "4d7e7e9f7d850b73f0a2bd22f003965d61c0e1f0e450a3734e9ae1e400d0a2bf"
+        }
+      ]
+    },
+    {
+      "id": "P01730-ig-like-v-type-26-125",
+      "kind": "ig",
+      "accession": "P01730",
+      "entryName": "CD4_HUMAN",
+      "entryVersion": 260,
+      "sequenceVersion": 1,
+      "protein": "T-cell surface glycoprotein CD4",
+      "gene": "CD4",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Ig-like V-type",
+        "start": 26,
+        "end": 125,
+        "evidence": []
+      },
+      "sequence": "KKVVLGKKGDTVELTCTASQKKSIQFHWKNSNQIKILGNQGSFLTKGPSKLNDRADSRRSLWDQGNFPLIIKNLKIEDSDTYICEVEDQKEEVQLLVFGL",
+      "sequenceSha256": "633efba739ff5c573ce8503e9adbb2e70702482b4991fbad777db26200523d98",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00047",
+        "name": "Immunoglobulin domain",
+        "start": 29,
+        "end": 119
+      },
+      "structure": {
+        "pdb": "8W90",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.81,
+        "chains": "B/D/F",
+        "start": 26,
+        "end": 203
+      },
+      "summary": {
+        "es": "Sándwich β típico de anticuerpos y receptores de superficie.",
+        "en": "β-sandwich typical of antibodies and cell-surface receptors."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P01730.json",
+          "retrievedAt": "2026-10-27T07:23:51.670Z",
+          "sha256": "9c07256677cbf3cd31dba58494f94793bca859fbc7d16820051a888a6b9dbefc"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P01730/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:53.509Z",
+          "sha256": "c811fd74eaa0c9ca0aa119af582af6f93c2bc9a858f93f8bb66fae6d8890f237"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/8W90",
+          "retrievedAt": "2026-10-27T07:23:51.670Z",
+          "sha256": "9c07256677cbf3cd31dba58494f94793bca859fbc7d16820051a888a6b9dbefc"
+        }
+      ]
+    },
+    {
+      "id": "P02751-fibronectin-type-iii-10-1453-1540",
+      "kind": "fn3",
+      "accession": "P02751",
+      "entryName": "FINC_HUMAN",
+      "entryVersion": 290,
+      "sequenceVersion": 5,
+      "protein": "Fibronectin",
+      "gene": "FN1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Fibronectin type-III 10",
+        "start": 1453,
+        "end": 1540,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "TGIDFSDITANSFTVHWIAPRATITGYRIRHHPEHFSGRPREDRVPHSRNSITLTNLTPGTEYVVSIVALNGREESPLLIGQQSTVSD",
+      "sequenceSha256": "a6bf4cd6a8d41f8537918d2a1ac40b4dc659ec31edac9f4543de9597ca85c1a9",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00041",
+        "name": "Fibronectin type III domain",
+        "start": 1450,
+        "end": 1529
+      },
+      "structure": {
+        "pdb": "4LXO",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.42,
+        "chains": "A/B",
+        "start": 1448,
+        "end": 1631
+      },
+      "summary": {
+        "es": "Sándwich β de proteínas de matriz extracelular y receptores.",
+        "en": "β-sandwich of extracellular matrix proteins and receptors."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P02751.json",
+          "retrievedAt": "2026-10-27T07:23:54.336Z",
+          "sha256": "0fc4baf5c1639582a02fd4161608cf21a6e885feb4b5ae5d194041d5b4f46a40"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P02751/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:56.053Z",
+          "sha256": "93b737cad9c0538f0958d1dcf601090027486665776720e2731e22fe3462b484"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/4LXO",
+          "retrievedAt": "2026-10-27T07:23:54.336Z",
+          "sha256": "0fc4baf5c1639582a02fd4161608cf21a6e885feb4b5ae5d194041d5b4f46a40"
+        }
+      ]
+    },
+    {
+      "id": "P24821-fibronectin-type-iii-3-805-894",
+      "kind": "fn3",
+      "accession": "P24821",
+      "entryName": "TENA_HUMAN",
+      "entryVersion": 254,
+      "sequenceVersion": 3,
+      "protein": "Tenascin",
+      "gene": "TNC",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Fibronectin type-III 3",
+        "start": 805,
+        "end": 894,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "APSQIEVKDVTDTTALITWFKPLAEIDGIELTYGIKDVPGDRTTIDLTEDENQYSIGNLKPDTEYEVSLISRRGDMSSNPAKETFTTGLD",
+      "sequenceSha256": "49c635096e1b0cb7387e4112059295d96997f7a6f84eb76b894f6df3bfaf1b9d",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00041",
+        "name": "Fibronectin type III domain",
+        "start": 804,
+        "end": 886
+      },
+      "structure": null,
+      "summary": {
+        "es": "Sándwich β de proteínas de matriz extracelular y receptores.",
+        "en": "β-sandwich of extracellular matrix proteins and receptors."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P24821.json",
+          "retrievedAt": "2026-10-27T07:23:56.746Z",
+          "sha256": "60656e53165b2669903d467e0d8ca58607fa5189eedbb206f964dfef3d5a5eac"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P24821/?page_size=100",
+          "retrievedAt": "2026-10-27T07:23:58.794Z",
+          "sha256": "87591ac914938e7952bb7ecd15ae43a18d84462347a90df019eca506dcf681b8"
+        }
+      ]
+    },
+    {
+      "id": "P0CG48-ubiquitin-like-1-1-76",
+      "kind": "ubl",
+      "accession": "P0CG48",
+      "entryName": "UBC_HUMAN",
+      "entryVersion": 138,
+      "sequenceVersion": 3,
+      "protein": "Polyubiquitin-C",
+      "gene": "UBC",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Ubiquitin-like 1",
+        "start": 1,
+        "end": 76,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG",
+      "sequenceSha256": "233b4b0b8c4616095bc3249f9375fc345d32af7deaef07117d0383c51d6f19aa",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00240",
+        "name": "Ubiquitin family",
+        "start": 3,
+        "end": 74
+      },
+      "structure": {
+        "pdb": "6Q00",
+        "method": "X-ray",
+        "resolutionAngstrom": 0.85,
+        "chains": "A",
+        "start": 1,
+        "end": 76
+      },
+      "summary": {
+        "es": "Plegamiento β-grasp; la proteína se une covalentemente a otras como marca.",
+        "en": "β-grasp fold; the protein is covalently attached to others as a tag."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P0CG48.json",
+          "retrievedAt": "2026-10-27T07:23:59.513Z",
+          "sha256": "d74df5f7661b688f7f3ac0356b2757f38a63e348d35087509b78c71d8ba148e5"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P0CG48/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:00.737Z",
+          "sha256": "ad47a5b6d1ddf401f201d71717557840431c10a815dae8f6ba02b1c49e5b1759"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/6Q00",
+          "retrievedAt": "2026-10-27T07:23:59.513Z",
+          "sha256": "d74df5f7661b688f7f3ac0356b2757f38a63e348d35087509b78c71d8ba148e5"
+        }
+      ]
+    },
+    {
+      "id": "P63165-ubiquitin-like-20-97",
+      "kind": "ubl",
+      "accession": "P63165",
+      "entryName": "SUMO1_HUMAN",
+      "entryVersion": 217,
+      "sequenceVersion": 1,
+      "protein": "Small ubiquitin-related modifier 1",
+      "gene": "SUMO1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Ubiquitin-like",
+        "start": 20,
+        "end": 97,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "EYIKLKVIGQDSSEIHFKVKMTTHLKKLKESYCQRQGVPMNSLRFLFEGQRIADNHTPKELGMEEEDVIEVYQEQTGG",
+      "sequenceSha256": "34796bca15ce19a9c4691a9d68b796eac4c0f6d1e13b5de0955cbf4f160a0dea",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF11976",
+        "name": "Ubiquitin-2 like Rad60 SUMO-like",
+        "start": 22,
+        "end": 91
+      },
+      "structure": {
+        "pdb": "6UYR",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.3,
+        "chains": "A",
+        "start": 17,
+        "end": 97
+      },
+      "summary": {
+        "es": "Plegamiento β-grasp; la proteína se une covalentemente a otras como marca.",
+        "en": "β-grasp fold; the protein is covalently attached to others as a tag."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P63165.json",
+          "retrievedAt": "2026-10-27T07:24:01.407Z",
+          "sha256": "186afd69dbe279701d68f74eaafc8b0ff5946110047519a5e1ef6e059d010bd6"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P63165/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:02.418Z",
+          "sha256": "fd18d372b6a22891df738df5a5ea0c2e5801f4821cf64c19265ef62f7ecbc701"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/6UYR",
+          "retrievedAt": "2026-10-27T07:24:01.407Z",
+          "sha256": "186afd69dbe279701d68f74eaafc8b0ff5946110047519a5e1ef6e059d010bd6"
+        }
+      ]
+    },
+    {
+      "id": "P0DP23-ef-hand-1-8-43",
+      "kind": "efhand",
+      "accession": "P0DP23",
+      "entryName": "CALM1_HUMAN",
+      "entryVersion": 62,
+      "sequenceVersion": 1,
+      "protein": "Calmodulin-1",
+      "gene": "CALM1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "EF-hand 1",
+        "start": 8,
+        "end": 43,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "EQIAEFKEAFSLFDKDGDGTITTKELGTVMRSLGQN",
+      "sequenceSha256": "6cef0bcc2c4eb7a000c385f7127281ccbc45be6382dd127d175628a0b5da4b55",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF13499",
+        "name": "EF-hand domain pair",
+        "start": 12,
+        "end": 73
+      },
+      "structure": {
+        "pdb": "9MXD",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.17,
+        "chains": "A",
+        "start": 1,
+        "end": 149
+      },
+      "summary": {
+        "es": "Motivo hélice-bucle-hélice que une Ca²⁺.",
+        "en": "Helix–loop–helix motif that binds Ca²⁺."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P0DP23.json",
+          "retrievedAt": "2026-10-27T07:24:03.796Z",
+          "sha256": "d74d35b0b1788bae211da2cbb44f74b0ff08721bbeb5b51c2466c865cc3287e2"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P0DP23/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:04.426Z",
+          "sha256": "2045c7d57fa7bd362ca682086e7fe9867d44855636fca782ce128a5330acfa2d"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/9MXD",
+          "retrievedAt": "2026-10-27T07:24:03.796Z",
+          "sha256": "d74d35b0b1788bae211da2cbb44f74b0ff08721bbeb5b51c2466c865cc3287e2"
+        }
+      ]
+    },
+    {
+      "id": "P63316-ef-hand-3-92-127",
+      "kind": "efhand",
+      "accession": "P63316",
+      "entryName": "TNNC1_HUMAN",
+      "entryVersion": 181,
+      "sequenceVersion": 1,
+      "protein": "Troponin C, slow skeletal and cardiac muscles",
+      "gene": "TNNC1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "EF-hand 3",
+        "start": 92,
+        "end": 127,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "KSEEELSDLFRMFDKNADGYIDLDELKIMLQATGET",
+      "sequenceSha256": "d92be297f67f74c7e43c0b9c1c9bb06ac9248e67c6d413ac0058ebbeeafec9e8",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF13499",
+        "name": "EF-hand domain pair",
+        "start": 94,
+        "end": 158
+      },
+      "structure": {
+        "pdb": "4Y99",
+        "method": "X-ray",
+        "resolutionAngstrom": 2,
+        "chains": "A",
+        "start": 1,
+        "end": 161
+      },
+      "summary": {
+        "es": "Motivo hélice-bucle-hélice que une Ca²⁺.",
+        "en": "Helix–loop–helix motif that binds Ca²⁺."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P63316.json",
+          "retrievedAt": "2026-10-27T07:24:05.066Z",
+          "sha256": "144104b25bd549243e4872dc216501f95e0182e765690d077004ac218e2d545d"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P63316/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:05.754Z",
+          "sha256": "51549702832f484287e529c7b30a43a23e4dfc3f8daf240192850e71609292b4"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/4Y99",
+          "retrievedAt": "2026-10-27T07:24:05.066Z",
+          "sha256": "144104b25bd549243e4872dc216501f95e0182e765690d077004ac218e2d545d"
+        }
+      ]
+    },
+    {
+      "id": "P04271-ef-hand-2-49-84",
+      "kind": "efhand",
+      "accession": "P04271",
+      "entryName": "S100B_HUMAN",
+      "entryVersion": 239,
+      "sequenceVersion": 2,
+      "protein": "Protein S100-B",
+      "gene": "S100B",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "EF-hand 2",
+        "start": 49,
+        "end": 84,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "KEQEVVDKVMETLDNDGDGECDFQEFMAFVAMVTTA",
+      "sequenceSha256": "565fece490b66ed4b1addd7bfeb499aaa32d1d64a645b61471140a8ab32639ca",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00036",
+        "name": "EF hand domain",
+        "start": 54,
+        "end": 80
+      },
+      "structure": {
+        "pdb": "5D7F",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.3,
+        "chains": "A/B",
+        "start": 1,
+        "end": 92
+      },
+      "summary": {
+        "es": "Motivo hélice-bucle-hélice que une Ca²⁺.",
+        "en": "Helix–loop–helix motif that binds Ca²⁺."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P04271.json",
+          "retrievedAt": "2026-10-27T07:24:06.472Z",
+          "sha256": "8de8cdc63b53a9c214175adb76ab68c449fcaa9f731804c8b264285418cc38b8"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P04271/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:07.887Z",
+          "sha256": "e66b158ebdf12bc42f9d7404280ce9d38805c419db5800448d636402b0d9685f"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5D7F",
+          "retrievedAt": "2026-10-27T07:24:06.472Z",
+          "sha256": "8de8cdc63b53a9c214175adb76ab68c449fcaa9f731804c8b264285418cc38b8"
+        }
+      ]
+    },
+    {
+      "id": "P03069-bzip-225-281",
+      "kind": "bzip",
+      "accession": "P03069",
+      "entryName": "GCN4_YEAST",
+      "entryVersion": 245,
+      "sequenceVersion": 1,
+      "protein": "General control transcription factor GCN4",
+      "gene": "GCN4",
+      "organism": "Saccharomyces cerevisiae (strain ATCC 204508 / S288c)",
+      "taxonId": 559292,
+      "feature": {
+        "type": "Domain",
+        "description": "bZIP",
+        "start": 225,
+        "end": 281,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "SDPAALKRARNTEAARRSRARKLQRMKQLEDKVEELLSKNYHLENEVARLKKLVGER",
+      "sequenceSha256": "de138ca530bd152194dc0acbb0571cfb6d72290c4d7662ef8f2476fcb5bd8462",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF07716",
+        "name": "Basic region leucine zipper",
+        "start": 225,
+        "end": 276
+      },
+      "structure": {
+        "pdb": "2DGC",
+        "method": "X-ray",
+        "resolutionAngstrom": 2.2,
+        "chains": "A",
+        "start": 220,
+        "end": 281
+      },
+      "summary": {
+        "es": "Región básica que une ADN seguida de una cremallera de leucina que dimeriza.",
+        "en": "Basic DNA-binding region followed by a dimerising leucine zipper."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P03069.json",
+          "retrievedAt": "2026-10-27T07:24:08.553Z",
+          "sha256": "219863f306aa040bb5958088d4f706986375135633191f2b354bc056a794be22"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P03069/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:09.758Z",
+          "sha256": "a8f91b8d3c5daf74a309963958da1a47d9325ec86dc8c2b4276fe47fa339c7c7"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/2DGC",
+          "retrievedAt": "2026-10-27T07:24:08.553Z",
+          "sha256": "219863f306aa040bb5958088d4f706986375135633191f2b354bc056a794be22"
+        }
+      ]
+    },
+    {
+      "id": "P05412-bzip-252-315",
+      "kind": "bzip",
+      "accession": "P05412",
+      "entryName": "JUN_HUMAN",
+      "entryVersion": 279,
+      "sequenceVersion": 2,
+      "protein": "Transcription factor Jun",
+      "gene": "JUN",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "bZIP",
+        "start": 252,
+        "end": 315,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "RIKAERKRMRNRIAASKCRKRKLERIARLEEKVKTLKAQNSELASTANMLREQVAQLKQKVMNH",
+      "sequenceSha256": "0a0e6a366d4fcf42f684f3bf70a2e06c1cf2b554fb3acf0554354e93452173e5",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00170",
+        "name": "bZIP transcription factor",
+        "start": 250,
+        "end": 313
+      },
+      "structure": null,
+      "summary": {
+        "es": "Región básica que une ADN seguida de una cremallera de leucina que dimeriza.",
+        "en": "Basic DNA-binding region followed by a dimerising leucine zipper."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P05412.json",
+          "retrievedAt": "2026-10-27T07:24:10.481Z",
+          "sha256": "a7e3350ad79c23abb4dacb525abd230bcc3e76d0405b1f28e765084d952eb35e"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P05412/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:11.898Z",
+          "sha256": "a6f2afca5daf9f8acf64caa2e1373e05d30405efc55392594970e0838197c238"
+        }
+      ]
+    },
+    {
+      "id": "P01100-bzip-137-200",
+      "kind": "bzip",
+      "accession": "P01100",
+      "entryName": "FOS_HUMAN",
+      "entryVersion": 259,
+      "sequenceVersion": 1,
+      "protein": "Protein c-Fos",
+      "gene": "FOS",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "bZIP",
+        "start": 137,
+        "end": 200,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "EEKRRIRRERNKMAAAKCRNRRRELTDTLQAETDQLEDEKSALQTEIANLLKEKEKLEFILAAH",
+      "sequenceSha256": "316c4ca1a8bcd44724656a6c9e53986a1866ea345a965f12b39e950e6f49f21b",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00170",
+        "name": "bZIP transcription factor",
+        "start": 135,
+        "end": 194
+      },
+      "structure": null,
+      "summary": {
+        "es": "Región básica que une ADN seguida de una cremallera de leucina que dimeriza.",
+        "en": "Basic DNA-binding region followed by a dimerising leucine zipper."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P01100.json",
+          "retrievedAt": "2026-10-27T07:24:12.603Z",
+          "sha256": "02e02dc06eacabc146194c7b29fe8bd0d43d56330940b095c719f91a325f254f"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P01100/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:13.741Z",
+          "sha256": "bc4bb9aefd32855c785d193cba78d98c1831d4928420945f1b5606fc9cbba82b"
+        }
+      ]
+    },
+    {
+      "id": "P02724-helical-92-114",
+      "kind": "tm",
+      "accession": "P02724",
+      "entryName": "GLPA_HUMAN",
+      "entryVersion": 241,
+      "sequenceVersion": 3,
+      "protein": "Glycophorin-A",
+      "gene": "GYPA",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Transmembrane",
+        "description": "Helical",
+        "start": 92,
+        "end": 114,
+        "evidence": []
+      },
+      "sequence": "ITLIIFGVMAGVIGTILLISYGI",
+      "sequenceSha256": "98fb453657e03f52aedbf8a7ef3ca0022644df7ca222f385a3fc8936d9800451",
+      "family": null,
+      "structure": {
+        "pdb": "5EH6",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.92,
+        "chains": "A",
+        "start": 89,
+        "end": 117
+      },
+      "summary": {
+        "es": "Hélice hidrofóbica que atraviesa la membrana, según la anotación de UniProt.",
+        "en": "Hydrophobic helix that spans the membrane, as annotated by UniProt."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P02724.json",
+          "retrievedAt": "2026-10-27T07:24:14.389Z",
+          "sha256": "d18b167bb5d704790f94778378c9a445959098c84df1a601da22777ba06b2a43"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5EH6",
+          "retrievedAt": "2026-10-27T07:24:14.389Z",
+          "sha256": "d18b167bb5d704790f94778378c9a445959098c84df1a601da22777ba06b2a43"
+        }
+      ]
+    },
+    {
+      "id": "P00533-helical-646-668",
+      "kind": "tm",
+      "accession": "P00533",
+      "entryName": "EGFR_HUMAN",
+      "entryVersion": 301,
+      "sequenceVersion": 2,
+      "protein": "Epidermal growth factor receptor",
+      "gene": "EGFR",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Transmembrane",
+        "description": "Helical",
+        "start": 646,
+        "end": 668,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "IATGMVGALLLLLVVALGIGLFM",
+      "sequenceSha256": "adc5cd9b464c9a37584d98e5f8c5843a89fb7e979b5cf967daac9b8b825cea6b",
+      "family": null,
+      "structure": {
+        "pdb": "2KS1",
+        "method": "NMR",
+        "resolutionAngstrom": null,
+        "chains": "B",
+        "start": 634,
+        "end": 677
+      },
+      "summary": {
+        "es": "Hélice hidrofóbica que atraviesa la membrana, según la anotación de UniProt.",
+        "en": "Hydrophobic helix that spans the membrane, as annotated by UniProt."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P00533.json",
+          "retrievedAt": "2026-10-27T07:24:15.177Z",
+          "sha256": "90c459656751eac791efc2f369f49145d38cc949f5b41bf628180ac0a6874b02"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/2KS1",
+          "retrievedAt": "2026-10-27T07:24:15.177Z",
+          "sha256": "90c459656751eac791efc2f369f49145d38cc949f5b41bf628180ac0a6874b02"
+        }
+      ]
+    },
+    {
+      "id": "P12830-helical-710-730",
+      "kind": "tm",
+      "accession": "P12830",
+      "entryName": "CADH1_HUMAN",
+      "entryVersion": 273,
+      "sequenceVersion": 3,
+      "protein": "Cadherin-1",
+      "gene": "CDH1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Transmembrane",
+        "description": "Helical",
+        "start": 710,
+        "end": 730,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "ILGILGGILALLILILLLLLF",
+      "sequenceSha256": "8df6855dac38483cfa3431ac773e7c3a3281b16b961ed14aed4ff21d9acb4786",
+      "family": null,
+      "structure": {
+        "pdb": "6OLE",
+        "method": "EM",
+        "resolutionAngstrom": 3.1,
+        "chains": "y",
+        "start": 693,
+        "end": 730
+      },
+      "summary": {
+        "es": "Hélice hidrofóbica que atraviesa la membrana, según la anotación de UniProt.",
+        "en": "Hydrophobic helix that spans the membrane, as annotated by UniProt."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P12830.json",
+          "retrievedAt": "2026-10-27T07:24:15.995Z",
+          "sha256": "71f2edb1a354d80d21038b4ad4f16d79766ad2770433b83024bcae88b967a8e1"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/6OLE",
+          "retrievedAt": "2026-10-27T07:24:15.995Z",
+          "sha256": "71f2edb1a354d80d21038b4ad4f16d79766ad2770433b83024bcae88b967a8e1"
+        }
+      ]
+    },
+    {
+      "id": "P01308-signal-1-24",
+      "kind": "signal",
+      "accession": "P01308",
+      "entryName": "INS_HUMAN",
+      "entryVersion": 284,
+      "sequenceVersion": 1,
+      "protein": "Insulin",
+      "gene": "INS",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Signal",
+        "description": null,
+        "start": 1,
+        "end": 24,
+        "evidence": [
+          "ECO:0000269"
+        ]
+      },
+      "sequence": "MALWMRLLPLLALLALWGPDPAAA",
+      "sequenceSha256": "304228670f632ebad08294fe493faadd143d9d75c5b00deaba537cc14c75ff6f",
+      "family": null,
+      "structure": null,
+      "summary": {
+        "es": "Péptido señal N-terminal: dirige a la vía secretora y se escinde.",
+        "en": "N-terminal signal peptide: targets the secretory pathway and is cleaved off."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P01308.json",
+          "retrievedAt": "2026-10-27T07:24:16.647Z",
+          "sha256": "4c09b6fe0758b3dd0142c71fa1c04cd23aa7862a3c734e7d4298e74bee7870f3"
+        }
+      ]
+    },
+    {
+      "id": "P00698-signal-1-18",
+      "kind": "signal",
+      "accession": "P00698",
+      "entryName": "LYSC_CHICK",
+      "entryVersion": 252,
+      "sequenceVersion": 1,
+      "protein": "Lysozyme C",
+      "gene": "LYZ",
+      "organism": "Gallus gallus",
+      "taxonId": 9031,
+      "feature": {
+        "type": "Signal",
+        "description": null,
+        "start": 1,
+        "end": 18,
+        "evidence": [
+          "ECO:0000269"
+        ]
+      },
+      "sequence": "MRSLLILVLCFLPLAALG",
+      "sequenceSha256": "01baff3eb117266e1433b0b8160a78d21e2a7f7437ce554741d3cdac2b2b144f",
+      "family": null,
+      "structure": null,
+      "summary": {
+        "es": "Péptido señal N-terminal: dirige a la vía secretora y se escinde.",
+        "en": "N-terminal signal peptide: targets the secretory pathway and is cleaved off."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P00698.json",
+          "retrievedAt": "2026-10-27T07:24:17.339Z",
+          "sha256": "cd9677775c87a03dfd0ce44320a8ed7ba80908afa21ac8b674ce9271290f1855"
+        }
+      ]
+    },
+    {
+      "id": "P02768-signal-1-18",
+      "kind": "signal",
+      "accession": "P02768",
+      "entryName": "ALBU_HUMAN",
+      "entryVersion": 298,
+      "sequenceVersion": 2,
+      "protein": "Albumin",
+      "gene": "ALB",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Signal",
+        "description": null,
+        "start": 1,
+        "end": 18,
+        "evidence": []
+      },
+      "sequence": "MKWVTFISLLFLFSSAYS",
+      "sequenceSha256": "7e7c9bf9e21e8bff806b2823b583631c23661e7cb0dbb0741bfec624b0599c09",
+      "family": null,
+      "structure": null,
+      "summary": {
+        "es": "Péptido señal N-terminal: dirige a la vía secretora y se escinde.",
+        "en": "N-terminal signal peptide: targets the secretory pathway and is cleaved off."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P02768.json",
+          "retrievedAt": "2026-10-27T07:24:18.031Z",
+          "sha256": "788d86479e30b2c19168d3c71bbba066c3c81ede382d277218995a108feaeb91"
+        }
+      ]
+    },
+    {
+      "id": "P31749-ph-5-108",
+      "kind": "ph",
+      "accession": "P31749",
+      "entryName": "AKT1_HUMAN",
+      "entryVersion": 274,
+      "sequenceVersion": 2,
+      "protein": "RAC-alpha serine/threonine-protein kinase",
+      "gene": "AKT1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "PH",
+        "start": 5,
+        "end": 108,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "AIVKEGWLHKRGEYIKTWRPRYFLLKNDGTFIGYKERPQDVDQREAPLNNFSVAQCQLMKTERPRPNTFIIRCLQWTTVIERTFHVETPEEREEWTTAIQTVAD",
+      "sequenceSha256": "5c3dfe323a2a9af281d1f3ab073da94f1b5d484bc31ea864197c5824523a16d4",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00169",
+        "name": "PH domain",
+        "start": 7,
+        "end": 106
+      },
+      "structure": {
+        "pdb": "1UNQ",
+        "method": "X-ray",
+        "resolutionAngstrom": 0.98,
+        "chains": "A",
+        "start": 1,
+        "end": 123
+      },
+      "summary": {
+        "es": "Une fosfoinosítidos de la membrana.",
+        "en": "Binds membrane phosphoinositides."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P31749.json",
+          "retrievedAt": "2026-10-27T07:24:18.812Z",
+          "sha256": "0ad759a09b677cb38afec8fe566daa24048926b8209716c4ade006a01e07ab31"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P31749/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:20.909Z",
+          "sha256": "bda23a11b0ed0815b1eff41fbe503166680f4f6b43cd89895e69f17d6faf1acf"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1UNQ",
+          "retrievedAt": "2026-10-27T07:24:18.812Z",
+          "sha256": "0ad759a09b677cb38afec8fe566daa24048926b8209716c4ade006a01e07ab31"
+        }
+      ]
+    },
+    {
+      "id": "P02833-homeobox-297-356",
+      "kind": "homeobox",
+      "accession": "P02833",
+      "entryName": "ANTP_DROME",
+      "entryVersion": 229,
+      "sequenceVersion": 1,
+      "protein": "Homeotic protein antennapedia",
+      "gene": "Antp",
+      "organism": "Drosophila melanogaster",
+      "taxonId": 7227,
+      "feature": {
+        "type": "DNA binding",
+        "description": "Homeobox",
+        "start": 297,
+        "end": 356,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "RKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALCLTERQIKIWFQNRRMKWKKEN",
+      "sequenceSha256": "3037826f56c62b0e592bd23a809ffca07d11fc17ad840fcf2ed0dbdfcf699fa9",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00046",
+        "name": "Homeodomain",
+        "start": 298,
+        "end": 354
+      },
+      "structure": {
+        "pdb": "5JLW",
+        "method": "X-ray",
+        "resolutionAngstrom": 2.09,
+        "chains": "A/D",
+        "start": 297,
+        "end": 356
+      },
+      "summary": {
+        "es": "Hélice-giro-hélice de unos 60 residuos que une ADN; regula el desarrollo.",
+        "en": "Helix–turn–helix of about 60 residues that binds DNA; regulates development."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P02833.json",
+          "retrievedAt": "2026-10-27T07:24:21.589Z",
+          "sha256": "9f565fec4bd85af1a305e2ab1a334219d9168a64d4f807263cd466184077158a"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P02833/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:22.590Z",
+          "sha256": "a01f77b6277ba5c053d2810f7ebacf9daaae6badc210bee152403b0eb13a5762"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/5JLW",
+          "retrievedAt": "2026-10-27T07:24:21.589Z",
+          "sha256": "9f565fec4bd85af1a305e2ab1a334219d9168a64d4f807263cd466184077158a"
+        }
+      ]
+    },
+    {
+      "id": "P00747-kringle-1-103-181",
+      "kind": "kringle",
+      "accession": "P00747",
+      "entryName": "PLMN_HUMAN",
+      "entryVersion": 279,
+      "sequenceVersion": 2,
+      "protein": "Plasminogen",
+      "gene": "PLG",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Kringle 1",
+        "start": 103,
+        "end": 181,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "CKTGNGKNYRGTMSKTKNGITCQKWSSTSPHRPRFSPATHPSEGLEENYCRNPDNDPQGPWCYTTDPEKRYDYCDILEC",
+      "sequenceSha256": "8a3e4ffdd1bc446f4a71ee3f218caaddce219fbee9e0e4ed045766e9cd238363",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00051",
+        "name": "Kringle domain",
+        "start": 103,
+        "end": 181
+      },
+      "structure": {
+        "pdb": "1KI0",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.75,
+        "chains": "A",
+        "start": 100,
+        "end": 352
+      },
+      "summary": {
+        "es": "Plegamiento de tres bucles con tres puentes disulfuro; une lisina.",
+        "en": "Three-loop fold with three disulfide bridges; binds lysine."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P00747.json",
+          "retrievedAt": "2026-10-27T07:24:23.270Z",
+          "sha256": "53fa624b303af26f5471d6365c036471713f127be717fd62f1220441de1b06d1"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P00747/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:24.799Z",
+          "sha256": "9c12127fcc205e43297a9197e1833c1ca939529152a7837596fae7648519d3f5"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1KI0",
+          "retrievedAt": "2026-10-27T07:24:23.270Z",
+          "sha256": "53fa624b303af26f5471d6365c036471713f127be717fd62f1220441de1b06d1"
+        }
+      ]
+    },
+    {
+      "id": "P00740-egf-like-1-calcium-binding-93-129",
+      "kind": "egf",
+      "accession": "P00740",
+      "entryName": "FA9_HUMAN",
+      "entryVersion": 289,
+      "sequenceVersion": 2,
+      "protein": "Coagulation factor IX",
+      "gene": "F9",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "EGF-like 1; calcium-binding",
+        "start": 93,
+        "end": 129,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "DGDQCESNPCLNGGSCKDDINSYECWCPFGFEGKNCE",
+      "sequenceSha256": "5617f0ba3ce44c883f1a4716922913313463046eaf72c303e0a89c6071e827c7",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00008",
+        "name": "EGF-like domain",
+        "start": 97,
+        "end": 127
+      },
+      "structure": {
+        "pdb": "1EDM",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.5,
+        "chains": "B/C",
+        "start": 92,
+        "end": 130
+      },
+      "summary": {
+        "es": "Dominio pequeño rico en cisteínas con tres disulfuros; algunos unen Ca²⁺.",
+        "en": "Small cysteine-rich domain with three disulfides; some bind Ca²⁺."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P00740.json",
+          "retrievedAt": "2026-10-27T07:24:25.519Z",
+          "sha256": "153b4a6e844fc3121fb824e4922c0b48cb0a03cee58b61786da2f566981f33b8"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P00740/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:27.238Z",
+          "sha256": "cf2034581faffc5864226d2cab4d2d9d52412dbfddab98dc4eea52e049486cbb"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/1EDM",
+          "retrievedAt": "2026-10-27T07:24:25.519Z",
+          "sha256": "153b4a6e844fc3121fb824e4922c0b48cb0a03cee58b61786da2f566981f33b8"
+        }
+      ]
+    },
+    {
+      "id": "Q13158-death-97-181",
+      "kind": "death",
+      "accession": "Q13158",
+      "entryName": "FADD_HUMAN",
+      "entryVersion": 236,
+      "sequenceVersion": 1,
+      "protein": "FAS-associated death domain protein",
+      "gene": "FADD",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Death",
+        "start": 97,
+        "end": 181,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "LCAAFNVICDNVGKDWRRLARQLKVSDTKIDSIEDRYPRNLTERVRESLRIWKNTEKENATVAHLVGALRSCQMNLVADLVQEVQ",
+      "sequenceSha256": "dbf079cc996825c5426e82c7c857a03a2a65614b8d2deb90c62b9d0e6131111b",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00531",
+        "name": "Death domain",
+        "start": 100,
+        "end": 179
+      },
+      "structure": {
+        "pdb": "6ACI",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.87,
+        "chains": "H",
+        "start": 93,
+        "end": 184
+      },
+      "summary": {
+        "es": "Haz de seis hélices que ensambla complejos de señalización de apoptosis.",
+        "en": "Six-helix bundle that assembles apoptosis signalling complexes."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/Q13158.json",
+          "retrievedAt": "2026-10-27T07:24:27.979Z",
+          "sha256": "2fb4dedee7de1d70e5f7631e4ebb465e2a870bbbb07c66d9e9750275e8bdbdea"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/Q13158/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:28.588Z",
+          "sha256": "d565e72b9dfb4ad6cc62aaa8ee1634e56a52c53e36bb67834391b8e057c3b3c1"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/6ACI",
+          "retrievedAt": "2026-10-27T07:24:27.979Z",
+          "sha256": "2fb4dedee7de1d70e5f7631e4ebb465e2a870bbbb07c66d9e9750275e8bdbdea"
+        }
+      ]
+    },
+    {
+      "id": "O60885-bromo-1-58-164",
+      "kind": "bromo",
+      "accession": "O60885",
+      "entryName": "BRD4_HUMAN",
+      "entryVersion": 222,
+      "sequenceVersion": 2,
+      "protein": "Bromodomain-containing protein 4",
+      "gene": "BRD4",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Bromo 1",
+        "start": 58,
+        "end": 164,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "RQTNQLQYLLRVVLKTLWKHQFAWPFQQPVDAVKLNLPDYYKIIKTPMDMGTIKKRLENNYYWNAQECIQDFNTMFTNCYIYNKPGDDIVLMAEALEKLFLQKINEL",
+      "sequenceSha256": "7eb7771a02b7d5021121f3f907256dc93327c839169733378362d291cb76e0ce",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00439",
+        "name": "Bromodomain",
+        "start": 70,
+        "end": 151
+      },
+      "structure": {
+        "pdb": "4QB3",
+        "method": "X-ray",
+        "resolutionAngstrom": 0.94,
+        "chains": "A",
+        "start": 44,
+        "end": 168
+      },
+      "summary": {
+        "es": "Reconoce lisinas acetiladas de histonas.",
+        "en": "Recognises acetylated lysines on histones."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/O60885.json",
+          "retrievedAt": "2026-10-27T07:24:29.290Z",
+          "sha256": "e1fa5a8f920c8ddca3eff08eacf3eaf55e4552011490e2498804b8c99b5f530a"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/O60885/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:29.919Z",
+          "sha256": "e89c691579f76865da7696a6774201a9d1aac276943278585e8da735da4fba08"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/4QB3",
+          "retrievedAt": "2026-10-27T07:24:29.290Z",
+          "sha256": "e1fa5a8f920c8ddca3eff08eacf3eaf55e4552011490e2498804b8c99b5f530a"
+        }
+      ]
+    },
+    {
+      "id": "P45973-chromo-1-20-78",
+      "kind": "chromo",
+      "accession": "P45973",
+      "entryName": "CBX5_HUMAN",
+      "entryVersion": 232,
+      "sequenceVersion": 1,
+      "protein": "Chromobox protein homolog 5",
+      "gene": "CBX5",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Chromo 1",
+        "start": 20,
+        "end": 78,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "YVVEKVLDRRVVKGQVEYLLKWKGFSEEHNTWEPEKNLDCPELISEFMKKYKKMKEGEN",
+      "sequenceSha256": "dc26902be28feee1c672948b69347a6ab929a943c4ab435b570da4cc41c7674e",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00385",
+        "name": "Chromo (CHRromatin Organisation MOdifier) domain",
+        "start": 20,
+        "end": 69
+      },
+      "structure": null,
+      "summary": {
+        "es": "Reconoce lisinas metiladas de histonas.",
+        "en": "Recognises methylated lysines on histones."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P45973.json",
+          "retrievedAt": "2026-10-27T07:24:30.617Z",
+          "sha256": "d19147f52085a44377ef46d90a9dfd0baef60391cc6a1757d441a380a4bc9e4c"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P45973/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:31.251Z",
+          "sha256": "59494e09f90ab9dab530c563d52b15bfa490372914e64edf899667aaf04c6a9b"
+        }
+      ]
+    },
+    {
+      "id": "P09012-rrm-1-10-89",
+      "kind": "rrm",
+      "accession": "P09012",
+      "entryName": "SNRPA_HUMAN",
+      "entryVersion": 260,
+      "sequenceVersion": 3,
+      "protein": "U1 small nuclear ribonucleoprotein A",
+      "gene": "SNRPA",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "RRM 1",
+        "start": 10,
+        "end": 89,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "HTIYINNLNEKIKKDELKKSLYAIFSQFGQILDILVSRSLKMRGQAFVIFKEVSSATNALRSMQGFPFYDKPMRIQYAKT",
+      "sequenceSha256": "4db7fbb4ecfd37d8c6c2557af0d1efeb4e7f8166db714750f13af752f08f0056",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00076",
+        "name": "RNA recognition motif",
+        "start": 12,
+        "end": 82
+      },
+      "structure": {
+        "pdb": "6XH2",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.71,
+        "chains": "A",
+        "start": 2,
+        "end": 93
+      },
+      "summary": {
+        "es": "Motivo de reconocimiento de ARN con plegamiento β-α.",
+        "en": "RNA recognition motif with a β-α fold."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P09012.json",
+          "retrievedAt": "2026-10-27T07:24:31.879Z",
+          "sha256": "329821a81a2e1bae8200d061e1be523c00578774c939f21e509444b149007f65"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P09012/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:33.094Z",
+          "sha256": "7dcb75c62502ff540d883f3bc2dda5b481753a9921e6022062529309aff6f87b"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/6XH2",
+          "retrievedAt": "2026-10-27T07:24:31.879Z",
+          "sha256": "329821a81a2e1bae8200d061e1be523c00578774c939f21e509444b149007f65"
+        }
+      ]
+    },
+    {
+      "id": "P10599-thioredoxin-2-105",
+      "kind": "thioredoxin",
+      "accession": "P10599",
+      "entryName": "THIO_HUMAN",
+      "entryVersion": 261,
+      "sequenceVersion": 3,
+      "protein": "Thioredoxin",
+      "gene": "TXN",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Thioredoxin",
+        "start": 2,
+        "end": 105,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "VKQIESKTAFQEALDAAGDKLVVVDFSATWCGPCKMIKPFFHSLSEKYSNVIFLEVDVDDCQDVASECEVKCMPTFQFFKKGQKVGEFSGANKEKLEATINELV",
+      "sequenceSha256": "ce06e8aa3e1e75cfc4954db68787e8724cdad39ce2d1c52276bfa05e3204ad92",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00085",
+        "name": "Thioredoxin",
+        "start": 6,
+        "end": 102
+      },
+      "structure": {
+        "pdb": "4OO4",
+        "method": "X-ray",
+        "resolutionAngstrom": 0.97,
+        "chains": "A/B",
+        "start": 1,
+        "end": 105
+      },
+      "summary": {
+        "es": "Plegamiento con el motivo CGPC que reduce puentes disulfuro.",
+        "en": "Fold with the CGPC motif that reduces disulfide bridges."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P10599.json",
+          "retrievedAt": "2026-10-27T07:24:33.790Z",
+          "sha256": "1ae446f7a7a748910f1fd31eff8717f2baddb666ad6da2ae1e61dcac7d6aba75"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P10599/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:35.043Z",
+          "sha256": "81c4c68cbdd067fd02d60997031c5df296c63d70205559b98af8500a59055def"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/4OO4",
+          "retrievedAt": "2026-10-27T07:24:33.790Z",
+          "sha256": "1ae446f7a7a748910f1fd31eff8717f2baddb666ad6da2ae1e61dcac7d6aba75"
+        }
+      ]
+    },
+    {
+      "id": "P12830-cadherin-1-155-262",
+      "kind": "cadherin",
+      "accession": "P12830",
+      "entryName": "CADH1_HUMAN",
+      "entryVersion": 273,
+      "sequenceVersion": 3,
+      "protein": "Cadherin-1",
+      "gene": "CDH1",
+      "organism": "Homo sapiens",
+      "taxonId": 9606,
+      "feature": {
+        "type": "Domain",
+        "description": "Cadherin 1",
+        "start": 155,
+        "end": 262,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "DWVIPPISCPENEKGPFPKNLVQIKSNKDKEGKVFYSITGQGADTPPVGVFIIERETGWLKVTEPLDRERIATYTLFSHAVSSNGNAVEDPMEILITVTDQNDNKPEF",
+      "sequenceSha256": "6791ac0df88b299d87faf046e6d265d23b76b2acc1b364f00ed2b4d10c1e24e6",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00028",
+        "name": "Cadherin domain",
+        "start": 160,
+        "end": 253
+      },
+      "structure": {
+        "pdb": "8H62",
+        "method": "X-ray",
+        "resolutionAngstrom": 1.91,
+        "chains": "B",
+        "start": 155,
+        "end": 367
+      },
+      "summary": {
+        "es": "Repetición extracelular dependiente de Ca²⁺ que media la adhesión célula-célula.",
+        "en": "Ca²⁺-dependent extracellular repeat that mediates cell–cell adhesion."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P12830.json",
+          "retrievedAt": "2026-10-27T07:24:15.995Z",
+          "sha256": "71f2edb1a354d80d21038b4ad4f16d79766ad2770433b83024bcae88b967a8e1"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P12830/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:37.029Z",
+          "sha256": "9d8aa05e301edc95c8bc675be7eb075988d4442ee5d8db43b3d80eaae4b503f9"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/8H62",
+          "retrievedAt": "2026-10-27T07:24:15.995Z",
+          "sha256": "71f2edb1a354d80d21038b4ad4f16d79766ad2770433b83024bcae88b967a8e1"
+        }
+      ]
+    },
+    {
+      "id": "P00698-c-type-lysozyme-19-147",
+      "kind": "lysozyme",
+      "accession": "P00698",
+      "entryName": "LYSC_CHICK",
+      "entryVersion": 252,
+      "sequenceVersion": 1,
+      "protein": "Lysozyme C",
+      "gene": "LYZ",
+      "organism": "Gallus gallus",
+      "taxonId": 9031,
+      "feature": {
+        "type": "Domain",
+        "description": "C-type lysozyme",
+        "start": 19,
+        "end": 147,
+        "evidence": [
+          "ECO:0000255"
+        ]
+      },
+      "sequence": "KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDVQAWIRGCRL",
+      "sequenceSha256": "eaf1f8d7f5bf78bbefe1100d912a09893361c57dda057f634adb5c5af6dfe79c",
+      "family": {
+        "database": "Pfam",
+        "accession": "PF00062",
+        "name": "C-type lysozyme/alpha-lactalbumin family",
+        "start": 19,
+        "end": 145
+      },
+      "structure": {
+        "pdb": "2VB1",
+        "method": "X-ray",
+        "resolutionAngstrom": 0.65,
+        "chains": "A",
+        "start": 19,
+        "end": 147
+      },
+      "summary": {
+        "es": "Hidroliza enlaces glucosídicos del peptidoglucano bacteriano.",
+        "en": "Hydrolyses glycosidic bonds of bacterial peptidoglycan."
+      },
+      "sources": [
+        {
+          "name": "UniProtKB",
+          "licence": "CC BY 4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "url": "https://rest.uniprot.org/uniprotkb/P00698.json",
+          "retrievedAt": "2026-10-27T07:24:17.339Z",
+          "sha256": "cd9677775c87a03dfd0ce44320a8ed7ba80908afa21ac8b674ce9271290f1855"
+        },
+        {
+          "name": "InterPro (Pfam)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P00698/?page_size=100",
+          "retrievedAt": "2026-10-27T07:24:37.714Z",
+          "sha256": "6da670da5873789f0733eea13e4e3c794e4e45f89b6c1f232bba9a5c7a4b5937"
+        },
+        {
+          "name": "PDB (vía SIFTS en UniProt)",
+          "licence": "CC0 1.0",
+          "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "url": "https://www.rcsb.org/structure/2VB1",
+          "retrievedAt": "2026-10-27T07:24:17.339Z",
+          "sha256": "cd9677775c87a03dfd0ce44320a8ed7ba80908afa21ac8b674ce9271290f1855"
+        }
+      ]
+    }
+  ]
+}

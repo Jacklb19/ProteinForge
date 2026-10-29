@@ -21,6 +21,18 @@ const browserName = process.env.PWA_CHECK_BROWSER ?? 'chromium';
 const engine = browserName === 'chromium' ? chromium : browserName === 'firefox' ? firefox : browserName === 'webkit' ? webkit : null;
 if (!engine) throw new Error('PWA_CHECK_BROWSER must be chromium, firefox or webkit.');
 const server = await preview({ preview: { host: '127.0.0.1', port, strictPort: true } });
+/**
+ * Offline is a real outage: the server stops. WebKit fails Service Worker navigations under the
+ * browser's offline emulation even on a minimal site (scripts/probe-webkit-offline.mjs), so emulation
+ * would measure the automation, not the application.
+ */
+async function stopServer() {
+  if (!server.httpServer.listening) return;
+  await new Promise((resolve, reject) => {
+    server.httpServer.close((error) => error ? reject(error) : resolve());
+    server.httpServer.closeAllConnections?.();
+  });
+}
 let browser;
 try {
   browser = await engine.launch(browserName === 'chromium' ? {
@@ -34,7 +46,7 @@ try {
   await page.waitForFunction(async () => { await navigator.serviceWorker.ready; return true; });
   await page.reload();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
-  await context.setOffline(true);
+  await stopServer();
   await page.reload();
   const offlineIcon = await page.evaluate(async (expectedAccent) => {
     const cached = await caches.match('/app-icon.svg', { ignoreSearch: true });
@@ -135,6 +147,6 @@ try {
   try {
     await browser?.close();
   } finally {
-    await new Promise((resolve, reject) => { server.httpServer.close((error) => error ? reject(error) : resolve()); });
+    await stopServer();
   }
 }

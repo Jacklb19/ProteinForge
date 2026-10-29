@@ -1,13 +1,11 @@
 /// <reference lib="webworker" />
 
 import { drawProfile } from './drawProfile';
-import { translate } from '../../i18n/translate';
 import type { ProfileResponse, ProfileRequest } from './profileMessages';
 import { calculateProfile } from './profile';
 import { calculatePropensities } from './chouFasman';
 import type { ProfilePoint, HydropathyWindow } from './profile';
-import { DEFAULT_LOCALE } from '../../i18n/config';
-import { localizedFailure } from '../../i18n/localized';
+import { LocalizedError, localizedFailure } from '../../i18n/localized';
 import { CHART_FONT, fontUrl } from '../../theme/fonts';
 
 const context = self as DedicatedWorkerGlobalScope;
@@ -26,8 +24,8 @@ function initializeChartFont(): void {
       drawProfile(canvas, previousProfile.points, previousProfile.windowSize, viewport.width, viewport.height, viewport.scale, chartStyle);
     }
   }).catch(() => {
-    // Keep calculated data available if the font cannot load or redraw.
-    console.warn(translate(DEFAULT_LOCALE, 'errors.chartFontLoad'));
+    // Keep calculated data available if the font cannot load or redraw; the catalogs stay out of the Worker.
+    console.warn(new LocalizedError('errors.chartFontLoad').message);
   });
 }
 

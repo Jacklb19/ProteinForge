@@ -18,4 +18,12 @@ describe('deployed application headers', () => {
     expect(csp).toMatch(/worker-src 'self' blob:/);
     expect(csp).toMatch(/connect-src[^;]*https:\/\/models\.rcsb\.org/);
   });
+
+  // Nothing inline and nothing from elsewhere: a preload hint chosen while the page loads has to
+  // come from a file of this origin, never from a script written into the document.
+  it('keeps scripts to this origin, with nothing inline', () => {
+    const csp = headers.get('Content-Security-Policy') ?? '';
+    const scripts = /script-src ([^;]+)/.exec(csp)?.[1]?.trim().split(/\s+/) ?? [];
+    expect(scripts).toStrictEqual(["'self'", "'wasm-unsafe-eval'"]);
+  });
 });

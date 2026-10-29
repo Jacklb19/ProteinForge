@@ -9,10 +9,10 @@ import { SegmentedControl } from '../shared/SegmentedControl';
 /** Appearance and language: the same two choices wherever preferences appear. */
 export function PreferencesFields(): React.JSX.Element {
   const { t } = useTranslation();
-  const { theme, setTheme, locale, setLocale } = usePreferences();
+  const { theme, setTheme, chosenLocale, setLocale } = usePreferences();
   return <div className="preferences-fields">
     <SegmentedControl legend={t('account.appearance')} options={THEMES.map(value => ({ value, label: t(THEME_LABEL_KEYS[value]) }))} value={theme} onChange={setTheme} />
-    <SegmentedControl legend={t('shell.languageLabel')} options={LOCALES.map(value => ({ value, label: t(LOCALE_LABEL_KEYS[value]) }))} value={locale} onChange={setLocale} />
+    <SegmentedControl legend={t('shell.languageLabel')} options={LOCALES.map(value => ({ value, label: t(LOCALE_LABEL_KEYS[value]) }))} value={chosenLocale} onChange={setLocale} />
   </div>;
 }
 

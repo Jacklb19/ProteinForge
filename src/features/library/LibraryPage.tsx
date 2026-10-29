@@ -21,6 +21,8 @@ import { isCurrentReference } from './referenceView';
 import type { ReferenceView } from './referenceView';
 import type { MappingLoader } from './mappingTypes';
 import { ViewTabs } from '../../shared/ViewTabs';
+import { DomainsPanel } from '../domains/DomainsPanel';
+import { OPEN_PROJECT_STATE } from '../editor/config';
 
 const INSULIN_ACCESSION = 'P01308';
 const INSULIN_STRUCTURE: PdbReference = { id: '1TRZ', method: 'X-ray', resolution: '1.60 Å', chains: 'A/C=90-110, B/D=25-54' };
@@ -30,12 +32,14 @@ const INSULIN_REFERENCE = (() => {
   return reference;
 })();
 
+interface Loading { text: string; source: SequenceSource | null; view: ReferenceView | null; openProject?: boolean }
+
 export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader | null }): React.JSX.Element {
   const { t, formatNumber, formatDate } = useTranslation();
   const auth = useAuth(); const draft = useSequenceDraft(); const navigate = useNavigate();
   const client = useMemo(() => { const url = readApiBaseUrl(); return url ? createLibraryApi(url) : null; }, []);
   const [query, setQuery] = useState(UNIPROT_DEFAULT_QUERY);
-  const [sourceView, setSourceView] = useState<'catalog' | 'uniprot'>('catalog');
+  const [sourceView, setSourceView] = useState<'catalog' | 'uniprot' | 'domains'>('catalog');
   const [items, setItems] = useState<EntrySummary[] | null>(null);
   const restored = isCurrentReference(draft.referenceView, draft.text, draft.source) ? draft.referenceView : null;
   const [entry, setEntry] = useState<UniProtEntry | null>(restored?.entry ?? null);
@@ -46,7 +50,8 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
   const [structure, setStructure] = useState<PdbReference | null>(() => restored ? restored.structures.find(item => item.id === restored.pdbId) ?? null : INSULIN_STRUCTURE);
   const [position, setPosition] = useState<number | null>(restored?.position ?? 90);
   const [chain, setChain] = useState<string | null>(restored?.chain ?? null);
-  const [pending, setPending] = useState<{ source: SequenceSource; view: ReferenceView | null } | null>(null);
+  // A documented part or an assembly travels without a source: it is not a complete reference entry.
+  const [pending, setPending] = useState<Loading | null>(null);
   const controller = useRef<AbortController | null>(null);
   const token = auth.status === 'signed-in' ? auth.session?.accessToken ?? '' : '';
   useEffect(() => () => { controller.current?.abort(); }, [token]);
@@ -68,13 +73,18 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
     } catch (failure) { if (!operation.signal.aborted) setError(failure instanceof ApiError ? failure : new ApiError('unknown')); }
     finally { if (controller.current === operation) setBusy(false); }
   }
-  function load(source: SequenceSource, view: ReferenceView | null = null): void {
-    draft.setText(source.sequence); draft.setSource(source); draft.setReferenceView(view); void navigate(ROUTES.analyze);
+  function load(next: Loading): void {
+    draft.setText(next.text); draft.setSource(next.source); draft.setReferenceView(next.view);
+    void navigate(ROUTES.analyze, next.openProject ? { state: OPEN_PROJECT_STATE } : undefined);
   }
   function choose(source: SequenceSource, view: ReferenceView | null = null): void {
     if (view && draft.text === source.sequence && draft.source?.accession === source.accession && draft.source.sequenceVersion === source.sequenceVersion) {
       draft.setReferenceView(view); void navigate(ROUTES.analyze);
-    } else if (draft.text) setPending({ source, view }); else load(source, view);
+    } else if (draft.text) setPending({ text: source.sequence, source, view }); else load({ text: source.sequence, source, view });
+  }
+  function takeText(text: string, openProject: boolean): void {
+    const next = { text, source: null, view: null, openProject };
+    if (draft.text) setPending(next); else load(next);
   }
   const ERROR_KEYS: Partial<Record<ApiErrorCode, TranslationKey>> = { session: 'library.session', 'not-found': 'library.notFound', validation: 'library.invalidQuery', 'rate-limit': 'projects.rateLimit' };
   const references = entry?.structures ?? [INSULIN_STRUCTURE];
@@ -92,6 +102,7 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
       </PageHeading>
       <ViewTabs id="library" label={t('workbench.libraryViews')} value={sourceView} onChange={setSourceView} options={[
         { value: 'catalog', label: t('library.catalogTitle') }, { value: 'uniprot', label: t('library.uniprotTitle') },
+        { value: 'domains', label: t('domains.tab') },
       ]} />
 
       <section className="library-section" id="library-catalog-panel" role="tabpanel" aria-labelledby="library-catalog-tab" hidden={sourceView !== 'catalog'}>
@@ -123,7 +134,7 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
           <p>{t('library.replaceHelp')}</p>
           <div className="actions">
             <button type="button" className="button button-secondary" onClick={() => { setPending(null); }}>{t('projects.cancel')}</button>
-            <button type="button" className="button button-primary" onClick={() => { load(pending.source, pending.view); }}>{t('library.confirmLoad')}</button>
+            <button type="button" className="button button-primary" onClick={() => { load(pending); }}>{t(pending.source ? 'library.confirmLoad' : 'domains.confirmLoad')}</button>
           </div>
         </section>
       )}
@@ -200,6 +211,8 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
           </article>
         )}
       </section>
+
+      <DomainsPanel hidden={sourceView !== 'domains'} signedIn={auth.status === 'signed-in'} onUse={takeText} />
 
       <section className="library-section" aria-labelledby="structure-title">
         <h2 id="structure-title">{t('workbench.libraryEntry')} · {entry?.name ?? t('examples.insulinName')}</h2>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { LocalizedError, LocalizedRangeError, localize, localizedFailure } from './localized';
+import { LocalizedError, LocalizedRangeError, localizedFailure } from './localized';
+import { localize } from './localize';
 import { english } from './en';
 import { spanish } from './es';
 
