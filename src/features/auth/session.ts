@@ -1,23 +1,40 @@
-import { z } from 'zod';
 import { SESSION_STORAGE_KEY } from './config';
 
-/** Session kept in the browser; `expiresAt` is a Unix timestamp in seconds. */
-export const sessionSchema = z.object({
-  accessToken: z.string().min(1),
-  refreshToken: z.string().min(1),
-  expiresAt: z.number().int().positive(),
-  user: z.object({ id: z.string().min(1), email: z.string() }),
-});
+export type { AuthSession } from './schemas';
+import type { AuthSession } from './schemas';
 
-export type AuthSession = z.infer<typeof sessionSchema>;
+/**
+ * The stored session, read without zod.
+ *
+ * This runs before the first render, so it is the one validation that cannot wait for a file to
+ * arrive. `schemas.ts` keeps the zod shape and stays the source of truth: `session.test.ts` runs
+ * the same cases through both and requires the same verdict and the same value, so this cannot
+ * drift into accepting or returning something the schema would not.
+ *
+ * Like the schema it is built from, it keeps only the four known fields and drops anything else
+ * the stored object carries.
+ */
+export function storedSession(value: unknown): AuthSession | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const { accessToken, refreshToken, expiresAt, user } = value as Record<string, unknown>;
+  if (typeof accessToken !== 'string' || accessToken.length < 1) return null;
+  if (typeof refreshToken !== 'string' || refreshToken.length < 1) return null;
+  // Safe integers, not merely whole numbers: that is what the schema's `int()` accepts, and the
+  // parity test caught the difference at 2 ** 53.
+  if (typeof expiresAt !== 'number' || !Number.isSafeInteger(expiresAt) || expiresAt <= 0) return null;
+  if (typeof user !== 'object' || user === null || Array.isArray(user)) return null;
+  const { id, email } = user as Record<string, unknown>;
+  if (typeof id !== 'string' || id.length < 1) return null;
+  if (typeof email !== 'string') return null;
+  return { accessToken, refreshToken, expiresAt, user: { id, email } };
+}
 
 /** Reads a validated session, or `null` when storage is empty, denied or corrupted. */
 export function loadSession(storage: Storage | null = safeStorage()): AuthSession | null {
   try {
     const raw = storage?.getItem(SESSION_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = sessionSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : null;
+    return storedSession(JSON.parse(raw));
   } catch {
     return null;
   }
