@@ -103,6 +103,7 @@ Implementado en `src/features/auth/mfaApi.ts`, `assurance.ts` y el proveedor de 
 - Entradas validadas antes de enviar nada: el código se normaliza quitando espacios y debe tener seis cifras; el nombre del factor se recorta y tiene un máximo propio de 64 caracteres (el servidor no fija uno); los identificadores deben ser UUID, porque forman parte de la ruta.
 - `readAssurance` lee `aal` y `amr` del JWT sin validarlo (solo para decidir qué mostrar; la autorización real la hace el servidor) y `assuranceStep` resume el estado: sin segundo factor, código pendiente o completado.
 - El proveedor sustituye la sesión con la que devuelve la verificación, refresca tras quitar un factor para bajar a aal1 y **descarta un refresco que llegue después de que la sesión haya cambiado** (verificación, cierre de sesión u otro refresco), para que un token aal1 antiguo no pise uno aal2 nuevo ni reabra una sesión cerrada.
+- El cliente de segundo factor usa zod, así que el proveedor lo descarga con la primera operación de segundo factor y nunca antes del primer pintado; si la descarga falla, se informa como error de red y se reintenta en la siguiente. `assurance.ts` no usa zod.
 - Errores del servidor con mensaje propio en español e inglés.
 
 ## Límites de esta comprobación

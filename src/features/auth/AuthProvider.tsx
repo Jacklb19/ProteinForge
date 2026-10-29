@@ -5,7 +5,6 @@ import type { AuthContextValue, AuthStatus } from './authContext';
 import { AuthError, createAuthApi, parseFragmentSession } from './authApi';
 import type { AuthApi } from './authApi';
 import { readAssurance } from './assurance';
-import { createMfaApi } from './mfaApi';
 import type { MfaApi } from './mfaApi';
 import { readAuthSettings, SESSION_REFRESH_MARGIN_SECONDS } from './config';
 import type { AuthSettings } from './config';
@@ -37,6 +36,18 @@ interface InitialState {
   staleSession: AuthSession | null;
 }
 
+/**
+ * The second factor client validates with zod, so it arrives with the first second factor call and never
+ * before the first paint. A failed download is reported as a network error and tried again next time.
+ */
+function deferredMfaApi(settings: AuthSettings): () => Promise<MfaApi> {
+  let loading: Promise<MfaApi> | null = null;
+  return () => (loading ??= import('./mfaApi').then(
+    ({ createMfaApi }) => createMfaApi(settings),
+    () => { loading = null; throw new AuthError('network'); },
+  ));
+}
+
 /** Reads the redirect fragment and the stored session once, before the first render. */
 function readInitialState(enabled: boolean): InitialState {
   if (!enabled) return { session: null, status: 'disabled', recoveryPending: false, redirectError: null, staleSession: null };
@@ -62,7 +73,10 @@ export function AuthProvider({ children, settings, api, mfaApi }: Props): React.
   const [environmentSettings] = useState(() => readAuthSettings());
   const configuredSettings = settings === undefined ? environmentSettings : settings;
   const client = useMemo(() => api ?? (configuredSettings ? createAuthApi(configuredSettings) : null), [api, configuredSettings]);
-  const mfa = useMemo(() => mfaApi ?? (configuredSettings ? createMfaApi(configuredSettings) : null), [mfaApi, configuredSettings]);
+  const mfa = useMemo(
+    () => (mfaApi ? () => Promise.resolve(mfaApi) : configuredSettings ? deferredMfaApi(configuredSettings) : null),
+    [mfaApi, configuredSettings],
+  );
   const [initial] = useState(() => readInitialState(client !== null));
   const [session, setSession] = useState<AuthSession | null>(initial.session);
   const [status, setStatus] = useState<AuthStatus>(initial.status);
@@ -149,16 +163,16 @@ export function AuthProvider({ children, settings, api, mfaApi }: Props): React.
     assurance,
     async listFactors() {
       if (!mfa || !session) throw new AuthError('session_expired');
-      return mfa.listFactors(session.accessToken);
+      return (await mfa()).listFactors(session.accessToken);
     },
     async enrollTotp(friendlyName) {
       if (!mfa || !session) throw new AuthError('session_expired');
-      return mfa.enrollTotp(session.accessToken, friendlyName);
+      return (await mfa()).enrollTotp(session.accessToken, friendlyName);
     },
     async verifyTotp(factorId, code) {
       if (!mfa || !session) throw new AuthError('session_expired');
       try {
-        apply(await mfa.verifyCode(session.accessToken, factorId, code));
+        apply(await (await mfa()).verifyCode(session.accessToken, factorId, code));
       } catch (error) {
         if (error instanceof AuthError && error.code === SIGNED_OUT_BY_VERIFICATION) apply(null);
         throw error;
@@ -166,7 +180,7 @@ export function AuthProvider({ children, settings, api, mfaApi }: Props): React.
     },
     async unenrollFactor(factorId) {
       if (!mfa || !session) throw new AuthError('session_expired');
-      await mfa.unenroll(session.accessToken, factorId);
+      await (await mfa()).unenroll(session.accessToken, factorId);
       // The access token keeps its level until it is replaced; without a connection the scheduled refresh does it later.
       await refreshFrom(session.refreshToken, true);
     },

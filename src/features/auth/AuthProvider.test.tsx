@@ -81,6 +81,7 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reje
 }
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   window.localStorage.clear();
 });
 
@@ -163,6 +164,18 @@ describe('second factor session', () => {
     await waitFor(() => { expect(mfa.listFactors).toHaveBeenCalledWith(current.accessToken); });
     fireEvent.click(screen.getByRole('button', { name: 'enroll' }));
     await waitFor(() => { expect(mfa.enrollTotp).toHaveBeenCalledWith(current.accessToken, 'Phone'); });
+  });
+
+  it('loads the second factor client on first use when none is given', async () => {
+    const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>()
+      .mockResolvedValue(Response.json({ id: 'user-1', factors: [{ id: factorId, factor_type: 'totp', friendly_name: 'Phone', status: 'verified', created_at: '2026-10-29T10:00:00Z' }] }));
+    vi.stubGlobal('fetch', fetchMock);
+    const current = sessionAt('aal1', 'aal1-refresh');
+    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(current));
+    render(<AuthProvider settings={settings} api={mockApi()}><Probe /></AuthProvider>);
+    fireEvent.click(screen.getByRole('button', { name: 'list' }));
+    await waitFor(() => { expect(screen.getByTestId('outcome')).toHaveTextContent('done'); });
+    expect(fetchMock).toHaveBeenCalledWith('https://project.supabase.co/auth/v1/user', expect.objectContaining({ method: 'GET' }));
   });
 
   it('refuses every second factor operation without a session', async () => {
