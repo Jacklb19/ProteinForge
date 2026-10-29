@@ -14,9 +14,10 @@ import type { ProjectApi } from './projectApi';
 import type { Project } from './contracts';
 import { PROJECT_POINTER_PREFIX } from './config';
 import { ApiError } from '../api/apiClient';
+import { signedInFixture } from '../../test/authFixture';
 
 const project: Project = { id: '00000000-0000-4000-8000-000000000010', name: 'Study', activeSequence: 'ACD', status: 'draft', createdAt: '2026-10-12T08:00:00.123456Z', updatedAt: '2026-10-12T08:00:00.123456Z', workspace: { schemaVersion: 1, profileWindow: 19, descriptors: null, alignment: { first: 'ACD', second: 'ACE', matrix: 'BLOSUM80', mode: 'local', result: null } } };
-const auth: AuthContextValue = { status: 'signed-in', session: { accessToken: 'owner-token', refreshToken: 'refresh', expiresAt: 9999999999, user: { id: 'owner', email: 'a@example.org' } }, recoveryPending: false, redirectError: null, signIn: vi.fn(), signUp: vi.fn(), signOut: vi.fn(), recover: vi.fn(), updatePassword: vi.fn(), authorizeUrl: vi.fn() };
+const auth: AuthContextValue = signedInFixture;
 function service(): ProjectApi { return { list: vi.fn().mockResolvedValue({ items: [project], nextPageToken: null }), open: vi.fn().mockResolvedValue(project), save: vi.fn().mockResolvedValue(project), remove: vi.fn().mockResolvedValue(undefined) }; }
 function Probe() {
   const projects = useProjects(); const sequence = useSequenceDraft(); const alignment = useAlignmentDraft();
