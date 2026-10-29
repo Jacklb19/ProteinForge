@@ -18,7 +18,7 @@ Decisiones tomadas por delegación el 28 oct, con su detalle en [decisiones](dec
 
 ### Orden de continuación
 
-1. **Pedir autorización para publicar `dev` `4050ae1`.** El propietario aplazó la publicación el 29 oct para que saliera todo junto cuando entregaran los dos frentes; ya entregaron, están integrados y verificados. La entrega anterior —rendimiento, subconjunto de Plex Mono y pestaña «Dominios»— ya está publicada en `main` `09989b0`.
+1. **Publicado el 29 oct por la tarde, con autorización expresa del propietario:** `main` `00157a1` desde `dev` `747d065`. CI en verde en los dos flujos y en las dos ramas, y despliegue identificado sin depender del panel de Vercel: el paquete servido contiene su propio commit (`VITE_APP_BUILD`), `00157a11aceff946655200e42a63eed99179609e`, idéntico a `main`. La autorización queda consumida.
 2. Activar el historial del generador en producción con el propietario y comprobar un guardado real con su sesión.
 3. Integrar y verificar lo que entreguen los dos frentes abiertos el 29 oct: rendimiento de `BackboneView` e `HydropathyProfile` con medición repetible, y el segundo factor TOTP, cuya interfaz espera aprobación del propietario.
 4. Recorrido con Supabase local y dos cuentas reales para el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 oct que revisa él esa parte.

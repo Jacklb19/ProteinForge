@@ -6,17 +6,20 @@ Actualizado el **29 de octubre de 2026**. Leer este documento completo, los AGEN
 
 | Repositorio | `main` | `dev` |
 |---|---|---|
-| Frontend | `09989b0` | `4050ae1` |
+| Frontend | `00157a1` | `747d065` (más el registro de esta publicación, sin subir) |
 | Backend | `18d9444` | `cbff97e` |
 
-El frontend se publicó el **29 de octubre**: el merge `65a0b74` llevó a `main` la pasada de rendimiento, el subconjunto de IBM Plex Mono y la pestaña «Dominios». Esa primera publicación **falló en CI** por un defecto de idioma; el arreglo `869ce2d` se publicó enseguida como `09989b0` y dejó ambas ramas en verde.
+El frontend se publicó **dos veces el 29 de octubre**, ambas con autorización expresa del propietario y autoría exclusiva suya.
 
-Comprobado el 29 de octubre desde coordinación, sin intermediarios:
+1. Por la mañana, `65a0b74` llevó a `main` la pasada de rendimiento, el subconjunto de IBM Plex Mono y la pestaña «Dominios». **Falló en CI** por un defecto de idioma; el arreglo `869ce2d` se publicó enseguida como `09989b0` y dejó ambas ramas en verde.
+2. Por la tarde, `00157a1` llevó a `main` el resto de la jornada: zod fuera del arranque, la capa de cliente del segundo factor, la corrección de repintado de `BackboneView` y el método de medición de LCP.
 
-- **CI de GitHub Actions en verde** en los dos flujos (integración continua y WebAssembly) para `dev` `869ce2d` y para `main` `09989b0`.
-- **Producción sirve el arreglo de idioma.** No se pudo mirar el panel de Vercel porque la cuenta conectada a las herramientas de coordinación pertenece a otro proyecto, igual que ocurre con Supabase. Se comprobó por comportamiento en <https://protein-forge.vercel.app/>: elegir inglés, recargar y seguir en inglés, que es exactamente lo que `869ce2d` arregla. Con la versión anterior habría vuelto a español.
+Comprobado desde coordinación tras la segunda publicación, sin intermediarios:
 
-Lo que hay en `dev` por encima de `main` **no está publicado** y necesita autorización expresa y fechada del propietario. El backend tiene un commit de documentación sin subir (`cbff97e`), también pendiente de autorización.
+- **CI de GitHub Actions en verde** en los dos flujos, integración continua y WebAssembly, para `dev` `747d065` y para `main` `00157a1`.
+- **Producción sirve exactamente `main`.** El panel de Vercel no se puede mirar desde coordinación, porque la cuenta conectada a sus herramientas pertenece a otro proyecto, igual que ocurre con Supabase. Pero el paquete publicado incorpora su propio commit a través de `VITE_APP_BUILD`, que `vite.config.ts` toma de `VERCEL_GIT_COMMIT_SHA`: el bundle servido en <https://protein-forge.vercel.app/> contiene `00157a11aceff946655200e42a63eed99179609e`, que es `main` carácter por carácter. Eso identifica el despliegue sin depender del panel. La portada carga sin errores de consola, con su lienzo y los 110 residuos.
+
+Lo que entre en `dev` a partir de aquí **no está publicado** y necesita autorización nueva, expresa y fechada: la del 29 de octubre quedó consumida. El backend sigue con un commit de documentación sin subir (`cbff97e`), también pendiente.
 
 El frontend fija el backend publicado `18d9444` en `buf.gen.yaml`; la regeneración fue idéntica. Si cambia el contrato, el orden sigue siendo **migración → backend → repin/regeneración → frontend**.
 
@@ -102,7 +105,7 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 ## Orden de continuación
 
-1. **Pedir autorización para publicar `dev`.** El propietario aplazó la publicación el 29 de octubre para que saliera todo junto cuando entregaran los dos frentes. **Ya entregaron, están integrados y verificados**, así que la condición se cumplió: `dev` lleva zod fuera del arranque, la capa de cliente del segundo factor, la corrección de `BackboneView` y el método de medición. Publicar sigue necesitando su autorización expresa y fechada.
+1. **Publicado.** El propietario autorizó la publicación el 29 de octubre por la tarde, una vez integrados y verificados los dos frentes, y se ejecutó: `main` `00157a1`, con CI en verde y el despliegue identificado por su propio commit. Esa autorización queda consumida.
 2. Activar el historial del generador en producción según el apartado anterior, con el propietario.
 3. Llevar al propietario la [propuesta de pantallas del segundo factor](auth-totp-ui-proposal-2026-10-29.md) con sus cuatro decisiones. Sin su aprobación no se programa ninguna pantalla, y la capa de cliente ya integrada se queda sin usar, que es el comportamiento correcto.
 4. Decidir sobre el **giro en reposo de Inicio** (1,85 s de CPU de cada 4,5 s sin «reducir movimiento»): reducirlo cambiaría lo que se ve, así que es decisión del propietario. Y, si se quiere acreditar RNF-03 en Analizar, buscar los 60–80 ms donde de verdad están, con `scripts/measure-lcp.mjs` como método, no a ojo. Los dos frentes abiertos el 29 oct ya están integrados y verificados.
