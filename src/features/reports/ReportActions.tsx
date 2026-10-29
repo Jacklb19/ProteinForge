@@ -21,9 +21,10 @@ export function ReportActions({ children }: { children?: ReactNode }): React.JSX
   if (!available) return null;
 
   function finish(): void { if (operation.current) { operation.current.worker.terminate(); clearTimeout(operation.current.timer); operation.current = null; } }
-  function start(format: ReportFormat): void {
+  // Capturing the workspace reads the project contracts, which arrive with this first export.
+  async function start(format: ReportFormat): Promise<void> {
     try {
-      const snapshot = captureWorkspace(sequence.text, alignment, sequence.profileWindow, undefined, undefined, sequence.source);
+      const snapshot = await captureWorkspace(sequence.text, alignment, sequence.profileWindow, undefined, undefined, sequence.source);
       if (!snapshot.activeSequence && !snapshot.workspace.alignment.result) { setStatus('error'); return; }
       if (format === 'alignment' && !snapshot.workspace.alignment.result) { setStatus('stale'); return; }
       if (format === 'profile' && !snapshot.activeSequence) { setStatus('error'); return; }
@@ -46,10 +47,10 @@ export function ReportActions({ children }: { children?: ReactNode }): React.JSX
     } catch { finish(); setStatus('error'); }
   }
   return <details className="toolbar-menu report-menu"><summary className="button button-secondary">{t('report.export')}</summary><div className="toolbar-popover">
-    <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('pdf'); }}>{t('report.pdf')}</button>
-    <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('json'); }}>{t('report.json')}</button>
-    {sequence.text && <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('profile'); }}>{t('report.profileCsv')}</button>}
-    {alignment.result && <button type="button" className="button" disabled={status === 'running'} onClick={() => { start('alignment'); }}>{t('report.alignmentCsv')}</button>}
+    <button type="button" className="button" disabled={status === 'running'} onClick={() => { void start('pdf'); }}>{t('report.pdf')}</button>
+    <button type="button" className="button" disabled={status === 'running'} onClick={() => { void start('json'); }}>{t('report.json')}</button>
+    {sequence.text && <button type="button" className="button" disabled={status === 'running'} onClick={() => { void start('profile'); }}>{t('report.profileCsv')}</button>}
+    {alignment.result && <button type="button" className="button" disabled={status === 'running'} onClick={() => { void start('alignment'); }}>{t('report.alignmentCsv')}</button>}
     {children}
     {status === 'running' && <button type="button" className="button" onClick={() => { finish(); setStatus('idle'); }}>{t('projects.cancel')}</button>}
     <p role="status" className="status-message" data-state={status === 'error' || status === 'stale' ? 'error' : undefined}>{status === 'idle' ? '' : t(`report.${status}`)}</p></div></details>;

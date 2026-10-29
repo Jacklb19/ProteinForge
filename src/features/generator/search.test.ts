@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { calculateDescriptors } from '../descriptors/descriptors';
 import { candidateDistance, evaluateCandidate, searchCandidates, searchParametersSchema } from './search';
 import type { SearchParameters } from './search';
-import { INITIAL_SEARCH_FORM, parseSearchForm } from './context';
+import { INITIAL_SEARCH_FORM } from './context';
+import { parseSearchForm } from './searchForm';
 import { GENERATOR_CONFIG } from './config';
 const parameters: SearchParameters = { length: 30, budget: 500, seed: 42, gravy: { enabled: true, minimum: 1.9, maximum: 2.1 }, massDa: { enabled: false, minimum: 3000, maximum: 6000 } };
 

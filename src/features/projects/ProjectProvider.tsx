@@ -16,8 +16,15 @@ import type { ProjectQuery } from './config';
 import { ProjectContext } from './projectContext';
 import { captureWorkspace, withGeneratorHistory, workspaceInputKey, workspaceVersion } from './snapshot';
 import type { GeneratorRunSaved, GeneratorRunTarget } from './projectContext';
-import { addGeneratorRun, createGeneratorRun, removeGeneratorRun } from '../generator/history';
 import type { GeneratorRunSelection } from '../generator/history';
+
+/**
+ * The generator history is written in zod and is only read when a search result is stored or
+ * removed, never while rendering, so it arrives with that action. Together with the project
+ * contracts this keeps zod out of the initial download; see `docs/performance-2026-10-27.md`.
+ */
+let loadingHistory: Promise<typeof import('../generator/history')> | null = null;
+const historyModule = (): Promise<typeof import('../generator/history')> => (loadingHistory ??= import('../generator/history'));
 import { APP_BUILD } from '../generator/appBuild';
 import type { WorkspaceSnapshot } from './contracts';
 import type { DescriptorState } from '../descriptors/useDescriptors';
@@ -241,7 +248,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       return done ? opened : null;
     },
     save(name: string, descriptors?: DescriptorState, copy = false) { return run(async (service, signal) => {
-      const snapshot = captureWorkspace(sequence.text, alignment, sequence.profileWindow, descriptors, current.active, sequence.source);
+      const snapshot = await captureWorkspace(sequence.text, alignment, sequence.profileWindow, descriptors, current.active, sequence.source);
       const project = await service.save({ ...snapshot, name: name.trim() }, token, copy ? undefined : current.active ?? undefined, signal);
       if (signal.aborted) return;
       if (user) remember(user, project.id);
@@ -296,6 +303,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     async saveGeneratorRun(resultJson: string, selection: GeneratorRunSelection | null, target: GeneratorRunTarget): Promise<GeneratorRunSaved | null> {
       const outcome: { value: GeneratorRunSaved | null } = { value: null };
       const done = await run(async (service, signal) => {
+        const { addGeneratorRun, createGeneratorRun } = await historyModule();
         const generatorRun = await createGeneratorRun(resultJson, { recordedAt: new Date().toISOString(), appBuild: APP_BUILD, selection });
         // Writes the stored project plus the history, never the unsaved drafts of the editor.
         const base = target.kind === 'active' ? current.active : target.kind === 'project' ? await service.open(target.id, token, signal) : null;
@@ -303,7 +311,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
         if (target.kind !== 'new' && !base) throw new ApiError('validation');
         const { history, added } = await addGeneratorRun(base?.workspace.generatorHistory, generatorRun);
         if (base && !added) { outcome.value = { project: base.name, added: false }; return; }
-        const workspace = withGeneratorHistory(base?.workspace ?? EMPTY_WORKSPACE, history);
+        const workspace = await withGeneratorHistory(base?.workspace ?? EMPTY_WORKSPACE, history);
         const name = base?.name ?? (target.kind === 'new' ? target.name.trim() : '');
         const project = await service.save({ name, activeSequence: base?.activeSequence ?? '', workspace }, token, base ?? undefined, signal);
         signal.throwIfAborted();
@@ -319,8 +327,10 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       const base = current.active;
       const history = base?.workspace.generatorHistory;
       if (!base || !history) throw new ApiError('validation');
+      const { removeGeneratorRun } = await historyModule();
       const next = await removeGeneratorRun(history, id);
-      const project = await service.save({ name: base.name, activeSequence: base.activeSequence, workspace: withGeneratorHistory(base.workspace, next) }, token, base, signal);
+      const workspace = await withGeneratorHistory(base.workspace, next);
+      const project = await service.save({ name: base.name, activeSequence: base.activeSequence, workspace }, token, base, signal);
       signal.throwIfAborted();
       if ((project.workspace.generatorHistory?.documentSha256 ?? null) !== (next?.documentSha256 ?? null)) throw new ApiError('invalid-response');
       setState((value) => ({ ...value, active: value.active?.id === project.id ? project : value.active }));

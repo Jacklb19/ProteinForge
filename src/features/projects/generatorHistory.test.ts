@@ -42,11 +42,11 @@ describe('workspace versions 1, 2 and 3 in the client', () => {
     expect(summaryDocument(fromBinary(ProjectSummarySchema, toBinary(ProjectSummarySchema, summary))).preview).toMatchObject({ generatorRuns: 2 });
   });
 
-  it('preserves laboratory and history when saving the analysis and never lowers the version', () => {
+  it('preserves laboratory and history when saving the analysis and never lowers the version', async () => {
     const saved = (workspace: Record<string, unknown>): Project => projectSchema.parse(project(workspace));
     for (const [workspace, version] of [[{ schemaVersion: 1 }, 1], [{ schemaVersion: 2, laboratory: LABORATORY }, 2], [{ schemaVersion: 3 }, 3],
       [{ schemaVersion: 3, laboratory: LABORATORY, generatorHistory: history }, 3]] as const) {
-      const snapshot = captureWorkspace('ACDE', ALIGNMENT, 9, undefined, saved(workspace)).workspace;
+      const snapshot = (await captureWorkspace('ACDE', ALIGNMENT, 9, undefined, saved(workspace))).workspace;
       expect(snapshot.schemaVersion).toBe(version);
       expect(snapshot.laboratory ?? null).toEqual('laboratory' in workspace ? LABORATORY : null);
       expect(snapshot.generatorHistory ?? null).toEqual('generatorHistory' in workspace ? history : null);
@@ -55,15 +55,15 @@ describe('workspace versions 1, 2 and 3 in the client', () => {
     expect(workspaceVersion({ generatorHistory: history }, 1)).toBe(3);
   });
 
-  it('adds or removes the history without touching the laboratory', () => {
+  it('adds or removes the history without touching the laboratory', async () => {
     const laboratory: WorkspaceSnapshot = { ...BASE, schemaVersion: 2, laboratory: LABORATORY };
-    const added = withGeneratorHistory(laboratory, history);
+    const added = await withGeneratorHistory(laboratory, history);
     expect(added).toMatchObject({ schemaVersion: 3, laboratory: LABORATORY, generatorHistory: history });
-    const removed = withGeneratorHistory(added, null);
+    const removed = await withGeneratorHistory(added, null);
     expect(removed.schemaVersion).toBe(3);
     expect(removed.laboratory).toEqual(LABORATORY);
     expect(removed).not.toHaveProperty('generatorHistory');
-    expect(withGeneratorHistory(BASE, history).schemaVersion).toBe(3);
+    expect((await withGeneratorHistory(BASE, history)).schemaVersion).toBe(3);
   });
 
   it('explains a newer stored project apart from a concurrent change, in both languages', () => {

@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { GeneratorContext, INITIAL_SEARCH_FORM, parseSearchForm } from './context';
+import { GeneratorContext, INITIAL_SEARCH_FORM } from './context';
 import type { GeneratorState, SearchForm } from './context';
 import type { SearchProgress, SearchResult } from './search';
 import type { SearchRequest, SearchResponse } from './messages';
 import { GENERATOR_CONFIG } from './config';
+
+/**
+ * Validating the form is written in zod and only matters once someone searches, so it arrives with
+ * that first search instead of with the page. See `docs/performance-2026-10-27.md`.
+ */
+let loadingForm: Promise<typeof import('./searchForm')> | null = null;
+const searchForm = (): Promise<typeof import('./searchForm')> => (loadingForm ??= import('./searchForm'));
 
 /** In-memory run state survives route changes; reload deliberately discards it. */
 export function GeneratorProvider({ children }: { children: ReactNode }): React.JSX.Element {
@@ -18,25 +25,28 @@ export function GeneratorProvider({ children }: { children: ReactNode }): React.
   const cancel = useCallback(() => { stop(); setStatus('cancelled'); setProgress(null); }, [stop]);
   const setForm = useCallback((changes: Partial<SearchForm>) => { setFormState((current) => ({ ...current, ...changes })); }, []);
   const run = useCallback(() => {
-    const parsed = parseSearchForm(form);
     stop();
-    if (!parsed.success) { setStatus('invalid'); return; }
-    setStatus('running'); setProgress({ completed: 0, total: parsed.data.budget * 2 });
-    const id = requestId.current;
-    try {
-      const instance = new Worker(new URL('./search.worker.ts', import.meta.url), { type: 'module' });
-      worker.current = instance;
-      const fail = (): void => { if (requestId.current !== id) return; stop(); setStatus('error'); setProgress(null); };
-      instance.onerror = fail;
-      instance.onmessage = (event: MessageEvent<SearchResponse>) => {
-        if (event.data.id !== requestId.current) return;
-        if (event.data.type === 'progress') setProgress(event.data.progress);
-        else if (event.data.type === 'result') { setResult(event.data.result); stop(); setStatus('done'); setProgress(null); }
-        else fail();
-      };
-      timeout.current = setTimeout(fail, GENERATOR_CONFIG.timeoutMs);
-      instance.postMessage({ id, parameters: parsed.data } satisfies SearchRequest);
-    } catch { stop(); setStatus('error'); setProgress(null); }
+    void searchForm().then(({ parseSearchForm }) => {
+      const parsed = parseSearchForm(form);
+      if (!parsed.success) { setStatus('invalid'); return; }
+      setStatus('running'); setProgress({ completed: 0, total: parsed.data.budget * 2 });
+      const id = requestId.current;
+      try {
+        const instance = new Worker(new URL('./search.worker.ts', import.meta.url), { type: 'module' });
+        worker.current = instance;
+        const fail = (): void => { if (requestId.current !== id) return; stop(); setStatus('error'); setProgress(null); };
+        instance.onerror = fail;
+        instance.onmessage = (event: MessageEvent<SearchResponse>) => {
+          if (event.data.id !== requestId.current) return;
+          if (event.data.type === 'progress') setProgress(event.data.progress);
+          else if (event.data.type === 'result') { setResult(event.data.result); stop(); setStatus('done'); setProgress(null); }
+          else fail();
+        };
+        timeout.current = setTimeout(fail, GENERATOR_CONFIG.timeoutMs);
+        instance.postMessage({ id, parameters: parsed.data } satisfies SearchRequest);
+      } catch { stop(); setStatus('error'); setProgress(null); }
+    // A screen that cannot arrive leaves the search reported as failed, never silently idle.
+    }, () => { setStatus('error'); });
   }, [form, stop]);
   const restore = useCallback((saved: SearchResult) => {
     stop();
