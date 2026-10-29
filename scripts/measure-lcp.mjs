@@ -147,15 +147,15 @@ async function profile(variant, destination, round) {
     files.set(source, (files.get(source) ?? 0) + (samples.timeDeltas[index] ?? 0) / 1000);
   }
   const focus = Object.fromEntries(FOCUS.map(([name]) => [name, 0]));
-  let scripting = 0;
+  let scripting = 0, unmapped = 0;
   for (const [source, ms] of files) {
     if (/^\((idle|program|garbage collector)\)$/.test(source)) continue;
     scripting += ms;
+    if (source.startsWith(baseURL(variant))) unmapped += ms;
     const match = FOCUS.find(([, pattern]) => pattern.test(source.replaceAll('\\', '/')));
     if (match) focus[match[0]] += ms;
   }
-  result.profiles.push({ variant, destination, round, scriptingMs: scripting, focusMs: focus,
-    unmapped: [...files.keys()].some(source => source.startsWith(baseURL(variant))) });
+  result.profiles.push({ variant, destination, round, scriptingMs: scripting, focusMs: focus, unmappedMs: unmapped });
   await context.close();
 }
 
@@ -205,7 +205,8 @@ for (const destination of destinations) {
         B: describe(rows('B').map(row => row.focusMs[name])),
         BminusA: comparePairs(rows('A').map((row, index) => [row.focusMs[name], rows('B')[index]?.focusMs[name] ?? row.focusMs[name]]), EFFECTS),
       }])),
-      unmappedLoads: result.profiles.filter(row => row.destination === destination && row.unmapped).length,
+      // Self time left in bundle positions that the source map does not cover; large values mean a build without maps.
+      unmappedMs: Object.fromEntries(['A', 'B'].map(variant => [variant, median(rows(variant).map(row => row.unmappedMs))])),
     };
   }
 }
