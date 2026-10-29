@@ -49,8 +49,6 @@ export interface AuthApi {
   authorizeUrl: (provider: string, redirectTo: string) => string;
 }
 
-type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
-
 /** Converts a Supabase session payload to the browser session, computing the expiry when only `expires_in` is sent. */
 export function toSession(payload: z.infer<typeof sessionResponseSchema>, now = Date.now()): AuthSession {
   const expiresAt = payload.expires_at ?? Math.floor(now / 1000) + (payload.expires_in ?? 0);
@@ -62,11 +60,15 @@ export function toSession(payload: z.infer<typeof sessionResponseSchema>, now = 
   };
 }
 
-/** Thin client for the Supabase Auth REST endpoints; it never logs tokens or sequences. */
-export function createAuthApi(settings: AuthSettings, fetchImplementation: FetchLike = (input, init) => fetch(input, init)): AuthApi {
-  const base = `${settings.url}${AUTH_BASE_PATH}`;
+export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
-  async function request(path: string, init: { method: string; body?: unknown; accessToken?: string }): Promise<unknown> {
+/** Sends one Supabase Auth request; failures become an `AuthError` with the service's stable code. */
+export type AuthRequest = (path: string, init: { method: string; body?: unknown; accessToken?: string }) => Promise<unknown>;
+
+/** Builds the request helper shared by the identity and second factor clients; it never logs tokens. */
+export function createAuthRequest(settings: AuthSettings, fetchImplementation: FetchLike = (input, init) => fetch(input, init)): AuthRequest {
+  const base = `${settings.url}${AUTH_BASE_PATH}`;
+  return async (path, init) => {
     const headers: Record<string, string> = { apikey: settings.anonKey, 'Content-Type': 'application/json' };
     if (init.accessToken) headers.Authorization = `Bearer ${init.accessToken}`;
     let response: Response;
@@ -91,13 +93,20 @@ export function createAuthApi(settings: AuthSettings, fetchImplementation: Fetch
       throw new AuthError(code, details.msg ?? details.message ?? details.error_description ?? code);
     }
     return data;
-  }
+  };
+}
 
-  function parseSession(data: unknown): AuthSession {
-    const parsed = sessionResponseSchema.safeParse(data);
-    if (!parsed.success) throw new AuthError('unknown');
-    return toSession(parsed.data);
-  }
+/** Validates a Supabase session payload, as returned by `/token` and by a second factor verification. */
+export function parseSessionResponse(data: unknown): AuthSession {
+  const parsed = sessionResponseSchema.safeParse(data);
+  if (!parsed.success) throw new AuthError('unknown');
+  return toSession(parsed.data);
+}
+
+/** Thin client for the Supabase Auth REST endpoints; it never logs tokens or sequences. */
+export function createAuthApi(settings: AuthSettings, fetchImplementation?: FetchLike): AuthApi {
+  const base = `${settings.url}${AUTH_BASE_PATH}`;
+  const request = createAuthRequest(settings, fetchImplementation);
 
   return {
     async signUp(email, password) {
@@ -108,10 +117,10 @@ export function createAuthApi(settings: AuthSettings, fetchImplementation: Fetch
       throw new AuthError('unknown');
     },
     async signIn(email, password) {
-      return parseSession(await request(`${AUTH_ENDPOINTS.token}?grant_type=password`, { method: 'POST', body: { email, password } }));
+      return parseSessionResponse(await request(`${AUTH_ENDPOINTS.token}?grant_type=password`, { method: 'POST', body: { email, password } }));
     },
     async refresh(refreshToken) {
-      return parseSession(await request(`${AUTH_ENDPOINTS.token}?grant_type=refresh_token`, { method: 'POST', body: { refresh_token: refreshToken } }));
+      return parseSessionResponse(await request(`${AUTH_ENDPOINTS.token}?grant_type=refresh_token`, { method: 'POST', body: { refresh_token: refreshToken } }));
     },
     async recover(email, redirectTo) {
       await request(`${AUTH_ENDPOINTS.recover}?redirect_to=${encodeURIComponent(redirectTo)}`, { method: 'POST', body: { email } });
@@ -157,7 +166,8 @@ export function parseFragmentSession(hash: string, now = Date.now()): { session:
   };
 }
 
-function decodePayload(token: string): Record<string, unknown> | null {
+/** Claims of a JWT, read without verifying its signature; only the server can trust them. */
+export function decodePayload(token: string): Record<string, unknown> | null {
   const segment = token.split('.')[1];
   if (!segment) return null;
   try {
