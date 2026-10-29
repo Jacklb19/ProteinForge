@@ -6,7 +6,16 @@ import type { HydropathyWindow } from '../descriptors/config';
 import { ApiError } from '../api/errors';
 import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_SEQUENCE_LENGTH } from './config';
 import type { Project, WorkspaceSnapshot } from './contracts';
-import { workspaceSchema } from './contracts';
+
+/**
+ * The project contracts, and the zod they are written in, arrive when a workspace is actually
+ * captured or stored: saving, opening and exporting a report, never a first paint. `ProjectProvider`
+ * reads `workspaceVersion` and `workspaceInputKey` while rendering, so those two stay here and stay
+ * free of zod, which keeps 24.093 compressed bytes out of the initial download. See `./contracts.ts`
+ * and `docs/performance-2026-10-27.md`.
+ */
+let loading: Promise<typeof import('./contracts')> | null = null;
+const contracts = (): Promise<typeof import('./contracts')> => (loading ??= import('./contracts'));
 import type { SequenceSource } from '../editor/source';
 import type { GeneratorHistorySnapshot } from '../generator/history';
 
@@ -17,7 +26,8 @@ export function workspaceVersion(content: Pick<WorkspaceSnapshot, 'laboratory' |
 }
 
 /** The same workspace with another generator history (null removes it); the other tools' data is untouched. */
-export function withGeneratorHistory(workspace: WorkspaceSnapshot, generatorHistory: GeneratorHistorySnapshot | null): WorkspaceSnapshot {
+export async function withGeneratorHistory(workspace: WorkspaceSnapshot, generatorHistory: GeneratorHistorySnapshot | null): Promise<WorkspaceSnapshot> {
+  const { workspaceSchema } = await contracts();
   const rest = { ...workspace };
   delete rest.generatorHistory;
   const next = { ...rest, ...(generatorHistory ? { generatorHistory } : {}) };
@@ -27,7 +37,8 @@ export function withGeneratorHistory(workspace: WorkspaceSnapshot, generatorHist
 }
 
 /** Only results tied to the current normalized inputs can be sent to storage. */
-export function captureWorkspace(text: string, draft: AlignmentDraftState, profileWindow: HydropathyWindow, descriptors?: DescriptorState, saved?: Project | null, source?: SequenceSource | null): { activeSequence: string; workspace: WorkspaceSnapshot } {
+export async function captureWorkspace(text: string, draft: AlignmentDraftState, profileWindow: HydropathyWindow, descriptors?: DescriptorState, saved?: Project | null, source?: SequenceSource | null): Promise<{ activeSequence: string; workspace: WorkspaceSnapshot }> {
+  const { workspaceSchema } = await contracts();
   const active = validateSequence(text);
   const first = validateSequence(draft.first);
   const second = validateSequence(draft.second);
