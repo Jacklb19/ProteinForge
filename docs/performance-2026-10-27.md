@@ -538,3 +538,76 @@ Comprobaciones que lo sostienen:
 3. Solo entonces mirar `BackboneView` para Inicio y `HydropathyProfile` para Analizar.
 
 **No se implementó nada de esto.** Para hacerlo hace falta autorización: toca `AuthProvider`, `ProjectProvider`, `snapshot.ts`, `contracts.ts`, `source.ts`, `authApi.ts`, `history.ts` y sus pruebas.
+
+# zod fuera del arranque — 29 oct 2026
+
+Implementada la propuesta 2, por la vía que la investigación de arriba dejó abierta. **Ningún contrato cambia**: los mismos esquemas de zod, el mismo formato guardado, el mismo snapshot y el mismo protobuf. Lo único que cambia es **cuándo se carga ese código**.
+
+## Resultado, con lo determinista
+
+Grafo inicial, medido con `tmp/attribute-initial-bytes.mjs` sobre los archivos que `index.html` nombra. Evidencia: `artifacts/quality/initial-graph-2026-10-29.json` y `initial-graph-after-zod-2026-10-29.json`.
+
+| | Antes | Después | Diferencia |
+|---|---:|---:|---:|
+| Archivos del grafo inicial | 17 | **3** | −14 |
+| Bytes | 575.682 | **480.153** | **−95.529** |
+| Bytes comprimidos | 180.269 | **150.328** | **−29.941 (−16,6 %)** |
+| zod | 84.297 | **0** | −84.297 |
+| `src/features/generator` | 7.344 | **0** | −7.344 |
+| `src/features/projects` | 19.218 | 15.971 | −3.247 |
+
+El fragmento de entrada sí **crece**, de 355,92 a 397,44 kB (109,97 → 124,54 comprimidos), porque al desaparecer catorce archivos pequeños su contenido pasa a ese fragmento. Lo que baja es **el grafo completo**, que es lo que el navegador descarga y evalúa antes de pintar. La precaché pasa de 64 entradas y 2.478,85 KiB a **57 y 2.477,76 KiB**: el código sigue existiendo, repartido de otra forma.
+
+Procesador, con `scripts/profile-startup.mjs` sin cambios, CPU ×4 sobre Inicio. Evidencia: `startup-2026-10-29.json` y `startup-after-zod-2026-10-29.json`.
+
+| Origen | Antes | Después |
+|---|---:|---:|
+| Tiempo propio atribuible | 477 ms | **334 ms** |
+| **zod, construir esquemas** | **63 ms** | **0 ms** |
+| react-dom, renderizado | 132 ms | 112 ms |
+| `BackboneView`, el esqueleto del hero | 113 ms | 94 ms |
+| react-router | 28 ms | 22 ms |
+
+**No se afirma ninguna mejora de LCP.** La carga perfilada pasó de 2.354 a 1.905 ms, pero es **una** carga con el perfilador puesto, y esta máquina ya demostró que su variación entre corridas supera el margen en discusión. **El LCP de Analizar sigue sin estar acreditado de forma repetible**, y lo seguirá hasta medirlo en una máquina controlada.
+
+## Las seis cadenas, y la que faltaba
+
+| Cadena | Qué se hizo |
+|---|---|
+| `auth/session.ts` | Los esquemas pasan a `auth/schemas.ts`. `loadSession` usa `storedSession`, una comprobación escrita a mano, porque corre antes del primer render |
+| `auth/authApi.ts` | Carga `./schemas` dentro de sus funciones de red, que ya eran asíncronas |
+| `editor/source.ts` | El esquema pasa a `editor/sourceSchema.ts`; `source.ts` se queda con `bundledSequenceSource` y reexporta el tipo, que TypeScript borra |
+| `projects/snapshot.ts` | `captureWorkspace` y `withGeneratorHistory` son asíncronas y cargan `./contracts` al usarse. `workspaceVersion` y `workspaceInputKey`, que se leen al renderizar, siguen síncronas y sin zod |
+| `generator/history.ts` | `ProjectProvider` la carga dentro de sus tres callbacks de historial |
+| **`generator/context.ts`** | **La investigación no la había visto.** `parseSearchForm` pasa a `generator/searchForm.ts`; el proveedor la carga con la primera búsqueda y la pantalla del generador, que ya es un archivo propio, la importa directamente |
+
+La sexta apareció al comprobar el resultado: con las cinco primeras hechas, zod **seguía** en el grafo. El fragmento que lo arrastraba contenía `generator/search.ts`, y quien lo alcanzaba era `context.ts`, que importaba `searchParametersSchema` como valor para validar el formulario. Lo encontró la comprobación del build, no el análisis previo; por eso la comprobación es parte del método y no un trámite.
+
+## Sin perder validación, y comprobado
+
+`storedSession` sustituye a `sessionSchema.safeParse` en el único punto que no puede esperar. El esquema **sigue siendo la fuente de verdad** y sigue en `schemas.ts`, usado donde la carga es asíncrona. `src/features/auth/session.test.ts` pasa 31 casos por los dos y exige el mismo veredicto y, cuando aceptan, el mismo valor: sesión completa, correo vacío, campos ausentes uno a uno, tipos erróneos, cadenas vacías, nulos, arrays, expiraciones de cero, negativas, fraccionarias, `NaN`, infinitas, y campos desconocidos sueltos y dentro del usuario, que el esquema descarta y la comprobación también. Una prueba más fija que el esquema tenga exactamente esos cuatro campos, para que añadir uno no pase sin comprobarse.
+
+**La prueba de paridad encontró una divergencia real antes de que llegara a ninguna parte:** con `expiresAt` de `2 ** 53`, `Number.isInteger` aceptaba y el `int()` de zod rechazaba, porque exige un entero exacto. La comprobación usa ahora `Number.isSafeInteger`. Sin esa prueba, el cambio habría aceptado sesiones que el esquema rechaza.
+
+## Lo que se nota al usarlo
+
+- **Exportar un informe** y **buscar en el generador** crean su Worker un turno más tarde: antes de crearlo se carga la validación. Nada en la interfaz espera por ello.
+- **`captureWorkspace` y `withGeneratorHistory` son asíncronas.** Sus dos llamadas ya estaban en contextos asíncronos: el guardado de `ProjectProvider` y el menú de exportación.
+- **Si la validación no pudiera cargarse**, una búsqueda queda informada como fallida en lugar de quedarse quieta.
+- Las pruebas de esos dos recorridos esperan ese turno con `act`, y cargan el módulo una vez por archivo para que cada clic cueste solo el turno y no una lectura de módulo. **No se subió ningún tiempo de espera ni se marcó nada como inestable.**
+
+## Verificación
+
+Sobre el árbol final, sin Auth configurada y como CI:
+
+- Tipos y lint correctos.
+- Unitarias: **539/539 en 88 archivos**, frente a 505 en 87. Las 34 nuevas son la paridad de la sesión. Cobertura: 85,52 % de sentencias, 76,93 % de ramas, 81,94 % de funciones y 89,26 % de líneas.
+- Build correcto; precaché de 57 entradas y 2.477,76 KiB.
+- `check:pwa` correcto en Chromium 156, con las cuatro WOFF2 desde la precaché, el aislamiento, el laboratorio, el generador, el PDF y el cuaderno idéntico byte a byte. **No se ejecutó en WebKit**, por el alcance de la tarea.
+- E2E completas en Chromium con un worker en el puerto 5315: **137 correctas y 2 omitidas por diseño**, en 8,7 minutos y **a la primera**. Se esperó a que no hubiera nada escuchando en 5190 ni en 5325, las baterías de otras sesiones, y la carga del equipo estaba al 4 %.
+- Las siete pruebas que fallaron al introducir el turno de espera eran de `GeneratorPage` y `ReportActions`, y se arreglaron esperando ese turno, no debilitando lo que comprueban.
+
+## Lo que queda
+
+- El LCP de Analizar sigue **sin acreditar de forma repetible** en este equipo, y esta propuesta no lo cambia: lo que reduce es lo que se descarga y se evalúa, medido con lo determinista.
+- Siguen en el grafo inicial, como candidatos ya cifrados: `BackboneView` con 113 ms y 9.212 bytes, solo de Inicio; `formatNumber` con 59 ms; el catálogo español con 70.602 bytes; y `HydropathyProfile` con 9.180, que es una pestaña y no la vista inicial de Analizar. **No se tocaron.**
