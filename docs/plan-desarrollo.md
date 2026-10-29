@@ -12,7 +12,7 @@ Decisiones tomadas por delegación el 28 oct, con su detalle en [decisiones](dec
 
 ### Orden de continuación
 
-1. Pestaña «Dominios» de Biblioteca, aprobada por el propietario el 28 oct con la condición de usar solo los tokens y clases de la app: catálogo verificado (`b23110f`) e implementación en `parallel/domains`, sin publicar.
+1. Publicar `dev` (rendimiento, subconjunto de Plex Mono y pestaña Dominios) cuando el propietario lo autorice, con CI y Vercel de `main` correctos después del merge. La pestaña «Dominios» quedó integrada en `dev` el 29 oct (`a3acf37`).
 2. Activar el historial del generador en producción con el propietario y comprobar un guardado real con su sesión.
 3. Recorrido con Supabase local y dos cuentas reales para el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 oct que revisa él esa parte.
 4. Pendientes antiguos que siguen abiertos: aislamiento por ID con segunda cuenta en producción, recorrido SIFTS con JWT real y lectura autenticada del asistente comprobada en prosa.
