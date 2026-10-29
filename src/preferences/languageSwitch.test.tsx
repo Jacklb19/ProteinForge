@@ -1,6 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { PreferencesProvider } from './PreferencesProvider';
+import { loadPreferences } from './preferences';
 import { usePreferences } from './usePreferences';
 import { useTranslation } from '../i18n';
 import { english } from '../i18n/en';
@@ -34,6 +35,8 @@ describe('switching to a language that is not loaded yet', () => {
     expect(screen.getByTestId('chosen')).toHaveTextContent('en');
     expect(screen.getByRole('heading')).toHaveTextContent(spanish['app.title']);
     expect(document.documentElement.lang).toBe('es');
+    // Stored before the catalog arrives: a reload in the meantime keeps the choice.
+    expect(loadPreferences().locale).toBe('en');
     await act(async () => { arrival.release(); await arrival.promise; });
     expect(screen.getByRole('heading')).toHaveTextContent(english['app.title']);
     expect(document.documentElement.lang).toBe('en');
