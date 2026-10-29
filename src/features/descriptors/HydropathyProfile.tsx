@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { validateSequence } from '../editor/sequence';
 import { getChartStyle } from './chartStyle';
 import type { ProfileResponse, ProfileRequest } from './profileMessages';
@@ -88,14 +88,14 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
           setError(event.data.error);
           return;
         }
-        setProfile({
-          sequence: sentSequence.current,
-          windowSize: sentWindow.current,
-          points: event.data.points,
-          propensities: event.data.propensities,
+        const received = { sequence: sentSequence.current, windowSize: sentWindow.current, points: event.data.points, propensities: event.data.propensities };
+        // Hundreds of cells arrive at once, mostly in views not shown yet; urgent updates such as typing or the
+        // descriptor figures are painted first and this render yields to them.
+        startTransition(() => {
+          setProfile(received);
+          setPage(0);
+          setError(null);
         });
-        setPage(0);
-        setError(null);
       };
       instance.onerror = () => { setError({ key: 'profile.workerError' }); };
 
