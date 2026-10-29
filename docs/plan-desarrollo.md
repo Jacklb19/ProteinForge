@@ -16,7 +16,7 @@ Decisiones tomadas por delegación el 28 oct, con su detalle en [decisiones](dec
 
 ### Orden de continuación
 
-1. Pedir autorización para publicar `dev` `9927ce9` (zod fuera del arranque). La entrega anterior —rendimiento, subconjunto de Plex Mono y pestaña «Dominios»— ya está publicada en `main` `09989b0`.
+1. **Publicación aplazada por decisión del propietario el 29 oct:** se le ofreció publicar `dev` `9927ce9`, ya verificado, y prefiere esperar a que entreguen los dos frentes abiertos y publicarlo todo junto. La entrega anterior —rendimiento, subconjunto de Plex Mono y pestaña «Dominios»— ya está publicada en `main` `09989b0`.
 2. Activar el historial del generador en producción con el propietario y comprobar un guardado real con su sesión.
 3. Integrar y verificar lo que entreguen los dos frentes abiertos el 29 oct: rendimiento de `BackboneView` e `HydropathyProfile` con medición repetible, y el segundo factor TOTP, cuya interfaz espera aprobación del propietario.
 4. Recorrido con Supabase local y dos cuentas reales para el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 oct que revisa él esa parte.

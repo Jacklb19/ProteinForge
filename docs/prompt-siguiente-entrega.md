@@ -63,7 +63,7 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 ## Orden de continuación
 
-1. Pedir autorización para publicar `dev` `9927ce9` (zod fuera del arranque), con CI y Vercel de `main` correctos después del merge.
+1. **Publicación aplazada por decisión del propietario el 29 de octubre.** Se le ofreció publicar `dev` `9927ce9` (zod fuera del arranque), ya verificado, y respondió que espera a que entreguen los dos frentes abiertos para publicarlo todo junto. No volver a pedirlo hasta entonces; la autorización se pide de nuevo cuando los frentes estén integrados y verificados.
 2. Activar el historial del generador en producción según el apartado anterior, con el propietario.
 3. Integrar y verificar lo que entreguen los dos frentes abiertos el 29 de octubre: rendimiento de `BackboneView`/`HydropathyProfile` con medición repetible, y el segundo factor TOTP (capa de cliente ya; interfaz solo tras aprobación del propietario).
 4. Recorrido con Supabase local y dos cuentas reales para cerrar el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 de octubre que revisa él esa parte.
