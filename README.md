@@ -1,6 +1,6 @@
 # ProteinForge — frontend
 
-Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, visor experimental Mol*, informes locales PDF/JSON/CSV y búsqueda reproducible de candidatos. Proyectos, laboratorio y asistente publicados en la entrega del 23 de octubre; Groq autenticado en producción sigue por verificar. El 26 se completa localmente la selección SIFTS entre Biblioteca y Analizar, con servicio autenticado y verificación de la secuencia completa, además de mejoras de sesión, accesibilidad y compatibilidad. Tipos/lint/build, 436 unitarias, 76 recorridos Chromium y PWA comprobados; publicación pendiente. La nueva prueba manual ZeroGPU entrega un rediseño fragmentario, sin inferencia conectada a la app ni validación biológica. [Estado y evidencia](docs/plan-desarrollo.md).
+Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, selección sincronizada secuencia/estructura, visor experimental Mol*, informes locales PDF/JSON/CSV, búsqueda reproducible de candidatos y laboratorio didáctico. Todo eso está publicado, junto con cuentas, Proyectos y el asistente de interpretación; el historial de búsquedas en Proyectos también, oculto hasta activar `VITE_GENERATOR_HISTORY`. En `dev` está integrada además la pasada de rendimiento y accesibilidad del 27 de octubre, sin publicar: LCP por debajo de 2,5 s en 4G lenta simulada, con tareas de carga largas aún pendientes de las propuestas de arquitectura. El modelado 3D se hace con un cuaderno manual de Colab y sus resultados se importan; no hay predicción desde la aplicación ni validación biológica. [Estado y evidencia](docs/plan-desarrollo.md).
 
 ## Repositorios y carpetas
 
@@ -47,11 +47,11 @@ npm run check:wasm
 
 ## Arquitectura y límites
 
-El cálculo pesado ocurre en Workers; el alineamiento usa WASM con máximo de 5.000 residuos por secuencia. FASTA admite 5.000.000 bytes. PWA precachea recursos locales. La cobertura V8 no mide internamente Rust. La interfaz es bilingüe español/inglés; auditoría de otros navegadores y rendimiento externo continúan pendientes.
+El cálculo pesado ocurre en Workers; el alineamiento usa WASM con máximo de 5.000 residuos por secuencia. FASTA admite 5.000.000 bytes. PWA precachea recursos locales. La cobertura V8 no mide internamente Rust. La interfaz es bilingüe español/inglés. La compatibilidad verificada abarca Chromium 156, Firefox 155 y WebKit 26.6 en Windows, con la batería sin conexión completa en Chromium y WebKit; Safari en dispositivo real, lectores de pantalla y las mediciones de rendimiento de campo quedan como límites documentados.
 
 El backend es propietario de migraciones Supabase y su prueba de RLS. Este frontend se puede clonar, probar y construir sin el backend. `VITE_API_BASE_URL` habilita los proyectos y la consulta de UniProt; sin ella no se hace ninguna petición a la API. La web habla con la API por gRPC-Web (clientes generados en `src/gen/` desde los contratos del backend; ver [gRPC](docs/grpc.md)); el backend conserva además sus rutas REST. La sesión se envía solo al servidor configurado, sin redirecciones ni cookies. Para publicación, añadir únicamente el origen concreto de la API a `connect-src` de la CSP; no se amplían orígenes antes de conocer la URL. Configurar CORS en el backend con el origen exacto del frontend.
 
-El generador local y el [laboratorio didáctico](docs/laboratory.md) están implementados. Este permite explorar resultados guardados, editar/proteger posiciones y conservar variantes; una edición invalida la estructura asociada hasta nueva predicción. Diseño de forma nueva y cálculo estructural desde la app siguen pendientes de una ejecución gratuita comprobada. El asistente solo interpreta. Descriptores y predicciones no demuestran función biológica ni novedad experimental.
+El generador local y el [laboratorio didáctico](docs/laboratory.md) están implementados. Este permite explorar resultados guardados, editar/proteger posiciones y conservar variantes; una edición invalida la estructura asociada hasta nueva predicción. Por decisión del 28 de octubre, el cálculo estructural desde la app queda aplazado hasta que exista un ejecutor gratuito cuyos términos lo permitan, y el diseño de forma nueva queda fuera del alcance de la asignatura; ambas propuestas se conservan. El asistente solo interpreta. Descriptores y predicciones no demuestran función biológica ni novedad experimental.
 
 ## Documentación y despliegue
 
@@ -60,7 +60,9 @@ El generador local y el [laboratorio didáctico](docs/laboratory.md) están impl
 - [Pantallas](docs/pantallas.md)
 - [Diseño](docs/diseno-visual.md) y [fuentes](docs/font-provenance.md)
 - [Estado y plan de desarrollo](docs/plan-desarrollo.md): capacidades actuales, orden de entregables y configuración que debe aportar el responsable del proyecto
+- [Relevo de desarrollo](docs/prompt-siguiente-entrega.md): estado publicado, decisiones vigentes y copias de trabajo
+- [Rendimiento y accesibilidad](docs/performance-2026-10-27.md) y [calidad](docs/quality-s7.md): mediciones, límites y propuestas abiertas
 - [Archivo histórico](docs/archive/README.md)
 - [Laboratorio de diseño y alojamiento](docs/design-lab-roadmap.md): alcance acordado, modelos, primera prueba, hardware y precios consultados
 
-Vercel importa únicamente este repositorio con preset Vite; el backend usa otro proyecto. Producción desde `main`: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/), comprobados en la publicación del 23 de octubre. Los cambios locales del 25 aún no están publicados. El usuario controla publicación y cambios remotos; la organización local no cambia el despliegue existente.
+Vercel importa únicamente este repositorio con preset Vite; el backend usa otro proyecto. Producción desde `main`: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/), con CI y despliegue correctos en la publicación del 27 de octubre (frontend `84f9da5`, backend `18d9444`). Lo que hay en `dev` por encima de `main` no está publicado. El usuario controla publicación, variables de entorno y cambios remotos; la organización local no cambia el despliegue existente.
