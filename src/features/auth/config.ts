@@ -22,7 +22,27 @@ export const AUTH_ENDPOINTS = {
   user: '/user',
   logout: '/logout',
   authorize: '/authorize',
+  factors: '/factors',
 } as const;
+
+/** Second factor paths below `AUTH_ENDPOINTS.factors`, for one factor identified by its UUID. */
+export const FACTOR_ENDPOINTS = {
+  challenge: (factorId: string) => `/${factorId}/challenge`,
+  verify: (factorId: string) => `/${factorId}/verify`,
+  remove: (factorId: string) => `/${factorId}`,
+} as const;
+
+/** Only authenticator apps are offered; Supabase also knows phone and WebAuthn factors, which stay unused. */
+export const TOTP_FACTOR_TYPE = 'totp';
+
+/** Supabase validates six-digit SHA-1 codes over 30 s periods; the length is checked before any request. */
+export const TOTP_CODE_LENGTH = 6;
+
+/** Client-side limit for the name of an authenticator; Supabase only requires it to be unique per user. */
+export const TOTP_FACTOR_NAME_MAX_LENGTH = 64;
+
+/** Prefix that turns the SVG text returned at enrollment into an image source; the CSP allows `data:` images. */
+export const TOTP_QR_DATA_URI_PREFIX = 'data:image/svg+xml;charset=utf-8,';
 
 /** Session storage key; tokens are sent only to Supabase Auth and the configured ProteinForge API. */
 export const SESSION_STORAGE_KEY = 'proteinforge.session';
@@ -53,5 +73,17 @@ export const AUTH_ERROR_MESSAGE_KEYS: Readonly<Record<string, TranslationKey>> =
   session_expired: 'auth.errorSessionExpired',
   refresh_token_not_found: 'auth.errorSessionExpired',
   network: 'auth.errorNetwork',
+  totp_code_invalid: 'auth.errorTotpCodeInvalid',
+  factor_name_invalid: 'auth.errorFactorNameInvalid',
+  mfa_verification_failed: 'auth.errorTotpRejected',
+  mfa_challenge_expired: 'auth.errorTotpExpired',
+  mfa_ip_address_mismatch: 'auth.errorTotpExpired',
+  mfa_factor_not_found: 'auth.errorFactorMissing',
+  mfa_factor_name_conflict: 'auth.errorFactorNameTaken',
+  too_many_enrolled_mfa_factors: 'auth.errorTooManyFactors',
+  insufficient_aal: 'auth.errorSecondFactorRequired',
+  mfa_totp_enroll_not_enabled: 'auth.errorSecondFactorUnavailable',
+  mfa_totp_verify_not_enabled: 'auth.errorSecondFactorUnavailable',
+  mfa_verification_rejected: 'auth.errorTotpBlocked',
   unknown: 'auth.errorUnknown',
 };

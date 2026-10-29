@@ -2,6 +2,8 @@ import { createContext } from 'react';
 import { useRequiredContext } from '../../shared/useRequiredContext';
 import type { AuthSession } from './session';
 import type { SignUpOutcome } from './authApi';
+import type { SessionAssurance } from './assurance';
+import type { MfaFactor, TotpEnrollment } from './mfaApi';
 
 /**
  * `disabled`: the deployment has no identity settings. `loading`: a stored session is being verified.
@@ -22,6 +24,16 @@ export interface AuthContextValue {
   recover(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
   authorizeUrl(provider: string): string | null;
+  /** Assurance claims of the current access token, or `null` without a session. */
+  assurance: SessionAssurance | null;
+  /** Second factors of the account, verified or still being added. */
+  listFactors(): Promise<MfaFactor[]>;
+  /** Starts adding an authenticator app; it only counts once `verifyTotp` confirms its first code. */
+  enrollTotp(friendlyName: string): Promise<TotpEnrollment>;
+  /** Confirms a code, finishing an enrollment or raising this session to `aal2`, and keeps the new session. */
+  verifyTotp(factorId: string, code: string): Promise<void>;
+  /** Removes a factor and refreshes the session so that its level matches the remaining factors. */
+  unenrollFactor(factorId: string): Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
