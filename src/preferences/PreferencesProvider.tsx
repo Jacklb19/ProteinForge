@@ -28,7 +28,6 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
     } else {
       document.documentElement.dataset.theme = preferences.theme;
     }
-    savePreferences(preferences);
     const refreshBrowserColor = () => {
       const color = getComputedStyle(document.documentElement).getPropertyValue(BROWSER_COLOR_TOKEN).trim();
       const metadata = document.querySelector('meta[name="theme-color"]');
@@ -39,6 +38,12 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
     systemTheme.addEventListener('change', refreshBrowserColor);
     return () => { systemTheme.removeEventListener('change', refreshBrowserColor); };
   }, [preferences]);
+
+  // A chosen language is stored at once, before its catalog arrives, so reloading meanwhile keeps the
+  // choice: startup fetches the stored catalog first. If the catalog fails, the current language is stored again.
+  useEffect(() => {
+    savePreferences({ ...preferences, locale: requestedLocale ?? preferences.locale });
+  }, [preferences, requestedLocale]);
 
   const value: PreferencesContextValue = {
     ...preferences,
