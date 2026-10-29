@@ -59,3 +59,66 @@ $env:LCP_A='artifacts/lcp-builds/869ce2d-maps'; $env:LCP_B='artifacts/lcp-builds
 ```
 
 `LCP_ROUNDS` fija las rondas y `LCP_ROUTES` las rutas (`home,analyze`). Los datos crudos van a `artifacts/quality/`, carpeta ignorada. **Estas tandas usan el navegador y ocupan el equipo: se ejecutan solo con el carril de mediciones asignado**, nunca a la vez que las E2E o las mediciones de otra sesión.
+
+## Cambios
+
+Ninguno cambia lo que se ve, la química del color, los textos ni la composición. No hay textos nuevos de interfaz, así que los catálogos no cambian.
+
+### BackboneView (`b1ebe5c`)
+
+Está en Inicio (escenario con giro en reposo) y también en Analizar (la miniatura de la vista Resumen), así que afecta a las dos rutas medidas.
+
+- **Un solo pintado por cambio.** Al montarse, el lienzo se pintaba tres veces con el mismo resultado: en el efecto de montaje, en el primer aviso del `ResizeObserver` —que el navegador siempre emite al observar— y al resolverse `document.fonts.ready`, aunque las fuentes ya estuvieran cargadas. Ahora se guarda de qué dependió el último pintado: tamaño, densidad, orientación, paleta, modo, selección por valor, etiquetas, modelo y referencia. Una petición idéntica no repinta. Las fuentes solo fuerzan otro pintado si estaban cargándose al montar, que es el único caso en que las etiquetas pueden cambiar.
+- **Paleta por tema.** Los colores se leían de los tokens con `getComputedStyle` en cada pintado, también en cada fotograma del giro en reposo. Ahora se leen una vez por tema; `useThemeRevision` invalida la lectura, igual que antes invalidaba el efecto.
+- **Colores por residuo calculados una vez.** El contorno y el brillo de cada segmento dependen del residuo, del modo y de la paleta, no de la orientación; se calculan una vez por paleta y modo. La niebla por profundidad sí depende del fotograma y se sigue calculando en cada uno, con la misma aritmética y el mismo redondeo.
+
+**Comprobación de que no cambia nada visible:** `BackboneView.test.tsx` registra cada marca pintada en el lienzo —trazo con su recorrido, color, grosor, extremos y transformación; rectángulos y textos con su estilo, fuente y opacidad— y fija su huella en cinco casos: química con extremos de cadena, hidropatía con selección rotulada, cadenas sobre una referencia a densidad 2, giro por teclado y cambio a tema oscuro. La prueba se confirmó en `9a1ed06` **antes** de optimizar, y las cinco huellas son idénticas después. Las cuatro pruebas nuevas de repintado fallan con el código anterior y pasan con el nuevo.
+
+### HydropathyProfile (`f24c328`, `14cdb45`)
+
+En Analizar se monta siempre, aunque en la vista Resumen, la inicial, todas sus secciones están ocultas.
+
+- **Sin volver a construir lo que no cambia** (`f24c328`). El lector de residuos, el mapa de la secuencia, las tiras de tendencia y la tabla de valores repiten cada residuo, unos novecientos elementos con el ejemplo de insulina, y cada render de la página de análisis los reconstruía. Ahora:
+  - esas piezas están memorizadas;
+  - el manejador de selección que reciben es estable y reenvía al último, porque el editor pasa uno nuevo en cada render;
+  - la caja del gráfico solo se actualiza si cambian su ancho o su margen.
+
+  Una prueba nueva cuenta los renders de cada pieza: falla con el código anterior, que las rehacía todas, y pasa con el nuevo.
+- **El perfil calculado entra en una transición** (`14cdb45`). El render que llena esas secciones al llegar el resultado del Worker era trabajo urgente y podía caer justo antes de pintar las cifras de descriptores, que son el elemento LCP de Analizar. Ahora es una transición de React: cede ante las actualizaciones urgentes, sin cambiar qué se muestra ni cuándo desaparece «Calculando…» en una carga sin competencia.
+
+## Calibración A/A y estado de RNF-03 en `dev` (`869ce2d`)
+
+Tanda del 29 de octubre, 16:46 UTC, con el carril de mediciones asignado y **ninguna otra sesión usando el navegador ni ejecutando pruebas**. La CPU del equipo estuvo ocupada de mediana un 14 % en Inicio y un 13 % en Analizar, contando el propio navegador medido. Chrome 156.0.8078.48. El mismo build, `artifacts/lcp-builds/869ce2d`, se sirvió en los dos puertos: 20 rondas por ruta, es decir 40 cargas por ruta. Datos: `artifacts/quality/lcp-aa-2026-10-29.json`, ignorado.
+
+### Ruido del procedimiento
+
+La diferencia entre dos copias idénticas debería ser cero; lo que mide es el ruido.
+
+| Ruta | Diferencia B − A, mediana [IC 95 %] | Pares B más rápida / más lenta | σ robusta de la diferencia | Pares para resolver ±10 / ±20 / ±30 / ±50 ms |
+|---|---:|---:|---:|---:|
+| Inicio | +2 ms [−6; +32] | 10 / 10 | 36 ms | 79 / 20 / 9 / 4 |
+| Analizar | −12 ms [−23; +1] | 14 / 6 | 21 ms | 28 / 7 / 4 / 2 |
+
+- Ningún intervalo excluye el cero: el procedimiento no inventa diferencias entre dos copias iguales.
+- En Analizar la diferencia roza el límite, −12 ms con el intervalo terminando en +1. Puede ser un pequeño sesgo del puerto o simple azar. Por eso, al comparar dos builds, conviene repetir la tanda con los puertos intercambiados y combinar las dos.
+- **Con 30 pares**, que es la tanda prevista para el antes y el después, se resuelven efectos de unos 20 ms en Inicio y de unos 10 ms en Analizar. Un efecto menor no se puede atribuir en este equipo.
+
+### RNF-03 con 40 cargas del mismo build
+
+| Ruta | LCP mediana [IC 95 %] | p75 [IC 95 %] | σ robusta | Mín. – máx. | Cargas < 2.500 ms | Veredicto sobre el p75 |
+|---|---:|---:|---:|---:|---:|---|
+| Inicio | 2.241 [2.232; 2.249] ms | 2.255 [2.243; 2.272] ms | 20 ms | 2.184 – 2.333 ms | 40 de 40 | **Se cumple**, con unos 230 ms de margen sobre la cota superior |
+| Analizar | 2.541 [2.531; 2.552] ms | 2.555 [2.546; 2.566] ms | 25 ms | 2.474 – 2.582 ms | 1 de 40 | **No se cumple** |
+
+En las dos rutas el elemento LCP es el de siempre:
+
+- Inicio, el título `h1#hero-title`;
+- Analizar, una cifra de descriptores (`dd`) o su texto explicativo (`span`).
+
+El CLS máximo es 0,00005 en Inicio y 0,007 en Analizar, como en la auditoría.
+
+**Conclusión, con método:** en `dev`, Analizar no cumple RNF-03 en este equipo con el perfil 4G lenta y CPU ×4.
+
+- No es cuestión de ruido. Con la máquina en reposo, todo el intervalo del p75 queda por encima de 2,5 s, y solo 1 de 40 cargas bajó del objetivo.
+- El 27 de octubre se midieron 2.449 ms de mediana con 7 cargas. Esa cifra no se repite hoy. Puede deberse a lo que `dev` ha incorporado desde entonces o a las condiciones de aquella noche; con 7 cargas sin intervalo no hay forma de saber cuál de las dos.
+- Inicio sí queda acreditado de forma repetible, con un margen que es unas diez veces la dispersión.
