@@ -433,3 +433,181 @@ A los límites de arriba, que siguen vigentes, se añaden los de esta noche:
 | 6. INP de campo | No se tocó |
 
 Lo que queda sobre la mesa para RNF-01 y RNF-03 es una sola cosa, y las propuestas 1 y 2 apuntan las dos a ella: **sacar del arranque lo que la ruta visitada no necesita para pintar**, que hoy son los proveedores de estado y sus dependencias. No es un cambio de troceado, es un cambio de los proveedores.
+
+# Qué se puede sacar del arranque — investigación del 29 oct 2026
+
+Investigación, **sin implementar nada**. El árbol es el de `parallel/perf-routes` después de los tres commits, es decir con el subconjunto de fuente.
+
+La propuesta 1 dejó una pregunta concreta: si separar las pantallas de ruta no ayuda, ¿qué sí está en el arranque sin hacer falta para pintar? Esto lo mide en lugar de suponerlo, con dos herramientas que no dependen del reloj del equipo ni de su carga.
+
+## Primero, una corrección sobre el margen
+
+Se repitió la línea base con el árbol actual. **El equipo nunca llegó a estar en reposo**: durante la medición había 17 procesos de Node y 8 de Chrome residentes y una carga de fondo del 30 %.
+
+| Medición, 4G lenta, 7 cargas | Inicio LCP med. (p75) | Analizar LCP med. (p75) | Bloqueo Inicio / Analizar |
+|---|---:|---:|---:|
+| 27 oct, informe original | 2.150 (2.153) | 2.449 (2.457) | 198 / 222 ms |
+| 28 oct, `dev` | 2.231 (2.241) | 2.526 (2.535) | 238 / 284 ms |
+| 29 oct, árbol actual | 2.363 (2.415) | 2.649 (2.758) | 367 / 309 ms |
+
+El código de Analizar no ha cambiado entre las tres, y su p75 va de 2.457 a 2.758 ms. **La variación entre corridas de este equipo es mayor que el margen que se estaba discutiendo**, así que el «margen de 43 ms» del 27 de octubre no es un margen: está dentro del ruido. En las dos mediciones posteriores Analizar queda por encima de 2,5 s. Dicho sin adornos: **RNF-03 no está acreditado de forma repetible en Analizar**, y acreditarlo pide una máquina controlada, no otro ajuste.
+
+## Qué hay en el grafo inicial, por módulo
+
+`tmp/attribute-initial-bytes.mjs` recorre los *source maps* de los 17 archivos que `index.html` nombra —el fragmento de entrada y su cierre de `modulepreload`— y carga cada tramo de código generado al archivo fuente del que vino. Es análisis estático: no lo afecta la carga del equipo. Build con `npm run build -- --sourcemap`; datos en `artifacts/quality/initial-graph-2026-10-29.json`.
+
+**Grafo inicial: 17 archivos, 575.682 bytes, 180.269 comprimidos.** Por área:
+
+| Área | Bytes | Parte |
+|---|---:|---:|
+| paquete react-dom | 207.219 | 36,0 % |
+| **paquete zod** | **84.297** | **14,6 %** |
+| src/i18n (70.602 de ellos, `es.ts`) | 72.235 | 12,5 % |
+| paquete react-router | 37.931 | 6,6 % |
+| src/features/descriptors | 23.066 | 4,0 % |
+| src/features/projects | 19.218 | 3,3 % |
+| src/features/editor | 16.467 | 2,9 % |
+| src/features/alignment | 13.779 | 2,4 % |
+| src/shell | 11.641 | 2,0 % |
+| src/features/landing | 10.264 | 1,8 % |
+| src/features/structure | 9.214 | 1,6 % |
+| src/features/design-lab | 7.796 | 1,4 % |
+| src/features/generator | 7.344 | 1,3 % |
+| src/features/auth | 7.165 | 1,2 % |
+| src/features/assistant | 5.389 | 0,9 % |
+| src/features/reports | 3.386 | 0,6 % |
+
+## Qué cuesta en tiempo de procesador
+
+`scripts/profile-startup.mjs`, sin cambios, con CPU ×4 sobre Inicio. Datos en `artifacts/quality/startup-2026-10-29.json`.
+
+Del muestreo total, 3.391 ms son espera y 614 ms son trabajo interno de V8 —compilar y recoger basura— que el perfil no reparte entre archivos. Queda **algo más de 500 ms de tiempo propio atribuible**, y así se reparte:
+
+| Origen | Tiempo propio | Parte de lo atribuible |
+|---|---:|---:|
+| react-dom, renderizado | 141 ms | 28 % |
+| `src/features/structure/BackboneView.tsx`, el esqueleto del hero | 113 ms | 22 % |
+| **zod, construir esquemas** | **63 ms** | **12,5 %** |
+| `src/i18n/useTranslation.ts` `formatNumber` | 59 ms | 12 % |
+| react-router | 28 ms | 6 % |
+
+Los 63 ms de zod son **construir esquemas que todavía no ha usado nadie**. A eso hay que sumarle su parte de los 614 ms de compilación, que el perfil no desglosa; por bytes le correspondería alrededor de 90 ms, pero eso es una regla de tres, no una medición.
+
+## El candidato claro: zod fuera del arranque
+
+Lo que bloqueaba la propuesta 2 era la lectura **síncrona** de la sesión antes del primer render. Al mirar módulo a módulo, el bloqueo es mucho más pequeño de lo que parecía:
+
+- **`parseFragmentSession` no usa zod.** Es `URLSearchParams`, `atob` y `JSON.parse`. Y es la otra mitad de lo que `AuthProvider` hace antes del primer render.
+- Así que **la única validación de zod en el camino síncrono es `sessionSchema`**, de `auth/session.ts`: cuatro campos, dos cadenas no vacías, un entero positivo y un objeto de usuario. `loadSession` solo quiere saber si vale o no, con `safeParse` y un booleano.
+
+Las otras cuatro cadenas no están en el primer pintado, solo se importan a nivel de módulo:
+
+| Cadena | Cuándo se usa de verdad | Qué haría falta |
+|---|---|---|
+| `auth/authApi.ts` | Dentro de `request`, en llamadas de red | Importarlos dentro de esas funciones, que ya son asíncronas |
+| `editor/source.ts`, `sequenceSourceSchema` | **Solo lo usa `projects/contracts.ts`** | Moverlo allí; `source.ts` se queda con `bundledSequenceSource`, que es una expresión regular |
+| `projects/snapshot.ts`, `workspaceSchema` | En `captureWorkspace` y `withGeneratorHistory`, llamadas desde el guardado, la apertura y el menú de exportación | Volver esas dos funciones asíncronas con importación dinámica; sus dos llamadas ya están en contextos asíncronos |
+| `generator/history.ts` | En los tres callbacks de historial de `ProjectProvider` | Importación dinámica dentro de ellos |
+
+Comprobaciones que lo sostienen:
+
+- `design-lab/workspace.ts`, que también usa zod, **solo lo importa `import.worker.ts`**: ya está fuera del hilo de la interfaz.
+- `api/apiClient.ts` ya está diferido, y hay un E2E que lo fija: «keeps the service transport deferred until a service is used».
+- Todo lo que `reports/reportMessages.ts`, `reports/reportModel.ts` y `projects/rpcMapping.ts` toman de `contracts.ts` son **tipos**, que TypeScript borra. La única cadena de valor hacia `contracts.ts` desde el grafo inicial es `snapshot.ts`.
+- `generatorHistorySnapshotSchema` y `sequenceSourceSchema` **solo los usa `contracts.ts`**, así que los esquemas pueden juntarse en un módulo y llegar cuando alguien guarda, abre o importa.
+- En `ProjectProvider`, todo uso de lo pesado está dentro de callbacks, nunca en el estado inicial: su `EMPTY_WORKSPACE` solo necesita dos constantes pequeñas de configuración.
+
+**Ganancia esperada:** el fragmento `schemas-*.js` sale del grafo inicial, **85.294 bytes y 24.093 comprimidos**, un 13,4 % de los 180.269 comprimidos que hoy se descargan en todas las rutas, más `history-*.js` con otros 1.955 comprimidos. En procesador, los 63 ms medidos de construcción de esquemas, más su parte de la compilación.
+
+**Y lo que importa de la lección de la propuesta 1:** nada de esto está detrás de un render. Diferir un módulo que solo se alcanza desde un callback **no cuesta ninguna pasada de `Suspense`**, que es justo lo que hundió la propuesta 1. Esa es la diferencia entre los dos casos, y es la razón para esperar que este sí salga a favor.
+
+**Lo que habría que cuidar:** `sessionSchema` pasa a ser una comprobación escrita a mano, así que hace falta una prueba que fije que acepta y rechaza exactamente lo mismo que el esquema. Eso es «no perder validación» de forma comprobable, no de palabra.
+
+## Candidatos secundarios, con su cifra
+
+- **`BackboneView`, 113 ms de procesador y 9.214 bytes.** Es el segundo mayor consumidor de arranque y dibuja el esqueleto del hero, **solo en Inicio**. No sirve para el margen de Analizar, pero es la mitad del coste de render de Inicio.
+- **`formatNumber`, 59 ms.** Ya se investigó el 25 de octubre; sigue ahí.
+- **`src/i18n/es.ts`, 70.602 bytes.** Es el catálogo por defecto, hace falta; recortarlo significaría partirlo por área, que es bastante más trabajo que las cadenas de zod.
+- **`descriptors`, 23.066 bytes**, de los cuales 9.180 son `HydropathyProfile.tsx`, que es una **pestaña**, no la vista inicial de Analizar. Diferirla sí es un render, así que pagaría la pasada de `Suspense`; pero sería una pasada tras un clic, no en la carga, y ese es el patrón que ya usan las otras vistas.
+- **`assistant`, 5.389 bytes**, y **`reports`, 3.386**: entran por componentes que el marco del laboratorio renderiza.
+
+## Orden recomendado si se autoriza
+
+1. Sacar zod del arranque por las cinco cadenas, con la comprobación de la sesión escrita a mano y su prueba de paridad. Es la única que da una cifra de dos dígitos en kB y no cuesta una pasada de render.
+2. Volver a medir, emparejado, porque el margen en juego es menor que el ruido de este equipo.
+3. Solo entonces mirar `BackboneView` para Inicio y `HydropathyProfile` para Analizar.
+
+**No se implementó nada de esto.** Para hacerlo hace falta autorización: toca `AuthProvider`, `ProjectProvider`, `snapshot.ts`, `contracts.ts`, `source.ts`, `authApi.ts`, `history.ts` y sus pruebas.
+
+# zod fuera del arranque — 29 oct 2026
+
+Implementada la propuesta 2, por la vía que la investigación de arriba dejó abierta. **Ningún contrato cambia**: los mismos esquemas de zod, el mismo formato guardado, el mismo snapshot y el mismo protobuf. Lo único que cambia es **cuándo se carga ese código**.
+
+## Resultado, con lo determinista
+
+Grafo inicial, medido con `tmp/attribute-initial-bytes.mjs` sobre los archivos que `index.html` nombra. Evidencia: `artifacts/quality/initial-graph-2026-10-29.json` y `initial-graph-after-zod-2026-10-29.json`.
+
+| | Antes | Después | Diferencia |
+|---|---:|---:|---:|
+| Archivos del grafo inicial | 17 | **3** | −14 |
+| Bytes | 575.682 | **480.153** | **−95.529** |
+| Bytes comprimidos | 180.269 | **150.328** | **−29.941 (−16,6 %)** |
+| zod | 84.297 | **0** | −84.297 |
+| `src/features/generator` | 7.344 | **0** | −7.344 |
+| `src/features/projects` | 19.218 | 15.971 | −3.247 |
+
+El fragmento de entrada sí **crece**, de 355,92 a 397,44 kB (109,97 → 124,54 comprimidos), porque al desaparecer catorce archivos pequeños su contenido pasa a ese fragmento. Lo que baja es **el grafo completo**, que es lo que el navegador descarga y evalúa antes de pintar. La precaché pasa de 64 entradas y 2.478,85 KiB a **57 y 2.477,76 KiB**: el código sigue existiendo, repartido de otra forma.
+
+Procesador, con `scripts/profile-startup.mjs` sin cambios, CPU ×4 sobre Inicio. Evidencia: `startup-2026-10-29.json` y `startup-after-zod-2026-10-29.json`.
+
+| Origen | Antes | Después |
+|---|---:|---:|
+| Tiempo propio atribuible | 477 ms | **334 ms** |
+| **zod, construir esquemas** | **63 ms** | **0 ms** |
+| react-dom, renderizado | 132 ms | 112 ms |
+| `BackboneView`, el esqueleto del hero | 113 ms | 94 ms |
+| react-router | 28 ms | 22 ms |
+
+**No se afirma ninguna mejora de LCP.** La carga perfilada pasó de 2.354 a 1.905 ms, pero es **una** carga con el perfilador puesto, y esta máquina ya demostró que su variación entre corridas supera el margen en discusión. **El LCP de Analizar sigue sin estar acreditado de forma repetible**, y lo seguirá hasta medirlo en una máquina controlada.
+
+## Las seis cadenas, y la que faltaba
+
+| Cadena | Qué se hizo |
+|---|---|
+| `auth/session.ts` | Los esquemas pasan a `auth/schemas.ts`. `loadSession` usa `storedSession`, una comprobación escrita a mano, porque corre antes del primer render |
+| `auth/authApi.ts` | Carga `./schemas` dentro de sus funciones de red, que ya eran asíncronas |
+| `editor/source.ts` | El esquema pasa a `editor/sourceSchema.ts`; `source.ts` se queda con `bundledSequenceSource` y reexporta el tipo, que TypeScript borra |
+| `projects/snapshot.ts` | `captureWorkspace` y `withGeneratorHistory` son asíncronas y cargan `./contracts` al usarse. `workspaceVersion` y `workspaceInputKey`, que se leen al renderizar, siguen síncronas y sin zod |
+| `generator/history.ts` | `ProjectProvider` la carga dentro de sus tres callbacks de historial |
+| **`generator/context.ts`** | **La investigación no la había visto.** `parseSearchForm` pasa a `generator/searchForm.ts`; el proveedor la carga con la primera búsqueda y la pantalla del generador, que ya es un archivo propio, la importa directamente |
+
+La sexta apareció al comprobar el resultado: con las cinco primeras hechas, zod **seguía** en el grafo. El fragmento que lo arrastraba contenía `generator/search.ts`, y quien lo alcanzaba era `context.ts`, que importaba `searchParametersSchema` como valor para validar el formulario. Lo encontró la comprobación del build, no el análisis previo; por eso la comprobación es parte del método y no un trámite.
+
+## Sin perder validación, y comprobado
+
+`storedSession` sustituye a `sessionSchema.safeParse` en el único punto que no puede esperar. El esquema **sigue siendo la fuente de verdad** y sigue en `schemas.ts`, usado donde la carga es asíncrona. `src/features/auth/session.test.ts` pasa 31 casos por los dos y exige el mismo veredicto y, cuando aceptan, el mismo valor: sesión completa, correo vacío, campos ausentes uno a uno, tipos erróneos, cadenas vacías, nulos, arrays, expiraciones de cero, negativas, fraccionarias, `NaN`, infinitas, y campos desconocidos sueltos y dentro del usuario, que el esquema descarta y la comprobación también. Una prueba más fija que el esquema tenga exactamente esos cuatro campos, para que añadir uno no pase sin comprobarse.
+
+**La prueba de paridad encontró una divergencia real antes de que llegara a ninguna parte:** con `expiresAt` de `2 ** 53`, `Number.isInteger` aceptaba y el `int()` de zod rechazaba, porque exige un entero exacto. La comprobación usa ahora `Number.isSafeInteger`. Sin esa prueba, el cambio habría aceptado sesiones que el esquema rechaza.
+
+## Lo que se nota al usarlo
+
+- **Exportar un informe** y **buscar en el generador** crean su Worker un turno más tarde: antes de crearlo se carga la validación. Nada en la interfaz espera por ello.
+- **`captureWorkspace` y `withGeneratorHistory` son asíncronas.** Sus dos llamadas ya estaban en contextos asíncronos: el guardado de `ProjectProvider` y el menú de exportación.
+- **Si la validación no pudiera cargarse**, una búsqueda queda informada como fallida en lugar de quedarse quieta.
+- Las pruebas de esos dos recorridos esperan ese turno con `act`, y cargan el módulo una vez por archivo para que cada clic cueste solo el turno y no una lectura de módulo. **No se subió ningún tiempo de espera ni se marcó nada como inestable.**
+
+## Verificación
+
+Sobre el árbol final, sin Auth configurada y como CI:
+
+- Tipos y lint correctos.
+- Unitarias: **539/539 en 88 archivos**, frente a 505 en 87. Las 34 nuevas son la paridad de la sesión. Cobertura: 85,52 % de sentencias, 76,93 % de ramas, 81,94 % de funciones y 89,26 % de líneas.
+- Build correcto; precaché de 57 entradas y 2.477,76 KiB.
+- `check:pwa` correcto en Chromium 156, con las cuatro WOFF2 desde la precaché, el aislamiento, el laboratorio, el generador, el PDF y el cuaderno idéntico byte a byte. **No se ejecutó en WebKit**, por el alcance de la tarea.
+- E2E completas en Chromium con un worker en el puerto 5315: **137 correctas y 2 omitidas por diseño**, en 8,7 minutos y **a la primera**. Se esperó a que no hubiera nada escuchando en 5190 ni en 5325, las baterías de otras sesiones, y la carga del equipo estaba al 4 %.
+- Las siete pruebas que fallaron al introducir el turno de espera eran de `GeneratorPage` y `ReportActions`, y se arreglaron esperando ese turno, no debilitando lo que comprueban.
+
+## Lo que queda
+
+- El LCP de Analizar sigue **sin acreditar de forma repetible** en este equipo, y esta propuesta no lo cambia: lo que reduce es lo que se descarga y se evalúa, medido con lo determinista.
+- Siguen en el grafo inicial, como candidatos ya cifrados: `BackboneView` con 113 ms y 9.212 bytes, solo de Inicio; `formatNumber` con 59 ms; el catálogo español con 70.602 bytes; y `HydropathyProfile` con 9.180, que es una pestaña y no la vista inicial de Analizar. **No se tocaron.**

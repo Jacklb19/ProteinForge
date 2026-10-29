@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ALIGNMENT_MODES, GAP_EXTEND, GAP_OPEN, MATRIX_NAMES, MAX_ALIGNMENT_RESIDUES } from '../alignment/config';
 import { HYDROPATHY_WINDOWS } from '../descriptors/config';
 import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_NAME_LENGTH, MAX_PROJECT_SEQUENCE_LENGTH, PROJECT_PREVIEW_RESIDUES } from './config';
-import { sequenceSourceSchema } from '../editor/source';
+import { sequenceSourceSchema } from '../editor/sourceSchema';
 import { GENERATOR_HISTORY_CONFIG } from '../generator/config';
 import { generatorHistorySnapshotSchema } from '../generator/history';
 
