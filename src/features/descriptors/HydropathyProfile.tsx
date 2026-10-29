@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { validateSequence } from '../editor/sequence';
 import { getChartStyle } from './chartStyle';
 import type { ProfileResponse, ProfileRequest } from './profileMessages';
@@ -21,6 +21,13 @@ import { RESIDUE_NAMES } from '../chemistry/config';
 import { disulfidePartner, regionAt } from '../editor/annotations';
 import type { SequenceAnnotations } from '../editor/annotations';
 import { PropensityStrips } from './PropensityStrips';
+
+// The reader, map and strips repeat every residue; they skip a parent render whose props did not change.
+const StableRibbon = memo(SequenceRibbon);
+const StableReader = memo(ResidueReader);
+const StableStrips = memo(PropensityStrips);
+const NO_POINTS: ProfilePoint[] = [];
+const NO_PROPENSITIES: ResiduePropensity[] = [];
 
 interface ReceivedProfile {
   sequence: string;
@@ -56,6 +63,10 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
   const [localSelected, setLocalSelected] = useState<number | null>(null);
   const selected = controlledSelected === undefined ? localSelected : controlledSelected;
   const setSelected = onSelect ?? setLocalSelected;
+  // Children get one stable callback; it always forwards to the latest selection handler.
+  const selectionTarget = useRef(setSelected);
+  useLayoutEffect(() => { selectionTarget.current = setSelected; });
+  const selectResidue = useCallback((position: number | null) => { selectionTarget.current(position); }, []);
   const [chartBox, setChartBox] = useState<{ width: number; margin: number } | null>(null);
   const chartUnavailable = typeof HTMLCanvasElement.prototype.transferControlToOffscreen !== 'function';
   const validation = useMemo(() => validateSequence(text), [text]);
@@ -161,13 +172,12 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
   const current = !invalid && profile?.sequence === validation.sequence
     && profile.windowSize === windowSize;
   const shown = invalid ? profile : current ? profile : null;
-  const points = shown?.points ?? [];
-  const propensities = shown?.propensities ?? [];
-  const hydropathyByResidue = new Map(points.map((point) => [point.position, point.value]));
+  const points = shown?.points ?? NO_POINTS;
+  const propensities = shown?.propensities ?? NO_PROPENSITIES;
+  const hydropathyByResidue = useMemo(() => new Map(points.map((point) => [point.position, point.value])), [points]);
   const displayedWindow = shown?.windowSize ?? windowSize;
   const totalPages = Math.ceil(propensities.length / PROFILE_ROWS_PER_PAGE);
   const currentPage = Math.min(page, Math.max(0, totalPages - 1));
-  const rows = propensities.slice(currentPage * PROFILE_ROWS_PER_PAGE, (currentPage + 1) * PROFILE_ROWS_PER_PAGE);
   const shownSequence = shown?.sequence ?? '';
   const activeSelection = selected !== null && selected <= shownSequence.length ? selected : null;
   // Only residues with a complete window have a value; elsewhere no window is highlighted.
@@ -181,7 +191,9 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
     // The overlay follows the canvas box, including when the chart is revealed or resized.
     const observer = new ResizeObserver(() => {
       const canvas = canvasRef.current;
-      if (canvas) setChartBox({ width: canvas.getBoundingClientRect().width, margin: getChartStyle(canvas, locale).margin });
+      if (!canvas) return;
+      const next = { width: canvas.getBoundingClientRect().width, margin: getChartStyle(canvas, locale).margin };
+      setChartBox((box) => box?.width === next.width && box.margin === next.margin ? box : next);
     });
     observer.observe(element);
     return () => { observer.disconnect(); };
@@ -204,7 +216,7 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
   const selectedRow = activeSelection === null ? undefined : propensities[activeSelection - 1];
   const selectedValue = activeSelection === null ? undefined : hydropathyByResidue.get(activeSelection);
   const selectedRange = activeSelection === null ? null : windowRange(activeSelection, displayedWindow, shownSequence.length);
-  const format = (value: number | null) => value === null ? t('profile.missing') : formatNumber(value, PROFILE_VALUE_FORMAT);
+  const format = useCallback((value: number | null) => value === null ? t('profile.missing') : formatNumber(value, PROFILE_VALUE_FORMAT), [t, formatNumber]);
   const selectedRegion = annotations && activeSelection !== null ? regionAt(annotations, activeSelection) : undefined;
   const selectedPartner = annotations && activeSelection !== null ? disulfidePartner(annotations, activeSelection) : undefined;
   const readoutName = selectedRow ? t('profile.readerName', { name: RESIDUE_NAMES[selectedRow.residue] ?? selectedRow.residue, position: formatNumber(selectedRow.position) }) : '';
@@ -216,9 +228,21 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
         : t('profile.readerHydropathy', { value: format(selectedValue), start: formatNumber(selectedRange.start), end: formatNumber(selectedRange.end) }),
     t('profile.readerPropensities', { helix: format(selectedRow.helix), sheet: format(selectedRow.sheet), turn: format(selectedRow.turn) }),
   ].filter(Boolean).join(' · ') : t('profile.readerHint');
-  const isCut = annotations
+  const isCut = useMemo(() => annotations
     ? (position: number): boolean => !annotations.regions.some((region) => region.mature && position >= region.start && position <= region.end)
-    : undefined;
+    : undefined, [annotations]);
+  const tableRows = useMemo(() => propensities.slice(currentPage * PROFILE_ROWS_PER_PAGE, (currentPage + 1) * PROFILE_ROWS_PER_PAGE).map((row) => (
+    <tr key={row.position} aria-selected={row.position === activeSelection ? true : undefined}>
+      <th scope="row">{formatNumber(row.position)}</th>
+      <td className="residue-cell">{row.residue}</td>
+      <td>{hydropathyByResidue.has(row.position)
+        ? format(hydropathyByResidue.get(row.position) ?? null)
+        : <span aria-label={t('profile.noWindow')}>{t('profile.noValue')}</span>}</td>
+      <td>{format(row.helix)}</td>
+      <td>{format(row.sheet)}</td>
+      <td>{format(row.turn)}</td>
+    </tr>
+  )), [propensities, currentPage, activeSelection, hydropathyByResidue, format, formatNumber, t]);
 
   const selectFromChart = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!axis) return;
@@ -233,13 +257,13 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
           aria-labelledby={panelId && view !== 'structure' ? `${panelId}-sequence-tab` : 'sequence-title'} hidden={view !== 'all' && view !== 'sequence' && view !== 'structure'} className={`section reader-section${invalid ? ' stale-reader' : ''}`}>
           <h2 id="sequence-title">{t('profile.readerTitle')}</h2>
           {annotations && (
-            <SequenceRibbon sequence={shownSequence} annotations={annotations} selected={activeSelection} onSelect={setSelected} label={t('profile.mapLabel')} />
+            <StableRibbon sequence={shownSequence} annotations={annotations} selected={activeSelection} onSelect={selectResidue} label={t('profile.mapLabel')} />
           )}
-          <ResidueReader
+          <StableReader
             sequence={shownSequence}
             windowSize={selectionHasWindow ? displayedWindow : 1}
             selected={activeSelection}
-            onSelect={setSelected}
+            onSelect={selectResidue}
             describedBy="reader-readout"
             isMuted={isCut}
           />
@@ -285,7 +309,7 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
       {hasInput && (
         <section aria-labelledby="tendency-title" className={`section${invalid ? ' stale-table' : ''}`}>
           <h2 id="tendency-title">{t('profile.tendencyTitle')}</h2>
-          {propensities.length > 0 && <PropensityStrips propensities={propensities} />}
+          {propensities.length > 0 && <StableStrips propensities={propensities} />}
           <p className="field-help">{t('profile.tendencyNote')}</p>
           <details className="disclosure">
             <summary>{t('profile.tableToggle')}</summary>
@@ -294,20 +318,7 @@ export function HydropathyProfile({ text, windowSize: controlledWindow, onWindow
                 <table>
                   <caption>{t('profile.caption', { count: formatNumber(displayedWindow) })}</caption>
                   <thead><tr><th scope="col">{t('profile.position')}</th><th scope="col">{t('profile.residue')}</th><th scope="col">{t('profile.hydropathy')}</th><th scope="col">{t('profile.helix')}</th><th scope="col">{t('profile.sheet')}</th><th scope="col">{t('profile.turn')}</th></tr></thead>
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.position} aria-selected={row.position === activeSelection ? true : undefined}>
-                        <th scope="row">{formatNumber(row.position)}</th>
-                        <td className="residue-cell">{row.residue}</td>
-                        <td>{hydropathyByResidue.has(row.position)
-                          ? format(hydropathyByResidue.get(row.position) ?? null)
-                          : <span aria-label={t('profile.noWindow')}>{t('profile.noValue')}</span>}</td>
-                        <td>{format(row.helix)}</td>
-                        <td>{format(row.sheet)}</td>
-                        <td>{format(row.turn)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
+                  <tbody>{tableRows}</tbody>
                 </table>
               </div>
               {totalPages > 1 && (

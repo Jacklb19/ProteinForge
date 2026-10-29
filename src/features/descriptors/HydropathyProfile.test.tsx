@@ -13,6 +13,14 @@ import { spanish } from '../../i18n/es';
 import { DEFAULT_LOCALE, languageTags } from '../../i18n/config';
 import { translate } from '../../i18n/translate';
 import type { TranslationKey, TranslationVariables } from '../../i18n/translate';
+import { PropensityStrips } from './PropensityStrips';
+import { ResidueReader } from './ResidueReader';
+import { SequenceRibbon } from '../chemistry/SequenceRibbon';
+
+// Pass-through spies: the real components render, and each call is one render of that component.
+vi.mock('./PropensityStrips', async (original) => ({ PropensityStrips: vi.fn((await original<typeof import('./PropensityStrips')>()).PropensityStrips) }));
+vi.mock('./ResidueReader', async (original) => ({ ResidueReader: vi.fn((await original<typeof import('./ResidueReader')>()).ResidueReader) }));
+vi.mock('../chemistry/SequenceRibbon', async (original) => ({ SequenceRibbon: vi.fn((await original<typeof import('../chemistry/SequenceRibbon')>()).SequenceRibbon) }));
 
 class MockWorker {
   static instance: MockWorker | null = null;
@@ -264,5 +272,34 @@ describe('accessible hydropathy profile', () => {
       t('profile.readerRegion', { region: spanish['regions.signal'], index: 1 }),
       spanish['profile.readerNoWindow'],
     ]));
+  });
+
+  it('leaves the per-residue views alone when a parent renders again with the same reading', () => {
+    const sequence = DEFAULT_EXAMPLE.text;
+    const annotations = annotationsFor(DEFAULT_EXAMPLE.source);
+    // The editor passes a new selection handler on every render, as here.
+    const first = vi.fn<(position: number | null) => void>();
+    const { rerender } = render(<HydropathyProfile text={sequence} selected={null} onSelect={(position) => { first(position); }} annotations={annotations} />);
+    const worker = profileWorker();
+    const request = lastRequest(worker);
+    act(() => {
+      worker.onmessage?.(new MessageEvent('message', { data: { id: request.id, points: calculateProfile(sequence, 9), propensities: calculatePropensities(sequence) } }));
+    });
+    const renders = () => [vi.mocked(PropensityStrips).mock.calls.length, vi.mocked(ResidueReader).mock.calls.length, vi.mocked(SequenceRibbon).mock.calls.length];
+    const settled = renders();
+    expect(settled.every((count) => count > 0)).toBe(true);
+    const latest = vi.fn<(position: number | null) => void>();
+    rerender(<HydropathyProfile text={sequence} selected={null} onSelect={(position) => { latest(position); }} annotations={annotations} />);
+    expect(renders()).toEqual(settled);
+    // The stable handler still reaches the handler of the latest render.
+    fireEvent.keyDown(screen.getByRole('group', { name: t('profile.readerLabel', { count: RESIDUES_PER_BLOCK }) }), { key: 'Home' });
+    expect(latest).toHaveBeenCalledWith(1);
+    expect(first).not.toHaveBeenCalled();
+    // A new selection reaches the reader and the map, and the strips, which do not show it, stay as they were.
+    rerender(<HydropathyProfile text={sequence} selected={1} onSelect={(position) => { latest(position); }} annotations={annotations} />);
+    const [strips, reader, ribbon] = renders();
+    expect(strips).toBe(settled[0]);
+    expect(reader).toBeGreaterThan(settled[1] ?? 0);
+    expect(ribbon).toBeGreaterThan(settled[2] ?? 0);
   });
 });
