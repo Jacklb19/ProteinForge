@@ -44,12 +44,19 @@ function parseColor(value: string): Rgb {
 }
 
 function blend(from: Rgb, to: Rgb, amount: number): Rgb {
-  return [0, 1, 2].map((index) => Math.round((from[index] ?? 0) + ((to[index] ?? 0) - (from[index] ?? 0)) * amount)) as unknown as Rgb;
+  return [
+    Math.round(from[0] + (to[0] - from[0]) * amount),
+    Math.round(from[1] + (to[1] - from[1]) * amount),
+    Math.round(from[2] + (to[2] - from[2]) * amount),
+  ];
 }
 
-const css = (color: Rgb): string => `rgb(${color.join(',')})`;
+const css = (color: Rgb): string => `rgb(${String(color[0])},${String(color[1])},${String(color[2])})`;
 
-interface Palette { stage: Rgb; ink: Rgb; classes: Record<ResidueClass, Rgb>; font: string }
+/** Body, outline and sheen of a segment before depth fog: they depend on its residue, the mode and the palette only. */
+interface SegmentColors { body: Rgb; outline: Rgb; sheen: Rgb }
+
+interface Palette { stage: Rgb; ink: Rgb; classes: Record<ResidueClass, Rgb>; font: string; segments: Map<string, SegmentColors> }
 
 function readPalette(element: HTMLElement): Palette {
   const root = getComputedStyle(document.documentElement);
@@ -59,6 +66,7 @@ function readPalette(element: HTMLElement): Palette {
     ink: token('--text-primary'),
     classes: Object.fromEntries(RESIDUE_CLASSES.map((name) => [name, token(RESIDUE_CLASS_TOKENS[name])])) as Record<ResidueClass, Rgb>,
     font: `600 ${String(LABEL_FONT_SIZE)}px ${getComputedStyle(element).fontFamily}`,
+    segments: new Map(),
   };
 }
 
@@ -71,6 +79,29 @@ function segmentColor(segment: SceneSegment, mode: ColorMode, palette: Palette):
     return blend(palette.classes.special, value > 0 ? palette.classes.hydrophobic : palette.classes.basic, Math.min(1, Math.abs(value)));
   }
   return palette.classes[residueClass(residue) ?? 'special'];
+}
+
+/** Colors of a segment, computed once per palette, mode and residue instead of on every frame. */
+function segmentColors(segment: SceneSegment, mode: ColorMode, palette: Palette): SegmentColors {
+  const key = `${mode}:${segment.kind}:${segment.chain}:${segment.residue.name}`;
+  let colors = palette.segments.get(key);
+  if (!colors) {
+    const body = segmentColor(segment, mode, palette);
+    colors = { body, outline: blend(body, palette.ink, OUTLINE_MIX), sheen: blend(body, WHITE, SHEEN_MIX) };
+    palette.segments.set(key, colors);
+  }
+  return colors;
+}
+
+function strokeSegment(context: CanvasRenderingContext2D, segment: SceneSegment, style: string, lineWidth: number, offsetX: number, offsetY: number, fromBefore: boolean): void {
+  context.strokeStyle = style;
+  context.lineWidth = lineWidth;
+  context.beginPath();
+  if (fromBefore) context.moveTo(segment.before[0] + offsetX, segment.before[1] + offsetY);
+  else context.moveTo(segment.from[0] + offsetX, segment.from[1] + offsetY);
+  context.lineTo(segment.from[0] + offsetX, segment.from[1] + offsetY);
+  context.lineTo(segment.to[0] + offsetX, segment.to[1] + offsetY);
+  context.stroke();
 }
 
 function paint(context: CanvasRenderingContext2D, scene: BackboneScene, width: number, height: number, mode: ColorMode, palette: Palette, options: { selected?: ResidueSelection | null; selectedLabel?: string; showEnds: boolean }, reference?: BackboneScene): void {
@@ -88,21 +119,11 @@ function paint(context: CanvasRenderingContext2D, scene: BackboneScene, width: n
     const factor = segment.kind === 'bridge' ? BRIDGE_WIDTH_FACTOR : segment.kind === 'sulfur' ? SULFUR_WIDTH_FACTOR : 1;
     const lineWidth = scene.tubeWidth * factor * (DEPTH_WIDTH_BASE + DEPTH_WIDTH_GAIN * segment.depth);
     const fog = (1 - segment.depth) * DEPTH_FOG;
-    const color = segmentColor(segment, mode, palette);
-    const stroke = (style: Rgb, strokeWidth: number, offsetX = 0, offsetY = 0, fromBefore = true): void => {
-      context.strokeStyle = css(blend(style, palette.stage, fog));
-      context.lineWidth = strokeWidth;
-      context.beginPath();
-      if (fromBefore) context.moveTo(segment.before[0] + offsetX, segment.before[1] + offsetY);
-      else context.moveTo(segment.from[0] + offsetX, segment.from[1] + offsetY);
-      context.lineTo(segment.from[0] + offsetX, segment.from[1] + offsetY);
-      context.lineTo(segment.to[0] + offsetX, segment.to[1] + offsetY);
-      context.stroke();
-    };
+    const colors = segmentColors(segment, mode, palette);
     // Outline first, then the body drawn back over the previous step so no rings appear between steps.
-    stroke(blend(color, palette.ink, OUTLINE_MIX), lineWidth + OUTLINE_EXTRA_WIDTH, 0, 0, false);
-    stroke(color, lineWidth);
-    stroke(blend(color, WHITE, SHEEN_MIX), lineWidth * SHEEN_WIDTH_FACTOR, -lineWidth * SHEEN_OFFSET_X, -lineWidth * SHEEN_OFFSET_Y);
+    strokeSegment(context, segment, css(blend(colors.outline, palette.stage, fog)), lineWidth + OUTLINE_EXTRA_WIDTH, 0, 0, false);
+    strokeSegment(context, segment, css(blend(colors.body, palette.stage, fog)), lineWidth, 0, 0, true);
+    strokeSegment(context, segment, css(blend(colors.sheen, palette.stage, fog)), lineWidth * SHEEN_WIDTH_FACTOR, -lineWidth * SHEEN_OFFSET_X, -lineWidth * SHEEN_OFFSET_Y, true);
   }
   const label = (text: string, x: number, y: number): void => {
     context.font = palette.font;
@@ -151,7 +172,12 @@ export function BackboneView({ label, describedBy, colorMode, selected = null, s
   const scene = useRef<BackboneScene | null>(null);
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const touched = useRef(false);
-  const latest = useRef({ colorMode, selected, selectedLabel, showEnds, model, reference });
+  const latest = useRef({ colorMode, selected, selectedLabel, showEnds, model, reference, themeRevision });
+  // Tokens change only with the theme, so they are read once per theme instead of on every frame.
+  const palette = useRef<{ revision: number; value: Palette } | null>(null);
+  const fontsArrived = useRef(0);
+  // Everything the last paint depended on: the mount, the first resize report and a settled font set ask for the same frame.
+  const painted = useRef<readonly unknown[] | null>(null);
 
   const draw = useCallback(() => {
     const element = canvas.current;
@@ -161,21 +187,29 @@ export function BackboneView({ label, describedBy, colorMode, selected = null, s
     const height = container.clientHeight;
     if (width === 0 || height === 0) return;
     const scale = Math.max(1, window.devicePixelRatio || 1);
+    const current = latest.current;
+    if (palette.current?.revision !== current.themeRevision) palette.current = { revision: current.themeRevision, value: readPalette(container) };
+    const colors = palette.current.value;
+    const selection = current.selected ? `${current.selected.chain}:${String(current.selected.number)}:${current.selected.insertion ?? ''}` : null;
+    const inputs = [width, height, scale, view.current.yaw, view.current.pitch, colors, fontsArrived.current,
+      current.colorMode, selection, current.selectedLabel, current.showEnds, current.model, current.reference];
+    const previous = painted.current;
+    if (previous && inputs.every((value, index) => Object.is(value, previous[index]))) return;
     if (element.width !== Math.round(width * scale) || element.height !== Math.round(height * scale)) {
       element.width = Math.round(width * scale);
       element.height = Math.round(height * scale);
     }
     const context = element.getContext('2d');
     if (!context) return;
+    painted.current = inputs;
     context.setTransform(scale, 0, 0, scale, 0, 0);
-    const current = latest.current;
     scene.current = layoutBackbone(current.model, { ...view.current, width, height });
     const referenceScene = current.reference ? layoutBackbone(current.reference, { ...view.current, width, height }, current.model) : undefined;
-    paint(context, scene.current, width, height, current.colorMode, readPalette(container), current, referenceScene);
+    paint(context, scene.current, width, height, current.colorMode, colors, current, referenceScene);
   }, []);
 
   useEffect(() => {
-    latest.current = { colorMode, selected, selectedLabel, showEnds, model, reference };
+    latest.current = { colorMode, selected, selectedLabel, showEnds, model, reference, themeRevision };
     draw();
   }, [colorMode, selected, selectedLabel, showEnds, model, reference, themeRevision, draw]);
 
@@ -185,7 +219,8 @@ export function BackboneView({ label, describedBy, colorMode, selected = null, s
     const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(draw) : null;
     observer?.observe(container);
     const fonts = (document as { fonts?: FontFaceSet }).fonts;
-    if (fonts) void fonts.ready.then(draw);
+    // Labels painted while a font was loading are painted again when it arrives; a settled set changes nothing.
+    if (fonts && fonts.status !== 'loaded') void fonts.ready.then(() => { fontsArrived.current += 1; draw(); });
     return () => { observer?.disconnect(); };
   }, [draw]);
 
