@@ -6,7 +6,7 @@ Actualizado el **29 de octubre de 2026**. Leer este documento completo, los AGEN
 
 | Repositorio | `main` | `dev` |
 |---|---|---|
-| Frontend | `09989b0` | `9927ce9` |
+| Frontend | `09989b0` | `d5419eb` |
 | Backend | `18d9444` | `cbff97e` |
 
 El frontend se publicó el **29 de octubre**: el merge `65a0b74` llevó a `main` la pasada de rendimiento, el subconjunto de IBM Plex Mono y la pestaña «Dominios». Esa primera publicación **falló en CI** por un defecto de idioma; el arreglo `869ce2d` se publicó enseguida como `09989b0` y dejó ambas ramas en verde.
@@ -44,6 +44,20 @@ Seis cadenas llevaban zod al arranque; la sexta (`generator/context.ts`) la enco
 
 Las dos omitidas requieren evidencia local de Colab. La integración queda verificada; publicar sigue necesitando autorización.
 
+## Integrado en `dev` el 29 de octubre: segundo factor, solo la capa de cliente
+
+El merge `d5419eb` incorpora los siete commits `fde6360`…`d172464` de `parallel/auth-totp`, más el merge `6311593` con el que esa rama absorbió `dev` para resolver el único choque, en `src/features/auth/authApi.ts`, contra la carga diferida de esquemas de `b352eae`. Se resolvió fusionando `dev` dentro de la rama, **sin rebase**, igual que había hecho `parallel/perf-routes`. El resultado conserva las dos intenciones: zod sigue fuera del arranque y el cliente MFA se descarga en su primer uso.
+
+- **Contrato documentado** en [auth-totp-contract.md](auth-totp-contract.md), sacado del código fuente de Supabase Auth `v2.197.0`, su `openapi.yaml`, supabase-js y las guías oficiales. Verificar el código devuelve una sesión aal2 que sustituye a la guardada y el servidor cierra las sesiones aal1 del usuario en otros dispositivos; una sesión aal2 sigue en aal2 al refrescarse. **Una sesión aal1 sigue valiendo para la API:** exigir aal2 requiere políticas RLS y la misma comprobación en FastAPI, y es una decisión entre los dos repositorios que sigue sin tomarse.
+- **Capa de cliente sin interfaz:** `mfaApi.ts` inscribe, desafía, verifica, quita y lista factores; `assurance.ts` lee `aal`/`amr` del token; los códigos se normalizan a seis cifras y los identificadores de factor se restringen a UUID antes de cualquier petición; los catorce mensajes nuevos están en es/en. Los valores ajustables van a `src/features/auth/config.ts`.
+- **Un fallo real anterior, corregido:** el proveedor de sesión descartaba mal un refresco que llegaba tarde y podía pisar una sesión nueva o reabrir una ya cerrada. Dos pruebas fijan la guarda y fallan si se quita.
+- **Códigos de recuperación no implementados:** las rutas existen en `v2.197.0` pero vienen desactivadas por defecto y supabase-js las marca como experimentales.
+- **Ninguna pantalla programada.** La [propuesta de interfaz](auth-totp-ui-proposal-2026-10-29.md) y sus 72 capturas en `artifacts/auth-totp-2026-10-29/` esperan la aprobación del propietario, con cuatro decisiones suyas: aprobar la opción A (aplicación de respaldo), si quiere o no códigos de recuperación —la sesión recomienda que no por ahora—, si se exige aal2 en datos y API, y si acepta recuperar cuentas quitando él el factor a mano en Supabase.
+
+**Verificación del merge** en el checkout principal, sin Auth y como CI: tipos correctos (12 s), lint correcto (42 s), **678 unitarias en 94 archivos** todas correctas (56 s), cobertura **86,00 / 77,68 / 82,74 / 89,68 %** con los mínimos intactos, build correcto (25 s), `check:pwa` correcto (6 s) y batería E2E completa con un trabajador en el puerto 5190: **141 correctas y 2 omitidas** por diseño de 143, en 7,6 minutos.
+
+**Límites declarados:** nada se ha probado contra un proyecto Supabase real, no se sabe qué versión de Auth ejecuta el proyecto alojado ni si sus límites coinciden con los valores por defecto, y la imagen QR de la maqueta es ilustrativa.
+
 ## Historial del generador: pendiente solo de activarlo
 
 Contrato, backend, cliente e interfaz están implementados y publicados en `main`; la interfaz permanece oculta salvo con `VITE_GENERATOR_HISTORY=enabled`. [Contrato](../../backend/docs/generator-history-contract-proposal.md), [interfaz aprobada](generator-history-ui-proposal-2026-10-27.md).
@@ -65,16 +79,17 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 1. **Publicación aplazada por decisión del propietario el 29 de octubre.** Se le ofreció publicar `dev` `9927ce9` (zod fuera del arranque), ya verificado, y respondió que espera a que entreguen los dos frentes abiertos para publicarlo todo junto. No volver a pedirlo hasta entonces; la autorización se pide de nuevo cuando los frentes estén integrados y verificados.
 2. Activar el historial del generador en producción según el apartado anterior, con el propietario.
-3. Integrar y verificar lo que entreguen los dos frentes abiertos el 29 de octubre: rendimiento de `BackboneView`/`HydropathyProfile` con medición repetible, y el segundo factor TOTP (capa de cliente ya; interfaz solo tras aprobación del propietario).
-4. Recorrido con Supabase local y dos cuentas reales para cerrar el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 de octubre que revisa él esa parte.
-5. Pendientes antiguos que siguen abiertos: aislamiento por ID con segunda cuenta en producción, recorrido SIFTS con JWT real y lectura autenticada del asistente comprobada en prosa.
+3. Llevar al propietario la [propuesta de pantallas del segundo factor](auth-totp-ui-proposal-2026-10-29.md) con sus cuatro decisiones. Sin su aprobación no se programa ninguna pantalla, y la capa de cliente ya integrada se queda sin usar, que es el comportamiento correcto.
+4. Integrar y verificar lo que entregue el frente de rendimiento (`BackboneView` e `HydropathyProfile` con medición repetible). El del segundo factor ya está integrado.
+5. Recorrido con Supabase local y dos cuentas reales para cerrar el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 de octubre que revisa él esa parte.
+6. Pendientes antiguos que siguen abiertos: aislamiento por ID con segunda cuenta en producción, recorrido SIFTS con JWT real y lectura autenticada del asistente comprobada en prosa.
 
 ## Copias de trabajo
 
 | Copia | Rama | Estado | Puertos |
 |---|---|---|---|
 | `worktree-perf-components` | `parallel/perf-components` | Abierta el 29 oct: medición repetible de LCP y después `BackboneView` e `HydropathyProfile` | 5340–5349, E2E 5345 |
-| `worktree-auth-totp` | `parallel/auth-totp` | Abierta el 29 oct: contrato TOTP/aal2, capa de cliente sin interfaz, maqueta y plan por pantallas para aprobación | 5350–5359, E2E 5355 |
+| `worktree-auth-totp` | `parallel/auth-totp` | Entregada e **integrada en `dev`** el 29 oct (`d5419eb`), sin commits pendientes. Se puede retirar cuando el propietario decida sobre la propuesta de pantallas | 5350–5359, E2E 5355 |
 | Coordinación | `frontend/dev`, `backend/dev` | Documentación general e integración | 5330–5339; E2E de verificación en 5190 |
 
 `worktree-domains` y `worktree-performance` se retiraron el 29 de octubre, después de comprobar que `parallel/domains`, `parallel/perf-routes` y `parallel/performance` eran antepasados de `dev` y no tenían commits pendientes; las tres ramas se borraron con `-d`. Sus evidencias están en `artifacts/worktree-evidence/`, ignorada, junto a las de `worktree-quality`, `worktree-sifts` y `worktree-auth`. Se conserva el stash antiguo «discarded: interface redesign v3». [Plan de desarrollo paralelo](../../parallel-development.md).
