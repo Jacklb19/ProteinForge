@@ -120,7 +120,7 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 **No queda ningún worktree abierto.** Los cuatro del 29 de octubre se retiraron el mismo día, siempre tras comprobar que su rama era antepasada de `dev` y no tenía commits pendientes, y borrando las ramas con `-d`, sin forzar: `worktree-domains` y `worktree-performance` por la mañana (`parallel/domains`, `parallel/perf-routes`, `parallel/performance`), y `worktree-perf-components` y `worktree-auth-totp` por la tarde, ya publicado su trabajo. Sus evidencias están en `artifacts/worktree-evidence/`, ignorada, junto a las de `worktree-quality`, `worktree-sifts` y `worktree-auth`. Se conserva el stash antiguo «discarded: interface redesign v3». [Plan de desarrollo paralelo](../../parallel-development.md).
 
-Las dos carpetas de la tarde pueden seguir en disco **vacías**: Git ya no las registra y sus ramas no existen, pero Windows no deja borrar el directorio mientras la sesión de Claude que lo usaba lo tenga abierto. Desaparecen al cerrar esas sesiones y no contienen nada.
+La raíz del espacio de trabajo queda con `frontend`, `backend` y nada más. Las dos carpetas de la tarde resistieron el borrado mientras sus sesiones seguían abiertas —Windows no elimina un directorio en uso— y se retiraron al archivarlas.
 
 **Una sola batería E2E a la vez en esta máquina.** Dos a la vez provocan fallos falsos. Los frentes tienen puertos propios, pero el carril se pide a coordinación antes de lanzar E2E o mediciones con navegador.
 
