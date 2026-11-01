@@ -1,5 +1,7 @@
 # Medición del giro de la portada y sus alternativas — 1 nov 2026
 
+> **Decisión del 1 nov:** el propietario eligió 30 fps. Implementado con la misma regla que la variante medida; ver [decisiones](decisiones.md).
+
 Solo medición. No cambia el producto: las variantes se construyeron en una copia temporal de `dev` (`582dd00`), fuera del repositorio, y se borraron al terminar. **La decisión visual es del propietario.** Antecedente: [componentes del 29 oct](performance-components-2026-10-29.md), que estimó unos 1,85 s de CPU de BackboneView por cada 4,5 s con CPU ×4.
 
 ## Qué se comparó
