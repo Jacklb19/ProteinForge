@@ -1,5 +1,7 @@
 # Lo que falta que haga el propietario — 1 nov 2026
 
+**Actualización:** el propietario confirmó aplicada la migración nueva y configuradas las dos variables, y autorizó los push/merge de ambos repositorios con autoría exclusiva suya el 1 nov. No repetir esos pasos. La publicación y su verificación se realizan en esta entrega; [estado de publicación](prompt-siguiente-entrega.md#publicación-autorizada--1-nov-2026). Los pasos inferiores conservan el guion entregado antes de esa confirmación. El aislamiento con segunda cuenta y la colaboración para una prueba autenticada en producción siguen pendientes.
+
 ## Ya preparado y comprobado
 
 La aplicación local está en <http://127.0.0.1:5330/generate/lab> y la API en `127.0.0.1:5331`. `npm run dev:prediction`, desde `frontend/`, inicia ambos procesos, comprueba que usan el mismo proyecto de Auth y activa la predicción solo en esos procesos. No modifica `.env`, Vercel o Supabase. Ctrl+C detiene los procesos que creó; rechaza puertos ocupados sin terminar otros programas. No usa 5173.

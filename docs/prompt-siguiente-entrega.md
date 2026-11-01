@@ -2,7 +2,15 @@
 
 Actualizado al cierre de la **sesión del 1 de noviembre de 2026**, America/Bogota. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes. Las versiones anteriores de este relevo están en [archive/relevo-2026-10-28.md](archive/relevo-2026-10-28.md) y [archive/relevo-2026-10-27.md](archive/relevo-2026-10-27.md); describen su momento y no son instrucciones vigentes.
 
-## Estado vigente — 1 nov 2026
+## Publicación autorizada — 1 nov 2026
+
+El propietario confirmó aplicada la migración nueva `20261030000000_structure_predictions.sql` y configuradas las dos banderas en Vercel, y autorizó push/merge de ambos repositorios exclusivamente a su nombre. No pedir repetir estos pasos: son declaraciones recibidas del propietario, a distinguir de las comprobaciones que ejecutemos. Esta autorización corresponde a esta entrega y no cubre futuras publicaciones o cambios remotos.
+
+Backend `dev` **89b9ed3**, merge `main` **14014324a7c3db9eda551e12fd9c3e502fb77788**, subidos. CI correcto en ambas ramas con Python 3.14: 146 descubiertas, 127 ejecutadas correctas y 19 SQL omitidas; lint/generación protobuf correctos. Vercel informa despliegue correcto asociado a ese merge. El frontend conserva el pin **77a753c2f8673b964e1943a8845767c9dce67635**, contenido en el backend publicado; la regeneración aislada desde GitHub produjo **7 archivos, 0 diferentes**.
+
+Se publica ahora el frontend desde dev a main, comprobando sus dos flujos de CI y el hash incorporado en el bundle público. No confundir el CI local del 30 oct con estas ejecuciones remotas. Los hashes finales y resultados observados al cerrar se registran en las últimas entradas de ambos PROGRESS locales; consultar también GitHub Actions para el commit exacto. Se conserva pendiente la comprobación de predicción/guardado con sesión desde producción, además de cuotas/tokens de SIFTS, segunda cuenta, prosa aceptada, decisiones TOTP/giro y RNF-03. La sesión real probada abajo fue local.
+
+## Comprobaciones locales anteriores a la publicación — 1 nov 2026
 
 **Predicción real con la sesión del propietario: correcta en local. Sin publicar.** [Informe con casos y límites](readiness-2026-11-01.md), [guía exacta para el propietario](owner-next-steps-2026-11-01.md). `npm run dev:prediction` inicia frontend 5330/API 5331 y comprueba Auth del mismo proyecto, sin cambiar `.env`; quedó ejecutándose para revisión. Rechaza puertos ocupados sin detener otros procesos. El propietario inició sesión personalmente; no se extrajo ni guardó su JWT.
 
