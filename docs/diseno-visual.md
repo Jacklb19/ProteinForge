@@ -2,7 +2,9 @@
 
 Actualizado el 26 de octubre de 2026. Dirección A «Mesa clara», elegida por el propietario tras revisar tres maquetas y el plan por pantallas. Conserva la identidad de «ficha de lectura», la marca, las fuentes y el color químico. [Auditoría y propuesta aprobada](usability-redesign-proposal-2026-10-26.md).
 
-Ampliación aprobada el 26 oct con «Me gusta» y una condición: [presentación pública y laboratorio](public-laboratory-proposal-2026-10-26.md). Separa un sitio público de una sola página del entorno de trabajo con barra lateral. Cada control vive en su sección: tema e idioma en Preferencias, identidad y sesión en Cuenta, guardar/exportar/importar junto a su herramienta. Iconos de trazo y animaciones de entrada están autorizados por esa petición y sustituyen la restricción anterior que los limitaba. Implementada localmente; sin publicar.
+Ampliación aprobada el 26 oct con «Me gusta» y una condición: [presentación pública y laboratorio](public-laboratory-proposal-2026-10-26.md). Separa un sitio público de una sola página del entorno de trabajo con barra lateral. Cada control vive en su sección: identidad y sesión en Cuenta, guardar/exportar/importar junto a su herramienta. Iconos de trazo y animaciones de entrada están autorizados por esa petición y sustituyen la restricción anterior que los limitaba. Implementada localmente; sin publicar.
+
+Cambio aprobado el 1 nov («Implementa la A»): propuesta A «Controles compactos» de `artifacts/preferences-account-2026-11-01/` (plan y maquetas). Desaparece el panel «Preferencias»: idioma y tema quedan a la vista como **ES / EN** y un botón luna/sol en la cabecera pública, su menú de teléfono y el pie lateral sin sesión. La cuenta es un enlace directo a Cuenta y preferencias, sin menú. Sustituye la condición del 26 oct «tema e idioma en Preferencias». Implementado localmente; sin publicar.
 
 Ampliación aprobada del 23 oct: [Lectura de los resultados](assistant.md) al pie de Analizar y Laboratorio, sin icono ni color adicional. Prosa de 62 caracteres e interlineado 1,75 mediante tokens; cifras enviadas a la derecha en escritorio y debajo en móvil, separadas por un filete. Cabecera en rejilla en pantallas estrechas, foco conservado y estados bilingües. Implementada localmente; no cambia la dirección visual vigente.
 
@@ -22,19 +24,20 @@ Dos composiciones con la misma marca, fuentes y química. Los borradores, la ses
 
 ### Sitio público
 
-- Cabecera fija con marca, enlaces a Qué es, Herramientas y Cómo funciona, Preferencias (apariencia e idioma) y, a la derecha, Iniciar sesión y Crear cuenta. Con sesión, «Ir al laboratorio» sustituye a ambos. Sin servicio de identidad no se ofrece crear cuenta.
+- Cabecera fija con marca, enlaces a Qué es, Herramientas y Cómo funciona y, a la derecha, **ES / EN**, el botón de tema, un filete fino e Iniciar sesión y Crear cuenta. Con sesión, «Ir al laboratorio» sustituye a ambos. Sin servicio de identidad no se ofrece crear cuenta.
+- Idioma: dos botones de texto en un grupo llamado «Idioma de la interfaz»; el activo va en negrita y subrayado (`aria-pressed`), cada uno con `lang` y su nombre completo («Español», «English»). Tema: un solo botón con icono que muestra adónde lleva (luna en claro, sol en oscuro) y se llama «Cambiar a tema oscuro/claro»; si la elección es «Sistema», primero se resuelve con la apariencia del dispositivo. Ambos con objetivos de 44 px; el foco se queda en el botón pulsado. «Sistema» se elige en Cuenta y preferencias.
 - Presentación: propósito, estructura experimental 1TRZ que gira hasta la primera interacción y su secuencia con tramos y puentes. Acción principal «Crear cuenta»; secundaria «Explorar el ejemplo», identificada como ejemplo público sin cuenta.
 - Secciones: qué es (tres puntos), herramientas (pestañas con un ejemplo real por herramienta), recorrido, tipos de evidencia, cierre con la llamada a la cuenta y preguntas. Los ejemplos se calculan en su Worker solo cuando la sección se acerca a la pantalla y la pestaña está elegida; Diseñar muestra condiciones sin ejecutar una búsqueda.
 - Acceso, registro, recuperación, legales y dirección desconocida usan este marco: sin barra lateral.
-- Por debajo de 64rem, los enlaces de sección, Preferencias y la cuenta pasan a un menú modal; en teléfonos la cabecera conserva marca, Iniciar sesión y menú.
-- Pie: marca, consigna, Laboratorio, Privacidad y Condiciones. No hay selectores de tema o idioma en el pie ni en el contenido.
+- Por debajo de 64rem, los enlaces de sección, idioma, tema y la cuenta pasan a un menú modal; en teléfonos la cabecera conserva marca, Iniciar sesión y menú. En el menú, una sola fila: ES / EN a la izquierda y luna/sol a la derecha; después, Iniciar sesión y Crear cuenta.
+- Pie: marca, consigna, Laboratorio, Privacidad y Condiciones. No hay controles de tema o idioma en el pie ni en el contenido.
 
 ### Laboratorio
 
-- Barra lateral fija con desplazamiento propio: cabecera (marca y contraer/expandir), grupos Investigar (Analizar, Comparar, Biblioteca), Diseñar (Diseñar secuencias, Laboratorio 3D) y Organizar (Proyectos, solo con sesión; el grupo no aparece vacío). Al pie: Guía y métodos, Preferencias y la cuenta.
-- Cuenta con sesión: un menú con Cuenta y preferencias, Sitio de ProteinForge y Cerrar sesión. Sin sesión: nota de que el trabajo dura la visita, Iniciar sesión y Crear cuenta.
-- Modo compacto: solo iconos de 44 px; cada nombre sigue siendo el nombre accesible y aparece junto al icono al pasar el puntero o con foco de teclado. El ancho elegido se guarda en el navegador como única preferencia de este marco; no se guardan secuencias ni proyectos.
-- Por debajo de 64rem, la barra lateral es un panel modal con el mismo contenido; Escape cierra primero Preferencias o el menú de cuenta y después el panel; el velo y cada destino también lo cierran, y el foco vuelve al botón.
+- Barra lateral fija con desplazamiento propio: cabecera (marca y contraer/expandir), grupos Investigar (Analizar, Comparar, Biblioteca), Diseñar (Diseñar secuencias, Laboratorio 3D) y Organizar (Proyectos, solo con sesión; el grupo no aparece vacío). Al pie: Guía y métodos y la cuenta.
+- Con sesión, la fila de la cuenta (avatar, «Cuenta» y correo) es un enlace normal a Cuenta y preferencias: no abre ningún menú y en esa página aparece marcada como actual. Tema, idioma, el sitio público y Cerrar sesión están allí. Sin sesión: Guía y métodos, la fila ES / EN + luna/sol, la nota de que el trabajo dura la visita, Iniciar sesión y Crear cuenta.
+- Modo compacto: solo iconos de 44 px; cada nombre sigue siendo el nombre accesible y aparece junto al icono al pasar el puntero o con foco de teclado. Sin sesión, idioma y tema se apilan: un único botón con el otro idioma (EN o ES) y la luna o el sol debajo. El ancho elegido se guarda en el navegador como única preferencia de este marco; no se guardan secuencias ni proyectos.
+- Por debajo de 64rem, la barra lateral es un panel modal con el mismo contenido; dentro no se abre nada más, así que Escape lo cierra directamente; el velo y cada destino también lo cierran, y el foco vuelve al botón.
 - No hay franja de ubicación: cada herramienta abre con su título, propósito y acciones. Comparar y Laboratorio 3D muestran el nombre de la herramienta sobre el título del sujeto.
 - Pie discreto con Privacidad y Condiciones.
 
@@ -45,7 +48,7 @@ Dos composiciones con la misma marca, fuentes y química. Los borradores, la ses
 - Laboratorio: selector de variantes siempre antes de Estructura, Comparación y Archivos y procedencia. El borrador conserva protección/deshacer y retira la predicción incompatible. Abrir y guardar archivo y guardar en Proyectos están en su cabecera.
 - Biblioteca: catálogo y UniProt como vistas, con ficha seleccionada explícita. Proyectos: filas con acciones, longitud/procedencia y detalles científicos desplegables. Parámetros de comparación y reproducibilidad del generador se abren a demanda.
 - Guía y métodos: propiedades, perfil y propensiones, comparación, diseño, estructuras y tipos de evidencia, con los métodos y criterios ya usados por cada herramienta y un enlace de vuelta a ella.
-- Cuenta y preferencias: identidad, contraseña, apariencia, idioma, privacidad y enlace a Proyectos.
+- Cuenta y preferencias: cabecera con avatar, título y correo y, a la derecha, «Sitio de ProteinForge» (enlace con globo) y Cerrar sesión; en teléfonos el enlace va encima y el botón ocupa todo el ancho. Después, Proyectos (con «Ver mis proyectos» alineado a la izquierda), identidad y contraseña, apariencia (Sistema, Claro, Oscuro), idioma y privacidad.
 
 ## Color y tipografía
 
