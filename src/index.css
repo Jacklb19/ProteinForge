@@ -423,10 +423,12 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .profile-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md) var(--space-lg); padding-block: var(--space-lg); border-block-end: var(--border-width) solid var(--border-subtle); }
 .profile-head-text { display: grid; min-width: var(--space-none); margin-inline-end: auto; }
 .profile-head-text p { color: var(--text-secondary); overflow-wrap: anywhere; }
+.profile-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-md); }
 .profile-row { display: grid; gap: var(--space-sm) var(--space-lg); padding-block: var(--space-lg); border-block-end: var(--border-width) solid var(--border-subtle); }
 .profile-row:last-child { border-block-end: none; }
 .profile-row > h2 { font-size: var(--font-size-lead); }
 .profile-row-body { display: grid; gap: var(--space-xs); min-width: var(--space-none); }
+.profile-row-body > .inline-link { justify-self: start; }
 .setting-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2xs) var(--space-md); min-height: var(--size-control); padding-block: var(--space-xs); border-block-end: var(--border-width) solid var(--border-subtle); }
 .setting-row:last-child { border-block-end: none; }
 .setting-row p { color: var(--text-secondary); font-size: var(--font-size-small); }
@@ -599,6 +601,7 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
   .composition-list, .generator-inputs, .generator-targets, .candidate-columns { grid-template-columns: minmax(0, 1fr); }
   .rail-properties .property-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-md); }
   .rail-properties :is(.property, .property-pending) dd { font-size: var(--font-size-stat-compact); }
+  .profile-head-actions { flex-direction: column; align-items: flex-start; width: var(--width-full); }
   .profile-head .button { width: var(--width-full); }
   .site-footer-inner { padding-block: var(--space-md); }
   .site-footer-inner nav { margin-inline-start: var(--space-none); width: var(--width-full); }

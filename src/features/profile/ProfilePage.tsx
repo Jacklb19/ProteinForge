@@ -4,6 +4,7 @@ import { useTranslation } from '../../i18n';
 import { LOCALES } from '../../i18n/config';
 import { usePreferences } from '../../preferences/usePreferences';
 import { LOCALE_LABEL_KEYS, THEMES, THEME_LABEL_KEYS } from '../../preferences/config';
+import { Icon } from '../../shared/Icon';
 import { ROUTES } from '../../shared/navigation';
 import { SegmentedControl } from '../../shared/SegmentedControl';
 import { useAuth } from '../auth/authContext';
@@ -11,7 +12,7 @@ import { SUPPORT_EMAIL_URL } from '../legal/config';
 
 type PasswordState = 'idle' | 'sending' | 'sent' | 'error';
 
-/** Account, appearance, language and data preferences; the project collection has its own screen. */
+/** Account, appearance, language and data preferences, the way back to the public site and signing out; the project collection has its own screen. */
 export function ProfilePage(): React.JSX.Element {
   const { t } = useTranslation();
   const { chosenLocale, theme, setLocale, setTheme } = usePreferences();
@@ -35,7 +36,10 @@ export function ProfilePage(): React.JSX.Element {
           <h1>{t('account.title')}</h1>
           <p>{email}</p>
         </div>
-        <button className="button button-secondary" type="button" onClick={() => { void auth.signOut(); }}>{t('settings.signOut')}</button>
+        <div className="profile-head-actions">
+          <Link className="inline-link" to={ROUTES.home}><Icon name="globe" /><span>{t('shell.publicSite')}</span></Link>
+          <button className="button button-secondary" type="button" onClick={() => { void auth.signOut(); }}>{t('settings.signOut')}</button>
+        </div>
       </header>
       <nav className="profile-index" aria-label={t('workbench.account')}>
         <a href="#account-title">{t('settings.account')}</a><a href="#appearance-title">{t('account.appearance')}</a><a href="#privacy-title">{t('account.privacy')}</a>
