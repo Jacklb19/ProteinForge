@@ -6,7 +6,7 @@ import { BrandMark } from '../shared/BrandMark';
 import { Icon } from '../shared/Icon';
 import { RouteBoundary } from '../shared/RouteBoundary';
 import { AFTER_SIGN_IN_ROUTE, BAR_VEIL_SCROLL_PX, FOOTER_LINKS, PUBLIC_SECTIONS, ROUTES } from '../shared/navigation';
-import { PreferencesFields, PreferencesMenu } from './Preferences';
+import { PreferenceControls } from './Preferences';
 import { Sheet } from './Sheet';
 
 export const MENU_ID = 'site-menu';
@@ -60,7 +60,7 @@ export function PublicFrame(): React.JSX.Element {
           <Link to={ROUTES.home} className="brand" aria-label={t('shell.home')}><BrandMark /><span>{t('app.name')}</span></Link>
           <nav className="site-nav" aria-label={t('public.sections')}><SectionLinks /></nav>
           <div className="site-bar-end">
-            <div className="only-wide"><PreferencesMenu placement="below" /></div>
+            <div className="only-wide"><PreferenceControls className="bar-prefs" /></div>
             <div className="site-bar-session"><SessionActions wide={false} /></div>
             <button ref={toggle} className="button button-icon only-narrow" type="button" aria-label={t('shell.openMenu')}
               aria-expanded={menuOpen} aria-controls={MENU_ID} onClick={() => { setMenuOpen(true); }}>
@@ -74,7 +74,7 @@ export function PublicFrame(): React.JSX.Element {
             <button className="button button-icon" type="button" aria-label={t('shell.closeMenu')} onClick={closeMenu} data-autofocus><Icon name="close" /></button>
           </div>
           <nav aria-label={t('public.sections')}><SectionLinks onNavigate={closeMenu} /></nav>
-          <section className="menu-sheet-preferences" aria-label={t('workbench.preferences')}><PreferencesFields /></section>
+          <PreferenceControls className="sheet-prefs" />
           <div className="menu-sheet-end"><SessionActions wide onNavigate={closeMenu} /></div>
         </Sheet>}
       </header>

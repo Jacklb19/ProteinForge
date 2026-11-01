@@ -3,6 +3,7 @@ import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { loadEnv } from 'vite';
 import { spanish } from '../src/i18n/es';
+import { english } from '../src/i18n/en';
 import { DEFAULT_LOCALE } from '../src/i18n/config';
 import { translate } from '../src/i18n/translate';
 import type { TranslationKey, TranslationVariables } from '../src/i18n/translate';
@@ -33,7 +34,7 @@ export function message(key: TranslationKey, variables?: TranslationVariables): 
 
 /** Catalog text as a pattern in which every variable matches a formatted number. */
 export function messagePattern(key: TranslationKey): RegExp {
-  const escaped = spanish[key].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = escapeText(spanish[key]);
   return new RegExp(escaped.replace(/\\\{\\\{\w+\\\}\\\}/g, '[\\d.,]+'));
 }
 
@@ -88,41 +89,56 @@ export async function routeLoaded(page: Page): Promise<void> {
   await expect(page.locator('#app-content').getByRole('heading', { level: 1 }).first()).toBeVisible();
 }
 
-/**
- * Opens the Preferences disclosure that is visible in the given scope and returns it. The public bar,
- * the laboratory sidebar and the laboratory phone menu each hold one; the public phone menu shows the
- * choices directly.
- */
-export async function openPreferences(scope: Page | Locator): Promise<Locator> {
-  const preferences = scope.locator('details.preferences-menu').filter({ visible: true }).first();
-  if (!await preferences.evaluate((element) => (element as HTMLDetailsElement).open)) await preferences.locator('summary').click();
-  await expect(preferences.locator('.preferences-popover')).toBeVisible();
-  return preferences;
+/** Text as a literal inside a regular expression. */
+function escapeText(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** The theme button in a scope, whichever theme it leads to; its name says where it leads. */
+export function themeButton(scope: Page | Locator, text: Record<'shell.themeToDark' | 'shell.themeToLight', string> = spanish): Locator {
+  const names = [text['shell.themeToDark'], text['shell.themeToLight']].map(escapeText).join('|');
+  return scope.getByRole('button', { name: new RegExp(`^(${names})$`) });
+}
+
+/** A button of the visible ES / EN group in a scope; the group is named in the language shown. */
+export function languageButton(scope: Page | Locator, name: string): Locator {
+  const groups = [spanish['shell.languageLabel'], english['shell.languageLabel']].map(escapeText).join('|');
+  return scope.getByRole('group', { name: new RegExp(`^(${groups})$`) }).filter({ visible: true }).getByRole('button', { name, exact: true });
 }
 
 /**
- * Chooses a theme through account settings, the phone menu or Preferences.
+ * Chooses a theme as a visitor would: the Apariencia radios on the profile, otherwise the theme button
+ * of the public bar, the sidebar without a session or the phone menu. That button only flips between
+ * light and dark, so the system choice is made on the profile.
  */
 export async function chooseTheme(page: Page, theme: keyof typeof themeLabels): Promise<void> {
   await routeLoaded(page);
   const radio = page.getByRole('radio', { name: themeLabels[theme], exact: true });
   if (await radio.isVisible()) {
     await radio.check();
-  } else if (await page.getByRole('button', { name: spanish['shell.openMenu'] }).isVisible()) {
-    const menu = await openSiteMenu(page);
-    const direct = menu.getByRole('radio', { name: themeLabels[theme], exact: true });
-    if (!await direct.isVisible()) await openPreferences(menu);
-    await direct.check();
-    await page.keyboard.press('Escape');
-    if (await menu.isVisible()) await page.keyboard.press('Escape');
-    await expect(menu).toBeHidden();
   } else {
-    const preferences = await openPreferences(page);
-    await preferences.getByRole('radio', { name: themeLabels[theme], exact: true }).check();
-    await page.keyboard.press('Escape');
+    if (theme === 'system') throw new Error('The system theme is chosen on the profile, which needs a session.');
+    let menu: Locator | null = null;
+    let toggle = themeButton(page).filter({ visible: true }).first();
+    if (!await toggle.isVisible() && await page.getByRole('button', { name: spanish['shell.openMenu'] }).isVisible()) {
+      menu = await openSiteMenu(page);
+      toggle = themeButton(menu).first();
+    }
+    if (!await toggle.isVisible()) throw new Error('No theme button here: with a session the theme is chosen on the profile.');
+    // From the system choice the first press may lead to the theme already shown; the second makes it explicit.
+    let presses = 0;
+    while (presses < 2 && await page.locator('html').getAttribute('data-theme') !== theme) { await toggle.click(); presses += 1; }
+    // The button stays where it was and keeps the focus while its name and icon change.
+    if (presses > 0) await expect(toggle).toBeFocused();
+    if (menu) {
+      await page.keyboard.press('Escape');
+      await expect(menu).toBeHidden();
+    }
   }
   if (theme === 'system') await expect(page.locator('html')).not.toHaveAttribute('data-theme');
   else await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  // Colours are measured at rest, not halfway through their transition to the new theme.
+  await settle(page);
 }
 
 /** Title of Alinear while it holds the two bundled insulins; the second name is written mid-sentence. */

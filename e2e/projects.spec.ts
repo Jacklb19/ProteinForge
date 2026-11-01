@@ -141,8 +141,7 @@ test('the profile links to the project collection, which renames and deletes del
   const data = await mockProjects(page, { ...saved, name: 'Estudio inicial' });
   await page.goto(ROUTES.analyze);
   const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
-  await sidebar.getByRole('button', { name: new RegExp(TEST_ACCOUNT.email) }).click();
-  await sidebar.getByRole('link', { name: spanish['workbench.account'], exact: true }).click();
+  await sidebar.getByRole('link', { name: new RegExp(TEST_ACCOUNT.email) }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
   await expect(page.locator('.project-grid')).toHaveCount(0);
   await page.getByRole('link', { name: spanish['projects.listLink'] }).click();

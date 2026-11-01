@@ -1,15 +1,15 @@
 /* Two frames, one product: the public site with a top bar, and the laboratory with a grouped sidebar. */
 
-/* Preferences: one disclosure with appearance and language ------------------ */
-.preferences-menu { position: relative; }
-.preferences-menu > summary { list-style: none; cursor: pointer; }
-.preferences-menu > summary::-webkit-details-marker { display: none; }
-.preferences-popover { position: absolute; z-index: var(--layer-overlay); display: grid; gap: var(--space-md); width: var(--width-workspace-preferences); max-width: calc(100vw - var(--space-xl)); padding: var(--space-lg); background: var(--bg-raised); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); box-shadow: var(--shadow-floating); }
-.preferences-below .preferences-popover { inset-block-start: calc(var(--width-full) + var(--space-xs)); inset-inline-end: var(--space-none); }
-.preferences-above .preferences-popover { inset-block-end: calc(var(--width-full) + var(--space-xs)); inset-inline-start: var(--space-none); }
-.preferences-title { font-weight: var(--font-weight-strong); }
-.preferences-fields { display: grid; gap: var(--space-md); }
-.preferences-below > summary { display: inline-flex; align-items: center; gap: var(--space-xs); min-height: var(--size-touch); padding-inline: var(--space-sm); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-control); background: var(--bg-raised); font-size: var(--font-size-small); }
+/* Language and theme: short controls in the public bar, its phone menu and the foot of the sidebar without a session. */
+.text-switch { display: inline-flex; align-items: center; gap: var(--space-3xs); }
+.text-switch button { display: inline-flex; align-items: center; justify-content: center; min-width: var(--size-touch); min-height: var(--size-touch); padding-inline: var(--space-2xs); border: none; border-radius: var(--radius-control); background: var(--transparent); color: var(--text-secondary); font: inherit; font-size: var(--font-size-small); cursor: pointer; transition: background-color var(--duration-feedback) var(--ease-feedback), color var(--duration-feedback) var(--ease-feedback); }
+.text-switch button:hover { background: var(--bg-subtle); color: var(--text-primary); }
+.text-switch button[aria-pressed='true'] { color: var(--text-primary); font-weight: var(--font-weight-strong); text-decoration: underline; text-underline-offset: var(--decoration-offset); }
+.bar-prefs { display: flex; align-items: center; gap: var(--space-3xs); padding-inline-end: var(--space-xs); margin-inline-end: var(--space-2xs); border-inline-end: var(--border-width) solid var(--border-subtle); }
+.sheet-prefs { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); padding-block: var(--space-2xs); border-block-end: var(--border-width) solid var(--border-subtle); }
+.sidebar-prefs { display: flex; align-items: center; justify-content: space-between; padding-inline: var(--space-2xs); }
+:is(.bar-prefs, .sheet-prefs, .sidebar-prefs) .button-icon { color: var(--text-secondary); }
+:is(.bar-prefs, .sheet-prefs, .sidebar-prefs) .button-icon:hover { color: var(--text-primary); }
 
 /* Public frame ------------------------------------------------------------- */
 .public-frame .site-bar-inner { max-width: var(--width-public); gap: var(--space-lg); }
@@ -18,7 +18,6 @@
 .public-frame .site-bar-end { margin-inline-start: var(--space-none); }
 .site-bar-session { display: flex; align-items: center; gap: var(--space-xs); }
 .public-sheet nav a { font-size: var(--font-size-lead); }
-.menu-sheet-preferences { padding-block: var(--space-xs); border-block-end: var(--border-width) solid var(--border-subtle); }
 
 .public-page { display: grid; width: var(--width-full); max-width: var(--width-public); margin-inline: auto; padding-inline: var(--space-xl); overflow-x: clip; }
 .public-hero { display: grid; gap: var(--space-xl); align-items: center; padding-block: var(--space-2xl) var(--space-xl); }
@@ -117,14 +116,16 @@
 .sidebar-link[aria-current='page'] { background: var(--bg-selected); color: var(--text-primary); font-weight: var(--font-weight-strong); }
 .sidebar-label { min-width: var(--space-none); overflow-wrap: anywhere; }
 .sidebar-foot { display: grid; gap: var(--space-2xs); padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
-.sidebar-foot .preferences-menu > summary { display: flex; }
 .sidebar-guest { display: grid; gap: var(--space-xs); padding-block-start: var(--space-xs); margin-block-start: var(--space-2xs); border-block-start: var(--border-width) solid var(--border-subtle); }
 .sidebar-guest p { padding-inline: var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-note); }
 .account-area { position: relative; padding-block-start: var(--space-xs); margin-block-start: var(--space-2xs); border-block-start: var(--border-width) solid var(--border-subtle); }
-.account-trigger .avatar { width: var(--size-avatar); height: var(--size-avatar); }
+.account-area .account-link { color: var(--text-primary); }
+.account-link .avatar { width: var(--size-avatar); height: var(--size-avatar); }
 .account-copy { display: grid; gap: var(--space-hairline); color: var(--text-primary); }
+.account-copy strong { font-weight: var(--font-weight-strong); }
 .account-copy small { color: var(--text-secondary); font-size: var(--font-size-caption); overflow-wrap: anywhere; }
-.account-menu { position: absolute; inset-inline: var(--space-none); inset-block-end: calc(var(--width-full) + var(--space-2xs)); z-index: var(--layer-overlay); display: grid; gap: var(--space-2xs); padding: var(--space-2xs); background: var(--bg-raised); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); box-shadow: var(--shadow-floating); }
+/* In the compact rail the name and the address share one tooltip line, kept apart. */
+.account-link .sidebar-label.is-tooltip { display: flex; gap: var(--space-2xs); }
 
 /* Compact rail: icons keep their names for assistive technology and show them on hover or focus. */
 .workspace[data-compact='true'] .sidebar-head { flex-direction: column; padding-inline: var(--space-none); }
@@ -133,7 +134,7 @@
 .workspace[data-compact='true'] .sidebar-group + .sidebar-group { padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
 .workspace[data-compact='true'] .sidebar-nav { gap: var(--space-sm); }
 .workspace[data-compact='true'] .sidebar-link { justify-content: center; padding-inline: var(--space-none); }
-.workspace[data-compact='true'] .preferences-above .preferences-popover, .workspace[data-compact='true'] .account-menu { inset-block-end: var(--space-none); inset-inline: calc(var(--width-full) + var(--space-xs)) auto; width: var(--width-workspace-preferences); }
+.workspace[data-compact='true'] .sidebar-prefs { flex-direction: column; align-items: stretch; gap: var(--space-2xs); padding-inline: var(--space-none); }
 .sidebar-label.is-tooltip { position: fixed; inset-inline-start: calc(var(--width-workspace-sidebar-compact) + var(--space-xs)); inset-block-start: var(--tooltip-y, 50%); z-index: var(--layer-overlay); padding: var(--space-2xs) var(--space-xs); border-radius: var(--radius-cell); background: var(--text-primary); color: var(--bg-canvas); font-size: var(--font-size-note); font-weight: var(--font-weight-regular); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(-50%); clip-path: inset(50%); }
 .sidebar-link:hover > .sidebar-label.is-tooltip, .sidebar-link:focus-visible > .sidebar-label.is-tooltip { opacity: 1; clip-path: none; }
 

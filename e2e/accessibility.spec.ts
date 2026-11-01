@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { identityEnabled, settle, signInWithEmptyAccount } from './helpers';
+import { identityEnabled, settle, signInWithEmptyAccount, TEST_ACCOUNT, themeButton } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
 import { PREFERENCES_STORAGE_KEY } from '../src/preferences/config';
 import { spanish } from '../src/i18n/es';
@@ -72,7 +72,7 @@ async function walk(page: Page, region: Locator, stops: number): Promise<{ name:
 for (const width of [360, WIDE]) {
   for (const locale of ['es', 'en'] as const) {
     for (const theme of ['light', 'dark'] as const) {
-      test(`frames, menus, preferences and guide pass AA at ${String(width)}px in ${locale}, ${theme}`, async ({ page }) => {
+      test(`frames, menus, language and theme controls and guide pass AA at ${String(width)}px in ${locale}, ${theme}`, async ({ page }) => {
         const text = CATALOGS[locale];
         await page.setViewportSize({ width, height: 900 });
         await prefer(page, locale, theme);
@@ -81,14 +81,17 @@ for (const width of [360, WIDE]) {
         await revealSections(page);
         await audit(page, 'public site');
         if (width === WIDE) {
-          const preferences = page.locator('.site-bar details.preferences-menu');
-          await preferences.locator('summary').click();
-          await audit(page, 'public preferences');
-          await page.keyboard.press('Escape');
-          await expect(preferences).not.toHaveAttribute('open');
+          const bar = page.locator('.site-bar');
+          await expect(bar.getByRole('group', { name: text['shell.languageLabel'] }).getByRole('button', { name: text[locale === 'es' ? 'settings.spanish' : 'settings.english'], exact: true })).toHaveAttribute('aria-pressed', 'true');
+          await expect(themeButton(bar, text)).toHaveAccessibleName(text[theme === 'light' ? 'shell.themeToDark' : 'shell.themeToLight']);
+          await themeButton(bar, text).focus();
+          await audit(page, 'public bar controls');
         } else {
           await page.getByRole('button', { name: text['shell.openMenu'] }).click();
-          await expect(page.getByRole('dialog', { name: text['shell.menu'] })).toBeVisible();
+          const menu = page.getByRole('dialog', { name: text['shell.menu'] });
+          await expect(menu).toBeVisible();
+          await expect(menu.getByRole('group', { name: text['shell.languageLabel'] })).toBeVisible();
+          await expect(themeButton(menu, text)).toBeVisible();
           await audit(page, 'public menu');
           await page.keyboard.press('Escape');
         }
@@ -99,12 +102,14 @@ for (const width of [360, WIDE]) {
           const sidebar = page.getByRole('complementary', { name: text['shell.sidebar'] });
           await audit(page, 'sidebar expanded');
           for (const state of ['expanded', 'compact']) {
-            const preferences = sidebar.locator('details.preferences-menu');
-            await preferences.locator('summary').click();
-            await expect(preferences.locator('.preferences-popover')).toBeVisible();
-            await audit(page, `sidebar ${state} with preferences`);
-            await page.keyboard.press('Escape');
-            await expect(preferences).not.toHaveAttribute('open');
+            // Expanded: the ES / EN group; compact: one button for the other language. The theme button stays in both.
+            const other = text[locale === 'es' ? 'settings.english' : 'settings.spanish'];
+            if (state === 'expanded') await expect(sidebar.getByRole('group', { name: text['shell.languageLabel'] })).toBeVisible();
+            else await expect(sidebar.getByRole('button', { name: other, exact: true })).toHaveAttribute('lang', locale === 'es' ? 'en' : 'es');
+            const toggle = themeButton(sidebar, text);
+            await expect(toggle).toBeVisible();
+            await toggle.focus();
+            await audit(page, `sidebar ${state} with language and theme`);
             if (state === 'expanded') {
               await sidebar.getByRole('button', { name: text['shell.collapseSidebar'] }).click();
               await expect(page.locator('.workspace')).toHaveAttribute('data-compact', 'true');
@@ -116,10 +121,10 @@ for (const width of [360, WIDE]) {
           await page.getByRole('button', { name: text['shell.openMenu'] }).click();
           const menu = page.getByRole('dialog', { name: text['shell.menu'] });
           await expect(menu).toBeVisible();
+          await expect(menu.getByRole('group', { name: text['shell.languageLabel'] })).toBeVisible();
+          await expect(themeButton(menu, text)).toBeVisible();
           await audit(page, 'laboratory menu');
-          await menu.locator('details.preferences-menu summary').click();
-          await audit(page, 'laboratory menu with preferences');
-          await page.keyboard.press('Escape');
+          // Nothing pops up inside the menu: a single Escape closes it.
           await page.keyboard.press('Escape');
           await expect(menu).toBeHidden();
         }
@@ -134,7 +139,7 @@ for (const width of [360, WIDE]) {
 
 for (const width of [360, WIDE]) {
   for (const locale of ['es', 'en'] as const) {
-    test(`the account menu is named, contained and passes AA at ${String(width)}px in ${locale}, both themes`, async ({ page }) => {
+    test(`the account link is named, marks the profile as current and passes AA at ${String(width)}px in ${locale}, both themes`, async ({ page }) => {
       test.skip(!identityEnabled, 'Needs identity settings on the server under test.');
       const text = CATALOGS[locale];
       await page.setViewportSize({ width, height: 900 });
@@ -144,15 +149,23 @@ for (const width of [360, WIDE]) {
         await page.goto(ROUTES.analyze);
         await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
         const scope = width === WIDE ? page.getByRole('complementary', { name: text['shell.sidebar'] }) : page.getByRole('dialog', { name: text['shell.menu'] });
-        if (width !== WIDE) await page.getByRole('button', { name: text['shell.openMenu'] }).click();
-        const trigger = scope.getByRole('button', { name: new RegExp(text['settings.account']) });
-        await trigger.click();
-        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-        await expect(scope.getByRole('link', { name: text['workbench.account'] })).toBeVisible();
-        await audit(page, `account menu ${theme}`);
-        await page.keyboard.press('Escape');
-        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-        await expect(trigger).toBeFocused();
+        const openScope = async (): Promise<void> => { if (width !== WIDE) await page.getByRole('button', { name: text['shell.openMenu'] }).click(); };
+        await openScope();
+        const account = scope.getByRole('link', { name: new RegExp(`^${text['settings.account']}.*${TEST_ACCOUNT.email}$`) });
+        await expect(account).toHaveAttribute('href', ROUTES.profile);
+        await expect(account).not.toHaveAttribute('aria-expanded');
+        await account.focus();
+        await audit(page, `account link ${theme}`);
+        await account.click();
+        await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
+        await expect(page.getByRole('heading', { level: 1 })).toHaveText(text['account.title']);
+        await openScope();
+        await expect(account).toHaveAttribute('aria-current', 'page');
+        await audit(page, `profile with its account link ${theme}`);
+        if (width !== WIDE) {
+          await page.keyboard.press('Escape');
+          await expect(scope).toBeHidden();
+        }
       }
     });
   }
