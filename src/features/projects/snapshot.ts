@@ -21,7 +21,10 @@ import type { GeneratorHistorySnapshot } from '../generator/history';
 
 /** Lowest version that holds the content, never below the stored one: the server refuses downgrades. */
 export function workspaceVersion(content: Pick<WorkspaceSnapshot, 'laboratory' | 'generatorHistory'>, stored?: WorkspaceSnapshot['schemaVersion']): WorkspaceSnapshot['schemaVersion'] {
-  const required = content.generatorHistory ? 3 : content.laboratory ? 2 : 1;
+  if(stored===4)return 4;
+  let predicted=false;
+  try { const doc:unknown=JSON.parse(content.laboratory?.documentJson??'null');predicted=typeof doc==='object' && doc!==null && 'schemaVersion' in doc && doc.schemaVersion===2; } catch { /* Shape validation follows in the lazy contract. */ }
+  const required = predicted ? 4 : content.generatorHistory ? 3 : content.laboratory ? 2 : 1;
   return Math.max(required, stored ?? 1) as WorkspaceSnapshot['schemaVersion'];
 }
 

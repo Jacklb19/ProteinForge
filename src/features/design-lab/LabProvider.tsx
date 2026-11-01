@@ -7,6 +7,7 @@ import type { LabErrorCode } from './config';
 import type { LabDataset, LabDraft, LabProgress, LabRequest, LabResponse, LabSavedState } from './types';
 import { draftFingerprint, initialDrafts, replaceResidue, restoreSequence, toggleProtection, undoDraft } from './state';
 import { downloadLabFile } from './download';
+import type { StructurePredictions, ValidatedPrediction } from './prediction';
 type LabOrigin = 'example' | 'file' | 'project';
 function originOf(request: LabRequest): LabOrigin | null {
     if (request.type === 'example') return 'example';
@@ -19,7 +20,12 @@ export function LabProvider({ children }: {
 }): React.JSX.Element {
     const [dataset, setDataset] = useState<LabDataset | null>(null), [drafts, setDrafts] = useState<Record<string, LabDraft>>({});
     const [activeId, setActiveId] = useState(''), [selected, setSelected] = useState(0);
+    const [predictions,setPredictions]=useState<StructurePredictions|null>(null);
+    const currentPredictions=useRef(predictions);
+    useLayoutEffect(()=>{currentPredictions.current=predictions;},[predictions]);
     const [status, setStatus] = useState<LabState['status']>('idle'), [error, setError] = useState<LabErrorCode | null>(null), [progress, setProgress] = useState<LabProgress | null>(null);
+    const statusRef=useRef(status);
+    useLayoutEffect(()=>{statusRef.current=status;},[status]);
     const [dirty, setDirty] = useState(false), [exported, setExported] = useState(false);
     // Where the loaded dataset and the in-flight load come from; a user file or project is never replaceable.
     const [origin, setOrigin] = useState<LabOrigin | null>(null), [loadingOrigin, setLoadingOrigin] = useState<LabOrigin | null>(null);
@@ -65,7 +71,7 @@ export function LabProvider({ children }: {
                     try {
                         if(download){
                             downloadLabFile(response.bytes, C.workspaceFilename, 'application/json');
-                            savedFingerprint.current=draftFingerprint(request.state.drafts);
+                            savedFingerprint.current=draftFingerprint(request.state.drafts,request.predictions);
                             setDirty(false);
                             setExported(true);
                         }
@@ -81,8 +87,11 @@ export function LabProvider({ children }: {
                     archive.current = result.archive;
                     setDataset(result.dataset);
                     const nextDrafts=initialDrafts(result.dataset, result.saved);
-                    savedFingerprint.current=draftFingerprint(nextDrafts);
+                    const nextPredictions=result.predictions??null;
+                    setPredictions(nextPredictions); currentPredictions.current=nextPredictions;
+                    savedFingerprint.current=draftFingerprint(nextDrafts,nextPredictions);
                     setDrafts(nextDrafts);
+                    currentDrafts.current=nextDrafts;
                     setActiveId(result.saved?.activeId ?? required(result.dataset.variants[0]).id);
                     setSelected(result.saved?.selected ?? 0);
                     setDirty(false);
@@ -131,8 +140,14 @@ export function LabProvider({ children }: {
         if (current === next)
             return;
         const nextDrafts={ ...drafts, [activeId]: next };
+        let nextPredictions=currentPredictions.current;
+        if(next.sequence!==current.sequence && nextPredictions && activeId in nextPredictions){
+            nextPredictions=Object.fromEntries(Object.entries(nextPredictions).filter(([id])=>id!==activeId));
+            setPredictions(nextPredictions); currentPredictions.current=nextPredictions;
+        }
         setDrafts(nextDrafts);
-        setDirty(draftFingerprint(nextDrafts)!==savedFingerprint.current);
+        currentDrafts.current=nextDrafts;
+        setDirty(draftFingerprint(nextDrafts,nextPredictions)!==savedFingerprint.current);
         setExported(false);
     }, [drafts, activeId, status]);
     const substitute = useCallback((aa: string) => { change(draft => replaceResidue(draft, selected, aa)); }, [change, selected]);
@@ -144,19 +159,25 @@ export function LabProvider({ children }: {
         if (!dataset || status === 'loading' || status === 'exporting')
             return;
         const state: LabSavedState = { activeId, selected, drafts: Object.fromEntries(Object.entries(drafts).map(([id, draft]) => [id, { sequence: draft.sequence, protectedPositions: draft.protectedPositions }])) };
-        void launch({ id: begin(true), type: 'export', archive: archive.current, state });
+        void launch({ id: begin(true), type: 'export', archive: archive.current, state, predictions:currentPredictions.current });
     }, [dataset, status, activeId, selected, drafts, launch, begin]);
     const document = useCallback(async () => {
         if(!dataset || status==='loading' || status==='exporting')return null;
         const state:LabSavedState={activeId,selected,drafts:Object.fromEntries(Object.entries(drafts).map(([id,draft])=>[id,{sequence:draft.sequence,protectedPositions:draft.protectedPositions}]))};
-        return (await launch({id:begin(true),type:'export',archive:archive.current,state},false))?.bytes ?? null;
+        return (await launch({id:begin(true),type:'export',archive:archive.current,state,predictions:currentPredictions.current},false))?.bytes ?? null;
     },[dataset,status,activeId,selected,drafts,launch,begin]);
     const openDocument=useCallback(async(bytes:ArrayBuffer,sha256:string)=>{
-        if(bytes.byteLength>1_000_000)return null;
+        if(bytes.byteLength>C.maximumProjectBytes)return null;
         return (await launch({id:begin(),type:'import',bytes,expectedSha256:sha256}))?.revision ?? null;
     },[begin,launch]);
-    const markSaved=useCallback((fingerprint:string)=>{savedFingerprint.current=fingerprint;setDirty(draftFingerprint(currentDrafts.current)!==fingerprint);},[]);
+    const markSaved=useCallback((fingerprint:string)=>{savedFingerprint.current=fingerprint;setDirty(draftFingerprint(currentDrafts.current,currentPredictions.current)!==fingerprint);},[]);
+    const storePrediction=useCallback((variantId:string,expectedRevision:number,result:ValidatedPrediction)=>{
+        if(expectedRevision!==revisionRef.current || statusRef.current==='loading' || statusRef.current==='exporting' || currentDrafts.current[variantId]?.sequence!==result.prediction.sequence)return false;
+        const next={...currentPredictions.current,[variantId]:result.prediction};
+        setPredictions(next);currentPredictions.current=next;
+        setDirty(draftFingerprint(currentDrafts.current,next)!==savedFingerprint.current);setExported(false);return true;
+    },[]);
     const replaceable = !dirty && status !== 'exporting' && (status === 'loading' ? loadingOrigin === 'example' : origin === null || origin === 'example');
-    const value = useMemo(() => ({ dataset, drafts, activeId, selected, status, error, progress, dirty, exported, replaceable, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save, revision,document,openDocument,markSaved }), [dataset, drafts, activeId, selected, status, error, progress, dirty, exported, replaceable, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save,revision,document,openDocument,markSaved]);
+    const value = useMemo(() => ({ dataset, drafts, activeId, selected, status, error, progress, dirty, exported, replaceable, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save, revision,document,openDocument,markSaved,predictions,storePrediction }), [dataset, drafts, activeId, selected, status, error, progress, dirty, exported, replaceable, openExample, openFile, cancel, selectVariant, selectResidue, substitute, protect, undo, restore, save,revision,document,openDocument,markSaved,predictions,storePrediction]);
     return <LabContext.Provider value={value}>{children}</LabContext.Provider>;
 }

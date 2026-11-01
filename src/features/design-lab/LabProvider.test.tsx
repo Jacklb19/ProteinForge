@@ -7,6 +7,13 @@ import {loadExample} from './validate';
 import {downloadLabFile} from './download';
 import {LAB_CONFIG as C,required} from './config';
 import type {LabImportResult,LabRequest,LabResponse} from './types';
+import { Blob } from 'node:buffer';
+import { DecompressionStream } from 'node:stream/web';
+import { caseArchive, caseFiles } from '../../test/design-lab-fixtures';
+import { predictionFixture } from '../../test/predictionFixture';
+import { importArchive } from './validate';
+import { validatePrediction } from './prediction';
+import type { ValidatedPrediction } from './prediction';
 
 vi.mock('./download',()=>({downloadLabFile:vi.fn()}));
 class FakeWorker {
@@ -67,4 +74,23 @@ it('changes the import revision only on validated success and settles cancelled 
  ready();expect(state().revision).toBe(1);click('cloud open');click('cancel');await expect(cloudOpen).resolves.toBeNull();expect(state().revision).toBe(1);
  click('cloud open');act(()=>{latest().reply({type:'error',code:'hash'});});await expect(cloudOpen).resolves.toBeNull();expect(state().revision).toBe(1);
  click('cloud open');act(()=>{latest().reply({type:'result',result:example});});await expect(cloudOpen).resolves.toBe(2);expect(state().revision).toBe(2);
+});
+
+function PredictionHarness({candidate}:{candidate:ValidatedPrediction}):React.JSX.Element{
+ const lab=useLab();return <><output data-testid="predictions">{JSON.stringify({count:Object.keys(lab.predictions??{}).length,format:lab.predictions!==null,dirty:lab.dirty})}</output>
+ <button onClick={lab.openExample}>open</button><button onClick={()=>{lab.storePrediction(lab.activeId,lab.revision,candidate);}}>accept</button><button onClick={()=>{lab.storePrediction(lab.activeId,lab.revision-1,candidate);}}>obsolete</button>
+ <button onClick={()=>{lab.substitute('R');}}>change sequence</button><button onClick={lab.protect}>protection</button><button onClick={lab.save}>export</button><button onClick={lab.cancel}>stop</button></>;
+}
+it('marks predictions dirty, keeps them for protection changes, drops them on editing and rejects stale/busy arrivals',async()=>{
+ vi.stubGlobal('Blob',Blob);vi.stubGlobal('DecompressionStream',DecompressionStream);
+ const imported=await importArchive((await caseArchive(await caseFiles())).buffer),candidate=await validatePrediction(await predictionFixture(),'AAA');
+ render(<LabProvider><PredictionHarness candidate={candidate}/></LabProvider>);click('open');act(()=>{latest().reply({type:'result',result:imported});});
+ click('obsolete');expect(screen.getByTestId('predictions')).toHaveTextContent('"count":0');
+ click('accept');expect(screen.getByTestId('predictions')).toHaveTextContent('"count":1');expect(screen.getByTestId('predictions')).toHaveTextContent('"dirty":true');
+ click('protection');expect(screen.getByTestId('predictions')).toHaveTextContent('"count":1');click('protection');click('change sequence');
+ expect(screen.getByTestId('predictions')).toHaveTextContent('"count":0');expect(screen.getByTestId('predictions')).toHaveTextContent('"format":true');
+ click('accept');expect(screen.getByTestId('predictions')).toHaveTextContent('"count":0');
+ click('open');act(()=>{latest().reply({type:'result',result:imported});});click('export');click('accept');
+ expect(screen.getByTestId('predictions')).toHaveTextContent('"count":0');click('stop');click('accept');
+ expect(screen.getByTestId('predictions')).toHaveTextContent('"count":1');click('export');expect(latest().requests[0]).toMatchObject({type:'export',predictions:{[imported.dataset.variants[0]?.id??'']:candidate.prediction}});
 });

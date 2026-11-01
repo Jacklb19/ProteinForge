@@ -220,14 +220,14 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       const done = await run(async (service, signal) => {
       const openingRevision = inputRevision.current;
       const openingLab = labCurrent.current;
-      const openingDrafts = openingLab ? draftFingerprint(openingLab.drafts) : null;
+      const openingDrafts = openingLab ? draftFingerprint(openingLab.drafts,openingLab.predictions) : null;
       const project = await service.open(id, token, signal);
       if (signal.aborted) return;
       if(destination==='laboratory'){
         const snapshot=project.workspace.laboratory;
         if(!snapshot || !lab)throw new ApiError('validation');
         const latestLab = labCurrent.current;
-        const untouched = latestLab?.revision === openingLab?.revision && draftFingerprint(latestLab?.drafts ?? {}) === openingDrafts
+        const untouched = latestLab?.revision === openingLab?.revision && draftFingerprint(latestLab?.drafts ?? {},latestLab?.predictions) === openingDrafts
           && latestLab?.status !== 'loading' && latestLab?.status !== 'exporting';
         // The built-in example loading in the background is not user work; an import or an edit is.
         if (!latestLab || !(untouched || latestLab.replaceable)) throw new ApiError('draft-changed');
@@ -257,7 +257,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     }); },
     saveLaboratory(name:string,copy=false){return run(async(service,signal)=>{
       if(!lab?.dataset)throw new ApiError('validation');
-      const fingerprint=draftFingerprint(lab.drafts), revision=lab.revision;
+      const fingerprint=draftFingerprint(lab.drafts,lab.predictions), revision=lab.revision;
       const bytes=await lab.document(); signal.throwIfAborted();
       if(!bytes)throw new ApiError('validation');
       if(bytes.byteLength>1_000_000)throw new ApiError('laboratory-size');

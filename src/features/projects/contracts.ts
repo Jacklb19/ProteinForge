@@ -19,13 +19,17 @@ export const alignmentResultSchema = z.object({
 }).refine((value) => value.alignedFirst.length === value.columns && value.alignedSecond.length === value.columns && value.marks.length === value.columns && value.identities <= value.similarities && value.similarities <= value.columns);
 export const workspaceSchema = z.object({
   // 1: analysis and comparison; 2: requires a laboratory; 3: laboratory and generator history optional.
-  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]), profileWindow: z.union(HYDROPATHY_WINDOWS.map((value) => z.literal(value))),
+  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]), profileWindow: z.union(HYDROPATHY_WINDOWS.map((value) => z.literal(value))),
   laboratory: z.object({ schemaVersion: z.literal(1), documentJson: z.string().max(1_000_000), documentSha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict().nullish(),
   generatorHistory: generatorHistorySnapshotSchema.nullish(),
   source: sequenceSourceSchema.nullable().optional(),
   descriptors: z.object({ sequence, excluded: z.number().int().nonnegative(), methodVersion: z.literal(DESCRIPTOR_METHOD_VERSION), result: descriptorResultSchema }).nullable(),
   alignment: z.object({ first: sequence.max(MAX_ALIGNMENT_RESIDUES), second: sequence.max(MAX_ALIGNMENT_RESIDUES), matrix: z.enum(MATRIX_NAMES), mode: z.enum(ALIGNMENT_MODES), result: alignmentResultSchema.nullable() }),
-}).refine(value => value.schemaVersion === 3 || ((value.schemaVersion === 2) === Boolean(value.laboratory) && !value.generatorHistory));
+}).refine(value => {
+  let predicted:boolean;
+  try { const doc:unknown=JSON.parse(value.laboratory?.documentJson??'null');predicted=typeof doc==='object' && doc!==null && 'schemaVersion' in doc && doc.schemaVersion===2; } catch { return false; }
+  return (value.schemaVersion===4)===predicted && (value.schemaVersion>=3 || ((value.schemaVersion===2)===Boolean(value.laboratory) && !value.generatorHistory));
+});
 const previewPrefix = z.string().max(PROJECT_PREVIEW_RESIDUES).regex(/^[ACDEFGHIKLMNPQRSTVWYUOBZX]*$/);
 const alignmentMetricsSchema = z.object({ identities: z.number().int().nonnegative(), similarities: z.number().int().nonnegative(), columns: z.number().int().positive().max(MAX_ALIGNMENT_RESIDUES * 2) }).refine(value => value.identities <= value.similarities && value.similarities <= value.columns);
 export const projectPreviewSchema = z.object({

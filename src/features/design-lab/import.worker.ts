@@ -11,7 +11,7 @@ self.onmessage = (event: MessageEvent<LabRequest>): void => {
   void (async () => {
     if (request.type === 'import' && request.expectedSha256 && await sha256(new Uint8Array(request.bytes)) !== request.expectedSha256) throw new LabError('hash');
     if (request.type === 'export') {
-      const bytes = await exportWorkspace(request.archive,request.state); send({id:request.id,type:'export',bytes},[bytes.buffer]); return;
+      const bytes = await exportWorkspace(request.archive,request.state,request.predictions); send({id:request.id,type:'export',bytes},[bytes.buffer]); return;
     }
     const result = request.type === 'example' ? await loadExample() : await importLab(request.bytes,progress => { send({id:request.id,type:'progress',progress}); });
     send({id:request.id,type:'result',result},result.archive ? [result.archive] : []);

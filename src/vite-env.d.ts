@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_BUILD?: string;
   /** `enabled` offers saving generator searches in Projects; needs a backend with workspace version 3. */
   readonly VITE_GENERATOR_HISTORY?: string;
+  /** Explicit opt-in to the authenticated folding service; needs workspace v4 support. */
+  readonly VITE_STRUCTURE_PREDICTION?: string;
 }
 
 interface ImportMeta {
