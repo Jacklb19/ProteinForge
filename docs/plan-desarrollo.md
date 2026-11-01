@@ -1,5 +1,18 @@
 # Estado y siguiente trabajo
 
+## Activación local del 1 nov 2026
+
+[Comprobada con sesión real](readiness-2026-11-01.md): predicción de 76 residuos, descarga/portable idénticos y SIFTS 90/110. Supabase remoto carece de la migración nueva; consulta de metadatos sin cambios de datos. Tres lecturas del asistente rechazadas, calidad de prosa sin certificar. Pin backend preparado, sin publicar. [Acciones concretas del propietario](owner-next-steps-2026-11-01.md). Las entradas siguientes son históricas y el relevo vigente las sustituye.
+
+
+## Entrega local del 30 oct 2026
+
+[Predicción desde el laboratorio implementada y revisada localmente](prediction-delivery-2026-10-30.md), con consentimiento, API REST/RPC autenticada, Worker, visor/descarga original y guardado/reapertura laboratorio v2/workspace v4. Maquetas y plan revisados antes del código bajo delegación del propietario. Desactivada por defecto en ambos repositorios; migración nueva solo en PostgreSQL temporal local. No crea GPU propia ni ejecuta ProteinMPNN; el servicio público puede rechazar solicitudes. Sin publicación: backend primero y posterior repin/regeneración frontend, porque el pin remoto actual no contiene el contrato nuevo. La sección siguiente describe la revisión inicial anterior a esta implementación; el relevo y el informe vigente tienen las cifras finales.
+
+## Continuación de la sesión 29–30 oct 2026
+
+[Revisión y pruebas reales](session-review-2026-10-30.md): tres PDB del endpoint público de ESM Atlas validados contra sus secuencias exactas, sin integración todavía; solicitud xGPU del propietario pendiente y Gradio/Docker no disponibles gratuitamente en su cuenta HF actual. El historial ya ofrece el aviso de guardado en producción, pero falta guardar con sesión. Backend local corrige signos y Decimal en el asistente con tres regresiones; 116 pruebas correctas y 17 SQL correctas aparte en PostgreSQL temporal (133 únicas). El recuento anterior de 130 incluía 17 omitidas. Ensayo de rendimiento de 30 pares sin mejora demostrada; no se cambia frontend ni se acredita RNF-03. Sin publicación. Las entradas fechadas inferiores conservan sus estados anteriores; manda el relevo vigente.
+
 ## Estado del 29 oct 2026
 
 Publicado y verde: frontend `main` `09989b0`, backend `main` `18d9444`. El frontend se publicó el 29 de octubre con el merge `65a0b74`, que llevó a `main` la pasada de rendimiento, el subconjunto de IBM Plex Mono y la pestaña «Dominios»; esa primera publicación falló en CI por un defecto de idioma y el arreglo `869ce2d` se publicó enseguida como `09989b0`. Comprobado desde coordinación: CI de GitHub Actions en verde en los dos flujos para `dev` `869ce2d` y para `main` `09989b0`, y producción sirviendo el arreglo —elegir inglés, recargar y seguir en inglés—, que es lo que `869ce2d` corrige. El panel de Vercel no se pudo mirar porque la cuenta conectada a las herramientas de coordinación es de otro proyecto, igual que con Supabase; la comprobación es de comportamiento, no de panel.

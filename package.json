@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:prediction": "node scripts/start-prediction-local.mjs",
     "build": "tsc -b && vite build",
     "build:wasm": "node scripts/build-wasm.mjs",
     "build:wasm:linux": "node scripts/build-wasm-linux.mjs",
