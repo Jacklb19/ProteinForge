@@ -2,7 +2,15 @@
 
 Actualizado al cierre de la **sesión del 1 de noviembre de 2026**, America/Bogota. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes. Las versiones anteriores de este relevo están en [archive/relevo-2026-10-28.md](archive/relevo-2026-10-28.md) y [archive/relevo-2026-10-27.md](archive/relevo-2026-10-27.md); describen su momento y no son instrucciones vigentes.
 
-## Publicación autorizada — 1 nov 2026
+## Producción comprobada — 1 nov 2026
+
+**Predicción, guardado en la nube y reapertura desde producción correctos con sesión real del propietario.** [Informe de publicación, CI y evidencia](release-2026-11-01.md). Backend main `1401432`, frontend main `0ffaf4d`; Vercel informó ambos despliegues correctos. El bundle público y la pestaña usada cargaron el hash completo del merge frontend. Se creó el proyecto «Prueba de predicción 2026-11-01», se recargó Proyectos y se reabrió su laboratorio desde el servidor. El portable reexportado conserva todos los datos del original, incluido el PDB exacto de 76 residuos y 49.452 bytes. No se extrajo JWT ni se sobrescribieron proyectos existentes; la prueba se dejó en la cuenta.
+
+La migración y variables ya las confirmó el propietario y los push/merge ya se ejecutaron con autor/committer exclusivos Jacklb19: no volver a pedirlos para esta entrega. La pestaña Predicción y la solicitud real observadas acreditan activación efectiva; el SQL exacto permanece como declaración del propietario sin nueva inspección de metadatos. El navegador integrado conservaba la PWA antigua tras recargar; cerrar y reabrir solo la pestaña pública cargó la nueva versión conservando la sesión. Si ocurre a otro visitante, comprobar el bundle antes de atribuir ausencia de la función a las variables.
+
+El informe enlazado y las últimas entradas de PROGRESS conservan los resultados remotos finales y los pendientes reales. Los apartados siguientes describen la secuencia anterior de preparación y publicación; su mención de predicción/guardado públicos pendientes quedó superada por esta comprobación.
+
+## Autorización y secuencia de publicación — 1 nov 2026
 
 El propietario confirmó aplicada la migración nueva `20261030000000_structure_predictions.sql` y configuradas las dos banderas en Vercel, y autorizó push/merge de ambos repositorios exclusivamente a su nombre. No pedir repetir estos pasos: son declaraciones recibidas del propietario, a distinguir de las comprobaciones que ejecutemos. Esta autorización corresponde a esta entrega y no cubre futuras publicaciones o cambios remotos.
 
