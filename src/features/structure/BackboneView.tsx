@@ -7,7 +7,7 @@ import { INSULIN_BACKBONE, layoutBackbone, oneLetter, pickAnchor } from './backb
 import type { BackboneModel, BackboneScene, SceneSegment } from './backbone';
 import {
   BRIDGE_WIDTH_FACTOR, DEPTH_FOG, DEPTH_WIDTH_BASE, DEPTH_WIDTH_GAIN, DRAG_RADIANS_PER_PIXEL, DRAG_THRESHOLD_PX, HYDROPATHY_EXTREME,
-  IDLE_RADIANS_PER_SECOND, INITIAL_PITCH, INITIAL_YAW, KEY_STEP_RADIANS, LABEL_FONT_SIZE, LABEL_OPACITY, LABEL_PADDING,
+  IDLE_FRAME_TOLERANCE_MS, IDLE_FRAMES_PER_SECOND, IDLE_RADIANS_PER_SECOND, INITIAL_PITCH, INITIAL_YAW, KEY_STEP_RADIANS, LABEL_FONT_SIZE, LABEL_OPACITY, LABEL_PADDING,
   OUTLINE_EXTRA_WIDTH, OUTLINE_MIX, PICK_RADIUS_FACTOR, PITCH_LIMIT, REDUCED_MOTION_QUERY, SELECTION_LINE_WIDTH, SELECTION_RADIUS_FACTOR,
   SHEEN_MIX, SHEEN_OFFSET_X, SHEEN_OFFSET_Y, SHEEN_WIDTH_FACTOR, SULFUR_WIDTH_FACTOR,
 } from './config';
@@ -227,14 +227,16 @@ export function BackboneView({ label, describedBy, colorMode, selected = null, s
   useEffect(() => {
     const container = frame.current;
     if (!idleTurn || !container || typeof window.matchMedia !== 'function' || window.matchMedia(REDUCED_MOTION_QUERY).matches) return;
+    const interval = 1000 / IDLE_FRAMES_PER_SECOND - IDLE_FRAME_TOLERANCE_MS;
     let handle = 0;
     let previous: number | null = null;
+    let lastDrawn = -Infinity;
     let visible = true;
     const step = (time: number): void => {
       if (touched.current) return;
       if (visible && !document.hidden && previous !== null) {
         view.current.yaw += ((time - previous) / 1000) * IDLE_RADIANS_PER_SECOND;
-        draw();
+        if (time - lastDrawn >= interval) { lastDrawn = time; draw(); }
       }
       previous = time;
       handle = window.requestAnimationFrame(step);
