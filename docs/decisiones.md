@@ -1,5 +1,11 @@
 # Decisiones vigentes
 
+**Activación, 1 nov:** [sesión real y consulta de metadatos verificadas](readiness-2026-11-01.md). El pin ya fija el contrato local 77a753c y genera siete archivos idénticos; falta subir backend antes de que CI pueda obtenerlo. Migración remota nueva ausente, sin aplicación automática. No cambia la reserva del propietario sobre publicación, configuración o datos. [Pasos preparados](owner-next-steps-2026-11-01.md).
+
+**Entrega local posterior, 30 oct:** el propietario delegó coordinación y revisión durante esta entrega. Implementados [predicción del borrador y guardado v4](prediction-delivery-2026-10-30.md), con [maquetas/plan revisados antes del código](prediction-ui-proposal-2026-10-30.md). ESM Atlas como servicio público compartido y sin credenciales del proveedor, consentimiento por solicitud, métricas ausentes explícitas, límites conservadores y banderas desactivadas. Sin GPU propia, diseño ProteinMPNN remoto o de novo. SQL solo local y ninguna publicación. El pin remoto de protobuf necesita actualizarse después de publicar backend con autorización. Esta decisión supera el aplazamiento de integración de la revisión inicial siguiente; no supera límites de datos, costes ni operaciones remotas.
+
+**Continuación 29–30 oct:** la evaluación de inferencia gratuita se reabrió a petición del propietario. [Tres respuestas del servidor público de ESM Atlas validadas](session-review-2026-10-30.md), sin integración aprobada ni metadatos inventados. La vía manual de Colab sigue disponible mientras se define un contrato compatible con el PDB y sus métricas ausentes. xGPU pendiente de admisión; HF actual sin Gradio gratuito. Las decisiones anteriores sobre publicación, nuevas pantallas y forma de novo siguen vigentes. El ensayo nuevo de rendimiento no justificó otro cambio de producto. El historial ya muestra el control sin sesión en producción; el guardado real sigue pendiente.
+
 La [definición](definicion-proyecto.md) es la fuente de requisitos. Esta tabla explica las decisiones actuales; los documentos de `archive/` son historia. Previsto no significa implementado.
 
 | Decisión | Estado y consecuencia |
