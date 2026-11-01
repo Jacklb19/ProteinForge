@@ -616,6 +616,9 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .lab-section-links button { min-height: var(--size-touch); padding: var(--space-xs) var(--space-none); border: none; border-block-end: var(--border-width-indicator) solid var(--transparent); font: inherit; color: var(--text-primary); background: var(--transparent); cursor: pointer; }
 .lab-section-links button:first-child { border-block-end-color: var(--text-primary); font-weight: var(--font-weight-strong); }
 .lab-workbench { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, var(--width-lab-inspector)); gap: var(--space-xl); align-items: start; }
+.prediction-section { display: grid; gap: var(--space-md); padding-block: var(--space-lg); }
+.prediction-section > .checkbox-option { display: flex; align-items: center; gap: var(--space-sm); min-height: var(--size-touch); cursor: pointer; }
+.prediction-sequence { font-family: var(--font-sequence); overflow-wrap: anywhere; padding: var(--space-md); background: var(--bg-subtle); }
 .lab-viewer { min-width: 0; overflow: hidden; background: var(--bg-subtle); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-control); scroll-margin-block-start: var(--height-bar); }
 .lab-viewer-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); padding: var(--space-md); border-block-end: var(--border-width) solid var(--border-subtle); }
 .lab-viewer-heading h2 { font: var(--font-weight-strong) var(--font-size-small)/var(--line-height-base) var(--font-ui); }

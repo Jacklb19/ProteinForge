@@ -1,22 +1,69 @@
 # Relevo de desarrollo — ProteinForge
 
-Actualizado el **29 de octubre de 2026**. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes. Las versiones anteriores de este relevo están en [archive/relevo-2026-10-28.md](archive/relevo-2026-10-28.md) y [archive/relevo-2026-10-27.md](archive/relevo-2026-10-27.md); describen su momento y no son instrucciones vigentes.
+Actualizado al cierre de la **sesión del 1 de noviembre de 2026**, America/Bogota. Leer este documento completo, los AGENTS de raíz/frontend/backend y las últimas entradas de ambos PROGRESS. La raíz no tiene Git; frontend y backend son repositorios independientes. Las versiones anteriores de este relevo están en [archive/relevo-2026-10-28.md](archive/relevo-2026-10-28.md) y [archive/relevo-2026-10-27.md](archive/relevo-2026-10-27.md); describen su momento y no son instrucciones vigentes.
+
+## Publicación autorizada — 1 nov 2026
+
+El propietario confirmó aplicada la migración nueva `20261030000000_structure_predictions.sql` y configuradas las dos banderas en Vercel, y autorizó push/merge de ambos repositorios exclusivamente a su nombre. No pedir repetir estos pasos: son declaraciones recibidas del propietario, a distinguir de las comprobaciones que ejecutemos. Esta autorización corresponde a esta entrega y no cubre futuras publicaciones o cambios remotos.
+
+Backend `dev` **89b9ed3**, merge `main` **14014324a7c3db9eda551e12fd9c3e502fb77788**, subidos. CI correcto en ambas ramas con Python 3.14: 146 descubiertas, 127 ejecutadas correctas y 19 SQL omitidas; lint/generación protobuf correctos. Vercel informa despliegue correcto asociado a ese merge. El frontend conserva el pin **77a753c2f8673b964e1943a8845767c9dce67635**, contenido en el backend publicado; la regeneración aislada desde GitHub produjo **7 archivos, 0 diferentes**.
+
+Se publica ahora el frontend desde dev a main, comprobando sus dos flujos de CI y el hash incorporado en el bundle público. No confundir el CI local del 30 oct con estas ejecuciones remotas. Los hashes finales y resultados observados al cerrar se registran en las últimas entradas de ambos PROGRESS locales; consultar también GitHub Actions para el commit exacto. Se conserva pendiente la comprobación de predicción/guardado con sesión desde producción, además de cuotas/tokens de SIFTS, segunda cuenta, prosa aceptada, decisiones TOTP/giro y RNF-03. La sesión real probada abajo fue local.
+
+## Comprobaciones locales anteriores a la publicación — 1 nov 2026
+
+**Predicción real con la sesión del propietario: correcta en local. Sin publicar.** [Informe con casos y límites](readiness-2026-11-01.md), [guía exacta para el propietario](owner-next-steps-2026-11-01.md). `npm run dev:prediction` inicia frontend 5330/API 5331 y comprueba Auth del mismo proyecto, sin cambiar `.env`; quedó ejecutándose para revisión. Rechaza puertos ocupados sin detener otros procesos. El propietario inició sesión personalmente; no se extrajo ni guardó su JWT.
+
+Variante pública 1: 76 residuos, PDB de **49.452 bytes**, validado por backend y descargado; el portable v2 contiene exactamente el mismo PDB. La repetición inmediata mostró el límite y conservó el resultado. No acredita tres cuentas ni guardado remoto. SIFTS autenticado por la API local mostró P01308:90 (G) → A/autor A:1/interna 1 y 110 (N) → A/autor A:21/interna 21; faltan cuota completa y JWT auténtico manipulado/caducado. API sin token y con token constante inválido: 401. Las tres lecturas reales del asistente (variantes 1–3) fueron rechazadas por `assistant-unverified-figure`: no hubo prosa visible que certificar, ni se inspeccionó el texto descartado para distinguir error real de falso positivo. No debilitar el verificador.
+
+**Supabase remoto inspeccionado solo con SELECT de metadatos**, en el navegador del propietario y proyecto `ycskfgimxrnhozmmqnze`, coincidente con Auth local. `backend/supabase/checks/prediction-readiness.sql`: **false / false / false / false / true**, en orden validador de predicción, laboratorio v2, guardia workspace v4, cuatro funciones invoker y RLS de projects/analyses. Falta la migración nueva; el cuarto false ya se explica por la función ausente, sin concluir que las existentes sean SECURITY DEFINER. RLS activado no acredita aislamiento entre cuentas. No se ejecutó DDL ni se modificaron filas/configuración; SQL Editor guardó automáticamente un borrador privado de la consulta.
+
+Commits **locales**, sin push: frontend código `5364848`, backend asistente `46ed857`, predicción/contrato `77a753c` y consulta `9f2aeec`. Autor y committer exclusivos Jacklb19. El pin de `buf.gen.yaml` ya es **77a753c2f8673b964e1943a8845767c9dce67635**, aún no remoto. Generación aislada del contrato local: **7 archivos, 0 diferentes**. Publicar backend antes de que CI intente descargar ese commit. Los commits posteriores de herramientas/documentación no cambian ese contrato.
+
+Comprobaciones nuevas: sintaxis de ambos scripts, lint, inicio real/health 200, rechazo seguro de segundo inicio, navegador anónimo exige sesión, predicción/descargas/SIFTS reales y SELECT remoto. Consulta local PostgreSQL 18: cinco true; clúster nuevamente detenido. No se repitieron las baterías completas del 30 oct por cambios de herramientas/documentación y pin con generación idéntica; sus cifras permanecen abajo, fechadas. No se midió nuevo LCP.
+
+Lo siguiente: propietario aplica la **nueva** migración preparada y configura las dos banderas de Vercel, o autoriza específicamente esas operaciones; autorización expresa y fechada de publicación para ambos repositorios; después coordinación prueba predicción y guardado/reapertura desde producción con sesión. No pedir repetir migraciones antiguas ya declaradas. La guía contiene SQL canónico, copia transaccional y variables exactas. Aislamiento con segunda cuenta sigue a cargo del propietario. TOTP, giro, RNF-03 y diagnóstico de prosa siguen pendientes. No hay GPU propia concedida ni garantía del servicio público.
+
+**Las secciones siguientes conservan la historia del 29–30 oct.** Sus referencias a cambios sin commit, pin 18d9444 y ausencia de sesión real describen aquel cierre; el estado de este apartado las sustituye. `main` sigue en los últimos despliegues observados `00157a1` frontend / `18d9444` backend, sin reconsultarlos hoy.
+
+## Entrega local — cierre del 30 oct 2026
+
+**Predicción desde el laboratorio implementada localmente, sin publicar.** [Informe verificable](prediction-delivery-2026-10-30.md), [contrato](prediction-contract-2026-10-30.md) y [plan/maquetas revisados antes de la pantalla](prediction-ui-proposal-2026-10-30.md). El propietario delegó la coordinación y revisión de esta entrega mientras descansaba; no se atribuye aprobación personal de las capturas. El primer intento de crear chats separados fue rechazado por la revisión automática por límite de uso. Un intento posterior sí creó dos chats: revisión final de API/persistencia y revisión final del laboratorio, ambos de solo lectura y sin ocupar el carril de pruebas. La coordinación reprodujo y corrigió dos hallazgos P2 (prefijo ATOM omitido por el Worker y deadline RPC); ambos revisores confirmaron por lectura su cierre, y coordinación ejecutó las regresiones y baterías.
+
+La pestaña Predicción necesita cuenta, consentimiento por solicitud y `VITE_STRUCTURE_PREDICTION=enabled`; backend `FOLDING_ENABLED=enabled`. Ambas desactivadas por defecto. REST y RPC envían solo la secuencia canónica de 3–120 residuos a ESM Atlas, sin token del usuario; una activa y tres por minuto por proceso, una por identidad/minuto, sin reintentos ni caché privada. El servicio público no garantiza disponibilidad ni inferencia nueva frente a caché. Worker y backend validan secuencia/PDB/hashes; visor Cα y descarga original, sin inventar pTM/PAE/confianza/revisión. La predicción se guarda por separado del resultado Colab original y se retira al cambiar la secuencia.
+
+Persistencia local: laboratorio portable v2, envoltorio v1 y workspace v4; conserva fuente, borradores, protecciones, selección e historial. Migración nueva `backend/supabase/migrations/20261030000000_structure_predictions.sql` aplicada **solo en PostgreSQL temporal local**, sin tablas ni Storage nuevos y con guardia monótona/RLS. Para publicar después con autorización: migración revisada y backend primero; repinchar `buf.gen.yaml` al commit backend publicado, regenerar y comprobar CI; frontend después y activación explícita. **El pin remoto actual 18d9444 no contiene el contrato nuevo**: los stubs se generaron desde el hermano local y CI no podrá regenerarlos desde ese pin hasta actualizarlo tras publicar backend.
+
+Verificado: 8 combinaciones de navegador (1280/360 × claro/oscuro × es/en), Worker real, consentimiento, PDB original idéntico, guardado v4 y reapertura portable; 0 infracciones Axe en la pestaña, 0 errores de página. Identidad/proyectos simulados y PDB público grabado, sin inferencias nuevas. Backend: 146 descubiertas, 127 ejecutadas correctas + 19 SQL omitidas sin base; las 19 SQL pasaron aparte en PostgreSQL 18 temporal, `auth.uid()` emulado, clúster detenido. Python local 3.13.14, `buf lint` correcto; CI Python 3.14 sin reejecutar. Tipos/lint/build/PWA del frontend correctos. 715 unitarias en 100 archivos; cobertura final 87,84 / 79,04 / 83,78 / 91,62 %, con dos trabajadores y umbrales/plazos originales. E2E existente: 141 correctas y 2 omitidas por diseño, de 143, en 9,1 min, un trabajador y puerto 5190. Tras la regresión real de ATOM volvieron a pasar tipos/lint/cobertura/build/PWA. Los recuentos y límites están en el informe.
+
+Se conservan los dos arreglos del asistente (signo numérico y Decimal largo) y sus tres regresiones del frente anterior. El ensayo anterior de rendimiento, 30 pares/60 cargas y catálogo JSON.parse solo en artefactos, no mostró mejora: diferencia +3,225 ms, IC95 % [−15,170; +45,415], ruido 89,126 ms. No se adoptó. **No se midió LCP de esta entrega nueva; RNF-03 sigue sin acreditarse.** [Informe anterior](performance-continuation-2026-10-29.md).
+
+## Proveedores y producción observados — revisión inicial 29–30 oct
+
+[Investigación asiática](asian-gpu-hosting-2026-10-29.md) y [alternativas gratuitas](free-laboratory-hosting-2026-10-29.md). ModelScope: el propietario envió su solicitud y después se comprobó `Application in Approval...`; no hay GPU concedida. Hugging Face: su formulario ofrece Static gratis, Gradio/Docker deshabilitados como Paid; no se creó Space ni contrató nada. Son observaciones de esa revisión, no estados reconsultados al cierre.
+
+ESM Atlas respondió anteriormente sin credenciales a tres secuencias públicas distintas de 76 residuos: 601/592/605 átomos, backbone completo y secuencia exacta. Los tres PDB guardados pasan también el nuevo validador backend sin volver a enviarlos. No demuestra tres cuentas reales ni GPU propia. Evidencia ignorada en `artifacts/gpu-trial-2026-10-29/`; nuevo ensayo web en `artifacts/prediction-2026-10-30/`.
+
+Producción: control del historial visible sin sesión; backend health 200 y me/SIFTS 401 sin token en la revisión inicial. El propietario declaró activar `VITE_GENERATOR_HISTORY=enabled` el 29 oct, pero falta guardar realmente con sesión. Continúan pendientes SIFTS con JWT real/cuota/rechazo de token, aislamiento por ID con dos cuentas que revisa el propietario y prosa real del asistente. No se hizo commit, push, merge, despliegue ni modificación remota; los hashes siguientes siguen siendo HEAD con cambios locales pendientes en ambos repositorios.
 
 ## Estado publicado
 
 | Repositorio | `main` | `dev` |
 |---|---|---|
-| Frontend | `09989b0` | `4050ae1` |
+| Frontend | `00157a1` | `2cb6c8b` (referencia local observada; documentación de esta investigación sin commit) |
 | Backend | `18d9444` | `cbff97e` |
 
-El frontend se publicó el **29 de octubre**: el merge `65a0b74` llevó a `main` la pasada de rendimiento, el subconjunto de IBM Plex Mono y la pestaña «Dominios». Esa primera publicación **falló en CI** por un defecto de idioma; el arreglo `869ce2d` se publicó enseguida como `09989b0` y dejó ambas ramas en verde.
+El frontend se publicó **dos veces el 29 de octubre**, ambas con autorización expresa del propietario y autoría exclusiva suya.
 
-Comprobado el 29 de octubre desde coordinación, sin intermediarios:
+1. Por la mañana, `65a0b74` llevó a `main` la pasada de rendimiento, el subconjunto de IBM Plex Mono y la pestaña «Dominios». **Falló en CI** por un defecto de idioma; el arreglo `869ce2d` se publicó enseguida como `09989b0` y dejó ambas ramas en verde.
+2. Por la tarde, `00157a1` llevó a `main` el resto de la jornada: zod fuera del arranque, la capa de cliente del segundo factor, la corrección de repintado de `BackboneView` y el método de medición de LCP.
 
-- **CI de GitHub Actions en verde** en los dos flujos (integración continua y WebAssembly) para `dev` `869ce2d` y para `main` `09989b0`.
-- **Producción sirve el arreglo de idioma.** No se pudo mirar el panel de Vercel porque la cuenta conectada a las herramientas de coordinación pertenece a otro proyecto, igual que ocurre con Supabase. Se comprobó por comportamiento en <https://protein-forge.vercel.app/>: elegir inglés, recargar y seguir en inglés, que es exactamente lo que `869ce2d` arregla. Con la versión anterior habría vuelto a español.
+Comprobado desde coordinación tras la segunda publicación, sin intermediarios:
 
-Lo que hay en `dev` por encima de `main` **no está publicado** y necesita autorización expresa y fechada del propietario. El backend tiene un commit de documentación sin subir (`cbff97e`), también pendiente de autorización.
+- **CI de GitHub Actions en verde** en los dos flujos, integración continua y WebAssembly, para `dev` `747d065` y para `main` `00157a1`.
+- **Producción sirve exactamente `main`.** El panel de Vercel no se puede mirar desde coordinación, porque la cuenta conectada a sus herramientas pertenece a otro proyecto, igual que ocurre con Supabase. Pero el paquete publicado incorpora su propio commit a través de `VITE_APP_BUILD`, que `vite.config.ts` toma de `VERCEL_GIT_COMMIT_SHA`: el bundle servido en <https://protein-forge.vercel.app/> contiene `00157a11aceff946655200e42a63eed99179609e`, que es `main` carácter por carácter. Eso identifica el despliegue sin depender del panel. La portada carga sin errores de consola, con su lienzo y los 110 residuos.
+
+Lo que entre en `dev` a partir de aquí **no está publicado** y necesita autorización nueva, expresa y fechada: la del 29 de octubre quedó consumida. El backend sigue con un commit de documentación sin subir (`cbff97e`), también pendiente.
 
 El frontend fija el backend publicado `18d9444` en `buf.gen.yaml`; la regeneración fue idéntica. Si cambia el contrato, el orden sigue siendo **migración → backend → repin/regeneración → frontend**.
 
@@ -83,13 +130,13 @@ El merge `d5419eb` incorpora los siete commits `fde6360`…`d172464` de `paralle
 
 **Límites declarados:** nada se ha probado contra un proyecto Supabase real, no se sabe qué versión de Auth ejecuta el proyecto alojado ni si sus límites coinciden con los valores por defecto, y la imagen QR de la maqueta es ilustrativa.
 
-## Historial del generador: pendiente solo de activarlo
+## Historial del generador: activación visible, guardado pendiente
 
 Contrato, backend, cliente e interfaz están implementados y publicados en `main`; la interfaz permanece oculta salvo con `VITE_GENERATOR_HISTORY=enabled`. [Contrato](../../backend/docs/generator-history-contract-proposal.md), [interfaz aprobada](generator-history-ui-proposal-2026-10-27.md).
 
 1. **Migración:** el propietario declara que aplicó `20261027000000_generator_history.sql` en Supabase remoto el 28 de octubre. No se ha inspeccionado desde coordinación, porque la cuenta de Supabase conectada allí corresponde a otro proyecto. Queda como declaración suya, pendiente de comprobación; no volver a pedirla ni repetirla.
-2. **Activación:** falta añadir `VITE_GENERATOR_HISTORY=enabled` al entorno de producción del proyecto de Vercel **del frontend** y volver a desplegar **sin caché**. Es una variable de build de Vite: un redespliegue con caché previa no la aplica. Mientras no exista, producción no ofrece guardar búsquedas, que es el comportamiento deseado.
-3. Tras activarla, comprobar un guardado real con sesión del propietario y el recuento en Proyectos.
+2. **Activación:** el propietario declara haber activado `VITE_GENERATOR_HISTORY=enabled` el 29 oct. Comprobado después en esta continuación: `/generate` público completa una búsqueda y muestra el aviso «Guardar búsquedas en un proyecto requiere una cuenta», que pertenece al control activado. No se modificó configuración remota ni se pidió repetirla.
+3. Falta comprobar un guardado real con sesión del propietario y el recuento en Proyectos. La presencia del aviso sin sesión no prueba ese guardado ni la cadena Auth/PostgREST/RLS.
 
 ## Decisiones vigentes
 
@@ -97,13 +144,15 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 - **Rendimiento.** De las seis propuestas de [la auditoría](performance-2026-10-27.md) quedan adoptadas el subconjunto publicado de IBM Plex Mono y diferir zod, ya integradas. La separación de código por rutas se implementó y **se revirtió**, porque empeoró el LCP de Inicio y Analizar. Siguen descartadas por ahora el primer render en transición, `content-visibility` en las secciones públicas y el INP de campo. Candidatos siguientes ya cifrados y **sin tocar**: `BackboneView` (113 ms y 9.212 bytes, solo en Inicio), `formatNumber` (59 ms), el catálogo español (70.602 bytes) e `HydropathyProfile` (9.180 bytes, una pestaña y no la vista inicial de Analizar).
 - **Alcance de pruebas.** Solo las necesarias: tipos, lint, unitarias con cobertura, build, `check:pwa` en Chromium y la batería E2E completa en Chromium con un trabajador, más la matriz de accesibilidad existente a 360/1280 px en es/en y ambos temas. Safari en dispositivo real, lector de pantalla e INP de campo son **límites conocidos documentados**, no tareas pendientes. No añadir recorridos E2E nuevos salvo como regresión de un fallo real.
-- **Modelado.** El cuaderno manual de Colab sigue siendo la vía oficial y documentada. [Inferencia desde la app](app-inference-proposal.md) queda aplazada y solo se reabre si aparece un ejecutor gratuito cuyos términos permitan este uso. [Forma de novo](de-novo-proposal.md) queda fuera del alcance de la asignatura, porque depende del mismo ejecutor. Ninguna de las dos propuestas se borra.
+- **Modelado.** El cuaderno manual de Colab sigue publicado. La predicción del borrador mediante ESM Atlas se reabrió e implementó localmente el 30 oct; no está publicada y no ejecuta ProteinMPNN ni diseño de novo. [Forma de novo](de-novo-proposal.md) queda fuera del alcance de la asignatura, porque depende del mismo ejecutor. Ninguna de las dos propuestas se borra.
 - **Catálogo de dominios.** Pestaña «Dominios» de Biblioteca integrada y **publicada**. Catálogo de 48 piezas verificado contra sus fuentes (`b23110f`): las 48 rederivadas de las descargas guardadas sin discrepancias y ocho reconsultadas en UniProt; una prueba fija esas invariantes. El ensamblado se analiza, se descarga en FASTA o se guarda a través de Analizar, siempre como texto sin fuente, sin cambiar ningún contrato persistido.
 
 ## Orden de continuación
 
-1. **Pedir autorización para publicar `dev`.** El propietario aplazó la publicación el 29 de octubre para que saliera todo junto cuando entregaran los dos frentes. **Ya entregaron, están integrados y verificados**, así que la condición se cumplió: `dev` lleva zod fuera del arranque, la capa de cliente del segundo factor, la corrección de `BackboneView` y el método de medición. Publicar sigue necesitando su autorización expresa y fechada.
-2. Activar el historial del generador en producción según el apartado anterior, con el propietario.
+0. Revisar la [entrega local de predicción](prediction-delivery-2026-10-30.md) con el propietario. No confundir la comprobación con dobles/respuestas grabadas con tres cuentas reales. Si se autoriza publicar: backend/migración primero, repin y regeneración frontend, CI y activación explícita después. La autorización nocturna no se usó para modificar producción.
+
+1. **Publicado.** El propietario autorizó la publicación el 29 de octubre por la tarde, una vez integrados y verificados los dos frentes, y se ejecutó: `main` `00157a1`, con CI en verde y el despliegue identificado por su propio commit. Esa autorización queda consumida.
+2. Comprobar un guardado real del historial y su recuento con sesión del propietario; la activación ya está visible en producción.
 3. Llevar al propietario la [propuesta de pantallas del segundo factor](auth-totp-ui-proposal-2026-10-29.md) con sus cuatro decisiones. Sin su aprobación no se programa ninguna pantalla, y la capa de cliente ya integrada se queda sin usar, que es el comportamiento correcto.
 4. Decidir sobre el **giro en reposo de Inicio** (1,85 s de CPU de cada 4,5 s sin «reducir movimiento»): reducirlo cambiaría lo que se ve, así que es decisión del propietario. Y, si se quiere acreditar RNF-03 en Analizar, buscar los 60–80 ms donde de verdad están, con `scripts/measure-lcp.mjs` como método, no a ojo. Los dos frentes abiertos el 29 oct ya están integrados y verificados.
 5. Recorrido con Supabase local y dos cuentas reales para cerrar el aislamiento por ID y un guardado real del historial; el propietario indicó el 28 de octubre que revisa él esa parte.
@@ -113,11 +162,11 @@ Registradas en [decisiones](decisiones.md). Las que siguen condicionan el trabaj
 
 | Copia | Rama | Estado | Puertos |
 |---|---|---|---|
-| `worktree-perf-components` | `parallel/perf-components` | Entregada e **integrada en `dev`** el 29 oct (`4050ae1`), sin commits pendientes. Se puede retirar | 5340–5349, E2E 5345 |
-| `worktree-auth-totp` | `parallel/auth-totp` | Entregada e **integrada en `dev`** el 29 oct (`d5419eb`), sin commits pendientes. Se puede retirar cuando el propietario decida sobre la propuesta de pantallas | 5350–5359, E2E 5355 |
 | Coordinación | `frontend/dev`, `backend/dev` | Documentación general e integración | 5330–5339; E2E de verificación en 5190 |
 
-`worktree-domains` y `worktree-performance` se retiraron el 29 de octubre, después de comprobar que `parallel/domains`, `parallel/perf-routes` y `parallel/performance` eran antepasados de `dev` y no tenían commits pendientes; las tres ramas se borraron con `-d`. Sus evidencias están en `artifacts/worktree-evidence/`, ignorada, junto a las de `worktree-quality`, `worktree-sifts` y `worktree-auth`. Se conserva el stash antiguo «discarded: interface redesign v3». [Plan de desarrollo paralelo](../../parallel-development.md).
+**No queda ningún worktree abierto.** Los cuatro del 29 de octubre se retiraron el mismo día, siempre tras comprobar que su rama era antepasada de `dev` y no tenía commits pendientes, y borrando las ramas con `-d`, sin forzar: `worktree-domains` y `worktree-performance` por la mañana (`parallel/domains`, `parallel/perf-routes`, `parallel/performance`), y `worktree-perf-components` y `worktree-auth-totp` por la tarde, ya publicado su trabajo. Sus evidencias están en `artifacts/worktree-evidence/`, ignorada, junto a las de `worktree-quality`, `worktree-sifts` y `worktree-auth`. Se conserva el stash antiguo «discarded: interface redesign v3». [Plan de desarrollo paralelo](../../parallel-development.md).
+
+La raíz del espacio de trabajo queda con `frontend`, `backend` y nada más. Las dos carpetas de la tarde resistieron el borrado mientras sus sesiones seguían abiertas —Windows no elimina un directorio en uso— y se retiraron al archivarlas.
 
 **Una sola batería E2E a la vez en esta máquina.** Dos a la vez provocan fallos falsos. Los frentes tienen puertos propios, pero el carril se pide a coordinación antes de lanzar E2E o mediciones con navegador.
 
@@ -127,4 +176,4 @@ Trabajar en `dev`. Autor y committer exclusivamente Jacklb19 <jose.burbanob@camp
 
 Costo cero estricto, sin tarjeta ni modelos en Windows. Sin push, merge, despliegue, migraciones remotas, cambios de servicios o secretos y sin cuentas nuevas salvo autorización expresa y fechada del propietario. La autorización de publicación del 29 de octubre quedó consumida y no cubre lo que entre después en `dev`. No repetir migraciones ya aplicadas ni reabrir aprobaciones visuales existentes: «Mesa clara», la presentación pública separada del laboratorio, el historial del generador y la pestaña «Dominios» están aprobados e implementados.
 
-Interfaz nueva: se entregan maquetas y un plan por pantallas para que el propietario los apruebe antes de programar. Esa regla sigue en pie para cualquier pantalla que no esté ya aprobada.
+Interfaz nueva: se entregan maquetas y un plan por pantallas para que el propietario los apruebe antes de programar. Para la pestaña Predicción del 30 oct, el propietario delegó expresamente la revisión nocturna al coordinador: maquetas/plan revisados antes de código, sin atribuirle una revisión personal. La delegación se limita a esta entrega; no equivale a aprobar decisiones remotas o de seguridad de TOTP.

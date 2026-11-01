@@ -4,6 +4,7 @@ export const LAB_CONFIG = {
   schemaVersion: 1, exampleId: '1ubq-colab-20261021-v1',
   ubiquitinSequence: 'MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG',
   maximumArchiveBytes: 10_000_000, maximumWorkspaceBytes: 15_000_000,
+  maximumProjectBytes: 1_000_000,
   maximumDraftBytes: 65_536,
   maximumExpandedBytes: 24_000_000, maximumEntryBytes: 8_000_000,
   maximumEntries: 160, maximumPathLength: 180, maximumResidues: 120, maximumVariants: 3,

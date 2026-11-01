@@ -1,11 +1,13 @@
 import { LAB_CONFIG as C } from './config';
 import type { LabDataset, LabDraft, LabDraftSnapshot, LabSavedState } from './types';
+import type { StructurePredictions } from './prediction';
 
 export function initialDrafts(dataset: LabDataset, saved: LabSavedState | null): Record<string,LabDraft> {
   return Object.fromEntries(dataset.variants.map(variant => [variant.id,{ ...(saved?.drafts[variant.id] ?? {sequence:variant.sequence,protectedPositions:variant.constraints?.protectedPositions??[]}),history:[] }]));
 }
-export function draftFingerprint(drafts:Record<string,LabDraftSnapshot>):string {
-  return JSON.stringify(Object.keys(drafts).sort().map(id=>[id,drafts[id]?.sequence,[...(drafts[id]?.protectedPositions??[])].sort((a,b)=>a-b)]));
+export function draftFingerprint(drafts:Record<string,LabDraftSnapshot>, predictions?:StructurePredictions|null):string {
+  const draftKey=JSON.stringify(Object.keys(drafts).sort().map(id=>[id,drafts[id]?.sequence,[...(drafts[id]?.protectedPositions??[])].sort((a,b)=>a-b)]));
+  return predictions == null ? draftKey : JSON.stringify([draftKey,Object.keys(predictions).sort().map(id=>[id,predictions[id]?.pdbSha256,predictions[id]?.sequenceSha256,predictions[id]?.retrievedAt])]);
 }
 function commit(draft: LabDraft, next: LabDraftSnapshot): LabDraft {
   if (draft.sequence === next.sequence && draft.protectedPositions.join() === next.protectedPositions.join()) return draft;

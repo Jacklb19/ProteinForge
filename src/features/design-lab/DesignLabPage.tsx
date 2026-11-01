@@ -13,6 +13,8 @@ import { ReadingSection } from '../assistant/ReadingSection';
 import { laboratoryFacts } from '../assistant/facts';
 import { LabProjectControls } from './LabProjectControls';
 import { ViewTabs } from '../../shared/ViewTabs';
+import { predictionEnabled } from './predictionConfig';
+import { PredictionSection } from './PredictionSection';
 
 function ReplaceDialog({ onClose, onConfirm, returnFocus }: {
   onClose: () => void;
@@ -46,7 +48,8 @@ export function DesignLabPage(): React.JSX.Element {
   const file = useRef<HTMLInputElement>(null), undo = useRef<HTMLButtonElement>(null), openButton = useRef<HTMLButtonElement>(null);
   const [pending, setPending] = useState<{ value: File | 'example'; returnFocus: HTMLElement | null } | null>(null);
   const [replacement, setReplacement] = useState('A');
-  const [view, setView] = useState<'structure' | 'comparison' | 'files'>('structure');
+  const [view, setView] = useState<'structure' | 'comparison' | 'files' | 'prediction'>('structure');
+  const predictionsEnabled=predictionEnabled();
   const { openExample } = lab;
   useEffect(() => { if (lab.dataset === null && lab.status === 'idle') openExample(); }, [lab.dataset, lab.status, openExample]);
 
@@ -126,6 +129,7 @@ export function DesignLabPage(): React.JSX.Element {
         </nav>
         <ViewTabs id="laboratory" label={t('workbench.labViews')} value={view} onChange={setView} options={[
           { value: 'structure', label: t('workbench.structure') }, { value: 'comparison', label: t('lab.comparisonTab') }, { value: 'files', label: t('lab.provenanceTab') },
+          ...(predictionsEnabled ? [{value:'prediction' as const,label:t('prediction.tab')}] : []),
         ]} />
 
         <div id="laboratory-structure-panel" role="tabpanel" aria-labelledby="laboratory-structure-tab" hidden={view !== 'structure'}>
@@ -172,12 +176,16 @@ export function DesignLabPage(): React.JSX.Element {
         </section>
         </div>
 
+        {predictionsEnabled && <div id="laboratory-prediction-panel" role="tabpanel" aria-labelledby="laboratory-prediction-tab" hidden={view!=='prediction'}>
+          {view==='prediction' && <PredictionSection/>}
+        </div>}
+
         {/* Reads the active variant; an edited draft is read as a draft, without its past figures. */}
-        <ReadingSection
+        {view!=='prediction' && <ReadingSection
           subject="laboratory"
           revision={`${String(lab.revision)}:${variant.id}:${draft.sequence}:${draft.protectedPositions.join(',')}`}
           build={() => laboratoryFacts({ t, formatNumber }, variant, draft, dataset.reference.id)}
-        />
+        />}
       </>}
 
       {!dataset && <button type="button" className="button button-secondary" disabled={busy} onClick={lab.openExample}>{t('lab.openExample')}</button>}

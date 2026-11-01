@@ -22,12 +22,13 @@ export interface LabSavedState {
 }
 export interface LabImportResult {
   dataset: LabDataset; archive: ArrayBuffer | null; saved: LabSavedState | null;
+  predictions?: import('./prediction').StructurePredictions;
 }
 export interface LabProgress { completed: number; total: number }
 export type LabRequest =
   | { id: number; type: 'example' }
   | { id: number; type: 'import'; bytes: ArrayBuffer; expectedSha256?: string }
-  | { id: number; type: 'export'; archive: ArrayBuffer | null; state: LabSavedState };
+  | { id: number; type: 'export'; archive: ArrayBuffer | null; state: LabSavedState; predictions?: import('./prediction').StructurePredictions | null };
 export type LabResponse =
   | { id: number; type: 'progress'; progress: LabProgress }
   | { id: number; type: 'result'; result: LabImportResult }
