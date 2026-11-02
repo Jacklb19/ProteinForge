@@ -629,7 +629,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .lab-figure { position: relative; height: var(--height-lab-figure); }
 .lab-figure .backbone-view { inset: var(--space-none); }
 .lab-viewer-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-xs); padding: var(--space-none) var(--space-md); }
-.lab-viewer-actions .checkbox-option { min-height: var(--size-touch); }
+.lab-viewer-actions .checkbox-option { display: flex; align-items: center; gap: var(--space-sm); min-height: var(--size-touch); }
+.prediction-section .lab-workbench { margin-block: var(--space-none); }
+.prediction-measure h4 { font-size: var(--font-size-body); }
+.prediction-measure .lab-metrics { padding-block: var(--space-sm); }
+.prediction-measure > p + p { margin-block-start: var(--space-sm); }
 .lab-viewer-caption { padding: var(--space-sm) var(--space-md) var(--space-md); color: var(--text-secondary); font-size: var(--font-size-note); }
 .lab-draft-empty { display: grid; align-content: center; justify-items: center; gap: var(--space-md); height: var(--width-full); padding: var(--space-lg); text-align: center; }
 .lab-draft-empty p { color: var(--text-secondary); max-width: var(--width-copy); }

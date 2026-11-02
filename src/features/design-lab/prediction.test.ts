@@ -1,16 +1,19 @@
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Blob } from 'node:buffer';
 import { DecompressionStream } from 'node:stream/web';
 import { caseArchive, caseFiles } from '../../test/design-lab-fixtures';
 import { predictionFixture } from '../../test/predictionFixture';
-import { validatePrediction } from './prediction';
+import { compareWithReference, validatePrediction } from './prediction';
 import { exportWorkspace, importLab } from './workspace';
 import { sha256 } from './zip';
-import { required } from './config';
+import { LAB_CONFIG, required } from './config';
 import { importArchive } from './validate';
 import { workspaceSchema } from '../projects/contracts';
 import { workspaceVersion } from '../projects/snapshot';
-import { predictionEnabled } from './predictionConfig';
+import { PREDICTION_CONFIG, predictionEnabled } from './predictionConfig';
+import ubiquitin from './fixtures/ubiquitin.json';
+import atlas from './fixtures/esm-atlas-sample-1-ca.json';
+import type { Coordinates } from './types';
 
 beforeEach(()=>{vi.stubGlobal('Blob',Blob);vi.stubGlobal('DecompressionStream',DecompressionStream);});
 afterEach(()=>{vi.unstubAllGlobals();});
@@ -54,4 +57,28 @@ it('round trips predictions separately from old experiment results and keeps v2 
   expect(workspaceVersion({laboratory})).toBe(4);expect(workspaceVersion({laboratory},4)).toBe(4);expect(workspaceSchema.safeParse(workspace).success).toBe(true);
   for(const schemaVersion of [1,2,3])expect(workspaceSchema.safeParse({...workspace,schemaVersion}).success).toBe(false);
   expect(workspaceSchema.safeParse({...workspace,laboratory:null}).success).toBe(false);
+});
+describe('compareWithReference',()=>{
+  const line=(count:number):Coordinates[]=>Array.from({length:count},(_,index)=>[index*3.8,Math.sin(index),Math.cos(index)*2]);
+  it('pairs every position by index and measures the recorded ESM Atlas prediction like the Colab figure',()=>{
+    const result=compareWithReference(ubiquitin.reference.ca as Coordinates[],atlas.ca as Coordinates[]);
+    expect(result.status).toBe('measured');
+    if(result.status!=='measured')return;
+    // Figure computed for the approved mock-up with the same superpose() (artifacts/prediction-rmsd-2026-11-02/rmsd-real.json).
+    expect(Math.abs(result.rmsd-0.8230808970086123)).toBeLessThan(LAB_CONFIG.rmsdTolerance);
+    expect(result.paired).toBe(76);expect(result.alignedCa).toHaveLength(76);
+    const colab=required(ubiquitin.samples[0]),again=compareWithReference(ubiquitin.reference.ca as Coordinates[],colab.ca as Coordinates[]);
+    expect(again.status==='measured'&&Math.abs(again.rmsd-colab.rmsd)).toBeLessThan(LAB_CONFIG.rmsdTolerance);
+  });
+  it('is zero for a rigidly moved copy and needs the minimum number of positions',()=>{
+    const reference=line(PREDICTION_CONFIG.minimumPairedPositions),moved=reference.map(([x,y,z])=>[-y+5,x-2,z+1] as Coordinates);
+    const result=compareWithReference(reference,moved);
+    expect(result.status==='measured'&&result.rmsd).toBeLessThan(LAB_CONFIG.rmsdTolerance);
+    const short=line(PREDICTION_CONFIG.minimumPairedPositions-1);
+    expect(compareWithReference(short,short)).toEqual({status:'too-few',paired:short.length});
+  });
+  it('never invents a figure without a reference or for a different length',()=>{
+    expect(compareWithReference(null,line(5))).toEqual({status:'no-reference'});
+    expect(compareWithReference(line(6),line(5))).toEqual({status:'too-few',paired:0});
+  });
 });
