@@ -129,7 +129,7 @@ Textos nuevos en `src/i18n/es.ts` y `src/i18n/en.ts` en el mismo cambio. Producc
 
 Backend `dev`:
 
-- Migración `supabase/migrations/20261101000000_report_storage.sql` (idempotente). **No aplicada en Supabase.**
+- Migración `supabase/migrations/20261101000000_report_storage.sql` (idempotente). Aplicada en Supabase por el propietario el 2 nov 2026 (declarado, sin inspección remota); no volver a ejecutarla.
 - `app/report_config.py`, `app/reports.py`, servicio RPC en `app/rpc/services.py`, conversión, errores y código generado en `app/rpc/gen/proteinforge/report/`.
 - `tests/postgres_bootstrap.sql` emula el mínimo del esquema `storage` (buckets, objects, `storage.foldername`) para el PostgreSQL desechable; no emula la API de Storage.
 - `tests/test_reports.py`: 13 pruebas con Auth, PostgREST y Storage simulados: identidad previa, propiedad sin `ownerId`, validación sin tocar datos, liberación de reserva si falla la firma, ruta fuera de carpeta, códigos estables sin texto del proveedor, paginación, descarga solo `ready`, borrado en orden, fallos de red y RPC equivalente. Incluye la coincidencia entre configuración y SQL.
