@@ -567,11 +567,11 @@ export const ProjectOrderSchema: GenEnum<ProjectOrder> = /*@__PURE__*/
  * Projects owned by the person behind the bearer token. Supabase receives the user's own
  * token, so PostgreSQL row-level security decides ownership; another owner's project is
  * indistinguishable from a missing one (NOT_FOUND).
- * 
+ *
  * Writes use optimistic concurrency: updates and deletes send the update_time they last saw
  * and fail with ABORTED when the project changed meanwhile. Creates may carry a client
  * request_id so a retry after a lost response returns the project it already created.
- * 
+ *
  * Error codes: UNAUTHENTICATED (missing or invalid token), INVALID_ARGUMENT (field or
  * snapshot fails validation; details name fields, never sequence values), NOT_FOUND,
  * ABORTED (concurrent change, or "project-requires-current-client" when the stored snapshot
