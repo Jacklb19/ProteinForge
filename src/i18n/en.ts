@@ -199,6 +199,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'app.title': 'ProteinForge — Explore, compare and design proteins',
   'app.description': 'Explore, compare and design proteins from their sequence.',
   'app.tagline': 'Explore, compare and design proteins.',
+  'app.pageTitle': '{{page}} · {{app}}',
   'shell.loadingPage': 'Loading…',
   'shell.screenFailed': 'This screen could not be shown.',
   'shell.screenFailedHelp': 'Reload the page or open another section. Your unsaved work is still in this tab.',

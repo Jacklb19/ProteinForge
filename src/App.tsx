@@ -13,7 +13,8 @@ import { LabProvider } from './features/design-lab/LabProvider';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { PreferencesProvider } from './preferences/PreferencesProvider';
 import { NotFoundPage } from './shared/NotFoundPage';
-import { REDIRECTS, ROUTES } from './shared/navigation';
+import { PAGE_TITLES, REDIRECTS, ROUTES } from './shared/navigation';
+import { useTranslation } from './i18n';
 import { PublicFrame } from './shell/PublicFrame';
 import { WorkspaceFrame } from './shell/WorkspaceFrame';
 
@@ -36,6 +37,14 @@ const RecoverPage = lazy(async () => ({ default: (await import('./features/auth/
 function ApplicationRoutes(): React.JSX.Element {
   const location = useLocation();
   const previous = useRef({ path: location.pathname, hash: location.hash });
+  const { t } = useTranslation();
+
+  // Each page names the browser tab, so history, tabs and screen readers tell the pages apart; an unknown address is the not-found page.
+  const path = location.pathname.replace(/(.)\/+$/, '$1');
+  const pageTitle = path === ROUTES.home ? null : (PAGE_TITLES[path] ?? 'notFound.title');
+  useEffect(() => {
+    document.title = pageTitle ? t('app.pageTitle', { page: t(pageTitle), app: t('app.name') }) : t('app.title');
+  }, [pageTitle, t]);
 
   useEffect(() => {
     const changedPath = previous.current.path !== location.pathname;

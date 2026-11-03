@@ -22,6 +22,23 @@ export const ROUTES = {
   settings: '/settings',
 } as const;
 
+/** Name each page gives the browser tab, ahead of the application name; the home page keeps the full title. */
+export const PAGE_TITLES: Readonly<Record<string, TranslationKey>> = {
+  [ROUTES.analyze]: 'nav.analyze',
+  [ROUTES.alignment]: 'nav.alignment',
+  [ROUTES.generate]: 'nav.generate',
+  [ROUTES.laboratory]: 'workbench.laboratory',
+  [ROUTES.library]: 'nav.library',
+  [ROUTES.projects]: 'nav.projects',
+  [ROUTES.profile]: 'nav.profile',
+  [ROUTES.guide]: 'nav.guide',
+  [ROUTES.signIn]: 'auth.signInTitle',
+  [ROUTES.signUp]: 'auth.signUpTitle',
+  [ROUTES.recover]: 'auth.recoverTitle',
+  [ROUTES.privacy]: 'nav.privacy',
+  [ROUTES.terms]: 'nav.terms',
+};
+
 /** Laboratory destinations, in display order within their sidebar group. */
 export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; icon: IconName; group: 'research' | 'design' | 'organize'; end: boolean; signedInOnly?: boolean }[] = [
   { path: ROUTES.analyze, labelKey: 'nav.analyze', icon: 'analyze', group: 'research', end: false },
