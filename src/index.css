@@ -190,7 +190,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 
 .disclosure { border-block-start: var(--border-width) solid var(--border-subtle); }
 .disclosure summary { display: flex; align-items: center; gap: var(--space-xs); min-height: var(--size-touch); font-weight: var(--font-weight-strong); cursor: pointer; }
-.disclosure summary::marker { color: var(--text-secondary); }
+/* A flex summary loses the browser's own triangle, so every disclosure draws a chevron that turns down when it opens. */
+:is(.disclosure, .public-faq details, .project-reports, .project-scientific-details) > summary { list-style: none; }
+:is(.disclosure, .public-faq details, .project-reports, .project-scientific-details) > summary::-webkit-details-marker { display: none; }
+:is(.disclosure, .public-faq details, .project-reports, .project-scientific-details) > summary::before { content: ''; flex: none; width: var(--size-disclosure-mark); height: var(--size-disclosure-mark); margin-inline: var(--space-2xs) var(--space-xs); border-block-end: var(--border-width-indicator) solid var(--text-secondary); border-inline-end: var(--border-width-indicator) solid var(--text-secondary); transform: rotate(-45deg); transition: transform var(--duration-feedback) var(--ease-feedback); }
+:is(.disclosure, .public-faq details, .project-reports, .project-scientific-details)[open] > summary::before { transform: rotate(45deg); }
 .disclosure[open] > :not(summary) { margin-block-end: var(--space-md); }
 .reference-list { display: grid; margin-block-start: var(--space-xs); font-size: var(--font-size-small); }
 .reference-list a { display: inline-flex; align-items: center; min-height: var(--size-touch); }
