@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { checkPrediction } from './predictionWorker';
+import { checkPrediction, measurePrediction } from './predictionWorker';
+import type { Coordinates } from './types';
 import { predictionFixture } from '../../test/predictionFixture';
 import { PREDICTION_CONFIG as C } from './predictionConfig';
 
@@ -32,4 +33,15 @@ it('never constructs an aborted Worker, and handles unavailable worker creation'
   const construct=vi.fn(function fail(){throw new Error('blocked');});vi.stubGlobal('Worker',construct);
   await expect(checkPrediction(record,'AAA',controller.signal)).rejects.toMatchObject({code:'cancelled'});expect(construct).not.toHaveBeenCalled();
   await expect(checkPrediction(record,'AAA',new AbortController().signal)).rejects.toMatchObject({code:'unavailable'});
+});
+it('measures in the same bounded Worker and ignores a late comparison',async()=>{
+  vi.stubGlobal('Worker',WorkerStub);
+  const reference:Coordinates[]=[[0,0,0],[1,0,0],[0,1,0]],controller=new AbortController();
+  const done=measurePrediction(reference,reference,new AbortController().signal);
+  expect(WorkerStub.latest.postMessage).toHaveBeenCalledWith({type:'compare',reference,prediction:reference});
+  WorkerStub.latest.onmessage?.({data:{result:{status:'no-reference'}}} as MessageEvent);
+  expect(await done).toEqual({status:'no-reference'});
+  const late=measurePrediction(reference,reference,controller.signal).catch((error:unknown)=>error),instance=WorkerStub.latest;controller.abort();
+  instance.onmessage?.({data:{result:{status:'no-reference'}}} as MessageEvent);
+  expect(await late).toMatchObject({code:'cancelled'});expect(instance.terminate).toHaveBeenCalledOnce();
 });

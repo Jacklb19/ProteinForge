@@ -23,6 +23,13 @@ export const PITCH_LIMIT = Math.PI / 2;
 /** Idle turn before the first interaction, in radians per second. Disabled with reduced motion. */
 export const IDLE_RADIANS_PER_SECOND = 0.12;
 
+/**
+ * Most idle repaints per second; the angle still advances on every animation frame.
+ * The tolerance, in milliseconds, keeps every second vsync on a 60 Hz display instead of drifting to 20.
+ */
+export const IDLE_FRAMES_PER_SECOND = 30;
+export const IDLE_FRAME_TOLERANCE_MS = 4;
+
 /** Catmull–Rom subdivisions between consecutive Cα atoms. */
 export const SPLINE_STEPS = 10;
 

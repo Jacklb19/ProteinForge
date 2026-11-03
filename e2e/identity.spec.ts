@@ -16,18 +16,18 @@ test('favicon and browser metadata follow application tokens and preferences', a
   const source = await icon.text();
   expect(source).toContain(token('--accent-brand'));
   expect(source).not.toContain('{{');
-  // A signed-out visitor flips the theme from the bar on wide screens.
-  for (const theme of ['light', 'dark'] as const) {
+  // A first visit follows the device; the browser colour changes with it.
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', token('--bg-canvas'));
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', token('--dark-bg-canvas'));
+  // A signed-out visitor flips the theme from the bar on wide screens and from the menu on phones.
+  for (const [width, theme] of [[1280, 'light'], [1280, 'dark'], [360, 'light']] as const) {
+    await page.setViewportSize({ width, height: 900 });
     await chooseTheme(page, theme);
     const surface = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg-canvas').trim());
     expect(surface).toBe(token(theme === 'light' ? '--bg-canvas' : '--dark-bg-canvas'));
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', surface);
   }
-  // The system choice is offered in the phone menu.
-  await page.setViewportSize({ width: 360, height: 900 });
-  await chooseTheme(page, 'system');
-  await page.emulateMedia({ colorScheme: 'light' });
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', token('--bg-canvas'));
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', token('--dark-bg-canvas'));
 });

@@ -10,6 +10,8 @@ import {
   ListProjectsResponseSchema, ProjectStatus, UpdateProjectRequestSchema, UpdateProjectResponseSchema,
 } from '../src/gen/proteinforge/project/v1/project_service_pb';
 import { PROJECT_POINTER_PREFIX } from '../src/features/projects/config';
+import { ReportKind, ReportStatus } from '../src/gen/proteinforge/report/v1/report_service_pb';
+import { mockReportStorage, storedFile } from './reportStorage';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
 import { alignmentInputs, assertFits, followNavigation, message, navigationLink, openProjectPanel, openSequenceEditor, storeSession, TEST_ACCOUNT, setTheme } from './helpers';
@@ -37,6 +39,8 @@ async function mockProjects(page: Page, initial: Project | null = null) {
     const method = rpcMethod(route);
     if (method === 'AccountService/GetStatus') return fulfillRpc(route, GetStatusResponseSchema, { status: 'ok', version: '0.1.0', identityConfigured: true });
     if (method === 'AccountService/GetMe') return fulfillRpc(route, GetMeResponseSchema, { id: USER, email: TEST_ACCOUNT.email });
+    // Report storage is answered by mockReportStorage where a test uses it; elsewhere this API has none.
+    if (method.startsWith('ReportService/')) return fulfillRpcError(route, GRPC_CODES.unimplemented, 'unimplemented');
     expect(route.request().headers().authorization).toBe(`Bearer ${TEST_ACCOUNT.accessToken}`);
     if (method === 'ProjectService/ListProjects') return fulfillRpc(route, ListProjectsResponseSchema, { projects: project ? [projectMessage(project).summary] : [] });
     if (method === 'ProjectService/GetProject') {
@@ -141,8 +145,7 @@ test('the profile links to the project collection, which renames and deletes del
   const data = await mockProjects(page, { ...saved, name: 'Estudio inicial' });
   await page.goto(ROUTES.analyze);
   const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
-  await sidebar.getByRole('button', { name: new RegExp(TEST_ACCOUNT.email) }).click();
-  await sidebar.getByRole('link', { name: spanish['workbench.account'], exact: true }).click();
+  await sidebar.getByRole('link', { name: new RegExp(TEST_ACCOUNT.email) }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
   await expect(page.locator('.project-grid')).toHaveCount(0);
   await page.getByRole('link', { name: spanish['projects.listLink'] }).click();
@@ -356,4 +359,90 @@ test('laboratory drafts survive internal access routes and offer a file before e
   await navigationLink(page,spanish['nav.generate']).click();
   await page.getByRole('link',{name:spanish['lab.openLaboratory'],exact:true}).click();
   await expect(page.getByRole('button',{name:spanish['lab.unprotect'],exact:true})).toBeVisible();
+});
+
+test('each project lists its saved reports and the rest wait under "Reports without a project"', async ({ page }) => {
+  await mockProjects(page, saved);
+  const storage = await mockReportStorage(page, { reports: [
+    storedFile('00000000-0000-4000-8000-000000000101', ID, ReportKind.PDF, '%PDF-1.4 insulin'),
+    storedFile('00000000-0000-4000-8000-000000000102', ID, ReportKind.PROFILE_CSV, 'position,residue\r\n'),
+    storedFile('00000000-0000-4000-8000-000000000103', '', ReportKind.ALIGNMENT_CSV, 'column\r\n'),
+    storedFile('00000000-0000-4000-8000-000000000104', '', ReportKind.JSON, '{}', ReportStatus.PENDING),
+  ] });
+  await page.goto(ROUTES.projects);
+  const card = page.getByRole('article', { name: saved.name });
+  const disclosure = card.getByText(message('report.showSaved', { count: '2' }));
+  await disclosure.click();
+  const rows = card.getByRole('list', { name: message('report.savedOf', { project: saved.name }) }).getByRole('listitem');
+  await expect(rows).toHaveCount(2);
+  // The CSV can only be downloaded; the PDF can also be opened in a new tab.
+  // Rows come newest first, so each one is found by its kind rather than by position.
+  await expect(rows.filter({ hasText: spanish['report.profileCsv'] }).getByRole('button', { name: /^Abrir/ })).toHaveCount(0);
+  await expect(rows.filter({ hasText: spanish['report.pdf'] }).getByRole('button', { name: /^Abrir Informe PDF del/ })).toBeVisible();
+  const unlinked = page.getByRole('region', { name: spanish['report.unlinkedTitle'] });
+  // Four files of a few bytes each: the whole account, pending reservations included.
+  await expect(unlinked.getByText(message('report.usage', { count: '4', max: '20', used: '0 KB', limit: '25 MB' }))).toBeVisible();
+  const pending = unlinked.getByRole('listitem').filter({ hasText: spanish['report.pending'] });
+  await expect(pending.getByRole('button')).toHaveText([spanish['report.remove']]);
+  for (const width of [360, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ['light', 'dark']) {
+      await setTheme(page, theme);
+      await assertFits(page);
+      const audit = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      expect(audit.violations, JSON.stringify(audit.violations)).toEqual([]);
+    }
+  }
+  // Removing the unfinished one needs the in-row confirmation; the focus then returns to the section.
+  await pending.getByRole('button', { name: spanish['report.remove'] }).click();
+  await unlinked.getByRole('button', { name: spanish['report.remove'], exact: true }).click();
+  await expect(unlinked.getByRole('listitem')).toHaveCount(1);
+  expect(storage.deleted).toEqual(['00000000-0000-4000-8000-000000000104']);
+});
+
+test('a save made without a connection waits in this tab, lands when it returns, and a conflict is settled in its row', async ({ page, context }) => {
+  const data = await mockProjects(page, saved);
+  // The network is cut for the API as well as for the browser, so nothing can reach the mock while offline.
+  let cut = false;
+  await page.route(isRpc, async (route) => { if (cut) await route.abort('internetdisconnected'); else await route.fallback(); });
+  const network = async (online: boolean): Promise<void> => { cut = !online; await context.setOffline(!online); };
+  await page.addInitScript(({ key, id }) => { localStorage.setItem(key, id); }, { key: `${PROJECT_POINTER_PREFIX}${USER}`, id: ID });
+  await page.goto(ROUTES.analyze);
+  await expect(await openSequenceEditor(page)).toHaveValue(saved.activeSequence);
+  // Service workers are blocked here and an offline context reaches no host, not even the app's: open Projects
+  // once while online so its code is loaded, as the installed app's precache would have it.
+  await navigationLink(page, spanish['nav.projects']).click();
+  await expect(projectLibrary(page).getByRole('article', { name: saved.name })).toBeVisible();
+  await navigationLink(page, spanish['nav.analyze']).click();
+  await expect(await openSequenceEditor(page)).toHaveValue(saved.activeSequence);
+  await network(false);
+  const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
+  await expect(sidebar.getByRole('status')).toContainText(spanish['sync.offline']);
+  await (await openSequenceEditor(page)).fill('ACDE');
+  const panel = await openProjectPanel(page);
+  await panel.getByRole('button', { name: spanish['projects.update'], exact: true }).click();
+  await expect(panel.getByText(message('sync.queued', { name: saved.name }))).toBeVisible();
+  await expect(sidebar.getByRole('status')).toContainText(spanish['sync.pendingOne']);
+  expect(data.writes).toHaveLength(0);
+
+  // The open list stays; searching and the row menu wait for the connection.
+  await navigationLink(page, spanish['nav.projects']).click();
+  const library = projectLibrary(page);
+  await expect(library.getByRole('searchbox')).toBeDisabled();
+  await expect(library.getByText(spanish['sync.searchOffline'])).toBeVisible();
+  const row = library.getByRole('article', { name: saved.name });
+  await expect(row.getByText(message('sync.rowChanges', { time: spanish['projects.justNow'] }))).toBeVisible();
+
+  // Meanwhile the project changed in the account: the queued update meets a conflict when the network returns.
+  data.setConflict();
+  await network(true);
+  await expect(row.getByText(spanish['sync.changedRemote'])).toBeVisible();
+  await expect(sidebar.getByRole('status')).toContainText(message('sync.attentionOne'));
+  await row.getByRole('button', { name: spanish['sync.chooseVersion'] }).click();
+  const conflict = row.getByRole('region', { name: spanish['sync.conflictTitle'] });
+  await expect(conflict.getByText(spanish['sync.conflictTitle'])).toBeFocused();
+  await conflict.getByRole('button', { name: spanish['sync.keepBoth'], exact: true }).click();
+  await expect.poll(() => data.writes.at(-1)?.name).toBe(message('projects.copyName', { name: saved.name }));
+  expect(data.writes.at(-1)?.activeSequence).toBe('ACDE');
+  await expect(sidebar.getByRole('status')).toHaveCount(0);
 });

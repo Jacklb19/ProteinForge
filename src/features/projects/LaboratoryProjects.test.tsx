@@ -44,7 +44,7 @@ it('creates independently of analysis binding and preserves its inputs when open
  expect(lab.markSaved).toHaveBeenCalledWith(draftFingerprint(lab.drafts));
  await click('open');expect(lab.openDocument).toHaveBeenCalledWith(expect.objectContaining({byteLength:bytes.byteLength}),stored.workspace.laboratory?.documentSha256);
  expect(state()).toMatchObject({active:analysis.id,lab:stored.id,sequence:'ACD'});
- await click('save');expect(service.save).toHaveBeenLastCalledWith(expect.anything(),'owner-token',expect.objectContaining({id:stored.id}),expect.any(AbortSignal));
+ await click('save');expect(service.save).toHaveBeenLastCalledWith(expect.anything(),'owner-token',expect.objectContaining({id:stored.id}),expect.any(AbortSignal),undefined);
 });
 it('keeps a saved generator history and version 3 when saving the laboratory',async()=>{
  const history=await historyFixture();stored={...stored,workspace:{...stored.workspace,schemaVersion:3,generatorHistory:history}};
@@ -58,7 +58,7 @@ it('reports a newer stored project apart from a conflict and keeps binding and d
 it('keeps binding and draft on conflict and offers a version-independent copy',async()=>{
  const service=api();mount(service);await ready();await click('open');vi.mocked(service.save).mockRejectedValueOnce(new ApiError('conflict'));await click('save');
  expect(state()).toMatchObject({lab:stored.id,error:'conflict'});expect(lab.markSaved).not.toHaveBeenCalled();
- await click('copy');expect(service.save).toHaveBeenLastCalledWith(expect.objectContaining({workspace:stored.workspace}),'owner-token',undefined,expect.any(AbortSignal));
+ await click('copy');expect(service.save).toHaveBeenLastCalledWith(expect.objectContaining({workspace:stored.workspace}),'owner-token',undefined,expect.any(AbortSignal),undefined);
 });
 it('retains binding when reopening fails without restoring analysis',async()=>{
  const service=api();mount(service);await ready();await click('open');vi.mocked(lab.openDocument).mockResolvedValueOnce(null);await click('open');
@@ -98,4 +98,21 @@ it('updates the laboratory version when renaming and detaches after deletion',as
 it('rejects oversized UTF8 documents before storage and never marks a discarded envelope saved',async()=>{
  const service=api();mount(service);await ready();vi.mocked(lab.document).mockResolvedValueOnce(new Uint8Array(1_000_001));await click('save');expect(state().error).toBe('laboratory-size');expect(service.save).not.toHaveBeenCalled();
  vi.mocked(service.save).mockResolvedValueOnce(analysis);await click('save');expect(state().error).toBe('invalid-response');expect(lab.markSaved).not.toHaveBeenCalled();expect(state().lab).toBeUndefined();
+});
+
+it('binds the laboratory to the account version after keeping it in a conflict',async()=>{
+ let online=true;Object.defineProperty(window.navigator,'onLine',{configurable:true,get:()=>online});
+ const remote={...stored,updatedAt:'2026-10-12T08:05:00.123456Z',workspace:{...stored.workspace,laboratory:{...required(stored.workspace.laboratory),documentSha256:'f'.repeat(64)}}};
+ function Resolve(){const p=useProjects();const entry=p.pending.at(0);return entry?<button onClick={()=>{void p.resolve(entry.key,'theirs','Copy');}}>theirs</button>:null;}
+ const service=api();
+ render(<AuthContext.Provider value={signedInFixture}><SequenceDraftProvider><AlignmentDraftProvider><LabContext.Provider value={lab}><ProjectProvider api={service}><Harness/><Resolve/></ProjectProvider></LabContext.Provider></AlignmentDraftProvider></SequenceDraftProvider></AuthContext.Provider>);
+ await ready();await click('open');expect(state().version).toBe(stored.updatedAt);
+ online=false;act(()=>{window.dispatchEvent(new Event('offline'));});
+ await click('save');
+ vi.mocked(service.save).mockRejectedValueOnce(new ApiError('conflict'));vi.mocked(service.open).mockResolvedValueOnce(remote);
+ online=true;act(()=>{window.dispatchEvent(new Event('online'));});
+ await waitFor(()=>{expect(screen.getByRole('button',{name:'theirs'})).toBeInTheDocument();});
+ await waitFor(()=>{expect(vi.mocked(service.open)).toHaveBeenCalledTimes(2);});
+ fireEvent.click(screen.getByRole('button',{name:'theirs'}));
+ await waitFor(()=>{expect(state().version).toBe(remote.updatedAt);});
 });

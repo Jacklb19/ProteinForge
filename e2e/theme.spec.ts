@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { chooseTheme, message, openSequenceEditor, openValueTable, residueReader, signInWithEmptyAccount, setTheme } from './helpers';
+import { chooseTheme, message, openSequenceEditor, openValueTable, residueReader, signInWithEmptyAccount, setTheme, themeButton } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
 import { RESIDUE_NAMES } from '../src/features/chemistry/config';
@@ -53,16 +53,20 @@ test('the profile persists language and theme after reload', async ({ page }) =>
   await expect(page.getByRole('radio', { name: new RegExp(spanish['settings.english']) })).toBeChecked();
 });
 
-test('a signed-out visitor keeps the theme chosen from the bar after reload', async ({ page }) => {
+test('a signed-out visitor keeps the theme chosen from the sidebar after reload', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto(ROUTES.analyze);
   await expect(page.locator('html')).not.toHaveAttribute('data-theme');
+  const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
+  // On the system choice of a light device, the button leads to dark.
+  await expect(themeButton(sidebar)).toHaveAccessibleName(spanish['shell.themeToDark']);
   await chooseTheme(page, 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('details.preferences-menu summary')).toBeVisible();
+  await expect(themeButton(sidebar)).toHaveAccessibleName(spanish['shell.themeToLight']);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(themeButton(sidebar)).toHaveAccessibleName(spanish['shell.themeToLight']);
   await chooseTheme(page, 'light');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await expect(page.locator('details.preferences-menu summary')).toBeVisible();
+  await expect(themeButton(sidebar)).toHaveAccessibleName(spanish['shell.themeToDark']);
 });

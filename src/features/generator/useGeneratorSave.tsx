@@ -39,7 +39,9 @@ export function useGeneratorSave(result: SearchResult, unavailable: boolean): { 
         {active ? t('generator.savesTo', { project: active.name }) : t('generator.savesNowhere')}{' '}
         <button type="button" className="button button-quiet" disabled={unavailable || projects.busy} onClick={() => { setOpen(true); }}>{t(active ? 'generator.changeProject' : 'generator.chooseProject')}</button>
       </p>
-      <HistoryFeedback attempt={attempt} success={saved ? t(saved.added ? 'generator.savedTo' : 'generator.alreadySaved', { project: saved.project }) : null} onDownload={() => { downloadSearch(resultJson); }} />
+      <HistoryFeedback attempt={attempt} success={saved && !saved.queued ? t(saved.added ? 'generator.savedTo' : 'generator.alreadySaved', { project: saved.project }) : null} onDownload={() => { downloadSearch(resultJson); }} />
+      {/* Without a connection the search waits in this tab; Projects shows it on its row. */}
+      {saved?.queued && <div className="sync-state" role="status"><p><strong>{t('sync.queued', { name: saved.project })}</strong> {t('sync.queuedHelp')}</p></div>}
       {open && <SaveDialog result={result} resultJson={resultJson} onClose={() => { setOpen(false); }} onStart={setAttempt} onDone={setSaved} />}
     </>
   ) };

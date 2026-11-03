@@ -12,28 +12,71 @@ import { downloadLabFile } from './download';
 import { LabProjectControls } from './LabProjectControls';
 import { traceModel } from './presentation';
 import { PREDICTION_CONFIG as C } from './predictionConfig';
-import { checkPrediction } from './predictionWorker';
-import type { StructurePrediction, ValidatedPrediction } from './prediction';
+import { checkPrediction, measurePrediction } from './predictionWorker';
+import type { PredictionComparison, StructurePrediction, ValidatedPrediction } from './prediction';
+import type { LabReference } from './types';
 import type { PredictionApi } from './predictionApi';
 
-function PredictionView({record}:{record:StructurePrediction}):React.JSX.Element {
+/** The distance to the laboratory reference, beside the viewer; nothing here is stored. */
+function PredictionDistance({reference,total,comparison,failed}:{reference:LabReference|null;total:number;comparison:PredictionComparison|null;failed:boolean}):React.JSX.Element {
+  const {t,formatNumber}=useTranslation();
+  const values={reference:reference?.id??'',chain:reference?.chain??''};
+  const scope=<p className="field-help">{t('prediction.rmsdScope')}</p>;
+  return <aside className="lab-inspector prediction-measure" aria-labelledby="prediction-measure-title">
+    <h4 id="prediction-measure-title">{t('prediction.distanceTitle')}</h4>
+    {failed ? <p>{t('prediction.rmsdFailed',values)}</p>
+      : !comparison ? <><p role="status">{t('prediction.rmsdComputing',values)}</p>{scope}</>
+      : comparison.status==='no-reference' ? <p>{t('prediction.rmsdNoReference')}</p>
+      : comparison.status==='too-few' ? <><p>{t('prediction.rmsdTooFew',{minimum:C.minimumPairedPositions})}</p>{scope}</>
+      : <>
+        <div className="lab-metrics">
+          <div><strong className="numeric">{`${formatNumber(comparison.rmsd,{minimumFractionDigits:C.rmsdDigits,maximumFractionDigits:C.rmsdDigits})}\u202fÅ`}</strong><span>{t('prediction.rmsdLabel',values)}</span></div>
+          <div><strong className="numeric">{formatNumber(comparison.paired)}</strong><span>{t('prediction.pairedLabel',{total:formatNumber(total)})}</span></div>
+        </div>
+        <p className="field-help">{t('prediction.rmsdMethod',values)}</p>{scope}
+      </>}
+  </aside>;
+}
+
+function PredictionView({record,reference}:{record:StructurePrediction;reference:LabReference|null}):React.JSX.Element {
   const {t,formatDate}=useTranslation();
   const [checked,setChecked]=useState<ValidatedPrediction|null>(null),[failed,setFailed]=useState(false);
-  const [camera,setCamera]=useState(0);
+  const [comparison,setComparison]=useState<PredictionComparison|null>(null),[unmeasured,setUnmeasured]=useState(false);
+  const [camera,setCamera]=useState(0),[overlay,setOverlay]=useState(true);
   useEffect(()=>{
     const controller=new AbortController();
-    void checkPrediction(record,record.sequence,controller.signal).then(value=>{if(!controller.signal.aborted)setChecked(value);}).catch(()=>{if(!controller.signal.aborted)setFailed(true);});
+    // A function, not a narrowed property: the signal can abort while each Worker task is awaited.
+    const live=():boolean=>!controller.signal.aborted;
+    void checkPrediction(record,record.sequence,controller.signal).then(async value=>{
+      if(!live())return;
+      setChecked(value);
+      try{const measured=await measurePrediction(reference?.ca??null,value.ca,controller.signal);if(live())setComparison(measured);}
+      catch{if(live())setUnmeasured(true);}
+    }).catch(()=>{if(live())setFailed(true);});
     return ()=>{controller.abort();};
-  },[record]);
-  const model=useMemo(()=>checked ? traceModel(record.pdbSha256,record.sequence,checked.keys,checked.ca) : null,[record,checked]);
+  },[record,reference]);
+  const measured=comparison?.status==='measured'?comparison:null;
+  const model=useMemo(()=>checked ? traceModel(record.pdbSha256,record.sequence,checked.keys,measured?.alignedCa??checked.ca) : null,[record,checked,measured]);
+  const backdrop=useMemo(()=>reference ? traceModel(reference.id,reference.sequence,reference.keys,reference.ca) : null,[reference]);
+  // The overlay control exists only while a superposition is being computed or has been computed.
+  const overlayPossible=!unmeasured&&(!comparison||Boolean(measured));
   return <section className="prediction-section" aria-labelledby="prediction-result-title">
     <h3 id="prediction-result-title">{t('prediction.result')}</h3>
     {failed ? <p role="alert">{t('prediction.invalid')}</p> : !model ? <p role="status">{t('prediction.validating')}</p> : <>
-      <div className="lab-figure"><BackboneView key={camera} model={model} colorMode="chemistry" label={t('prediction.viewer')} describedBy="prediction-view-help" /></div>
+      <div className="lab-workbench">
+        <div className="lab-viewer">
+          <div className="lab-figure"><BackboneView key={camera} model={model} reference={overlay&&measured&&backdrop ? backdrop : undefined} colorMode="chemistry" label={t('prediction.viewer')} describedBy="prediction-view-help" /></div>
+          <div className="lab-viewer-actions">
+            {overlayPossible&&reference ? <label className="checkbox-option"><input type="checkbox" checked={overlay&&Boolean(measured)} disabled={!measured} onChange={event=>{setOverlay(event.target.checked);}}/><span>{t('lab.overlay')}</span></label> : <span/>}
+            <button type="button" className="button button-secondary" onClick={()=>{setCamera(value=>value+1);}}>{t('lab.resetView')}</button>
+          </div>
+          {measured&&reference&&<p className="lab-viewer-caption">{t('lab.referenceCaption',{reference:reference.id,chain:reference.chain})}</p>}
+        </div>
+        <PredictionDistance reference={reference} total={record.sequence.length} comparison={comparison} failed={unmeasured}/>
+      </div>
       <p id="prediction-view-help" className="field-help">{t('prediction.viewInstructions')}</p>
       <p className="field-help">{t('prediction.trace')}</p>
       <div className="actions">
-        <button type="button" className="button button-secondary" onClick={()=>{setCamera(value=>value+1);}}>{t('lab.resetView')}</button>
         <button type="button" className="button button-secondary" onClick={()=>{downloadLabFile(record.pdb,C.filename,'chemical/x-pdb');}}>{t('prediction.download')}</button>
         <LabProjectControls />
       </div>
@@ -92,6 +135,6 @@ function SessionPrediction({api,sequence}:{api?:PredictionApi;sequence:string}):
     {message==='cancelled'&&<p role="status">{t('prediction.cancelled')}</p>}
     {message==='error'&&<p role="alert" className="status-message" data-state="error">{t(failureKey)}</p>}
     <p className="field-help">{t('prediction.limits')}</p><p className="field-help">{t('prediction.scope')}</p>
-    {record&&<PredictionView key={`${record.pdbSha256}:${record.retrievedAt}`} record={record}/>}
+    {record&&<PredictionView key={`${record.pdbSha256}:${record.retrievedAt}`} record={record} reference={lab.dataset?.reference??null}/>}
   </section>;
 }

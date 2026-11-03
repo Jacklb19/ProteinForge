@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ensure } from './config';
-import { parsePdb } from './geometry';
+import { parsePdb, superpose } from './geometry';
 import { sha256 } from './zip';
 import { PREDICTION_CONFIG as C, PREDICTION_PDB_RECORDS } from './predictionConfig';
 import type { Coordinates, LabResidueKey, LabSavedState } from './types';
@@ -17,6 +17,23 @@ export const predictionSchema = z.object({
 export type StructurePrediction = z.infer<typeof predictionSchema>;
 export type StructurePredictions = Record<string, StructurePrediction>;
 export interface ValidatedPrediction { prediction: StructurePrediction; ca: Coordinates[]; keys: LabResidueKey[] }
+export type PredictionComparison =
+  | { status: 'measured'; rmsd: number; paired: number; alignedCa: Coordinates[] }
+  | { status: 'no-reference' }
+  | { status: 'too-few'; paired: number };
+
+/**
+ * Pairs residue i of the prediction with residue i of the reference, as the Colab RMSD does: the draft
+ * only substitutes residues, so every position (substituted ones included) keeps its partner. Residue
+ * numbers are not used. Runs in the prediction Worker; nothing is stored.
+ */
+export function compareWithReference(reference: Coordinates[] | null, prediction: Coordinates[]): PredictionComparison {
+  if (!reference) return { status: 'no-reference' };
+  const paired = reference.length === prediction.length ? prediction.length : 0;
+  if (paired < C.minimumPairedPositions) return { status: 'too-few', paired };
+  const fit = superpose(reference, prediction);
+  return { status: 'measured', rmsd: fit.rmsd, paired, alignedCa: fit.aligned };
+}
 
 /** Runs in the import/prediction Worker, before any downloaded PDB becomes a view or saved result. */
 export async function validatePrediction(value: unknown, sequence: string): Promise<ValidatedPrediction> {

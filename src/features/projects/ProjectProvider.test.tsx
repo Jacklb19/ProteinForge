@@ -147,7 +147,7 @@ describe('project lifecycle', () => {
     await user.type(screen.getByLabelText('sequence'), 'E'); await user.click(screen.getByRole('button', { name: 'save' }));
     await waitFor(() => { expect(screen.getByTestId('state')).toHaveTextContent('"error":"conflict"'); });
     expect(screen.getByLabelText('sequence')).toHaveValue('ACDE');
-    expect(api.save).toHaveBeenCalledWith(expect.objectContaining({ activeSequence: 'ACDE' }), 'owner-token', project, expect.any(AbortSignal));
+    expect(api.save).toHaveBeenCalledWith(expect.objectContaining({ activeSequence: 'ACDE' }), 'owner-token', project, expect.any(AbortSignal), undefined);
   });
   it('cancels an in-flight open when the account changes and ignores a late response', async () => {
     const user = userEvent.setup(); const api = service(); let resolve!: (value: Project) => void;

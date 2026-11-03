@@ -27,3 +27,20 @@ export const PROJECT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
   unavailable: 'projects.unavailable', 'invalid-response': 'projects.invalidResponse', unknown: 'projects.error',
   conflict: 'projects.conflict', 'not-found': 'projects.notFound', validation: 'projects.validation', schema: 'projects.schema', forbidden: 'projects.forbidden',
 };
+
+/**
+ * Saves that wait for the connection (RF-15). They live only in this tab's memory; a failed request
+ * with one of these codes is queued and retried after each delay in turn, then left for the person.
+ */
+export const SYNC_RETRYABLE_ERRORS: readonly ApiErrorCode[] = ['network', 'timeout', 'unavailable', 'rate-limit'];
+export const SYNC_RETRY_DELAYS_MS = [2_000, 8_000, 30_000] as const;
+export const SYNC_MAX_ENTRIES = 20;
+
+/**
+ * Creating a project again after a lost response is only safe when the API honours the request id
+ * (CreateProjectRequest.request_id). Until that backend and its migration are published, builds leave
+ * it off: a create whose first attempt may have reached the server is then never repeated on its own.
+ */
+export function readCreateIdempotency(environment: ImportMetaEnv = import.meta.env): boolean {
+  return environment.VITE_PROJECT_CREATE_IDEMPOTENCY?.trim() === 'enabled';
+}

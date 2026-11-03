@@ -1,8 +1,10 @@
 /// <reference lib="webworker" />
-import { validatePrediction } from './prediction';
-import type { StructurePrediction } from './prediction';
-self.onmessage = (event: MessageEvent<{prediction:StructurePrediction;sequence:string}>): void => {
-  void validatePrediction(event.data.prediction,event.data.sequence)
+import { compareWithReference, validatePrediction } from './prediction';
+import type { PredictionTask } from './predictionWorker';
+self.onmessage = (event: MessageEvent<PredictionTask>): void => {
+  const task = event.data;
+  const work = task.type === 'validate' ? validatePrediction(task.prediction, task.sequence) : Promise.resolve().then(() => compareWithReference(task.reference, task.prediction));
+  void work
     .then(result => { self.postMessage({result}); })
     .catch(() => { self.postMessage({error:true}); });
 };

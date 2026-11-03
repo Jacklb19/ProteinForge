@@ -46,14 +46,14 @@ describe('App', () => {
     const signUp = within(bar).queryByRole('link', { name: spanish['auth.signUpAction'] });
     if (readAuthSettings()) expect(signUp).toHaveAttribute('href', ROUTES.signUp);
     else expect(signUp).not.toBeInTheDocument();
-    // Appearance and language live together in Preferences, not beside the content.
-    const preferences = within(bar).getByText(spanish['workbench.preferences'], { selector: 'summary *' }).closest('details');
-    if (!preferences) throw new Error('Missing preferences.');
-    expect(within(preferences).getByRole('group', { name: spanish['account.appearance'] })).toBeInTheDocument();
-    expect(within(preferences).getByRole('group', { name: spanish['shell.languageLabel'] })).toBeInTheDocument();
+    // Language and theme sit in the bar as two small controls, without a disclosure.
+    const language = within(bar).getByRole('group', { name: spanish['shell.languageLabel'] });
+    expect(within(language).getAllByRole('button').map(button => [button.getAttribute('lang'), button.getAttribute('aria-pressed')])).toEqual([['es', 'true'], ['en', 'false']]);
+    expect(within(bar).getByRole('button', { name: spanish['shell.themeToDark'] })).toBeInTheDocument();
+    expect(bar.querySelector('details')).toBeNull();
   });
 
-  it('opens a tool inside the laboratory: grouped sidebar, no empty groups, help and preferences at the foot', () => {
+  it('opens a tool inside the laboratory: grouped sidebar, no empty groups, help, language and theme at the foot', () => {
     openAt(ROUTES.analyze);
 
     expect(screen.getByRole('heading', { level: 1, name: spanish['workbench.analyzeTitle'] })).toBeInTheDocument();
@@ -65,7 +65,11 @@ describe('App', () => {
     const groups = NAVIGATION_GROUPS.filter(group => visible.some(item => item.group === group.id)).map(group => spanish[group.labelKey]);
     expect(within(navigation).getAllByText((_, element) => element?.classList.contains('sidebar-group-label') ?? false).map(label => label.textContent)).toEqual(groups);
     expect(within(sidebar).getByRole('link', { name: spanish['nav.guide'] })).toHaveAttribute('href', ROUTES.guide);
-    expect(within(sidebar).getByText(spanish['workbench.preferences'], { selector: 'summary .sidebar-label' })).toBeInTheDocument();
+    const foot = sidebar.querySelector<HTMLElement>('.sidebar-foot');
+    if (!foot) throw new Error('Missing sidebar foot.');
+    expect(within(foot).getByRole('group', { name: spanish['shell.languageLabel'] })).toBeInTheDocument();
+    expect(within(foot).getByRole('button', { name: spanish['shell.themeToDark'] })).toBeInTheDocument();
+    expect(sidebar.querySelector('details')).toBeNull();
     expect(screen.queryByText(spanish['workbench.workspace'])).not.toBeInTheDocument();
   });
 

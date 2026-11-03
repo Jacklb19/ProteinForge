@@ -59,6 +59,10 @@ Se conservan RF-01 a RF-16 para mantener trazabilidad; RF-17 y RF-18 identifican
 
 RF-17 conserva parámetros/semilla/versiones en JSON, cancelación y condiciones/diversidad medidas. Implementación revisable autorizada: longitud fija 5–300, masa/GRAVY, 100–5.000 evaluaciones por brazo, recocido simulado y referencia aleatoria. [Método, límites y cinco semillas](candidates.md). No garantiza óptimo, función ni estabilidad. Historial completo de búsquedas en proyectos pendiente.
 
+RF-15 (propuesta A aprobada el 2 nov 2026): el cálculo ya funcionaba sin conexión; ahora los guardados en Proyectos que no pueden enviarse esperan en la pestaña y se guardan solos al volver la red, con estado junto a la cuenta y en cada fila, reintentos y conflictos resueltos en la fila. Publicado en `dev` de ambos repositorios el 2 nov, con la migración de idempotencia aplicada por el propietario; falta pasar a `main` y activar `VITE_PROJECT_CREATE_IDEMPOTENCY` en producción. Lo pendiente no sobrevive a cerrar la pestaña. [Decisión](decisiones.md).
+
+RF-14 guarda además informes en la cuenta (propuesta A aprobada el 2 nov 2026): publicado en `dev` el 2 nov con la migración de Storage aplicada por el propietario y el pin actualizado, detrás de `VITE_REPORT_STORAGE`; falta pasar a `main` y comprobar Storage, JWT y dos cuentas reales. [Detalle](reports.md).
+
 RF-18 enviará la secuencia únicamente tras una acción y consentimiento explícitos. El resultado debe validarse y etiquetarse como predicción, con proveedor y confianza cuando exista. Guardar estructuras previas permite una demostración de respaldo, siempre identificadas como resultados guardados. Un fallo externo debe ser visible, no sustituirse por coordenadas ficticias.
 
 ## Criterios y requisitos de calidad
@@ -127,7 +131,7 @@ El cronograma antiguo se conserva como historial, no como bloqueo por conversaci
 2. API/proyectos/UniProt implementados con versiones fijas y RLS PostgreSQL real; activar migraciones/publicación y comprobar JWT real/runtime objetivo.
 3. Nueva dirección visual aprobada y recorrido integrado de catálogo/UniProt/visor experimental; conservar los mecanismos de accesibilidad y cálculo existentes.
 4. RF17 implementado con comparación reproducible; ampliar solo con evidencia de propiedades/estrategias admitidas.
-5. RF-18: aplazado el 28 oct. El laboratorio importa y compara resultados del cuaderno manual de Colab, que sirve de respaldo para la presentación; la predicción desde la app espera un ejecutor gratuito admisible.
+5. RF-18: aplazado el 28 oct y reabierto el 30 oct. La predicción desde el laboratorio usa el servidor público de ESM Atlas con consentimiento por solicitud ([entrega](prediction-delivery-2026-10-30.md), [contrato](prediction-contract-2026-10-30.md)); se comprobó con sesión real el 1 nov. El cuaderno manual de Colab sigue como respaldo. Desde el 2 nov (maqueta A aprobada, publicada en `dev`) la pestaña Predicción muestra el RMSD Cα de esa predicción frente a la referencia, calculado en el Worker con el mismo método que Colab; [método](laboratory.md).
 6. Interpretación, selección sincronizada, inglés y rendimiento ya están implementados y publicados, y el historial de generación también, pendiente de activarlo en Vercel. Quedan la sincronización diferida, publicar el catálogo de dominios con ensamblado, ya integrado en `dev`, y los pendientes de identidad: SMTP, flujo Google completo y TOTP.
 
 La petición del 11 de octubre autoriza continuar el desarrollo completo con dirección visual v3 aprobada. El [plan actualizado](plan-desarrollo.md) ordena la web pública/app, conexión de identidad, proyectos, datos/visor, informes, generación y predicción. No se impone una fecha ni un sprint; las rutas/payloads nuevos y el esquema de candidatos se concretan al abordar cada entregable.

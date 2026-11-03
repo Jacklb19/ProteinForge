@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
 import { ROUTES } from '../src/shared/navigation';
+import { languageButton } from './helpers';
 
 // English arrives as its own chunk. On a slow connection a visitor can reload before it does; the choice
 // must already be stored, as continuous integration showed when it was saved only after the download.
@@ -17,9 +18,9 @@ test('choosing English and reloading before its catalog arrives keeps English', 
   });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(ROUTES.analyze);
-  const preferences = page.locator('details.preferences-menu');
-  await preferences.locator('summary').click();
-  await preferences.getByRole('radio', { name: spanish['settings.english'], exact: true }).check();
+  const englishButton = languageButton(page, spanish['settings.english']);
+  await englishButton.click();
+  await expect(englishButton).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en', { timeout: SLOW_CATALOG_MS * 5 });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(english['workbench.analyzeTitle']);

@@ -6,6 +6,7 @@ import { useAuth } from '../auth/authContext';
 import { useProjects } from '../projects/projectContext';
 import { MAX_PROJECT_NAME_LENGTH } from '../projects/config';
 import { ProjectFeedback } from '../projects/ProjectControls';
+import { SyncQueued } from '../projects/ProjectSync';
 import { useLab } from './context';
 
 /** Sending the laboratory to the owner's collection: an explicit action that needs a session. */
@@ -87,6 +88,7 @@ export function LabProjectControls(): React.JSX.Element {
     <>
       <button type="button" className="button button-primary" disabled={busy} onClick={() => { setOpen(true); }}>{t('lab.saveProject')}</button>
       {open && <SaveDialog onClose={() => { setOpen(false); }} />}
+      {!open && <SyncQueued entry={projects.queuedLaboratory} />}
       {!open && projects.laboratory && projects.notice === 'saved' && <p className="field-help" role="status">{t('lab.projectSaved', { name: projects.laboratory.name })}</p>}
     </>
   );

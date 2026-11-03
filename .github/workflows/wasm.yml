@@ -22,6 +22,8 @@ jobs:
         run: cargo install wasm-pack --locked --version 0.15.0
       - name: Check Rust formatting
         run: cargo fmt --manifest-path rust/alignment/Cargo.toml --check
+      - name: Run Rust unit tests
+        run: cargo test --manifest-path rust/alignment/Cargo.toml --locked
       - name: Build WebAssembly
         run: npm run build:wasm
       - name: Initialize generated module

@@ -62,7 +62,13 @@ test('profile holds the account, its projects and its data choices, and signs ou
   for (const title of ['projects.title', 'settings.account', 'account.appearance', 'settings.language', 'account.privacy'] as const) {
     await expect(page.getByRole('region', { name: spanish[title], exact: true })).toBeVisible();
   }
-  await expect(page.getByRole('complementary', { name: spanish['shell.sidebar'] }).getByRole('button', { name: new RegExp(TEST_ACCOUNT.email) })).toBeVisible();
+  // The account entry of the sidebar is a plain link, marked as the page shown.
+  const account = page.getByRole('complementary', { name: spanish['shell.sidebar'] }).getByRole('link', { name: new RegExp(TEST_ACCOUNT.email) });
+  await expect(account).toHaveAttribute('href', ROUTES.profile);
+  await expect(account).toHaveAttribute('aria-current', 'page');
+  await expect(account).not.toHaveAttribute('aria-expanded');
+  // The header leads back to the public site and signs out.
+  await expect(page.locator('.profile-head').getByRole('link', { name: spanish['shell.publicSite'], exact: true })).toHaveAttribute('href', ROUTES.home);
   await expect(page.getByRole('radio', { name: spanish['settings.spanish'], exact: true })).toBeChecked();
   await expect(page.getByRole('radio', { name: spanish['settings.system'], exact: true })).toBeChecked();
   await expect(page.getByRole('link', { name: spanish['account.policyAction'], exact: true })).toHaveAttribute('href', ROUTES.privacy);

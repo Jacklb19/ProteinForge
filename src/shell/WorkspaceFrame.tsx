@@ -8,6 +8,7 @@ import { FOOTER_LINKS, ROUTES, SIDEBAR_STORAGE_KEY } from '../shared/navigation'
 import { MENU_ID } from './PublicFrame';
 import { Sheet } from './Sheet';
 import { SidebarContent } from './Sidebar';
+import { useSyncShortLabel } from '../features/projects/syncSummary';
 
 /** The width choice is a visual preference; storage may be unavailable, and then it lasts for the visit. */
 function readCompact(): boolean {
@@ -31,6 +32,7 @@ export function WorkspaceFrame(): React.JSX.Element {
   const { pathname } = useLocation();
   const [compact, setCompact] = useState(readCompact);
   const [menuOpen, setMenuOpen] = useState(false);
+  const syncLabel = useSyncShortLabel();
   const toggle = useRef<HTMLButtonElement>(null);
   // Focus returns to the menu button once the dialog has closed; while it is open the page behind is inert.
   const returnFocus = useRef(false);
@@ -51,6 +53,8 @@ export function WorkspaceFrame(): React.JSX.Element {
       <div className="workspace-body">
         <header className="workspace-bar">
           <Link to={ROUTES.home} className="brand" aria-label={t('shell.home')}><BrandMark /><span>{t('app.name')}</span></Link>
+          {/* The short form only; the sidebar foot in the menu says the rest and is the one announced. */}
+          {syncLabel && <p className="bar-status">{syncLabel}</p>}
           <button ref={toggle} className="button button-icon" type="button" aria-label={t('shell.openMenu')}
             aria-expanded={menuOpen} aria-controls={MENU_ID} onClick={() => { setMenuOpen(true); }}>
             <Icon name="menu" />

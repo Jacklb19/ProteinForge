@@ -1,5 +1,7 @@
 # Lo que falta que haga el propietario — 1 nov 2026
 
+**Cierre:** publicación realizada y predicción/guardado/reapertura desde la web pública comprobados con tu sesión. El proyecto «Prueba de predicción 2026-11-01» queda en tu cuenta. [Informe de resultados y pendientes](release-2026-11-01.md). No tienes que repetir migración, variables ni autorización de esta entrega; el guion inferior es histórico. Lo que sigue a tu cargo es la prueba de aislamiento con la segunda cuenta y las decisiones de interfaz que continúan pendientes.
+
 **Actualización:** el propietario confirmó aplicada la migración nueva y configuradas las dos variables, y autorizó los push/merge de ambos repositorios con autoría exclusiva suya el 1 nov. No repetir esos pasos. La publicación y su verificación se realizan en esta entrega; [estado de publicación](prompt-siguiente-entrega.md#publicación-autorizada--1-nov-2026). Los pasos inferiores conservan el guion entregado antes de esa confirmación. El aislamiento con segunda cuenta y la colaboración para una prueba autenticada en producción siguen pendientes.
 
 ## Ya preparado y comprobado

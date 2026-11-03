@@ -7,7 +7,7 @@ import type { PreferencesContextValue } from './preferencesContext';
 import { isCatalogLoaded, loadCatalog, translateLoaded } from '../i18n/catalogs';
 import { DEFAULT_LOCALE } from '../i18n/config';
 import type { Locale } from '../i18n/config';
-import { BROWSER_COLOR_TOKEN } from './config';
+import { BROWSER_COLOR_TOKEN, DARK_SCHEME_QUERY } from './config';
 
 /** Makes local appearance and language preferences available to routes. */
 export function PreferencesProvider({ children }: { children: ReactNode }): React.JSX.Element {
@@ -34,7 +34,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
       if (color && metadata) metadata.setAttribute('content', color);
     };
     refreshBrowserColor();
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const systemTheme = window.matchMedia(DARK_SCHEME_QUERY);
     systemTheme.addEventListener('change', refreshBrowserColor);
     return () => { systemTheme.removeEventListener('change', refreshBrowserColor); };
   }, [preferences]);

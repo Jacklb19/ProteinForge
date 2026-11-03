@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { ROUTES } from '../../shared/navigation';
@@ -11,11 +11,15 @@ import { DEFAULT_PROJECT_QUERY, MAX_PROJECT_NAME_LENGTH, PROJECT_ORDERS, PROJECT
 import type { ProjectQuery } from './config';
 import { ProjectFeedback } from './ProjectControls';
 import { ProjectCard } from './ProjectCard';
-import type { ProjectDestination } from './ProjectCard';
+import type { CardSync, ProjectDestination } from './ProjectCard';
 import { ProjectDialog } from './ProjectDialog';
 import type { ProjectIntent } from './ProjectDialog';
 import { LabContext } from '../design-lab/context';
 import { SAVED_RUNS_ID, useGeneratorHistoryMode } from '../generator/historyMode';
+import { ConflictSection, SyncActions, SyncNote } from './ProjectSync';
+import { isOpen, needsAttention, pendingSummary } from './syncQueue';
+import type { SyncEntry } from './syncQueue';
+import { ProjectReports, UnlinkedReports } from '../reports/storage/SavedReportList';
 
 /** Search and sorting apply to the whole owned collection before paging. */
 export function ProjectLibrary(): React.JSX.Element {
@@ -30,6 +34,24 @@ export function ProjectLibrary(): React.JSX.Element {
   const [name, setName] = useState('');
   const [query, setQuery] = useState<ProjectQuery>(projects.listing);
   const showRuns = useGeneratorHistoryMode() === 'ready';
+  const [choosing, setChoosing] = useState<string | null>(null);
+  const offline = projects.connection === 'offline';
+  // «Saved» stays on its row until the person leaves Projects.
+  const clearSaved = useRef(() => { projects.clearSaved(); });
+  useLayoutEffect(() => { clearSaved.current = () => { projects.clearSaved(); }; });
+  useEffect(() => () => { clearSaved.current(); }, []);
+  const owner = auth.session?.user.id;
+  const mine = projects.pending.filter(entry => entry.owner === owner);
+  const waitingNew = mine.filter(entry => !entry.projectId && isOpen(entry));
+  const entryOf = (id: string): SyncEntry | undefined => mine.find(entry => entry.projectId === id || entry.saved?.id === id);
+  const lastSaved = mine.filter(entry => entry.state === 'saved').at(-1);
+  const attention = mine.filter(needsAttention).length;
+  /** A waiting new project has no menu nor open buttons; a failure or a conflict brings its own actions. */
+  const syncOf = (entry: SyncEntry | undefined, pending = false): CardSync | null => entry ? {
+    note: <SyncNote entry={entry} />, pending,
+    actions: needsAttention(entry) ? <SyncActions entry={entry} choosing={choosing === entry.key} onChoose={() => { setChoosing(value => value === entry.key ? null : entry.key); }} /> : pending ? false : undefined,
+    section: choosing === entry.key && entry.state === 'conflict' ? <ConflictSection entry={entry} onDone={() => { setChoosing(null); }} /> : undefined,
+  } : null;
   /** Opens a project and goes where its evidence lives; a comparison without analysis opens Alinear. */
   async function open(project: ProjectSummary, destination?: ProjectDestination): Promise<void> {
     const opened = await projects.open(project.id, destination === 'laboratory' ? 'laboratory' : undefined);
@@ -59,27 +81,34 @@ export function ProjectLibrary(): React.JSX.Element {
   if (!projects.enabled) return <p className="notice">{t('projects.config')}</p>;
   return <section id="projects" className="project-library" aria-label={t('projects.title')}>
     <form className="projects-toolbar" role="search" onSubmit={event => { event.preventDefault(); void projects.refresh(false, query); }}>
-      <div className="projects-search"><label className="visually-hidden" htmlFor="project-search">{t('projects.search')}</label><input id="project-search" type="search" className="text-input" value={query.query} maxLength={MAX_PROJECT_NAME_LENGTH} placeholder={t('projects.search')} onChange={event => { setQuery({ ...query, query: event.target.value }); }} disabled={projects.busy} /><button className="button button-secondary" type="submit" disabled={projects.busy}>{t('projects.searchAction')}</button></div>
-      <label className="visually-hidden" htmlFor="project-order">{t('projects.order')}</label><select id="project-order" className="text-input" value={query.order} disabled={projects.busy} onChange={event => {
+      <div className="projects-search"><label className="visually-hidden" htmlFor="project-search">{t('projects.search')}</label><input id="project-search" type="search" className="text-input" value={query.query} maxLength={MAX_PROJECT_NAME_LENGTH} placeholder={t('projects.search')} onChange={event => { setQuery({ ...query, query: event.target.value }); }} disabled={projects.busy || offline} /><button className="button button-secondary" type="submit" disabled={projects.busy || offline}>{t('projects.searchAction')}</button></div>
+      <label className="visually-hidden" htmlFor="project-order">{t('projects.order')}</label><select id="project-order" className="text-input" value={query.order} disabled={projects.busy || offline} onChange={event => {
         const order = PROJECT_ORDERS.find(value => value === event.target.value);
         if (order) { const next = { ...query, order }; setQuery(next); void projects.refresh(false, next); }
       }}>{PROJECT_ORDERS.map(order => <option key={order} value={order}>{t(PROJECT_ORDER_KEYS[order])}</option>)}</select>
     </form>
+    {offline && <p className="field-help search-offline">{t('sync.searchOffline')}</p>}
     {!intent && <ProjectFeedback />}
+    {!projects.syncing && lastSaved && attention > 0 && <div role="status"><p className="status-message" data-state="success">{t(attention === 1 ? 'sync.savedSomeOne' : 'sync.savedSome', { name: lastSaved.name, count: formatNumber(attention) })}</p></div>}
     {!projects.busy && !projects.error && projects.items.length === 0 && <div className="project-empty">{projects.listing.query ? <><p>{t('projects.noMatches')}</p><button className="button button-secondary" type="button" onClick={() => { setQuery(DEFAULT_PROJECT_QUERY); void projects.refresh(false, DEFAULT_PROJECT_QUERY); }}>{t('projects.clearSearch')}</button></> : <><div><h2>{t('projects.emptyTitle')}</h2><p>{t('projects.emptyHelp')}</p></div><Link className="button button-secondary" to={ROUTES.analyze}>{t('projects.begin')}</Link></>}</div>}
     <div className="project-grid" aria-busy={projects.busy}>
+      {/* Projects created without a connection exist only here until they are saved. */}
+      {waitingNew.map(entry => <ProjectCard key={entry.key} project={pendingSummary(entry)} busy={projects.busy} active={false} dirty={false} sync={syncOf(entry, true)} onOpen={() => undefined} onAction={() => undefined} />)}
       {projects.items.map(project => (
         <ProjectCard
           key={project.id} project={project} busy={projects.busy}
           active={project.id === projects.active?.id} dirty={projects.dirty} showRuns={showRuns}
+          offline={offline} sync={syncOf(entryOf(project.id))}
           onOpen={destination => { requestOpen(project, destination); }}
           onAction={action => {
             setName(action === 'duplicate' ? t('projects.copyName', { name: project.name }).slice(0, MAX_PROJECT_NAME_LENGTH) : project.name);
             setIntent({ action, project });
           }}
-        />
+        ><ProjectReports projectId={project.id} name={project.name} /></ProjectCard>
       ))}
     </div>
+    {/* With every project loaded, a report whose project is missing belongs to one deleted since. */}
+    <UnlinkedReports projectIds={!projects.busy && projects.nextPageToken === null && !projects.listing.query ? projects.items.map(project => project.id) : null} />
     <div className="projects-list-footer"><p className="field-help" role="status">{t(projects.items.length === 1 ? 'projects.loadedOne' : 'projects.loaded', { count: formatNumber(projects.items.length) })}</p><div className="actions">{projects.nextPageToken !== null && <button className="button button-secondary" disabled={projects.busy} type="button" onClick={() => { void projects.refresh(true); }}>{t('projects.more')}</button>}<button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { void projects.refresh(false, projects.listing); }}>{t('projects.refresh')}</button></div></div>
     {intent && <ProjectDialog intent={intent} name={name} setName={setName} onClose={() => { setIntent(null); }} onSubmit={submit} />}
   </section>;

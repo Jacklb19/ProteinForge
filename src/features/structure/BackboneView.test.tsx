@@ -154,6 +154,17 @@ describe('BackboneView repaints', () => {
     expect(paints()).toBe(2);
   });
 
+  it.each([[60, 30], [144, 29]])('repaints the idle turn at most 30 times a second on a %i Hz display', (hertz, repaints) => {
+    let next: FrameRequestCallback = () => undefined;
+    vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: () => undefined, removeEventListener: () => undefined }));
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => { next = callback; return 1; });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+    render(<BackboneView label="Insulin" colorMode="chemistry" idleTurn />);
+    expect(paints()).toBe(1);
+    for (let frameIndex = 0; frameIndex <= hertz; frameIndex += 1) next((frameIndex * 1000) / hertz);
+    expect(paints()).toBe(1 + repaints);
+  });
+
   it('paints again when the stage is resized', () => {
     let report = () => undefined as unknown;
     vi.stubGlobal('ResizeObserver', class {

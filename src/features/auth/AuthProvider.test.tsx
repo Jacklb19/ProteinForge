@@ -7,7 +7,7 @@ import type { AuthApi } from './authApi';
 import { useAuth } from './authContext';
 import type { AuthContextValue } from './authContext';
 import type { MfaApi } from './mfaApi';
-import { SESSION_REFRESH_MARGIN_SECONDS, SESSION_STORAGE_KEY } from './config';
+import { SESSION_REFRESH_MARGIN_SECONDS, SESSION_RETRY_DELAYS_MS, SESSION_STORAGE_KEY } from './config';
 import type { AuthSession } from './session';
 
 const settings = { url: 'https://project.supabase.co', anonKey: 'public-key' };
@@ -195,5 +195,77 @@ describe('second factor session', () => {
     }
     expect(mfa.listFactors).not.toHaveBeenCalled();
     expect(mfa.verifyCode).not.toHaveBeenCalled();
+  });
+});
+
+describe('session without a connection', () => {
+  it('keeps the session when the scheduled refresh finds no network, and refreshes when it returns', async () => {
+    const refresh = vi.fn().mockRejectedValueOnce(new AuthError('network')).mockResolvedValue(sessionAt('aal1', 'refreshed'));
+    const api = mockApi({ refresh });
+    renderProvider(api, mockMfa(), sessionAt('aal1', 'aal1-refresh', SESSION_REFRESH_MARGIN_SECONDS + 1));
+    await waitFor(() => { expect(refresh).toHaveBeenCalledTimes(1); }, { timeout: 3000 });
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByTestId('status')).toHaveTextContent('signed-in');
+    expect(storedSession()?.refreshToken).toBe('aal1-refresh');
+    act(() => { window.dispatchEvent(new Event('online')); });
+    await waitFor(() => { expect(storedSession()?.refreshToken).toBe('refreshed'); });
+    expect(refresh).toHaveBeenLastCalledWith('aal1-refresh');
+  });
+
+  it('opens with the stored session when it is about to expire and there is no network', async () => {
+    const api = mockApi({ refresh: vi.fn().mockRejectedValue(new AuthError('network')) });
+    renderProvider(api, mockMfa(), sessionAt('aal1', 'stale-refresh', SESSION_REFRESH_MARGIN_SECONDS - 1));
+    await waitFor(() => { expect(screen.getByTestId('status')).toHaveTextContent('signed-in'); });
+    expect(storedSession()?.refreshToken).toBe('stale-refresh');
+  });
+
+  it('still signs out when the service rejects the session', async () => {
+    const api = mockApi({ refresh: vi.fn().mockRejectedValue(new AuthError('session_expired')) });
+    renderProvider(api, mockMfa(), sessionAt('aal1', 'stale-refresh', SESSION_REFRESH_MARGIN_SECONDS - 1));
+    await waitFor(() => { expect(screen.getByTestId('status')).toHaveTextContent('anonymous'); });
+    expect(storedSession()).toBeNull();
+  });
+
+  it('never sends a pending retry after signing out', async () => {
+    const refresh = vi.fn().mockRejectedValue(new AuthError('network'));
+    renderProvider(mockApi({ refresh }), mockMfa(), sessionAt('aal1', 'aal1-refresh', SESSION_REFRESH_MARGIN_SECONDS + 1));
+    await waitFor(() => { expect(refresh).toHaveBeenCalledTimes(1); }, { timeout: 3000 });
+    fireEvent.click(screen.getByRole('button', { name: 'sign out' }));
+    act(() => { window.dispatchEvent(new Event('online')); });
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('session refresh review fixes', () => {
+  it.each([
+    ['a server error', new AuthError('unexpected_failure', 'unexpected_failure', 500)],
+    ['a rate limit', new AuthError('over_request_rate_limit', 'over_request_rate_limit', 429)],
+    ['a gateway page', new AuthError('unknown', 'unknown', 502)],
+  ])('keeps the session after %s', async (_name, error) => {
+    const api = mockApi({ refresh: vi.fn().mockRejectedValue(error) });
+    renderProvider(api, mockMfa(), sessionAt('aal1', 'stale-refresh', SESSION_REFRESH_MARGIN_SECONDS - 1));
+    await waitFor(() => { expect(screen.getByTestId('status')).toHaveTextContent('signed-in'); });
+    expect(storedSession()?.refreshToken).toBe('stale-refresh');
+  });
+
+  it('signs out on a 401 even with an unfamiliar code', async () => {
+    const api = mockApi({ refresh: vi.fn().mockRejectedValue(new AuthError('bad_jwt', 'bad_jwt', 401)) });
+    renderProvider(api, mockMfa(), sessionAt('aal1', 'stale-refresh', SESSION_REFRESH_MARGIN_SECONDS - 1));
+    await waitFor(() => { expect(screen.getByTestId('status')).toHaveTextContent('anonymous'); });
+  });
+
+  it('retries a failed refresh after a delay even when the browser never reports going offline', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const refresh = vi.fn().mockRejectedValueOnce(new AuthError('network')).mockResolvedValue(sessionAt('aal1', 'refreshed'));
+      // The scheduled refresh fails once; nothing else changes, so only the retry delay can bring a second one.
+      renderProvider(mockApi({ refresh }), mockMfa(), sessionAt('aal1', 'stale-refresh', SESSION_REFRESH_MARGIN_SECONDS + 1));
+      await waitFor(() => { expect(refresh).toHaveBeenCalledTimes(1); }, { timeout: 3000 });
+      await act(async () => { await vi.advanceTimersByTimeAsync(SESSION_RETRY_DELAYS_MS[0] / 2); });
+      expect(refresh).toHaveBeenCalledTimes(1);
+      await act(async () => { await vi.advanceTimersByTimeAsync(SESSION_RETRY_DELAYS_MS[0]); });
+      await waitFor(() => { expect(storedSession()?.refreshToken).toBe('refreshed'); });
+      expect(refresh).toHaveBeenCalledTimes(2);
+    } finally { vi.useRealTimers(); }
   });
 });
