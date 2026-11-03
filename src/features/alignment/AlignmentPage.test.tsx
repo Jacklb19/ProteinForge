@@ -68,6 +68,10 @@ describe('alignment interface', () => {
     enterSequences('AC-', 'AC');
     fireEvent.click(screen.getByRole('button', { name: spanish['alignment.start'] }));
     expect(screen.getByRole('status')).toHaveTextContent(spanish['alignment.invalid']);
+    expect(screen.getByRole('status')).toHaveTextContent(translate(DEFAULT_LOCALE, 'alignment.invalidIn', { name: spanish['alignment.first'], positions: '3' }));
+    expect(screen.getByLabelText(spanish['alignment.first'])).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText(spanish['alignment.first'])).toHaveAccessibleDescription(screen.getByRole('status').textContent);
+    expect(screen.getByLabelText(spanish['alignment.second'])).toHaveAttribute('aria-invalid', 'false');
     enterSequences('A'.repeat(5001), 'AC');
     fireEvent.click(screen.getByRole('button', { name: spanish['alignment.start'] }));
     expect(screen.getByRole('status')).toHaveTextContent(translate(DEFAULT_LOCALE, 'alignment.limit', { count: '5.000' }));
