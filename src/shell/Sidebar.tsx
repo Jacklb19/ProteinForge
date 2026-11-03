@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import { useAuth } from '../features/auth/authContext';
@@ -5,6 +6,8 @@ import { BrandMark } from '../shared/BrandMark';
 import { Icon } from '../shared/Icon';
 import { NAVIGATION_GROUPS, NAVIGATION_ITEMS, ROUTES } from '../shared/navigation';
 import { PreferenceControls } from './Preferences';
+import { ProjectContext } from '../features/projects/projectContext';
+import { SyncStatus } from '../features/projects/ProjectSync';
 
 interface Props {
   /** `rail` is the desktop column; `sheet` is the same content inside the phone menu. */
@@ -32,6 +35,7 @@ function AccountLink({ compact, onNavigate }: { compact: boolean; onNavigate?: (
 export function SidebarContent({ variant, compact = false, onToggle, onClose }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const { status } = useAuth();
+  const offline = useContext(ProjectContext)?.connection === 'offline';
   const label = (text: string): React.JSX.Element => <span className={compact ? 'sidebar-label is-tooltip' : 'sidebar-label'}>{text}</span>;
   const groups = NAVIGATION_GROUPS
     .map(group => ({ ...group, items: NAVIGATION_ITEMS.filter(item => item.group === group.id && (!item.signedInOnly || status === 'signed-in')) }))
@@ -58,13 +62,14 @@ export function SidebarContent({ variant, compact = false, onToggle, onClose }: 
     </nav>
     <div className="sidebar-foot">
       <NavLink className="sidebar-link" to={ROUTES.guide} onClick={onClose}><Icon name="help" />{label(t('nav.guide'))}</NavLink>
+      <SyncStatus compact={compact} onNavigate={onClose} />
       {status === 'signed-in'
         ? <AccountLink compact={compact} onNavigate={onClose} />
         : status === 'loading' ? null
           : <>
             <PreferenceControls className="sidebar-prefs" compact={compact} />
             <div className="sidebar-guest">
-              {!compact && <p>{t('shell.guestNote')}</p>}
+              {!compact && <p>{t(offline ? 'sync.guestOffline' : 'shell.guestNote')}</p>}
               <Link className="sidebar-link" to={ROUTES.signIn} onClick={onClose}><Icon name="user" />{label(t('shell.signIn'))}</Link>
               {status !== 'disabled' && !compact && <Link className="button button-primary" to={ROUTES.signUp} onClick={onClose}>{t('auth.signUpAction')}</Link>}
             </div>

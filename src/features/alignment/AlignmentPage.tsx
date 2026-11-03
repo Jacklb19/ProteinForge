@@ -91,7 +91,7 @@ export function AlignmentPage(): React.JSX.Element {
         </div>
         <div className="toolbar">
           <button className="button button-secondary" type="button" aria-expanded={projectOpen} aria-controls={PROJECT_PANEL_ID} onClick={() => { setProjectOpen((current) => !current); }}>{t('projects.save')}</button>
-          <ReportActions />
+          <ReportActions screen="alignment" />
         </div>
       </header>
       {projectOpen && <section id={PROJECT_PANEL_ID} className="tool-panel" aria-labelledby="project-panel-title"><ProjectControls /></section>}

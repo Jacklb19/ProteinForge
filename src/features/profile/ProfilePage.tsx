@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { LOCALES } from '../../i18n/config';
@@ -9,6 +9,8 @@ import { ROUTES } from '../../shared/navigation';
 import { SegmentedControl } from '../../shared/SegmentedControl';
 import { useAuth } from '../auth/authContext';
 import { SUPPORT_EMAIL_URL } from '../legal/config';
+import { ProjectContext } from '../projects/projectContext';
+import { isOpen } from '../projects/syncQueue';
 
 type PasswordState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -18,10 +20,16 @@ export function ProfilePage(): React.JSX.Element {
   const { chosenLocale, theme, setLocale, setTheme } = usePreferences();
   const auth = useAuth();
   const [password, setPassword] = useState<PasswordState>('idle');
+  const projects = useContext(ProjectContext);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
 
   if (auth.status === 'loading') return <main className="page page-narrow"><p className="status-message" role="status">{t('projects.sessionLoading')}</p></main>;
   if (auth.status !== 'signed-in' || !auth.session) return <Navigate to={ROUTES.signIn} state={{ from: ROUTES.profile }} replace />;
   const email = auth.session.user.email;
+  const owner = auth.session.user.id;
+  // Saves waiting for the connection live only in this tab: a deliberate sign-out discards them, so it asks first.
+  const waiting = projects?.pending.filter(entry => entry.owner === owner && isOpen(entry)).length ?? 0;
+  const signOut = (): void => { projects?.discardAll('mine'); void auth.signOut(); };
 
   const sendPasswordLink = (): void => {
     setPassword('sending');
@@ -38,9 +46,16 @@ export function ProfilePage(): React.JSX.Element {
         </div>
         <div className="profile-head-actions">
           <Link className="inline-link" to={ROUTES.home}><Icon name="globe" /><span>{t('shell.publicSite')}</span></Link>
-          <button className="button button-secondary" type="button" onClick={() => { void auth.signOut(); }}>{t('settings.signOut')}</button>
+          <button className="button button-secondary" type="button" aria-expanded={waiting ? confirmSignOut : undefined} onClick={() => { if (waiting) setConfirmSignOut(true); else signOut(); }}>{t('settings.signOut')}</button>
         </div>
       </header>
+      {confirmSignOut && waiting > 0 && <div className="project-confirm" role="group" aria-label={t('settings.signOut')}>
+        <p>{t(waiting === 1 ? 'sync.signOutPendingOne' : 'sync.signOutPending', { count: waiting })}</p>
+        <div className="actions">
+          <button className="button button-secondary" type="button" autoFocus onClick={() => { setConfirmSignOut(false); }}>{t('projects.cancel')}</button>
+          <button className="button button-primary" type="button" onClick={signOut}>{t('settings.signOut')}</button>
+        </div>
+      </div>}
       <nav className="profile-index" aria-label={t('workbench.account')}>
         <a href="#account-title">{t('settings.account')}</a><a href="#appearance-title">{t('account.appearance')}</a><a href="#privacy-title">{t('account.privacy')}</a>
       </nav>

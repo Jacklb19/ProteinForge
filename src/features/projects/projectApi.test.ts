@@ -66,6 +66,21 @@ describe('project transport', () => {
     expect(grpcWebRequest(DeleteProjectRequestSchema, body(fetcher, 2)).expectedUpdateTime?.nanos).toBe(123_456_000);
   });
 
+  it('sends a create request id only when given, and never on update', async () => {
+    const fetcher = vi.fn<Fetcher>()
+      .mockResolvedValueOnce(grpcWebResponse(CreateProjectResponseSchema, { project: message }))
+      .mockResolvedValueOnce(grpcWebResponse(CreateProjectResponseSchema, { project: message }))
+      .mockResolvedValueOnce(grpcWebResponse(UpdateProjectResponseSchema, { project: message }));
+    const api = createProjectApi('https://api.example', fetcher);
+    const requestId = '0b6e2f4a-3c1d-4e5f-8a9b-1c2d3e4f5a6b';
+    const saved = await api.save(payload, 'user-token', undefined, undefined, requestId);
+    await api.save(payload, 'user-token');
+    await api.save(payload, 'user-token', saved, undefined, requestId);
+    expect(grpcWebRequest(CreateProjectRequestSchema, body(fetcher, 0)).requestId).toBe(requestId);
+    expect(grpcWebRequest(CreateProjectRequestSchema, body(fetcher, 1)).requestId).toBe('');
+    expect(fetcher.mock.calls[2]?.[0]).toBe(`${SERVICE}/UpdateProject`);
+  });
+
   it('pages with opaque tokens', async () => {
     const fetcher = vi.fn<Fetcher>()
       .mockResolvedValueOnce(grpcWebResponse(ListProjectsResponseSchema, { projects: [summary], nextPageToken: 'next' }))

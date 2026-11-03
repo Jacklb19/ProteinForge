@@ -29,14 +29,16 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
       const response = await rpc(() => client.getProject({ id }, callOptions(signal, session(token))));
       return validated(projectSchema, projectDocument(response.project));
     },
-    save: async (payload: ProjectWrite, token: string, active?: { id: string; updatedAt: string }, signal?: AbortSignal): Promise<Project> => {
+    /** `requestId` makes a create idempotent on an API that supports it; updates are guarded by their version instead. */
+    save: async (payload: ProjectWrite, token: string, active?: { id: string; updatedAt: string }, signal?: AbortSignal, requestId?: string): Promise<Project> => {
       const options = callOptions(signal, session(token));
       const fields = { name: payload.name, activeSequence: payload.activeSequence, workspace: workspaceMessage(payload.workspace) };
-      const length=active?toBinary(UpdateProjectRequestSchema,create(UpdateProjectRequestSchema,{...fields,id:active.id,expectedUpdateTime:timestampFromIso(active.updatedAt)})).byteLength:toBinary(CreateProjectRequestSchema,create(CreateProjectRequestSchema,fields)).byteLength;
+      const createFields = { ...fields, requestId: requestId ?? '' };
+      const length=active?toBinary(UpdateProjectRequestSchema,create(UpdateProjectRequestSchema,{...fields,id:active.id,expectedUpdateTime:timestampFromIso(active.updatedAt)})).byteLength:toBinary(CreateProjectRequestSchema,create(CreateProjectRequestSchema,createFields)).byteLength;
       if(length>2_000_000)throw new ApiError(payload.workspace.laboratory?'laboratory-size':payload.workspace.generatorHistory?'generator-history-size':'validation');
       const { project } = await rpc(async () => active
         ? client.updateProject({ ...fields, id: active.id, expectedUpdateTime: timestampFromIso(active.updatedAt) }, options)
-        : client.createProject(fields, options));
+        : client.createProject(createFields, options));
       return validated(projectSchema, projectDocument(project));
     },
     remove: async (id: string, updatedAt: string, token: string, signal?: AbortSignal): Promise<void> => {

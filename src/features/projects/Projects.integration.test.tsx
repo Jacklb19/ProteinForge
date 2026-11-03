@@ -57,10 +57,10 @@ it('creates, updates, copies, reloads and detaches a draft through explicit proj
   await user.type(screen.getByLabelText('draft'), 'E');
   await user.click(screen.getByRole('button', { name: spanish['projects.update'] }));
   await waitFor(() => { expect(api.save).toHaveBeenCalledTimes(2); });
-  expect(api.save).toHaveBeenLastCalledWith(expect.objectContaining({ activeSequence: 'ACDE' }), 'owner-token', expect.objectContaining({ id: project.id }), expect.any(AbortSignal));
+  expect(api.save).toHaveBeenLastCalledWith(expect.objectContaining({ activeSequence: 'ACDE' }), 'owner-token', expect.objectContaining({ id: project.id }), expect.any(AbortSignal), undefined);
   await user.click(screen.getByRole('button', { name: spanish['projects.saveCopy'] }));
   await waitFor(() => { expect(api.save).toHaveBeenCalledTimes(3); });
-  expect(api.save).toHaveBeenLastCalledWith(expect.anything(), 'owner-token', undefined, expect.any(AbortSignal));
+  expect(api.save).toHaveBeenLastCalledWith(expect.anything(), 'owner-token', undefined, expect.any(AbortSignal), undefined);
   await user.click(screen.getByRole('button', { name: spanish['projects.reload'] }));
   await user.click(screen.getByRole('button', { name: spanish['projects.cancel'] }));
   expect(screen.getByLabelText('draft')).toHaveValue('ACDE');

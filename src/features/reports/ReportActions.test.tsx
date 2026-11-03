@@ -27,6 +27,7 @@ async function lastWorker(): Promise<TestWorker> {
   await act(async () => { await Promise.resolve(); });
   const value = TestWorker.instances.at(-1); if (!value) throw new Error('Missing Worker'); return value;
 }
+const SHA256 = 'a'.repeat(64);
 const createUrl = vi.fn<(blob: Blob | MediaSource) => string>().mockReturnValue('blob:report');
 beforeEach(() => { createUrl.mockClear(); TestWorker.instances = []; vi.stubGlobal('Worker', TestWorker); vi.spyOn(URL, 'createObjectURL').mockImplementation(createUrl); vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined); vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined); });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
@@ -35,20 +36,20 @@ it('exports the current normalized input and downloads only the completed Worker
   await user.type(screen.getByLabelText('draft'), 'a c d'); await user.click(screen.getByText(spanish['report.export']));
   await user.click(screen.getByRole('button', { name: spanish['report.json'] }));
   const worker = await lastWorker(); expect(worker.postMessage.mock.calls[0]?.[0]?.format).toBe('json'); expect(worker.postMessage.mock.calls[0]?.[0]?.input.activeSequence).toBe('ACD');
-  const blob = new Blob(['{}'], { type: 'application/json' }); act(() => { worker.send({ id: 1, blob }); });
+  const blob = new Blob(['{}'], { type: 'application/json' }); act(() => { worker.send({ id: 1, blob, sha256: SHA256 }); });
   expect(createUrl).toHaveBeenCalledWith(blob); expect(worker.terminate).toHaveBeenCalled();
   expect(screen.getByRole('status')).toHaveTextContent(spanish['report.done']);
 });
 it('does not download an export after inputs change or cancellation, and terminates on unmount', async () => {
   const user = userEvent.setup(); const rendered = renderPage(); await user.type(screen.getByLabelText('draft'), 'ACD'); await user.click(screen.getByText(spanish['report.export']));
   await user.click(screen.getByRole('button', { name: spanish['report.pdf'] })); const stale = await lastWorker();
-  await user.type(screen.getByLabelText('draft'), 'E'); act(() => { stale.send({ id: 1, blob: new Blob() }); });
+  await user.type(screen.getByLabelText('draft'), 'E'); act(() => { stale.send({ id: 1, blob: new Blob(), sha256: SHA256 }); });
   expect(screen.getByRole('status')).toHaveTextContent(spanish['report.stale']); expect(createUrl).not.toHaveBeenCalled();
   await user.click(screen.getByRole('button', { name: spanish['report.profileCsv'] })); const cancelled = await lastWorker();
-  await user.click(screen.getByRole('button', { name: spanish['projects.cancel'] })); act(() => { cancelled.send({ id: 1, blob: new Blob() }); });
+  await user.click(screen.getByRole('button', { name: spanish['projects.cancel'] })); act(() => { cancelled.send({ id: 1, blob: new Blob(), sha256: SHA256 }); });
   expect(createUrl).not.toHaveBeenCalled(); expect(cancelled.terminate).toHaveBeenCalled();
   await user.click(screen.getByRole('button', { name: spanish['report.pdf'] })); const pending = await lastWorker(); rendered.unmount();
-  act(() => { pending.send({ id: 1, blob: new Blob() }); }); expect(pending.terminate).toHaveBeenCalled(); expect(createUrl).not.toHaveBeenCalled();
+  act(() => { pending.send({ id: 1, blob: new Blob(), sha256: SHA256 }); }); expect(pending.terminate).toHaveBeenCalled(); expect(createUrl).not.toHaveBeenCalled();
 });
 it('keeps failures recoverable and rejects invalid sequence before creating a Worker', async () => {
   const user = userEvent.setup(); renderPage(); await user.type(screen.getByLabelText('draft'), 'AC!'); await user.click(screen.getByText(spanish['report.export']));

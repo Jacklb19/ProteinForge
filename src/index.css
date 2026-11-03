@@ -209,6 +209,52 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .toolbar-popover .button { justify-content: start; border-color: var(--transparent); font-weight: var(--font-weight-regular); }
 .toolbar-popover .button:hover:not(:disabled) { background: var(--bg-subtle); }
 .toolbar-popover .status-message { padding: var(--space-2xs) var(--space-md); }
+/* Reports saved to the account: the save group of the Export menu and the rows in Projects. */
+.report-popover { width: min(var(--width-form), calc(100vw - 2 * var(--space-md))); gap: var(--space-3xs); }
+.report-downloads { display: grid; gap: var(--space-3xs); }
+.report-group-title { margin: var(--space-none); padding: var(--space-2xs) var(--space-md) var(--space-none); color: var(--text-secondary); font-size: var(--font-size-small); }
+.report-save { display: grid; gap: var(--space-xs); margin-block-start: var(--space-xs); padding: var(--space-sm) var(--space-md) var(--space-xs); border-block-start: var(--border-width) solid var(--border-subtle); }
+.report-save .report-group-title { padding: var(--space-none); color: var(--text-primary); font-weight: var(--font-weight-strong); font-size: var(--font-size-base); }
+.report-save .field-help, .report-save .notice p { margin: var(--space-none); }
+.report-save .notice { display: grid; gap: var(--space-xs); }
+.report-save .notice strong { font-size: var(--font-size-base); }
+.toolbar-popover .report-save .status-message { padding: var(--space-none); }
+.toolbar-popover .report-save .button { justify-content: center; border-color: var(--border-strong); font-weight: var(--font-weight-strong); }
+.toolbar-popover .report-save .button-primary { border-color: var(--accent-brand); }
+.toolbar-popover .report-save .button-quiet, .toolbar-popover .report-save .inline-link { justify-content: start; border-color: var(--transparent); }
+.report-format .segmented-option span { padding-inline: var(--space-xs); font-size: var(--font-size-small); }
+.report-usage { margin: var(--space-none); font-family: var(--font-sequence); font-size: var(--font-size-small); color: var(--text-secondary); }
+.report-state { display: grid; gap: var(--space-xs); }
+.report-state p { margin: var(--space-none); }
+.report-state progress { width: var(--width-full); height: var(--height-progress); accent-color: var(--text-primary); }
+.report-state[data-state='error'] { padding: var(--space-xs) var(--space-sm); border-inline-start: var(--border-width-indicator) solid var(--status-error); background: var(--status-error-subtle); }
+.report-state[data-state='success'] { padding: var(--space-xs) var(--space-sm); border-inline-start: var(--border-width-indicator) solid var(--status-success); background: var(--status-success-subtle); }
+.report-state .inline-link { justify-self: start; justify-content: start; padding-inline: var(--space-none); }
+.report-confirm-actions, .report-state-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); }
+.report-list { display: grid; gap: var(--space-none); margin: var(--space-none); padding: var(--space-none); list-style: none; }
+.report-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2xs) var(--space-md); padding-block: var(--space-xs); border-block-end: var(--border-width) solid var(--border-subtle); }
+.report-row:last-child { border-block-end: none; }
+.report-row-text { display: grid; min-width: var(--space-none); flex: 1 1 var(--width-setting-copy); }
+.report-row-text p { margin: var(--space-none); overflow-wrap: anywhere; }
+.report-row-title { font-weight: var(--font-weight-strong); }
+.report-row-meta { color: var(--text-secondary); font-size: var(--font-size-small); }
+.report-row-meta .hash { font-family: var(--font-sequence); font-size: var(--font-size-note); }
+.report-row-actions { display: flex; flex-wrap: wrap; gap: var(--space-none) var(--space-2xs); }
+.report-row-actions .button-quiet { min-height: var(--size-touch); font-size: var(--font-size-small); }
+.report-row[data-state='pending'] .report-row-title { color: var(--text-secondary); }
+.report-row .project-confirm, .report-row-problem { flex: 1 1 var(--width-full); margin: var(--space-none); }
+.project-reports { margin-block-start: var(--space-md); padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
+.project-reports > summary { display: inline-flex; align-items: center; min-height: var(--size-touch); font-weight: var(--font-weight-strong); cursor: pointer; }
+.unlinked-reports { display: grid; gap: var(--space-xs); padding: var(--space-lg); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-surface); background: var(--bg-raised); }
+.unlinked-reports h2 { font-size: var(--font-size-section); margin: var(--space-none); }
+.unlinked-reports > p { margin: var(--space-none); color: var(--text-secondary); font-size: var(--font-size-small); }
+.reports-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-xs) var(--space-md); }
+@media (max-width: 47.99rem) {
+  /* The save group does not fit anchored to Export on a phone: it spans the action bar instead. */
+  .page-head .toolbar:has(.report-popover) { position: relative; }
+  .toolbar .report-menu:has(.report-popover) { position: static; }
+  .toolbar .report-popover { inset-inline: var(--space-none); width: auto; max-width: none; }
+}
 .tool-panel { display: grid; gap: var(--space-sm); padding-block: var(--space-lg); border-block-end: var(--border-width) solid var(--border-subtle); animation: fade var(--duration-enter) var(--ease-enter) both; }
 .page-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: var(--space-md) var(--space-xl); padding-block: var(--space-lg) var(--space-md); }
 .page-heading-text { display: grid; gap: var(--space-xs); }
@@ -711,4 +757,30 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
   /* The action reads after the text on a narrow screen, where the header would leave it stranded. */
   .reading .section-header { display: grid; }
   .reading .section-header .button { order: 1; justify-self: start; }
+}
+
+/* Projects waiting for the connection (RF-15 A): the row says its state; a conflict is settled inside the row. */
+.sync-state { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-sm); font-size: var(--font-size-small); }
+.sync-state p { margin-inline-end: auto; }
+.sync-state strong { font-weight: var(--font-weight-strong); }
+.search-offline { margin-block-start: var(--space-xs); }
+.project-card-footer .sync-note { width: var(--width-full); font-size: var(--font-size-note); font-weight: var(--font-weight-strong); text-align: end; }
+.project-card-footer .sync-note[data-state='error'] { color: var(--status-error); }
+.project-card-footer .sync-note[data-state='success'] { color: var(--status-success); }
+.project-card-footer .sync-detail { width: var(--width-full); text-align: end; }
+.project-card-footer .actions { justify-content: end; gap: var(--space-2xs); }
+.project-card[data-conflict='true'] { grid-template-columns: minmax(0, 1fr); }
+.project-conflict { display: grid; gap: var(--space-md); padding: var(--space-md) var(--space-lg) var(--space-lg); border-block-start: var(--border-width) solid var(--border-subtle); }
+.project-conflict > p:first-child { font-weight: var(--font-weight-strong); }
+.project-conflict .actions { align-items: center; }
+.versions { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--width-setting-copy), 1fr)); gap: var(--space-sm) var(--space-lg); }
+.versions > div { display: grid; gap: var(--space-3xs); padding-block-start: var(--space-xs); border-block-start: var(--border-width) solid var(--border-subtle); }
+.versions dt { color: var(--text-secondary); font-size: var(--font-size-small); }
+.versions dd { font-size: var(--font-size-small); }
+.versions dd strong { display: block; font-size: var(--font-size-base); font-weight: var(--font-weight-strong); }
+@media (max-width: 47.99rem) {
+  .project-card-footer .sync-note, .project-card-footer .sync-detail { text-align: start; }
+  .project-card-footer .actions { justify-content: start; }
+  .project-conflict { padding: var(--space-md); }
+  .project-conflict .actions .button { width: var(--width-full); }
 }

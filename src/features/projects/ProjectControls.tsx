@@ -6,6 +6,7 @@ import { useAuth } from '../auth/authContext';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 import { useProjects } from './projectContext';
 import { MAX_PROJECT_NAME_LENGTH, PROJECT_ERROR_KEYS } from './config';
+import { SyncQueued } from './ProjectSync';
 
 /**
  * `fresh` shows only successes of actions taken after it appeared, so a dialog never presents an earlier
@@ -18,7 +19,7 @@ export function ProjectFeedback({ fresh = false }: { fresh?: boolean }): React.J
   const recent = !fresh || projects.attempt !== shown;
   return (
     <div className="project-feedback" aria-live="polite" role="status">
-      {projects.busy && <p className="status-message">{t('projects.busy')}</p>}
+      {projects.busy && !projects.syncing && <p className="status-message">{t('projects.busy')}</p>}
       {projects.error && (
         <p className="status-message" data-state="error">
           {t(PROJECT_ERROR_KEYS[projects.error.code])}
@@ -56,7 +57,8 @@ function SaveForm({ descriptors }: { descriptors?: DescriptorState }): React.JSX
         )}
       </form>
 
-      {projects.active && (
+      {/* A waiting save says its own state below; «unsaved changes» would contradict it. */}
+      {projects.active && projects.queuedAnalysis?.projectId !== projects.active.id && (
         <div className="project-state">
           <p>{t(projects.dirty ? 'projects.unsaved' : 'projects.upToDate', { name: projects.active.name })}</p>
           <button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { setReloadPending(true); }}>{t('projects.reload')}</button>
@@ -90,6 +92,7 @@ export function ProjectControls({ descriptors }: { descriptors?: DescriptorState
     <>
       <h2 id="project-panel-title" className="visually-hidden">{t('projects.workTitle')}</h2>
       {auth.status === 'loading' ? <p className="field-help">{t('projects.sessionLoading')}</p>
+        : auth.status !== 'signed-in' && projects.queuedAnalysis ? <SyncQueued entry={projects.queuedAnalysis} />
         : auth.status !== 'signed-in' ? (
           <div className="project-empty">
             <p>{t('projects.signInHelp')}</p>
@@ -103,7 +106,7 @@ export function ProjectControls({ descriptors }: { descriptors?: DescriptorState
             {/* A new key resets the name field when the open project changes. */}
             <SaveForm key={`${projects.active?.id ?? 'new'}:${projects.active?.name ?? ''}`} descriptors={descriptors} />
             <p className="field-help">{t('projects.saveHelp')} <Link className="inline-link" to={ROUTES.projects}>{t('projects.listLink')}</Link></p>
-            <ProjectFeedback />
+            {projects.queuedAnalysis ? <SyncQueued entry={projects.queuedAnalysis} /> : <ProjectFeedback />}
           </>
         )}
     </>

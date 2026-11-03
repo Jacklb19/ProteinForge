@@ -10,6 +10,9 @@ const E2E_PUBLIC_ENV = {
   VITE_API_BASE_URL: 'https://api.e2e.invalid',
   // The mocked API accepts workspace version 3, so the suite exercises saving generator searches.
   VITE_GENERATOR_HISTORY: 'enabled',
+  // ReportService and the signed Storage addresses are mocked too (e2e/reportStorage.ts); suites whose API has
+  // no report storage answer it as unimplemented, so the Export menu offers downloads only.
+  VITE_REPORT_STORAGE: 'enabled',
 };
 const configured = loadEnv('development', process.cwd(), 'VITE_');
 for (const [name, value] of Object.entries(E2E_PUBLIC_ENV)) {

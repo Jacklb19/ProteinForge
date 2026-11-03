@@ -50,6 +50,14 @@ export const SESSION_STORAGE_KEY = 'proteinforge.session';
 /** Sessions are refreshed this many seconds before their access token expires. */
 export const SESSION_REFRESH_MARGIN_SECONDS = 60;
 
+/**
+ * Only these answers to a refresh mean the session is over; anything else (no network, 5xx, 429, a gateway
+ * page) keeps it and the refresh runs again after each delay in turn, the last one repeating.
+ */
+export const SESSION_REJECTED_STATUSES: readonly number[] = [400, 401];
+export const SESSION_REJECTED_CODES: readonly string[] = ['invalid_grant', 'refresh_token_not_found', 'refresh_token_already_used', 'session_not_found', 'session_expired'];
+export const SESSION_RETRY_DELAYS_MS = [5_000, 15_000, 60_000] as const;
+
 /** Form rules shown to the visitor and enforced before any request. */
 export const PASSWORD_MIN_LENGTH = 8;
 export const EMAIL_MAX_LENGTH = 254;

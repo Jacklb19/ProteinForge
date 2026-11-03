@@ -118,6 +118,13 @@
 .sidebar-foot { display: grid; gap: var(--space-2xs); padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
 .sidebar-guest { display: grid; gap: var(--space-xs); padding-block-start: var(--space-xs); margin-block-start: var(--space-2xs); border-block-start: var(--border-width) solid var(--border-subtle); }
 .sidebar-guest p { padding-inline: var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-note); }
+/* Saves waiting for the connection (RF-15 A): one status line beside the account, and its short form in the phone bar. */
+.sync-status { display: grid; gap: var(--space-3xs); padding: var(--space-2xs) var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-note); }
+.sync-status strong { color: var(--text-primary); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
+.sync-status .button-quiet { justify-self: start; min-height: var(--size-touch); font-size: var(--font-size-small); }
+.sync-status .alignment-progress { margin-block: var(--space-3xs); }
+.sync-status[data-compact='true'] { justify-items: center; padding-inline: var(--space-none); color: var(--text-primary); }
+.bar-status { margin-inline: auto var(--space-2xs); color: var(--text-primary); font-size: var(--font-size-note); font-weight: var(--font-weight-strong); }
 .account-area { position: relative; padding-block-start: var(--space-xs); margin-block-start: var(--space-2xs); border-block-start: var(--border-width) solid var(--border-subtle); }
 .account-area .account-link { color: var(--text-primary); }
 .account-link .avatar { width: var(--size-avatar); height: var(--size-avatar); }

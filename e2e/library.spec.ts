@@ -37,6 +37,8 @@ async function serveUniProt(page: Page, entry: typeof reference): Promise<void> 
   await page.route(isRpc, (route) => {
     const method = rpcMethod(route);
     if (method === 'ProjectService/ListProjects') return fulfillRpc(route, ListProjectsResponseSchema, {});
+    // This API stores no reports: the Export menu then offers downloads only.
+    if (method.startsWith('ReportService/')) return fulfillRpcError(route, GRPC_CODES.unimplemented, 'unimplemented');
     expect(route.request().headers().authorization).toBe(`Bearer ${ACCOUNT.accessToken}`);
     if (method === 'ReferenceService/GetResidueMapping') {
       const request = rpcRequest(route, GetResidueMappingRequestSchema);

@@ -59,6 +59,10 @@ Se conservan RF-01 a RF-16 para mantener trazabilidad; RF-17 y RF-18 identifican
 
 RF-17 conserva parámetros/semilla/versiones en JSON, cancelación y condiciones/diversidad medidas. Implementación revisable autorizada: longitud fija 5–300, masa/GRAVY, 100–5.000 evaluaciones por brazo, recocido simulado y referencia aleatoria. [Método, límites y cinco semillas](candidates.md). No garantiza óptimo, función ni estabilidad. Historial completo de búsquedas en proyectos pendiente.
 
+RF-15 (propuesta A aprobada el 2 nov 2026): el cálculo ya funcionaba sin conexión; ahora los guardados en Proyectos que no pueden enviarse esperan en la pestaña y se guardan solos al volver la red, con estado junto a la cuenta y en cada fila, reintentos y conflictos resueltos en la fila. Implementado en local en ambos repositorios, sin publicar; la idempotencia de creación necesita aplicar la migración, publicar el backend y activar `VITE_PROJECT_CREATE_IDEMPOTENCY`. Lo pendiente no sobrevive a cerrar la pestaña. [Decisión](decisiones.md).
+
+RF-14 guarda además informes en la cuenta (propuesta A aprobada el 2 nov 2026): implementado en local en ambos repositorios, oculto tras `VITE_REPORT_STORAGE` y sin publicar; falta aplicar la migración de Storage, publicar el backend, actualizar el pin y comprobar Storage, JWT y dos cuentas reales. [Detalle](reports.md).
+
 RF-18 enviará la secuencia únicamente tras una acción y consentimiento explícitos. El resultado debe validarse y etiquetarse como predicción, con proveedor y confianza cuando exista. Guardar estructuras previas permite una demostración de respaldo, siempre identificadas como resultados guardados. Un fallo externo debe ser visible, no sustituirse por coordenadas ficticias.
 
 ## Criterios y requisitos de calidad

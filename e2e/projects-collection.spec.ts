@@ -54,6 +54,8 @@ async function mockCollection(page: Page, leading: Project[] = []) {
     const method = rpcMethod(route);
     if (method === 'AccountService/GetStatus') return fulfillRpc(route, GetStatusResponseSchema, { status: 'ok', version: '0.1.0', identityConfigured: true });
     if (method === 'AccountService/GetMe') return fulfillRpc(route, GetMeResponseSchema, { id: TEST_ACCOUNT.id, email: TEST_ACCOUNT.email });
+    // Report storage is answered by mockReportStorage where a test uses it; elsewhere this API has none.
+    if (method.startsWith('ReportService/')) return fulfillRpcError(route, GRPC_CODES.unimplemented, 'unimplemented');
     expect(route.request().headers().authorization).toBe(`Bearer ${TEST_ACCOUNT.accessToken}`);
     if (method === 'ProjectService/ListProjects') {
       const request = rpcRequest(route, ListProjectsRequestSchema); queries.push(request);

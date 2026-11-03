@@ -6,7 +6,7 @@ import { AuthError, createAuthApi, parseFragmentSession } from './authApi';
 import type { AuthApi } from './authApi';
 import { readAssurance } from './assurance';
 import type { MfaApi } from './mfaApi';
-import { readAuthSettings, SESSION_REFRESH_MARGIN_SECONDS } from './config';
+import { readAuthSettings, SESSION_REFRESH_MARGIN_SECONDS, SESSION_REJECTED_CODES, SESSION_REJECTED_STATUSES, SESSION_RETRY_DELAYS_MS } from './config';
 import type { AuthSettings } from './config';
 import { isExpiring, loadSession, saveSession } from './session';
 import type { AuthSession } from './session';
@@ -93,18 +93,47 @@ export function AuthProvider({ children, settings, api, mfaApi }: Props): React.
     if (!next) setRecoveryPending(false);
   }, []);
 
-  /** Refreshes from the given token and applies the outcome only while that token is still the current one. */
-  const refreshFrom = useCallback((refreshToken: string, keepOnNetworkError = false) => {
+  // A refresh that failed without a rejection; it runs again after a delay, or sooner when the network returns.
+  const [retry, setRetry] = useState<{ token: string; attempt: number } | null>(null);
+
+  /**
+   * Refreshes from the given token and applies the outcome only while that token is still the current one.
+   * With `keepUnlessRejected`, only the service rejecting the token signs out: without a network, a 5xx, a 429
+   * or a gateway page the session stays (`stored` is the one to resume when the app opened with it nearly
+   * expired), so work in progress can still be saved later.
+   */
+  const refreshFrom = useCallback((refreshToken: string, keepUnlessRejected = false, stored: AuthSession | null = null, attempt = 0) => {
     if (!client) return Promise.resolve();
     return client.refresh(refreshToken).then(
       (refreshed) => { if (currentRefreshToken.current === refreshToken) apply(refreshed); },
       (error: unknown) => {
         if (currentRefreshToken.current !== refreshToken) return;
-        if (keepOnNetworkError && error instanceof AuthError && error.code === 'network') return;
+        const rejected = error instanceof AuthError
+          && ((error.status !== undefined && SESSION_REJECTED_STATUSES.includes(error.status)) || SESSION_REJECTED_CODES.includes(error.code));
+        if (keepUnlessRejected && !rejected) {
+          if (stored) { setSession(stored); setStatus('signed-in'); }
+          setRetry({ token: refreshToken, attempt });
+          return;
+        }
         apply(null);
       },
     );
   }, [client, apply]);
+
+  useEffect(() => {
+    if (!retry) return;
+    const again = (): void => {
+      if (document.visibilityState === 'hidden') return;
+      setRetry(null);
+      // A sign-out or a newer session meanwhile makes this token stale; it is never sent again then.
+      if (currentRefreshToken.current === retry.token) void refreshFrom(retry.token, true, null, retry.attempt + 1);
+    };
+    const delay = SESSION_RETRY_DELAYS_MS[Math.min(retry.attempt, SESSION_RETRY_DELAYS_MS.length - 1)];
+    const timer = window.setTimeout(again, delay);
+    window.addEventListener('online', again);
+    document.addEventListener('visibilitychange', again);
+    return () => { window.clearTimeout(timer); window.removeEventListener('online', again); document.removeEventListener('visibilitychange', again); };
+  }, [retry, refreshFrom]);
 
   useEffect(() => {
     if (!client) return;
@@ -113,13 +142,13 @@ export function AuthProvider({ children, settings, api, mfaApi }: Props): React.
     }
     if (!initial.staleSession) return;
     currentRefreshToken.current = initial.staleSession.refreshToken;
-    void refreshFrom(initial.staleSession.refreshToken);
+    void refreshFrom(initial.staleSession.refreshToken, true, initial.staleSession);
   }, [client, initial, refreshFrom]);
 
   useEffect(() => {
     if (!client || !session) return;
     const delayMs = Math.max(0, (session.expiresAt - SESSION_REFRESH_MARGIN_SECONDS) * 1000 - Date.now());
-    refreshTimer.current = window.setTimeout(() => { void refreshFrom(session.refreshToken); }, delayMs);
+    refreshTimer.current = window.setTimeout(() => { void refreshFrom(session.refreshToken, true); }, delayMs);
     return () => { if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current); };
   }, [client, session, refreshFrom]);
 

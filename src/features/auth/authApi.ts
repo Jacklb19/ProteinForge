@@ -14,10 +14,13 @@ const schemas = (): Promise<typeof import('./schemas')> => (loading ??= import('
 /** Failure reported by Supabase Auth or the network, identified by a stable code. */
 export class AuthError extends Error {
   readonly code: string;
-  constructor(code: string, message = code) {
+  /** HTTP status of a response the service did send; absent when no response arrived. */
+  readonly status?: number;
+  constructor(code: string, message = code, status?: number) {
     super(message);
     this.name = 'AuthError';
     this.code = code;
+    this.status = status;
   }
 }
 
@@ -60,17 +63,18 @@ export function createAuthRequest(settings: AuthSettings, fetchImplementation: F
   return async (path, init) => {
     const headers: Record<string, string> = { apikey: settings.anonKey, 'Content-Type': 'application/json' };
     if (init.accessToken) headers.Authorization = `Bearer ${init.accessToken}`;
-    let response: Response;
+    let response: Response, text: string;
     try {
       response = await fetchImplementation(`${base}${path}`, {
         method: init.method,
         headers,
         body: init.body === undefined ? undefined : JSON.stringify(init.body),
       });
+      // A connection that drops while the body arrives is as much a network failure as one that never opens.
+      text = await response.text();
     } catch {
       throw new AuthError('network');
     }
-    const text = await response.text();
     let data: unknown = null;
     if (text) {
       try { data = JSON.parse(text); } catch { data = null; }
@@ -80,7 +84,7 @@ export function createAuthRequest(settings: AuthSettings, fetchImplementation: F
       const parsed = errorResponseSchema.safeParse(data);
       const details = parsed.success ? parsed.data : {};
       const code = details.error_code ?? (typeof details.code === 'string' ? details.code : undefined) ?? details.error ?? 'unknown';
-      throw new AuthError(code, details.msg ?? details.message ?? details.error_description ?? code);
+      throw new AuthError(code, details.msg ?? details.message ?? details.error_description ?? code, response.status);
     }
     return data;
   };

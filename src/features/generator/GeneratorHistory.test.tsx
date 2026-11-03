@@ -32,6 +32,7 @@ afterEach(() => { vi.unstubAllEnvs(); });
 function projects(changes: Partial<ProjectContextValue> = {}): ProjectContextValue {
   return { enabled: true, active, laboratory: null, items: [], nextPageToken: null, dirty: false, busy: false, error: null, notice: null, attempt: 0, listing: DEFAULT_PROJECT_QUERY,
     refresh: vi.fn(), open: vi.fn(), saveLaboratory: vi.fn(), save: vi.fn(), rename: vi.fn(), duplicate: vi.fn(), remove: vi.fn(), detach: vi.fn(),
+    connection: 'online', pending: [], syncing: false, queuedAnalysis: null, queuedLaboratory: null, retry: vi.fn(), discard: vi.fn(), discardAll: vi.fn(), clearSaved: vi.fn(), resolve: vi.fn(),
     saveGeneratorRun: vi.fn().mockResolvedValue({ project: 'Insulina', added: true }), removeGeneratorRun: vi.fn().mockResolvedValue(true), ...changes };
 }
 const generator: GeneratorState = { form: INITIAL_SEARCH_FORM, setForm: vi.fn(), result, progress: null, status: 'done', run: vi.fn(), cancel: vi.fn(), restore: vi.fn() };

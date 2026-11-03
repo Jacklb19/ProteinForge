@@ -5,10 +5,12 @@ import type { DescriptorState } from '../descriptors/useDescriptors';
 import type { Project, ProjectSummary } from './contracts';
 import type { GeneratorRunSelection } from '../generator/history';
 import type { ProjectQuery } from './config';
+import type { ConflictChoice, SyncEntry } from './syncQueue';
 
 /** Where a generator search is saved: the project open in Analyze, another saved project, or a new one. */
 export type GeneratorRunTarget = { kind: 'active' } | { kind: 'project'; id: string } | { kind: 'new'; name: string };
-export interface GeneratorRunSaved { project: string; added: boolean }
+/** `queued`: no connection, the search waits in this tab and is added when it returns. */
+export interface GeneratorRunSaved { project: string; added: boolean; queued?: boolean }
 export interface ProjectContextValue {
   enabled: boolean;
   active: Project | null;
@@ -22,6 +24,21 @@ export interface ProjectContextValue {
   /** Counts the actions started, so feedback can tell an earlier success from a new one. */
   attempt: number;
   listing: ProjectQuery;
+  /** Whether the API answers; `navigator.onLine` alone only says that some network exists. */
+  connection: 'online' | 'offline';
+  /** Saves waiting in this tab (every account), oldest first; saved ones stay until cleared. */
+  pending: readonly SyncEntry[];
+  syncing: boolean;
+  /** The waiting saves fed by the Analyze/Compare drafts and by the laboratory. */
+  queuedAnalysis: SyncEntry | null;
+  queuedLaboratory: SyncEntry | null;
+  retry(key: string): void;
+  discard(key: string): void;
+  /** `mine`: this account's waiting saves, before a deliberate sign-out; `others`: those of another account. */
+  discardAll(scope: 'mine' | 'others'): void;
+  clearSaved(): void;
+  /** Settles a conflict: keep both (`copyName` names yours), yours over the account's, or the account's. */
+  resolve(key: string, choice: ConflictChoice, copyName: string): Promise<void>;
   refresh(more?: boolean, query?: ProjectQuery): Promise<boolean>;
   open(id: string, destination?: 'laboratory'): Promise<Project | null>;
   saveLaboratory(name: string, copy?: boolean): Promise<boolean>;

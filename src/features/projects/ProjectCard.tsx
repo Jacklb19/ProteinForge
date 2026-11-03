@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from '../../i18n';
 import { languageTags } from '../../i18n/locale';
 import { SequenceRibbon } from '../chemistry/SequenceRibbon';
@@ -7,10 +8,16 @@ import { PROJECT_MASS_DA_PER_KDA, PROJECT_PREVIEW_PRECISION, PROJECT_RELATIVE_IN
 
 export type ProjectDestination = 'analyze' | 'alignment' | 'laboratory' | 'generator';
 export type ProjectAction = 'rename' | 'duplicate' | 'delete';
-interface Props { project: ProjectSummary; busy: boolean; active: boolean; dirty: boolean; showRuns?: boolean; onOpen: (destination?: ProjectDestination) => void; onAction: (action: ProjectAction) => void }
+/**
+ * A save waiting for the connection: `note` replaces the date, `actions` the open buttons (`false` hides them),
+ * `section` follows the footer (a conflict), and `pending` marks a project that exists only in this tab.
+ */
+export interface CardSync { note: ReactNode; actions?: ReactNode | false; section?: ReactNode; pending?: boolean }
+/** `children`: extra evidence kept elsewhere, such as the project's saved reports, shown after its details. `offline` locks rename, copy and delete. */
+interface Props { project: ProjectSummary; busy: boolean; active: boolean; dirty: boolean; showRuns?: boolean; offline?: boolean; sync?: CardSync | null; onOpen: (destination?: ProjectDestination) => void; onAction: (action: ProjectAction) => void; children?: ReactNode }
 
 /** Saved scientific evidence; rendering never calculates or retrieves a full project. */
-export function ProjectCard({ project, busy, active, dirty, showRuns = false, onOpen, onAction }: Props): React.JSX.Element {
+export function ProjectCard({ project, busy, active, dirty, showRuns = false, offline = false, sync = null, onOpen, onAction, children }: Props): React.JSX.Element {
   const { t, locale, formatDate, formatNumber } = useTranslation();
   const menu = useRef<HTMLDetailsElement>(null);
   const preview = project.preview;
@@ -33,18 +40,19 @@ export function ProjectCard({ project, busy, active, dirty, showRuns = false, on
     <p>{label && <>{label} · </>}{t('projects.prefix', { count: formatNumber(prefix.length), length: formatNumber(length) })}</p>
   </div> : null;
   const metric = (label: string, value: string): React.JSX.Element => <div><dt>{label}</dt><dd>{value}</dd></div>;
-  return <article className="project-card" data-active={active} aria-label={project.name}>
-    <details className="project-card-menu" ref={menu} onKeyDown={event => {
+  return <article className="project-card" data-active={active} data-conflict={Boolean(sync?.section) || undefined} aria-label={project.name}>
+    {!sync?.pending && <details className="project-card-menu" ref={menu} onKeyDown={event => {
       if (event.key === 'Escape' && menu.current) { event.preventDefault(); menu.current.open = false; menu.current.querySelector('summary')?.focus(); }
     }}>
       <summary aria-label={t('projects.actionsNamed', { name: project.name })}><span aria-hidden="true">⋯</span></summary>
-      <div className="project-card-options">{(['rename', 'duplicate', 'delete'] as const).map(action => <button key={action} type="button" disabled={busy} className={`button button-quiet${action === 'delete' ? ' link-danger' : ''}`} aria-label={t(`projects.${action}Named`, { name: project.name })} onClick={() => {
+      <div className="project-card-options">{(['rename', 'duplicate', 'delete'] as const).map(action => <button key={action} type="button" disabled={busy || offline} className={`button button-quiet${action === 'delete' ? ' link-danger' : ''}`} aria-label={t(`projects.${action}Named`, { name: project.name })} onClick={() => {
         if (menu.current) { menu.current.open = false; menu.current.querySelector('summary')?.focus(); } onAction(action);
       }}>{t(`projects.${action}`)}</button>)}</div>
-    </details>
+    </details>}
     <div className="project-card-body">
       <p className="project-kind">{t(comparison ? preview.sequenceLength ? 'projects.mixed' : 'projects.comparison' : 'projects.analysis')}</p>
-      <h2>{project.name}</h2>
+      {/* Focusable from code only: a settled conflict returns the focus here. */}
+      <h2 tabIndex={-1}>{project.name}</h2>
       {preview?.hasLaboratory && <p className="project-origin">{t(preview.laboratoryVariants === 1 ? 'lab.projectVariantsOne' : 'lab.projectVariants', { count: preview.laboratoryVariants ?? 0 })}</p>}
       {showRuns && Boolean(preview?.generatorRuns) && <p className="project-origin">{t(preview?.generatorRuns === 1 ? 'projects.generatorRunsOne' : 'projects.generatorRuns', { count: formatNumber(preview?.generatorRuns ?? 0) })}</p>}
       {source && <p className="project-origin">{t(source.origin === 'catalog' ? 'projects.catalogSource' : 'projects.uniprotSource', { accession: source.accession })}</p>}
@@ -73,15 +81,18 @@ export function ProjectCard({ project, busy, active, dirty, showRuns = false, on
         </section>}
 
       </details>}
+      {children}
     </div>
-    <footer className="project-card-footer">
-      <time dateTime={project.updatedAt} title={formatDate(new Date(project.updatedAt), { dateStyle: 'medium', timeStyle: 'short' })}>{relative}</time>
-      <div className="project-open-actions">
+    {/* An open conflict takes the footer's place: the choice is the only action left on the row. */}
+    {!sync?.section && <footer className="project-card-footer">
+      {sync ? sync.note : <time dateTime={project.updatedAt} title={formatDate(new Date(project.updatedAt), { dateStyle: 'medium', timeStyle: 'short' })}>{relative}</time>}
+      {sync?.actions === false ? null : sync?.actions ?? <div className="project-open-actions">
         {preview?.hasLaboratory && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('lab.openProjectNamed',{name:project.name})} onClick={()=>{onOpen('laboratory');}}>{t('lab.openProject')}<span aria-hidden="true"> ↗</span></button>}
         {(Boolean(preview?.sequenceLength) || !comparison) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t(comparison ? 'projects.openAnalysisNamed' : 'projects.openNamed', { name: project.name })} onClick={() => { onOpen(preview ? 'analyze' : undefined); }}>{t(preview ? 'projects.openAnalysis' : 'projects.open')}<span aria-hidden="true"> ↗</span></button>}
         {showRuns && Boolean(preview?.generatorRuns) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openRunsNamed', { name: project.name })} onClick={() => { onOpen('generator'); }}>{t('projects.openRuns')}<span aria-hidden="true"> ↗</span></button>}
         {comparison && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openAlignmentNamed', { name: project.name })} onClick={() => { onOpen('alignment'); }}>{t('projects.openAlignment')}<span aria-hidden="true"> ↗</span></button>}
-      </div>
-    </footer>
+      </div>}
+    </footer>}
+    {sync?.section}
   </article>;
 }

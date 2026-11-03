@@ -70,6 +70,17 @@ describe('Supabase Auth client', () => {
     expect((failure as AuthError).code).toBe('network');
   });
 
+  it('reports a body that stops arriving as a network failure, and keeps the status of an answer', async () => {
+    const broken = new Response('{}', { status: 200 });
+    vi.spyOn(broken, 'text').mockRejectedValue(new TypeError('network error'));
+    const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>()
+      .mockResolvedValueOnce(broken)
+      .mockResolvedValueOnce(response(503, { error_code: 'unexpected_failure' }));
+    const api = createAuthApi(settings, fetchMock);
+    await expect(api.refresh('refresh')).rejects.toMatchObject({ code: 'network' });
+    await expect(api.refresh('refresh')).rejects.toMatchObject({ code: 'unexpected_failure', status: 503 });
+  });
+
   it('sends recovery, password update and sign out with the right credentials', async () => {
     const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>().mockImplementation(() => Promise.resolve(response(200, {})));
     const api = createAuthApi(settings, fetchMock);
