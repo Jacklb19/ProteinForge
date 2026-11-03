@@ -775,6 +775,7 @@ export const spanish = {
   'auth.errorPasswordMismatch': 'Las contraseñas no coinciden.',
   'auth.errorInvalidCredentials': 'El correo o la contraseña no son correctos.',
   'auth.errorEmailNotConfirmed': 'Confirma tu correo antes de entrar; revisa tu bandeja de entrada.',
+  'auth.errorPasswordLong': 'La contraseña es demasiado larga: admite hasta {{max}} bytes (las letras con tilde y los emoji ocupan más de uno).',
   'auth.errorUserExists': 'Ya existe una cuenta con ese correo. Entra o recupera la contraseña.',
   'auth.errorWeakPassword': 'La contraseña es demasiado débil; usa más caracteres distintos.',
   'auth.errorRateLimited': 'Demasiados intentos seguidos. Espera un momento y vuelve a intentarlo.',

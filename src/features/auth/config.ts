@@ -60,6 +60,8 @@ export const SESSION_RETRY_DELAYS_MS = [5_000, 15_000, 60_000] as const;
 
 /** Form rules shown to the visitor and enforced before any request. */
 export const PASSWORD_MIN_LENGTH = 8;
+/** Supabase hashes passwords with bcrypt, which ignores everything after the first 72 bytes of UTF-8. */
+export const PASSWORD_MAX_BYTES = 72;
 export const EMAIL_MAX_LENGTH = 254;
 
 /** Identity providers offered through Supabase redirection; each must be enabled in the project. */

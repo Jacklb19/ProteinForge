@@ -777,6 +777,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'auth.errorPasswordMismatch': 'The passwords do not match.',
   'auth.errorInvalidCredentials': 'The email or the password is incorrect.',
   'auth.errorEmailNotConfirmed': 'Confirm your email before signing in; check your inbox.',
+  'auth.errorPasswordLong': 'The password is too long: it allows up to {{max}} bytes (accented letters and emoji take more than one).',
   'auth.errorUserExists': 'An account with that email already exists. Sign in or recover the password.',
   'auth.errorWeakPassword': 'The password is too weak; use more distinct characters.',
   'auth.errorRateLimited': 'Too many attempts in a row. Wait a moment and try again.',
