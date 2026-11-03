@@ -26,4 +26,13 @@ describe('deployed application headers', () => {
     const scripts = /script-src ([^;]+)/.exec(csp)?.[1]?.trim().split(/\s+/) ?? [];
     expect(scripts).toStrictEqual(["'self'", "'wasm-unsafe-eval'"]);
   });
+
+  // No plugins, no rebased relative links, no form posting elsewhere and no framing by other sites.
+  it('closes the directives that default-src does not cover', () => {
+    const csp = headers.get('Content-Security-Policy') ?? '';
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("base-uri 'self'");
+    expect(csp).toContain("form-action 'self'");
+    expect(csp).toContain("frame-ancestors 'none'");
+  });
 });
