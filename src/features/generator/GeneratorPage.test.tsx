@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest';
@@ -119,5 +119,16 @@ it('does not create another Worker when all constraints are disabled', async () 
   await user.click(screen.getByLabelText(spanish['generator.enableGravy']));
   expect(screen.getByLabelText(spanish['generator.enableGravy'])).not.toBeChecked(); expect(screen.getByLabelText(spanish['generator.enableMass'])).not.toBeChecked();
   await user.click(screen.getByRole('button', { name: spanish['generator.run'] }));
-  expect(screen.getByText(spanish['generator.invalid'])).toBeVisible(); expect(TestWorker.instances).toHaveLength(1);
+  expect(document.getElementById('generator-status')).toHaveTextContent(`${spanish['generator.invalid']} ${spanish['generator.invalidNoRange']}`); expect(TestWorker.instances).toHaveLength(1);
+  expect(screen.getByLabelText(spanish['generator.enableGravy'])).toHaveAttribute('aria-invalid', 'true');
+});
+it('names a range whose minimum is above its maximum and marks both limits', async () => {
+  const user = userEvent.setup(); renderPage(); await complete(await initialWorker());
+  const gravy = within(screen.getByRole('group', { name: spanish['generator.gravy'] }));
+  const minimum = gravy.getByLabelText(spanish['generator.minimum']);
+  await user.clear(minimum); await user.type(minimum, '1');
+  await user.click(screen.getByRole('button', { name: spanish['generator.run'] }));
+  expect(document.getElementById('generator-status')).toHaveTextContent(spanish['generator.invalidOrder'].replace('{{range}}', spanish['generator.gravy']));
+  expect(minimum).toHaveAttribute('aria-invalid', 'true'); expect(gravy.getByLabelText(spanish['generator.maximum'])).toHaveAttribute('aria-invalid', 'true');
+  expect(TestWorker.instances).toHaveLength(1);
 });

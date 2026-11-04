@@ -1,11 +1,13 @@
 import { z } from 'zod';
-import { EMAIL_MAX_LENGTH, PASSWORD_MIN_LENGTH, TOTP_CODE_LENGTH, TOTP_FACTOR_NAME_MAX_LENGTH } from './config';
+import { EMAIL_MAX_LENGTH, PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH, TOTP_CODE_LENGTH, TOTP_FACTOR_NAME_MAX_LENGTH } from './config';
 import type { TranslationKey } from '../../i18n/translate';
 
 /** Field-level rules; each failure maps to a catalog key so the message is translated at render time. */
 export const emailSchema = z.string().trim().min(1, 'auth.errorEmailRequired').max(EMAIL_MAX_LENGTH, 'auth.errorEmailInvalid')
   .refine((value) => z.email().safeParse(value).success, { message: 'auth.errorEmailInvalid' });
-export const passwordSchema = z.string().min(1, 'auth.errorPasswordRequired').min(PASSWORD_MIN_LENGTH, 'auth.errorPasswordShort');
+const passwordBytes = new TextEncoder();
+export const passwordSchema = z.string().min(1, 'auth.errorPasswordRequired').min(PASSWORD_MIN_LENGTH, 'auth.errorPasswordShort')
+  .refine((value) => passwordBytes.encode(value).length <= PASSWORD_MAX_BYTES, { message: 'auth.errorPasswordLong' });
 
 export const signInSchema = z.object({ email: emailSchema, password: z.string().min(1, 'auth.errorPasswordRequired') });
 export const signUpSchema = z.object({ email: emailSchema, password: passwordSchema, confirm: z.string() })

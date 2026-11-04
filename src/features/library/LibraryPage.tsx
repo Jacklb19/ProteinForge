@@ -26,6 +26,8 @@ import { OPEN_PROJECT_STATE } from '../editor/config';
 
 const INSULIN_ACCESSION = 'P01308';
 const INSULIN_STRUCTURE: PdbReference = { id: '1TRZ', method: 'X-ray', resolution: '1.60 Å', chains: 'A/C=90-110, B/D=25-54' };
+/** The example's first copy of the A chain, so it opens on one residue instead of asking to choose between copies. */
+const INSULIN_CHAIN = 'A';
 const INSULIN_REFERENCE = (() => {
   const reference = REFERENCE_CATALOG.find(item => item.accession === INSULIN_ACCESSION);
   if (!reference) throw new Error('Missing bundled reference');
@@ -49,7 +51,7 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
   // The bundled example opens with its measured structure already on screen.
   const [structure, setStructure] = useState<PdbReference | null>(() => restored ? restored.structures.find(item => item.id === restored.pdbId) ?? null : INSULIN_STRUCTURE);
   const [position, setPosition] = useState<number | null>(restored?.position ?? 90);
-  const [chain, setChain] = useState<string | null>(restored?.chain ?? null);
+  const [chain, setChain] = useState<string | null>(restored ? restored.chain : INSULIN_CHAIN);
   // A documented part or an assembly travels without a source: it is not a complete reference entry.
   const [pending, setPending] = useState<Loading | null>(null);
   const controller = useRef<AbortController | null>(null);

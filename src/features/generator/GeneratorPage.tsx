@@ -7,7 +7,7 @@ import { ROUTES } from '../../shared/navigation';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { useGenerator } from './context';
-import { parseSearchForm } from './searchForm';
+import { parseSearchForm, searchFormProblems } from './searchForm';
 import { GENERATOR_CONFIG as C } from './config';
 import type { SearchArm, SearchResult } from './search';
 import { downloadSearch } from './download';
@@ -15,6 +15,8 @@ import { SavedRuns } from './GeneratorHistory';
 import { useGeneratorSave } from './useGeneratorSave';
 import { residueClass } from '../chemistry/config';
 import { ChemistryLegend } from '../chemistry/ChemistryLegend';
+
+const STATUS_ID = 'generator-status';
 
 /** The result's own actions; saving to a project sits next to the download of the same file. */
 function ResultActions({ result, unavailable, onCompare }: { result: SearchResult; unavailable: boolean; onCompare: () => void }): React.JSX.Element {
@@ -45,6 +47,10 @@ export function GeneratorPage(): React.JSX.Element {
   const stale = result !== null && (!parsed.success || JSON.stringify(parsed.data) !== JSON.stringify(result.parameters));
   const busy = status === 'running';
   const unavailable = stale || busy;
+  // A refused search names what to fix and marks those fields; the browser already reports out-of-range numbers itself.
+  const problems = status === 'invalid' ? searchFormProblems(form) : [];
+  const flagged = new Set(problems.flatMap((problem) => problem.fields));
+  const invalidProps = (key: keyof typeof form): { 'aria-invalid'?: true; 'aria-describedby'?: string } => flagged.has(key) ? { 'aria-invalid': true, 'aria-describedby': STATUS_ID } : {};
 
   function analyze(value: string, confirmed = false): void {
     if (sequence.text && sequence.text !== value && !confirmed) { setPending({ sequence: value }); return; }
@@ -65,7 +71,7 @@ export function GeneratorPage(): React.JSX.Element {
         <span>{t(label)}</span>
         <input
           id={`generator-${key}`} className="text-input" type="number" inputMode={step === 1 ? 'numeric' : 'decimal'}
-          min={minimum} max={maximum} step={step} value={form[key]} disabled={busy} required
+          min={minimum} max={maximum} step={step} value={form[key]} disabled={busy} required {...invalidProps(key)}
           onChange={(event) => { generator.setForm({ [key]: event.target.value }); setPending(null); }}
         />
       </label>
@@ -131,7 +137,7 @@ export function GeneratorPage(): React.JSX.Element {
           <fieldset>
             <legend>{t('generator.gravy')}</legend>
             <label className="checkbox-option">
-              <input type="checkbox" checked={form.gravyEnabled} disabled={busy} onChange={(event) => { generator.setForm({ gravyEnabled: event.target.checked }); setPending(null); }} />
+              <input type="checkbox" checked={form.gravyEnabled} disabled={busy} {...invalidProps('gravyEnabled')} onChange={(event) => { generator.setForm({ gravyEnabled: event.target.checked }); setPending(null); }} />
               <span>{t('generator.enableGravy')}</span>
             </label>
             <div className="generator-range">
@@ -142,7 +148,7 @@ export function GeneratorPage(): React.JSX.Element {
           <fieldset>
             <legend>{t('generator.mass')}</legend>
             <label className="checkbox-option">
-              <input type="checkbox" checked={form.massEnabled} disabled={busy} onChange={(event) => { generator.setForm({ massEnabled: event.target.checked }); setPending(null); }} />
+              <input type="checkbox" checked={form.massEnabled} disabled={busy} {...invalidProps('massEnabled')} onChange={(event) => { generator.setForm({ massEnabled: event.target.checked }); setPending(null); }} />
               <span>{t('generator.enableMass')}</span>
             </label>
             <div className="generator-range">
@@ -156,7 +162,7 @@ export function GeneratorPage(): React.JSX.Element {
           <button type="submit" className="button button-primary" disabled={busy}>{t('generator.run')}</button>
           {busy && <button type="button" className="button button-secondary" onClick={generator.cancel}>{t('generator.cancel')}</button>}
         </div>
-        <p role="status" className="status-message" data-state={status === 'invalid' || status === 'error' ? 'error' : undefined}>{status === 'idle' ? '' : t(`generator.${status}`)}</p>
+        <p id={STATUS_ID} role="status" className="status-message" data-state={status === 'invalid' || status === 'error' ? 'error' : undefined}>{status === 'idle' ? '' : [t(`generator.${status}`), ...problems.map((problem) => t(problem.messageKey, { range: problem.rangeKey ? t(problem.rangeKey) : '' }))].join(' ')}</p>
         {progress && (
           <div className="generator-progress">
             <label htmlFor="generator-progress">{t('generator.progress', { done: progress.completed, total: progress.total })}</label>
@@ -169,7 +175,7 @@ export function GeneratorPage(): React.JSX.Element {
         <section className="section generator-results" aria-labelledby="generator-results">
           <h2 id="generator-results">{t('generator.results')}</h2>
           <p>{t('generator.runDetails', { seed: result.parameters.seed, budget: result.parameters.budget, length: result.parameters.length })}</p>
-          {stale && <p role="status" className="status-message" data-state="error">{t('generator.stale')}</p>}
+          {stale && <p role="status" className="notice">{t('generator.stale')}</p>}
 
           {/* Guided search is only meaningful against the reference arm of the same budget. */}
           <div className="generator-table" tabIndex={0} role="region" aria-label={t('generator.comparison')}>

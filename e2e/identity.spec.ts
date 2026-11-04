@@ -31,3 +31,13 @@ test('favicon and browser metadata follow application tokens and preferences', a
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', surface);
   }
 });
+
+test('each page names the browser tab and an unknown address names the missing page', async ({ page }) => {
+  const named = (key: keyof typeof spanish): string => spanish['app.pageTitle'].replace('{{page}}', spanish[key]).replace('{{app}}', spanish['app.name']);
+  await page.goto(ROUTES.alignment);
+  await expect(page).toHaveTitle(named('nav.alignment'));
+  await page.goto(ROUTES.library);
+  await expect(page).toHaveTitle(named('nav.library'));
+  await page.goto('/no-such-page');
+  await expect(page).toHaveTitle(named('notFound.title'));
+});

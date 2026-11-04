@@ -4,7 +4,7 @@ import { LocaleProvider } from '../i18n';
 import { loadPreferences, savePreferences } from './preferences';
 import { PreferencesContext } from './preferencesContext';
 import type { PreferencesContextValue } from './preferencesContext';
-import { isCatalogLoaded, loadCatalog, translateLoaded } from '../i18n/catalogs';
+import { isCatalogLoaded, loadCatalog } from '../i18n/catalogs';
 import { DEFAULT_LOCALE } from '../i18n/config';
 import type { Locale } from '../i18n/config';
 import { BROWSER_COLOR_TOKEN, DARK_SCHEME_QUERY } from './config';
@@ -22,7 +22,6 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
 
   useEffect(() => {
     document.documentElement.lang = preferences.locale;
-    document.title = translateLoaded(preferences.locale, 'app.title');
     if (preferences.theme === 'system') {
       delete document.documentElement.dataset.theme;
     } else {

@@ -149,6 +149,8 @@
 .workspace-sheet { display: flex; flex-direction: column; inset: var(--space-none) auto var(--space-none) var(--space-none); width: min(var(--width-full), var(--width-workspace-sheet)); height: 100dvh; max-height: 100dvh; padding: var(--space-sm); border-block-end: none; border-inline-end: var(--border-width) solid var(--border-subtle); }
 .workspace-sheet:not([open]) { display: none; }
 .workspace-sheet .sidebar-head { min-height: var(--height-bar); padding-block-end: var(--space-xs); }
+/* The menu scrolls as a whole: on a short screen (a phone on its side, browser zoom) the links keep their height instead of shrinking to a strip above the foot. */
+.workspace-sheet .sidebar-nav { flex: 1 0 auto; min-height: auto; overflow-y: visible; }
 
 @media (min-width: 64rem) {
   .public-hero { grid-template-columns: minmax(0, var(--ratio-hero-copy)) minmax(0, var(--ratio-hero-stage)); column-gap: var(--space-2xl); }

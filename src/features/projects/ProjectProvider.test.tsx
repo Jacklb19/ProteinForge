@@ -160,3 +160,29 @@ describe('project lifecycle', () => {
     expect(localStorage.getItem(`${PROJECT_POINTER_PREFIX}owner`)).toBeNull();
   });
 });
+describe('leaving with unsaved drafts', () => {
+  const leaving = (): boolean => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; };
+  const signedOut: AuthContextValue = { ...auth, status: 'anonymous', session: null };
+  it('asks before a reload discards a sequence the visitor typed, and stops once it is cleared', () => {
+    render(<Harness api={service()} initialIdentity={signedOut} />);
+    expect(leaving()).toBe(false);
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: 'MKWV' } });
+    expect(leaving()).toBe(true);
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: '' } });
+    expect(leaving()).toBe(false);
+  });
+  it.each(['profile window', 'comparison'])('counts a changed parameter as the visitor\'s own input: %s', (parameter) => {
+    render(<Harness api={service()} initialIdentity={signedOut} />);
+    fireEvent.click(screen.getByRole('button', { name: parameter }));
+    expect(leaving()).toBe(true);
+  });
+  it('leaves an open project that matches its saved inputs without asking, and asks after a later edit', async () => {
+    render(<Harness api={service()} />);
+    await waitFor(() => { expect(screen.getByRole('button', { name: 'open' })).toBeEnabled(); });
+    fireEvent.click(screen.getByRole('button', { name: 'open' }));
+    await waitFor(() => { expect(screen.getByTestId('state')).toHaveTextContent(project.id); });
+    expect(leaving()).toBe(false);
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: 'ACDE' } });
+    expect(leaving()).toBe(true);
+  });
+});

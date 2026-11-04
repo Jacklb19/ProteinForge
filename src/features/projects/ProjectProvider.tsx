@@ -6,7 +6,9 @@ import { useAuth } from '../auth/authContext';
 import { readApiBaseUrl } from '../api/config';
 import { ApiError } from '../api/errors';
 import { useSequenceDraft } from '../editor/sequenceDraft';
+import type { SequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
+import type { AlignmentDraft } from '../alignment/alignmentDraft';
 import { DEFAULT_MATRIX, DEFAULT_MODE, SCORING_SUBSTITUTIONS } from '../alignment/config';
 import { DEFAULT_HYDROPATHY_WINDOW } from '../descriptors/config';
 import type { ProjectApi } from './projectApi';
@@ -45,6 +47,16 @@ function remember(owner: string, id: string | null): void {
     if (id) localStorage.setItem(`${PROJECT_POINTER_PREFIX}${owner}`, id);
     else localStorage.removeItem(`${PROJECT_POINTER_PREFIX}${owner}`);
   } catch { /* Private contexts may disable storage; server persistence still works. */ }
+}
+/** True while both drafts are empty or still hold the examples the application opens with. */
+function untouchedDrafts(sequence: SequenceDraft, alignment: AlignmentDraft): boolean {
+  const sequenceUntouched = (!sequence.text || sequence.text === DEFAULT_EXAMPLE.text)
+    && sequence.profileWindow === DEFAULT_HYDROPATHY_WINDOW
+    && (!sequence.source || sequence.source === DEFAULT_EXAMPLE.source);
+  const alignmentUntouched = ((!alignment.first && !alignment.second)
+    || (alignment.first === EXAMPLE_ALIGNMENT_INPUT.first && alignment.second === EXAMPLE_ALIGNMENT_INPUT.second))
+    && alignment.matrix === DEFAULT_MATRIX && alignment.mode === DEFAULT_MODE;
+  return sequenceUntouched && alignmentUntouched;
 }
 function lastProject(owner: string): string | null {
   try { const id = localStorage.getItem(`${PROJECT_POINTER_PREFIX}${owner}`); return id && /^[a-f0-9-]{36}$/i.test(id) ? id : null; } catch { return null; }
@@ -188,14 +200,8 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     controller.current = operation;
     locked.current = Boolean(user && client);
     const id = user ? lastProject(user) : null;
-    // The last project resumes only over untouched drafts: empty, or still the examples the application opens with.
-    const sequenceUntouched = (!sequence.text || sequence.text === DEFAULT_EXAMPLE.text)
-      && sequence.profileWindow === DEFAULT_HYDROPATHY_WINDOW
-      && (!sequence.source || sequence.source === DEFAULT_EXAMPLE.source);
-    const alignmentUntouched = ((!alignment.first && !alignment.second)
-      || (alignment.first === EXAMPLE_ALIGNMENT_INPUT.first && alignment.second === EXAMPLE_ALIGNMENT_INPUT.second))
-      && alignment.matrix === DEFAULT_MATRIX && alignment.mode === DEFAULT_MODE;
-    const canRestore = sequenceUntouched && alignmentUntouched;
+    // The last project resumes only over untouched drafts.
+    const canRestore = untouchedDrafts(sequence, alignment);
     const resumeRevision = inputRevision.current;
     queueMicrotask(() => { setState({ ...EMPTY, owner: user, busy: Boolean(user && client) }); });
     if (user && client) {
@@ -232,6 +238,15 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     window.addEventListener('beforeunload', warn);
     return () => { window.removeEventListener('beforeunload', warn); };
   }, [current.active, user, sequence.text, sequence.profileWindow, alignment]);
+
+  // Without an open project the drafts exist only in this tab, so leaving with the visitor's own input asks first (the browser's own prompt).
+  const ownInput = !untouchedDrafts(sequence, alignment);
+  useEffect(() => {
+    if (current.active || !ownInput) return;
+    const warn = (event: BeforeUnloadEvent): void => { event.preventDefault(); };
+    window.addEventListener('beforeunload', warn);
+    return () => { window.removeEventListener('beforeunload', warn); };
+  }, [current.active, ownInput]);
 
   // Waiting saves exist only in this tab, so closing or reloading it asks first (the browser's own prompt).
   const unsent = queue.some(isOpen);

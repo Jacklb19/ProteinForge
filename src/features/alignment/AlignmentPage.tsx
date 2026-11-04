@@ -22,6 +22,7 @@ import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
 
 const PROJECT_PANEL_ID = 'project-panel';
+const STATUS_ID = 'alignment-status';
 
 /** Two sequences side by side: what they share, where they part, and the residues behind each difference. */
 export function AlignmentPage(): React.JSX.Element {
@@ -45,7 +46,14 @@ export function AlignmentPage(): React.JSX.Element {
   useEffect(() => { if (openExample) startWorker(currentInput); }, [openExample, startWorker, currentInput]);
 
   function start(): void {
-    if (a.invalidPositions.length > 0 || b.invalidPositions.length > 0) { setMessage(t('alignment.invalid')); return; }
+    if (a.invalidPositions.length > 0 || b.invalidPositions.length > 0) {
+      // Each sequence with invalid characters is named with its positions, counted from 1 as in the editor.
+      const where = [{ name: firstName, positions: a.invalidPositions }, { name: secondName, positions: b.invalidPositions }]
+        .filter((field) => field.positions.length > 0)
+        .map((field) => t('alignment.invalidIn', { name: field.name, positions: field.positions.map((position) => formatNumber(position + 1)).join(', ') }));
+      setMessage([t('alignment.invalid'), ...where].join(' '));
+      return;
+    }
     if (!a.sequence || !b.sequence) { setMessage(t('alignment.empty')); return; }
     if (a.sequence.length > MAX_ALIGNMENT_RESIDUES || b.sequence.length > MAX_ALIGNMENT_RESIDUES) {
       setMessage(t('alignment.limit', { count: formatNumber(MAX_ALIGNMENT_RESIDUES) }));
@@ -104,7 +112,7 @@ export function AlignmentPage(): React.JSX.Element {
               <label htmlFor="alignment-first">{firstName}</label>
               <span className="field-meta">{residueCount(a.sequence)}</span>
             </div>
-            <textarea id="alignment-first" spellCheck={false} value={first} onChange={(event) => { update({ first: event.target.value }); }} />
+            <textarea id="alignment-first" spellCheck={false} aria-invalid={a.invalidPositions.length > 0} aria-describedby={a.invalidPositions.length > 0 ? STATUS_ID : undefined} value={first} onChange={(event) => { update({ first: event.target.value }); }} />
             {analysisSequence.length > 0 && analysisSequence !== a.sequence && (
               <button className="button button-quiet" type="button" onClick={() => { update({ first: analysisSequence }); }}>{t('alignment.useAnalysis')}</button>
             )}
@@ -114,7 +122,7 @@ export function AlignmentPage(): React.JSX.Element {
               <label htmlFor="alignment-second">{secondName}</label>
               <span className="field-meta">{residueCount(b.sequence)}</span>
             </div>
-            <textarea id="alignment-second" spellCheck={false} value={second} onChange={(event) => { update({ second: event.target.value }); }} />
+            <textarea id="alignment-second" spellCheck={false} aria-invalid={b.invalidPositions.length > 0} aria-describedby={b.invalidPositions.length > 0 ? STATUS_ID : undefined} value={second} onChange={(event) => { update({ second: event.target.value }); }} />
           </div>
         </div>
         <div className="comparison-controls">
@@ -142,7 +150,7 @@ export function AlignmentPage(): React.JSX.Element {
           </div>
         </div>
         {status === 'running' && <progress className="alignment-progress" max={1} value={worker.progress} aria-label={t('alignment.progress')} />}
-        <div className="status-message" data-state={message || failure ? 'error' : status} role="status" aria-live="polite">
+        <div id={STATUS_ID} className="status-message" data-state={message || failure ? 'error' : status} role="status" aria-live="polite">
           {message || failure || (status === 'running' && t('alignment.running', { percent: formatNumber(worker.progress, PROGRESS_FORMAT) })) || (status === 'cancelled' && t('alignment.cancelled'))}
         </div>
         {warnings.map((warning) => <p className="notice" key={warning} role="note">{t(warning)}</p>)}

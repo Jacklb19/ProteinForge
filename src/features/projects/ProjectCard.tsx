@@ -50,7 +50,7 @@ export function ProjectCard({ project, busy, active, dirty, showRuns = false, of
       }}>{t(`projects.${action}`)}</button>)}</div>
     </details>}
     <div className="project-card-body">
-      <p className="project-kind">{t(comparison ? preview.sequenceLength ? 'projects.mixed' : 'projects.comparison' : 'projects.analysis')}</p>
+      <p className="project-kind">{t(comparison ? preview.sequenceLength ? 'projects.mixed' : 'projects.comparison' : preview?.hasLaboratory && !preview.sequenceLength ? 'workbench.laboratory' : 'projects.analysis')}</p>
       {/* Focusable from code only: a settled conflict returns the focus here. */}
       <h2 tabIndex={-1}>{project.name}</h2>
       {preview?.hasLaboratory && <p className="project-origin">{t(preview.laboratoryVariants === 1 ? 'lab.projectVariantsOne' : 'lab.projectVariants', { count: preview.laboratoryVariants ?? 0 })}</p>}
@@ -87,10 +87,10 @@ export function ProjectCard({ project, busy, active, dirty, showRuns = false, of
     {!sync?.section && <footer className="project-card-footer">
       {sync ? sync.note : <time dateTime={project.updatedAt} title={formatDate(new Date(project.updatedAt), { dateStyle: 'medium', timeStyle: 'short' })}>{relative}</time>}
       {sync?.actions === false ? null : sync?.actions ?? <div className="project-open-actions">
-        {preview?.hasLaboratory && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('lab.openProjectNamed',{name:project.name})} onClick={()=>{onOpen('laboratory');}}>{t('lab.openProject')}<span aria-hidden="true"> ↗</span></button>}
-        {(Boolean(preview?.sequenceLength) || !comparison) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t(comparison ? 'projects.openAnalysisNamed' : 'projects.openNamed', { name: project.name })} onClick={() => { onOpen(preview ? 'analyze' : undefined); }}>{t(preview ? 'projects.openAnalysis' : 'projects.open')}<span aria-hidden="true"> ↗</span></button>}
-        {showRuns && Boolean(preview?.generatorRuns) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openRunsNamed', { name: project.name })} onClick={() => { onOpen('generator'); }}>{t('projects.openRuns')}<span aria-hidden="true"> ↗</span></button>}
-        {comparison && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openAlignmentNamed', { name: project.name })} onClick={() => { onOpen('alignment'); }}>{t('projects.openAlignment')}<span aria-hidden="true"> ↗</span></button>}
+        {preview?.hasLaboratory && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('lab.openProjectNamed',{name:project.name})} onClick={()=>{onOpen('laboratory');}}>{t('lab.openProject')}</button>}
+        {(Boolean(preview?.sequenceLength) || !comparison) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t(comparison ? 'projects.openAnalysisNamed' : 'projects.openNamed', { name: project.name })} onClick={() => { onOpen(preview ? 'analyze' : undefined); }}>{t(preview ? 'projects.openAnalysis' : 'projects.open')}</button>}
+        {showRuns && Boolean(preview?.generatorRuns) && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openRunsNamed', { name: project.name })} onClick={() => { onOpen('generator'); }}>{t('projects.openRuns')}</button>}
+        {comparison && <button type="button" className="button button-quiet" disabled={busy} aria-label={t('projects.openAlignmentNamed', { name: project.name })} onClick={() => { onOpen('alignment'); }}>{t('projects.openAlignment')}</button>}
       </div>}
     </footer>}
     {sync?.section}

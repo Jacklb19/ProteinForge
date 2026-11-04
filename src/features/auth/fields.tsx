@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
 import { Icon } from '../../shared/Icon';
-import { PASSWORD_MIN_LENGTH } from './config';
+import { PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH } from './config';
 
 interface FieldProps {
   id: string;
@@ -36,7 +36,7 @@ export function TextField({ id, label, value, onChange, autoComplete, errorKey, 
         onChange={(event) => { onChange(event.target.value); }}
       />
       {help && <p id={helpId} className="field-help">{help}</p>}
-      {errorKey && <p id={errorId} className="field-error" role="alert">{t(errorKey, { count: formatNumber(PASSWORD_MIN_LENGTH) })}</p>}
+      {errorKey && <p id={errorId} className="field-error" role="alert">{t(errorKey, { count: formatNumber(PASSWORD_MIN_LENGTH), max: formatNumber(PASSWORD_MAX_BYTES) })}</p>}
     </div>
   );
 }
@@ -73,7 +73,7 @@ export function PasswordField({ id, label, value, onChange, autoComplete, errorK
         </button>
       </div>
       {help && <p id={helpId} className="field-help">{help}</p>}
-      {errorKey && <p id={errorId} className="field-error" role="alert">{t(errorKey, { count: formatNumber(PASSWORD_MIN_LENGTH) })}</p>}
+      {errorKey && <p id={errorId} className="field-error" role="alert">{t(errorKey, { count: formatNumber(PASSWORD_MIN_LENGTH), max: formatNumber(PASSWORD_MAX_BYTES) })}</p>}
     </div>
   );
 }

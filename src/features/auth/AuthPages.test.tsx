@@ -124,6 +124,19 @@ describe('identity screens', () => {
     expect(vi.mocked(api.signUp)).toHaveBeenCalledWith('new@example.org', 'long-enough-password');
   });
 
+  // Supabase keeps only the first 72 bytes, so a longer password (accents count twice) is refused before sending.
+  it('refuses a password longer than the stored 72 bytes', () => {
+    const api = mockApi();
+    renderAt(ROUTES.signUp, api, null);
+    const long = 'ñ'.repeat(37);
+    fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: long } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: long } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
+    expect(screen.getByRole('alert')).toHaveTextContent(spanish['auth.errorPasswordLong'].replace('{{max}}', '72'));
+    expect(vi.mocked(api.signUp)).not.toHaveBeenCalled();
+  });
+
   it('sends the recovery link to the recover route', async () => {
     const api = mockApi();
     renderAt(ROUTES.recover, api, null);
