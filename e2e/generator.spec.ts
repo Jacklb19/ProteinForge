@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { readFileSync } from 'node:fs';
 import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
@@ -13,7 +13,11 @@ for (const width of [360, 1280]) {
   test(`candidate search is local, reproducible and usable with AA at ${String(width)}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 }); await page.emulateMedia({ reducedMotion: 'reduce' });
     const outbound: string[] = [];
-    page.on('request', (request) => { if (!/^(127\.0\.0\.1|localhost)$/.test(new URL(request.url()).hostname)) outbound.push(request.url()); });
+    // The session only lists the account's projects; the search itself sends nothing anywhere.
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (!/^(127\.0\.0\.1|localhost)$/.test(url.hostname) && !url.pathname.endsWith('.ProjectService/ListProjects')) outbound.push(request.url());
+    });
     const done = page.getByRole('status').filter({ hasText: spanish['generator.done'] });
     const stale = page.getByRole('status').filter({ hasText: spanish['generator.stale'] });
     const results = page.getByRole('heading', { name: spanish['generator.results'] });

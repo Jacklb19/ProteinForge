@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
 import { ROUTES } from '../src/shared/navigation';
@@ -17,12 +17,13 @@ test('choosing English and reloading before its catalog arrives keeps English', 
     await route.continue();
   });
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto(ROUTES.analyze);
+  // Language is chosen in the public bar (on the profile once inside the laboratory).
+  await page.goto(ROUTES.home);
   const englishButton = languageButton(page, spanish['settings.english']);
   await englishButton.click();
   await expect(englishButton).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en', { timeout: SLOW_CATALOG_MS * 5 });
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(english['workbench.analyzeTitle']);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(english['public.heroTitle']);
   expect(held).toBeGreaterThan(0);
 });

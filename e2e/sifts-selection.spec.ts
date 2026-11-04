@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
 import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
@@ -47,11 +47,10 @@ for (const width of [360, 1280]) {
     await page.setViewportSize({ width, height: 900 }); await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(ROUTES.library);
     const status = page.locator('.mapping-status');
-    await expect(status).toHaveAttribute('data-mapping-state', 'ambiguous');
-    await expect(page.getByLabel(spanish['mapping.chain'])).toHaveValue('');
-    expect(supplied.requests()).toBe(1); expect(supplied.downloads()).toBe(1);
-    await page.getByLabel(spanish['mapping.chain']).selectOption('A');
+    // The bundled example opens on its first A chain (since 3 Nov), so the correspondence is unique at once.
     await expect(status).toHaveAttribute('data-mapping-state', 'mapped');
+    await expect(page.getByLabel(spanish['mapping.chain'])).toHaveValue('A');
+    expect(supplied.requests()).toBe(1); expect(supplied.downloads()).toBe(1);
     await expect(status).toContainText('A:1');
     await page.getByLabel(spanish['mapping.position']).fill('60');
     await expect(status).toHaveAttribute('data-mapping-state', 'unmapped');
@@ -129,7 +128,7 @@ test('mapping failures remain distinct and retry keeps real coordinates and came
   }
   supplied.fail(null);
   await page.getByRole('button', { name: spanish['mapping.retry'] }).click();
-  await expect(status).toHaveAttribute('data-mapping-state', 'ambiguous');
+  await expect(status).toHaveAttribute('data-mapping-state', 'mapped');
   expect(supplied.downloads()).toBe(1);
   expect(await canvas.evaluate(node => node.isConnected)).toBe(true);
   // Same mapped fragment, but an incorrect complete-reference digest must still close selection.
@@ -142,7 +141,7 @@ test('English labels and verified correspondence use the same public evidence', 
   await supply(page);
   await page.addInitScript(() => { localStorage.setItem('proteinforge.preferences', JSON.stringify({ locale: 'en', theme: 'light' })); });
   await page.goto(ROUTES.library);
-  await expect(page.locator('.mapping-status')).toHaveAttribute('data-mapping-state', 'ambiguous');
+  await expect(page.locator('.mapping-status')).toHaveAttribute('data-mapping-state', 'mapped');
   await expect(page.getByLabel(english['mapping.chain'])).toBeEnabled();
   await page.getByLabel(english['mapping.chain']).selectOption('C');
   await expect(page.locator('.mapping-status')).toContainText('Unique correspondence');

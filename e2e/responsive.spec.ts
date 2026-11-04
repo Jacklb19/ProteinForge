@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
-import { assertFits, chooseTheme, followNavigation, openSequenceEditor, residueReader, setTheme } from './helpers';
+import { assertFits, chooseTheme, openSequenceEditor, residueReader, setTheme } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { NAVIGATION_ITEMS, ROUTES } from '../src/shared/navigation';
 
@@ -19,7 +19,7 @@ test('the laboratory frame fits every destination on wide screens and phones', a
   await serveStructure(page);
   for (const width of [360, 1920, 2560]) {
     await page.setViewportSize({ width, height: 1080 });
-    for (const item of NAVIGATION_ITEMS.filter(item => !item.signedInOnly)) {
+    for (const item of NAVIGATION_ITEMS) {
       await page.goto(item.path);
       for (const theme of ['light', 'dark'] as const) {
         await setTheme(page, theme);
@@ -33,7 +33,7 @@ test('the laboratory frame fits every destination on wide screens and phones', a
           await expect(sidebar).toBeVisible();
           await expect(page.getByRole('button', { name: spanish['shell.openMenu'] })).toBeHidden();
           await expect(sidebar.locator('[aria-current="page"]')).toHaveAttribute('href', item.path);
-          await expect(sidebar.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(NAVIGATION_ITEMS.filter(entry => !entry.signedInOnly).map(entry => spanish[entry.labelKey]));
+          await expect(sidebar.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(NAVIGATION_ITEMS.map(entry => spanish[entry.labelKey]));
           const boxes = await page.evaluate(() => {
             const sidebar = document.querySelector('.workspace-sidebar'), content = document.querySelector('.workspace-body');
             if (!sidebar || !content) throw new Error('Missing workspace frame.');
@@ -66,8 +66,8 @@ for (const width of [360, 768, 1280, 1440] as const) {
       await page.getByRole('navigation', { name: spanish['footer.navigation'] }).getByRole('link', { name: spanish['nav.privacy'], exact: true }).click();
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['privacy.title']);
       await assertFits(page);
-      await page.getByRole('navigation', { name: spanish['footer.navigation'] }).getByRole('link', { name: spanish['public.laboratory'], exact: true }).click();
-      await followNavigation(page, spanish['nav.analyze']);
+      // Back to the tool through the browser history: the draft lives above the routes.
+      await page.goBack();
       await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
       await expect(await openSequenceEditor(page)).toHaveValue(sequence);
       await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();

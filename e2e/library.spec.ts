@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { spanish } from '../src/i18n/es';

@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { alignmentInputs, alignmentVerdict, chooseTheme, examplePairTitle, figureValue, message, setTheme } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { BLOCK_COLUMNS, BLOCK_COLUMNS_NARROW, GAP_EXTEND, GAP_OPEN, MAX_ALIGNMENT_RESIDUES } from '../src/features/alignment/config';

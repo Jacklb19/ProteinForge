@@ -1,11 +1,12 @@
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {test,expect} from '@playwright/test';
+import { expect, test } from './test';
 import AxeBuilder from '@axe-core/playwright';
 import {spanish as es} from '../src/i18n/es';
 import {english as en} from '../src/i18n/en';
 import {ROUTES} from '../src/shared/navigation';
-import {chooseTheme,languageButton,message} from './helpers';
+import {chooseTheme,message} from './helpers';
+import {PREFERENCES_STORAGE_KEY} from '../src/preferences/config';
 import {LAB_CONFIG as C} from '../src/features/design-lab/config';
 import {required} from '../src/features/design-lab/config';
 import {superpose} from '../src/features/design-lab/geometry';
@@ -67,8 +68,11 @@ test('laboratory file reopens every draft and rejects an invalid replacement ato
 });
 
 test('laboratory English copy and offline-compatible example resources',async({page})=>{
-  const external:string[]=[];page.on('request',request=>{if(request.url().startsWith('http')&&!['127.0.0.1','localhost'].includes(new URL(request.url()).hostname))external.push(request.url());});
-  await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);await languageButton(page,es['settings.english']).click();await expect(page.getByRole('heading',{level:1})).toHaveText('Ubiquitin variants');await expect(page.getByRole('button',{name:en['lab.saveFile']})).toBeVisible();await expect(page.getByText(en['lab.meanConfidence'])).toBeVisible();expect(external).toEqual([]);
+  // The session only lists the account's projects; the example resources themselves are all local.
+  const external:string[]=[];page.on('request',request=>{const url=new URL(request.url());if(request.url().startsWith('http')&&!['127.0.0.1','localhost'].includes(url.hostname)&&!url.pathname.endsWith('.ProjectService/ListProjects'))external.push(request.url());});
+  // Inside the laboratory the language is chosen on the profile; here it is already stored, as for a returning visitor.
+  await page.addInitScript(key=>{localStorage.setItem(key,JSON.stringify({locale:'en',theme:'light'}));},PREFERENCES_STORAGE_KEY);
+  await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);await expect(page.getByRole('heading',{level:1})).toHaveText('Ubiquitin variants');await expect(page.getByRole('button',{name:en['lab.saveFile']})).toBeVisible();await expect(page.getByText(en['lab.meanConfidence'])).toBeVisible();expect(external).toEqual([]);
 });
 
 test('imports the actual verified Colab campaign when local evidence is provided',async({page})=>{

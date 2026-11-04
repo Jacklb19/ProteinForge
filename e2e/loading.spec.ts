@@ -1,21 +1,20 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
-import { followNavigation } from './helpers';
 
 // Precache intentionally fetches routes in the background; this regression isolates application load.
-test.use({ serviceWorkers: 'block' });
+test.use({ serviceWorkers: 'block', signedIn: false });
 
-test('anonymous analysis keeps the service transport deferred until a service is used', async ({ page }) => {
+test('the public site and the access pages keep the service transport deferred', async ({ page }) => {
   const requested: string[] = [];
   page.on('request', request => requested.push(new URL(request.url()).pathname));
   await page.goto(ROUTES.home);
   await expect(page.locator('.stage-hero canvas')).toBeVisible();
-  await page.locator('.hero-actions').getByRole('link', { name: spanish['public.exploreExample'], exact: true }).click();
-  await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
+  await page.locator('#uses .public-use').first().scrollIntoViewIfNeeded();
+  await expect(page.locator('#uses .public-facts').first()).toBeVisible();
+  await page.locator('header.site-bar').getByRole('link', { name: spanish['shell.signIn'], exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signInTitle'] })).toBeVisible();
   // Both development module URLs and production chunk names are covered.
   expect(requested.filter(path => /\/(?:rpc|apiClient|projectApi)[.-]|\/gen\/proteinforge\//.test(path))).toEqual([]);
-  await followNavigation(page, spanish['nav.alignment']);
-  await expect(page.locator('.verdict')).toBeVisible();
   expect(await page.evaluate(() => crossOriginIsolated)).toBe(true);
 });

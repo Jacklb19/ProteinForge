@@ -1,8 +1,10 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { assertFits, examplePairTitle, alignmentVerdict, identityEnabled, message, messagePattern, openSequenceEditor, setTheme } from './helpers';
+import { assertFits, message, messagePattern, openSequenceEditor, setTheme, TEST_ACCOUNT } from './helpers';
+import { fulfillRpc, fulfillRpcError, GRPC_CODES, isRpc, rpcMethod } from './rpc';
+import { ListProjectsResponseSchema } from '../src/gen/proteinforge/project/v1/project_service_pb';
 import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
 
@@ -38,6 +40,11 @@ async function structurePainted(page: Page): Promise<void> {
   })).toBeGreaterThan(0);
 }
 
+// The public site is what a visitor without an account sees.
+test.use({ signedIn: false });
+
+const TOOL_ROUTES = [ROUTES.analyze, ROUTES.alignment, ROUTES.generate, ROUTES.laboratory, ROUTES.library, ROUTES.projects, ROUTES.profile];
+
 for (const width of [360, 1280]) {
   test(`the public page keeps real example data, every section and AA at ${String(width)}px in both themes`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -45,12 +52,11 @@ for (const width of [360, 1280]) {
     await expect(page.getByRole('heading', { level: 1, name: spanish['public.heroTitle'] })).toBeVisible();
     await expect(page.locator('.workspace-sidebar')).toHaveCount(0);
 
-    // The account is the main entry where identity exists; the public example is the secondary one.
-    const example = page.locator('.hero-actions').getByRole('link', { name: spanish['public.exploreExample'], exact: true });
-    await expect(example).toHaveAttribute('href', ROUTES.analyze);
-    const create = page.locator('.hero-actions').getByRole('link', { name: spanish['auth.signUpAction'], exact: true });
-    await expect(create).toHaveCount(identityEnabled ? 1 : 0);
-    if (identityEnabled) await expect(create).toHaveAttribute('href', ROUTES.signUp);
+    // An account is the only way in: create one or sign in, and nothing on the page opens a tool.
+    const actions = page.locator('.hero-actions');
+    await expect(actions.getByRole('link', { name: spanish['auth.signUpAction'], exact: true })).toHaveAttribute('href', ROUTES.signUp);
+    await expect(actions.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveAttribute('href', ROUTES.signIn);
+    await expect(page.locator('.hero-note')).toHaveText(spanish['public.heroNote']);
 
     // The measured structure is drawn, named and offers its three colorings.
     const stage = page.locator('figure.stage.stage-hero');
@@ -72,34 +78,31 @@ for (const width of [360, 1280]) {
     await expect(ribbon.locator('.residue[data-position="31"]')).toHaveClass(/is-selected/);
     await expect(ribbon.locator('.residue.is-selected')).toHaveCount(1);
 
-    // Sections answer what it is, which tools exist, how work flows, what evidence means and common doubts.
-    for (const id of ['about', 'tools', 'workflow']) await expect(page.locator(`section#${id}`)).toHaveCount(1);
-    await expect(page.locator('#about .public-points li')).toHaveCount(3);
-    await expect(page.locator('#workflow .public-points li')).toHaveCount(3);
+    // No uppercase label, icon points or numbered steps: what each tool does, its real result, provenance and questions.
+    for (const id of ['uses', 'evidence']) await expect(page.locator(`section#${id}`)).toHaveCount(1);
+    await expect(page.locator('.public-kicker, .public-points')).toHaveCount(0);
+    await expect(page.locator('#uses .public-use h3')).toHaveText([spanish['public.analyzeUse'], spanish['public.compareUse'], spanish['public.designUse'], spanish['public.labUse']]);
     await expect(page.locator('.public-kinds dt')).toHaveText([spanish['public.experimental'], spanish['public.predicted'], spanish['public.draft']]);
-    await expect(page.locator('.public-faq details')).toHaveCount(3);
+    await expect(page.locator('.public-faq details')).toHaveCount(4);
+    await expect(page.locator('.public-faq details').first()).toHaveAttribute('open', '');
 
-    // Each tool example shows figures computed in this visit by the real workers, once it is on screen.
-    const tools = page.getByRole('tablist', { name: spanish['public.toolsTabs'] });
-    await tools.scrollIntoViewIfNeeded();
-    await expect(page.locator('#public-tools-analyze-panel .public-facts')).toContainText('11.980,91');
-    await expect(page.locator('#public-tools-analyze-panel').getByRole('img', { name: spanish['landing.profileLabel'] })).toBeVisible();
-    await tools.getByRole('tab', { name: spanish['nav.alignment'], exact: true }).click();
-    const compare = page.locator('#public-tools-compare-panel');
-    await expect(compare.locator('figcaption')).toContainText(messagePattern('landing.alignmentText'));
-    await expect(compare.locator('.alignment-map').getByRole('img', { name: messagePattern('alignment.mapLabel') })).toBeVisible();
-    await expect(compare.locator('.map-key li')).toHaveCount(4);
-    await tools.getByRole('tab', { name: spanish['nav.alignment'], exact: true }).press('ArrowRight');
-    await expect(tools.getByRole('tab', { name: spanish['nav.generate'], exact: true })).toBeFocused();
-    await expect(page.locator('#public-tools-design-panel .public-facts dt')).toHaveText([spanish['generator.length'], spanish['descriptors.gravy'], spanish['generator.budget']]);
+    // Each figure is computed in this visit by the real workers, once its row nears the screen.
+    const uses = page.locator('#uses .public-use');
+    await uses.nth(0).scrollIntoViewIfNeeded();
+    await expect(uses.nth(0).locator('.public-facts')).toContainText('11.980,91');
+    await expect(uses.nth(0).getByRole('img', { name: spanish['landing.profileLabel'] })).toBeVisible();
+    await uses.nth(1).scrollIntoViewIfNeeded();
+    await expect(uses.nth(1).locator('figcaption')).toContainText(messagePattern('landing.alignmentText'));
+    await expect(uses.nth(1).locator('.alignment-map').getByRole('img', { name: messagePattern('alignment.mapLabel') })).toBeVisible();
+    await expect(uses.nth(1).locator('.map-key li')).toHaveCount(4);
+    await uses.nth(2).scrollIntoViewIfNeeded();
+    await expect(uses.nth(2).locator('.public-facts dt')).toHaveText([spanish['generator.length'], spanish['descriptors.gravy'], spanish['generator.budget']]);
     await expect(page.locator('ol.candidate-rows')).toHaveCount(0);
-    await tools.getByRole('tab', { name: spanish['workbench.laboratory'], exact: true }).click();
-    const lab = page.locator('#public-tools-laboratory-panel');
-    await expect(lab.getByRole('group', { name: message('public.labFigureLabel', { id: labReference }) })).toBeVisible();
-    await expect(lab.locator('figcaption')).toContainText(messagePattern('public.labFigureFacts'));
-    await expect(lab.getByRole('link', { name: message('public.tryTool', { tool: spanish['workbench.laboratory'] }) })).toHaveAttribute('href', ROUTES.laboratory);
-    await tools.getByRole('tab', { name: spanish['nav.analyze'], exact: true }).click();
-    await expect(page.getByRole('status')).toHaveCount(0);
+    await uses.nth(3).scrollIntoViewIfNeeded();
+    await expect(uses.nth(3).getByRole('group', { name: message('public.labFigureLabel', { id: labReference }) })).toBeVisible();
+    await expect(uses.nth(3).locator('figcaption')).toContainText(messagePattern('public.labFigureFacts'));
+    const hrefs = await page.locator('a[href]').evaluateAll((links) => links.map(link => link.getAttribute('href')));
+    for (const route of TOOL_ROUTES) expect(hrefs).not.toContain(route);
 
     for (const theme of ['light', 'dark'] as const) {
       await setTheme(page, theme);
@@ -112,7 +115,7 @@ for (const width of [360, 1280]) {
   });
 }
 
-test('the public page starts no tool work on arrival and loads each example when it is shown', async ({ page }) => {
+test('the public page starts no tool work on arrival and calculates each figure once it is on screen', async ({ page }) => {
   const workers: string[] = [];
   page.on('request', (request) => {
     const match = /\/([\w-]+\.worker)\.ts/.exec(request.url());
@@ -123,24 +126,34 @@ test('the public page starts no tool work on arrival and loads each example when
   await structurePainted(page);
   await frames(page, 10);
   expect(workers).toEqual([]);
-  await page.locator('#tools').scrollIntoViewIfNeeded();
-  await expect(page.locator('#public-tools-analyze-panel .public-facts')).toBeVisible();
+  const uses = page.locator('#uses .public-use');
+  await uses.nth(0).scrollIntoViewIfNeeded();
+  await expect(uses.nth(0).locator('.public-facts')).toBeVisible();
   expect(workers).toContain('descriptors.worker');
-  expect(workers).not.toContain('alignment.worker');
-  await page.getByRole('tab', { name: spanish['nav.alignment'], exact: true }).click();
-  await expect(page.locator('#public-tools-compare-panel .alignment-map')).toBeVisible();
+  await uses.nth(1).scrollIntoViewIfNeeded();
+  await expect(uses.nth(1).locator('.alignment-map')).toBeVisible();
   expect(workers).toContain('alignment.worker');
-  await page.getByRole('tab', { name: spanish['nav.generate'], exact: true }).click();
+  await uses.nth(3).scrollIntoViewIfNeeded();
   await frames(page, 10);
   expect(workers).not.toContain('search.worker');
 });
 
-test('the example action opens the workbench with the insulin sequence loaded', async ({ page }) => {
-  await page.goto(ROUTES.home);
-  await page.locator('.hero-actions').getByRole('link', { name: spanish['public.exploreExample'], exact: true }).click();
+test('a tool opened without a session asks to sign in and, after signing in, opens with the example loaded', async ({ page }) => {
+  await page.route('**/auth/v1/**', (route) => route.fulfill({ status: 200, json: {
+    access_token: TEST_ACCOUNT.accessToken, refresh_token: 'e2e-refresh-token', expires_in: 3600, token_type: 'bearer',
+    user: { id: TEST_ACCOUNT.id, email: TEST_ACCOUNT.email },
+  } }));
+  await page.route(isRpc, (route) => rpcMethod(route) === 'ProjectService/ListProjects'
+    ? fulfillRpc(route, ListProjectsResponseSchema, {})
+    : fulfillRpcError(route, GRPC_CODES.unimplemented, 'unimplemented'));
+  await page.goto(ROUTES.analyze);
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
+  await expect(page.getByRole('note')).toHaveText(message('auth.returnNote', { page: spanish['nav.analyze'] }));
+  await page.getByLabel(spanish['auth.email']).fill(TEST_ACCOUNT.email);
+  await page.getByLabel(spanish['auth.password'], { exact: true }).fill('secret-password');
+  await page.getByRole('button', { name: spanish['auth.signInAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
   await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();
-  await expect(page.getByText(spanish['descriptors.mass'], { exact: true })).toBeVisible();
   await expect(await openSequenceEditor(page)).toHaveValue(insulin);
 });
 
@@ -150,10 +163,10 @@ test('reduced motion keeps the structure still and removes the entrance movement
   // Production CSS normalizes zero milliseconds to zero seconds; both must mean no delay.
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-enter').trim())).toMatch(/^0(?:ms|s)$/);
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--duration-reveal').trim())).toMatch(/^0(?:ms|s)$/);
-  await page.locator('#about').scrollIntoViewIfNeeded();
-  await expect(page.locator('#about')).toHaveAttribute('data-revealed', 'true');
-  expect(await page.locator('#about').evaluate((element) => getComputedStyle(element).animationDuration)).toBe('0s');
-  expect(await page.locator('#about').evaluate((element) => getComputedStyle(element).transform)).toBe('none');
+  await page.locator('#uses').scrollIntoViewIfNeeded();
+  await expect(page.locator('#uses')).toHaveAttribute('data-revealed', 'true');
+  expect(await page.locator('#uses').evaluate((element) => getComputedStyle(element).animationDuration)).toBe('0s');
+  expect(await page.locator('#uses').evaluate((element) => getComputedStyle(element).transform)).toBe('none');
   await page.evaluate(() => { window.scrollTo(0, 0); });
   await structurePainted(page);
   await frames(page, 5);
@@ -188,29 +201,23 @@ test('the structure turns on its own only until the first interaction', async ({
   expect(await drawing(page)).toBe(stopped);
 });
 
-test('presentation, identity and laboratory form a complete navigation flow', async ({ page }) => {
+test('the public site, the access pages and the guide form a complete navigation flow without an account', async ({ page }) => {
   await page.goto(ROUTES.home);
   const bar = page.locator('header.site-bar');
   await bar.getByRole('link', { name: spanish['shell.signIn'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
   await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signInTitle'] })).toBeVisible();
-  // Access pages belong to the public frame: no laboratory sidebar.
+  // Access pages belong to the public frame: no laboratory sidebar, and the insulin beside the form.
   await expect(page.locator('.workspace-sidebar')).toHaveCount(0);
+  await expect(page.locator('.auth-figure .stage-access').getByRole('group', { name: structureLabel })).toBeVisible();
+  await expect(page.getByText(spanish['lab.saveFile'])).toHaveCount(0);
   await page.locator('#app-content').getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signUp}$`));
   await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signUpTitle'] })).toBeVisible();
   await bar.getByRole('link', { name: spanish['shell.home'] }).click();
   await expect(page.getByRole('heading', { level: 1, name: spanish['public.heroTitle'] })).toBeVisible();
-  await page.locator('#tools').scrollIntoViewIfNeeded();
-  await page.getByRole('tab', { name: spanish['nav.alignment'], exact: true }).click();
-  await page.locator('#public-tools-compare-panel').getByRole('link', { name: message('public.tryTool', { tool: spanish['nav.alignment'] }) }).click();
-  await expect(page).toHaveURL(new RegExp(`${ROUTES.alignment}$`));
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(examplePairTitle);
-  await expect(alignmentVerdict(page)).toBeVisible();
-  await page.locator('.workspace-sidebar').getByRole('link', { name: spanish['shell.home'] }).click();
-  await page.locator('#tools').scrollIntoViewIfNeeded();
-  await page.getByRole('tab', { name: spanish['nav.generate'], exact: true }).click();
-  await page.locator('#public-tools-design-panel').getByRole('link', { name: message('public.tryTool', { tool: spanish['nav.generate'] }) }).click();
-  await expect(page).toHaveURL(new RegExp(`${ROUTES.generate}$`));
-  await expect(page.getByRole('heading', { name: spanish['generator.results'] })).toBeVisible();
+  await bar.getByRole('link', { name: spanish['nav.guide'], exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.guide}$`));
+  await expect(page.getByRole('heading', { level: 1, name: spanish['guide.title'] })).toBeVisible();
+  await expect(page.locator('.workspace-sidebar')).toHaveCount(0);
 });

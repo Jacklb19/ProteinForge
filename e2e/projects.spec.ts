@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Locator, Page } from '@playwright/test';
 import type { Project, ProjectWrite, WorkspaceSnapshot } from '../src/features/projects/contracts';
 import { workspaceDocument, workspaceMessage } from '../src/features/projects/rpcMapping';
@@ -141,14 +141,11 @@ test('owned project saves current calculations and resumes after reload', async 
   await expect((await openProjectPanel(page)).getByRole('textbox', { name: spanish['projects.name'] })).toHaveValue('Estudio inicial');
 });
 
-test('the profile links to the project collection, which renames and deletes deliberately', async ({ page }) => {
+test('the sidebar leads to the project collection, which renames and deletes deliberately', async ({ page }) => {
   const data = await mockProjects(page, { ...saved, name: 'Estudio inicial' });
   await page.goto(ROUTES.analyze);
   const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
-  await sidebar.getByRole('link', { name: new RegExp(TEST_ACCOUNT.email) }).click();
-  await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
-  await expect(page.locator('.project-grid')).toHaveCount(0);
-  await page.getByRole('link', { name: spanish['projects.listLink'] }).click();
+  await sidebar.getByRole('link', { name: spanish['nav.projects'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.projects}$`));
   const library = projectLibrary(page);
   await expect(page.getByRole('heading', { level: 1, name: spanish['projects.title'] })).toBeVisible();
@@ -344,18 +341,13 @@ for(const width of [360,1280])test(`laboratory project form ${String(width)}px s
   }
 });
 
-test('laboratory drafts survive internal access routes and offer a file before external sign-in',async({page})=>{
+test('laboratory drafts survive a visit to the public site and the guide',async({page})=>{
   await page.goto(ROUTES.laboratory);await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
   await page.getByRole('button',{name:spanish['lab.protect'],exact:true}).click();
-  await page.getByRole('button',{name:spanish['lab.saveProject'],exact:true}).click();
-  await page.getByRole('dialog').getByRole('link',{name:spanish['shell.signIn'],exact:true}).click();
-  await expect(page).toHaveURL(new RegExp(ROUTES.signIn+'$'));
-  await expect(page.getByText(spanish['lab.oauthHelp'],{exact:true})).toBeVisible();
-  await expect(page.getByRole('button',{name:spanish['lab.saveFile'],exact:true})).toBeEnabled();
-  await page.getByRole('main').getByRole('link',{name:spanish['auth.signUpAction'],exact:true}).click();
-  await page.getByRole('main').getByRole('link',{name:spanish['auth.signInAction'],exact:true}).click();
-  // Access pages use the public frame; its footer leads back into the laboratory.
-  await page.getByRole('contentinfo').getByRole('link',{name:spanish['public.laboratory'],exact:true}).click();
+  // The public site and the guide use other frames; the laboratory keeps its draft above both.
+  await page.locator('.workspace-sidebar').getByRole('link',{name:spanish['shell.home']}).click();
+  await expect(page.getByRole('heading',{level:1,name:spanish['public.heroTitle']})).toBeVisible();
+  await page.locator('header.site-bar').getByRole('link',{name:spanish['public.openLaboratory']}).click();
   await navigationLink(page,spanish['nav.generate']).click();
   await page.getByRole('link',{name:spanish['lab.openLaboratory'],exact:true}).click();
   await expect(page.getByRole('button',{name:spanish['lab.unprotect'],exact:true})).toBeVisible();

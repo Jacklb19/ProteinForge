@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { spanish } from '../src/i18n/es';
 import { interfaceFamily, interfaceFonts, message, openSequenceEditor, residueReader, sequencePanelToggle, setTheme } from './helpers';
 import { ROUTES } from '../src/shared/navigation';

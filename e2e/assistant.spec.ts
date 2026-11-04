@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { spanish } from '../src/i18n/es';
@@ -112,24 +112,6 @@ test('the laboratory reading leaves the figures of an edited draft out', async (
   const second = required(calls.requests[1]);
   expect(second.facts.map((fact) => fact.label)).not.toContain(message('assistant.factRmsd'));
   expect(second.facts.map((fact) => fact.label)).toContain(message('assistant.factDraft'));
-});
-
-test('without a session the reading offers to sign in instead of the action', async ({ page }) => {
-  const calls: Calls = { requests: [] };
-  await page.route('**/*', async (route) => {
-    const url = new URL(route.request().url());
-    if (!isRpc(url)) { await route.fallback(); return; }
-    await route.abort();
-  });
-  await page.goto(ROUTES.analyze);
-  const reading = page.locator('.reading');
-  await expect(reading.getByText(spanish['assistant.signInHelp'])).toBeVisible();
-  await expect(reading.getByRole('button', { name: spanish['assistant.read.analysis'] })).toHaveCount(0);
-  for (const width of [360, 1280]) {
-    await page.setViewportSize({ width, height: 900 });
-    await assertFits(page);
-  }
-  expect(calls.requests).toHaveLength(0);
 });
 
 test('reopening a laboratory dataset retires its reading even when variant identifiers are reused', async ({ page }) => {

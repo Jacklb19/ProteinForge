@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { chooseTheme, token } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { DEFAULT_LOCALE } from '../src/i18n/config';

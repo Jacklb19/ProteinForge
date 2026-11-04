@@ -1,21 +1,28 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { assertFits, identityEnabled, setTheme } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { ROUTES } from '../src/shared/navigation';
 
+// Access pages are what a visitor without a session sees.
+test.use({ signedIn: false });
+
 // Identity depends on the environment of the server under test: without settings every screen says so and
 // stays disabled; with them the forms are ready and the external provider is offered.
 const screens = [
-  { route: ROUTES.signIn, title: spanish['auth.signInTitle'], action: spanish['auth.signInAction'], fields: 2 },
-  { route: ROUTES.signUp, title: spanish['auth.signUpTitle'], action: spanish['auth.signUpAction'], fields: 3 },
-  { route: ROUTES.recover, title: spanish['auth.recoverTitle'], action: spanish['auth.recoverAction'], fields: 1 },
+  { route: ROUTES.signIn, title: spanish['auth.signInTitle'], action: spanish['auth.signInAction'], fields: 2, toggles: 1, provider: true },
+  { route: ROUTES.signUp, title: spanish['auth.signUpTitle'], action: spanish['auth.signUpAction'], fields: 3, toggles: 2, provider: true },
+  { route: ROUTES.recover, title: spanish['auth.recoverTitle'], action: spanish['auth.recoverAction'], fields: 1, toggles: 0, provider: false },
+  { route: ROUTES.confirm, title: spanish['auth.confirmTitle'], action: spanish['auth.verifyAction'], fields: 2, toggles: 0, provider: false },
 ] as const;
 
-for (const width of [360, 1280]) {
+// The whole card, the provider button included, must fit the first screen of a laptop and of a phone.
+const SCREENS = [[360, 740], [1280, 800]] as const;
+
+for (const [width, height] of SCREENS) {
   for (const screen of screens) {
-    test(`identity ${screen.route} fits ${String(width)}px and passes AA in both themes`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 900 });
+    test(`identity ${screen.route} fits ${String(width)}×${String(height)} without scrolling and passes AA in both themes`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
       await page.goto(screen.route);
       await expect(page.getByRole('heading', { level: 1, name: screen.title })).toBeVisible();
       const action = page.getByRole('button', { name: screen.action, exact: true });
@@ -26,7 +33,7 @@ for (const width of [360, 1280]) {
         await expect(page.getByText(spanish['auth.disabled'])).toBeVisible();
         await expect(action).toBeDisabled();
       }
-      if (screen.route === ROUTES.signIn) {
+      if (screen.provider) {
         const provider = page.getByRole('link', { name: spanish['auth.continueGoogle'] });
         await expect(provider).toHaveCount(identityEnabled ? 1 : 0);
         if (identityEnabled) {
@@ -34,7 +41,11 @@ for (const width of [360, 1280]) {
           await expect.poll(() => provider.locator('img.provider-mark').evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
         }
       }
-      // One main region contains context and form; inputs align and toggles stay within their fields.
+      // One main region contains the example and the form; inputs align and toggles stay within their fields.
+      // Every control of the card ends inside the first screen.
+      const lowest = await page.locator('main .auth-page').evaluate((card) => Math.max(...[...card.querySelectorAll('a, button, input')].map(node => node.getBoundingClientRect().bottom)));
+      expect(lowest).toBeLessThanOrEqual(height);
+      await expect(page.getByText(spanish['lab.saveFile'])).toHaveCount(0);
       const layout = await page.evaluate(() => {
         const main = document.querySelector('main.auth-layout')?.getBoundingClientRect();
         const form = document.querySelector('.auth-form');
@@ -56,7 +67,7 @@ for (const width of [360, 1280]) {
       expect(Math.abs(layout.left - layout.right)).toBeLessThanOrEqual(1);
       expect(layout.inputs).toHaveLength(screen.fields);
       expect(new Set(layout.inputs).size).toBe(1);
-      expect(layout.toggles).toEqual(Array.from({ length: screen.fields - 1 }, () => true));
+      expect(layout.toggles).toEqual(Array.from({ length: screen.toggles }, () => true));
       for (const theme of ['light', 'dark'] as const) {
         await setTheme(page, theme);
         await assertFits(page);
