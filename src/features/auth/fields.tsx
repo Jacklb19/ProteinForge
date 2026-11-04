@@ -14,10 +14,15 @@ interface FieldProps {
   help?: string;
   disabled?: boolean;
   type?: 'email' | 'text';
+  /** Keyboard to offer on touch screens, such as `numeric` for a code. */
+  inputMode?: 'numeric' | 'email' | 'text';
+  maxLength?: number;
+  /** Extra class of the input, such as the wide digits of a code. */
+  inputClassName?: string;
 }
 
 /** Labelled text input with its validation message linked for assistive technology. */
-export function TextField({ id, label, value, onChange, autoComplete, errorKey, help, disabled, type = 'text' }: FieldProps): React.JSX.Element {
+export function TextField({ id, label, value, onChange, autoComplete, errorKey, help, disabled, type = 'text', inputMode, maxLength, inputClassName }: FieldProps): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const helpId = useId();
   const errorId = useId();
@@ -26,8 +31,10 @@ export function TextField({ id, label, value, onChange, autoComplete, errorKey, 
       <label htmlFor={id}>{label}</label>
       <input
         id={id}
-        className="text-input"
+        className={inputClassName ? `text-input ${inputClassName}` : 'text-input'}
         type={type}
+        inputMode={inputMode}
+        maxLength={maxLength}
         value={value}
         autoComplete={autoComplete}
         disabled={disabled}
@@ -42,7 +49,7 @@ export function TextField({ id, label, value, onChange, autoComplete, errorKey, 
 }
 
 /** Password input with a visibility toggle that keeps a 44 px target. */
-export function PasswordField({ id, label, value, onChange, autoComplete, errorKey, help, disabled }: Omit<FieldProps, 'type'>): React.JSX.Element {
+export function PasswordField({ id, label, value, onChange, autoComplete, errorKey, help, disabled }: Omit<FieldProps, 'type' | 'inputMode' | 'maxLength' | 'inputClassName'>): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const [visible, setVisible] = useState(false);
   const helpId = useId();

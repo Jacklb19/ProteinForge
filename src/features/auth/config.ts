@@ -23,7 +23,22 @@ export const AUTH_ENDPOINTS = {
   logout: '/logout',
   authorize: '/authorize',
   factors: '/factors',
+  verify: '/verify',
+  resend: '/resend',
 } as const;
+
+/** Confirmation of a new account's email with the code sent next to the link: Supabase OTP types. */
+export const EMAIL_CODE_VERIFY_TYPE = 'email';
+export const EMAIL_CODE_RESEND_TYPE = 'signup';
+/** Digits of the email code; it must match «Email OTP Length» in the Supabase project. */
+export const EMAIL_CODE_LENGTH = 6;
+/** Wait before another code can be requested; it matches the minimum interval between emails of the project. */
+export const RESEND_WAIT_SECONDS = 60;
+/** The email code arrives as a whole string; this is the widest paste accepted before spaces are removed. */
+export const EMAIL_CODE_INPUT_MAX_LENGTH = 12;
+
+/** Only the path a protected page asked for is kept across the Google redirect; never any personal data. */
+export const OAUTH_DESTINATION_STORAGE_KEY = 'proteinforge.after-sign-in';
 
 /** Second factor paths below `AUTH_ENDPOINTS.factors`, for one factor identified by its UUID. */
 export const FACTOR_ENDPOINTS = {
@@ -79,6 +94,7 @@ export const AUTH_ERROR_MESSAGE_KEYS: Readonly<Record<string, TranslationKey>> =
   weak_password: 'auth.errorWeakPassword',
   over_request_rate_limit: 'auth.errorRateLimited',
   over_email_send_rate_limit: 'auth.errorRateLimited',
+  otp_expired: 'auth.errorCodeInvalid',
   same_password: 'auth.errorSamePassword',
   session_expired: 'auth.errorSessionExpired',
   refresh_token_not_found: 'auth.errorSessionExpired',

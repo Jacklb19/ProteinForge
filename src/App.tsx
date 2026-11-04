@@ -17,6 +17,9 @@ import { PAGE_TITLES, REDIRECTS, ROUTES } from './shared/navigation';
 import { useTranslation } from './i18n';
 import { PublicFrame } from './shell/PublicFrame';
 import { WorkspaceFrame } from './shell/WorkspaceFrame';
+import { SessionFrame } from './shell/SessionFrame';
+import { RequireSession } from './features/auth/RequireSession';
+import { OAuthReturn } from './features/auth/OAuthReturn';
 
 const DesignLabPage = lazy(async () => ({ default: (await import('./features/design-lab/DesignLabPage')).DesignLabPage }));
 const ProfilePage = lazy(async () => ({ default: (await import('./features/profile/ProfilePage')).ProfilePage }));
@@ -29,6 +32,7 @@ const TermsPage = lazy(async () => ({ default: (await import('./features/legal/T
 const SignInPage = lazy(async () => ({ default: (await import('./features/auth/SignInPage')).SignInPage }));
 const SignUpPage = lazy(async () => ({ default: (await import('./features/auth/SignUpPage')).SignUpPage }));
 const RecoverPage = lazy(async () => ({ default: (await import('./features/auth/RecoverPage')).RecoverPage }));
+const ConfirmEmailPage = lazy(async () => ({ default: (await import('./features/auth/ConfirmEmailPage')).ConfirmEmailPage }));
 
 /**
  * Two frames share one route tree. Drafts, session and projects live in the providers above it,
@@ -68,11 +72,15 @@ function ApplicationRoutes(): React.JSX.Element {
         <Route path={ROUTES.signIn} element={<SignInPage />} />
         <Route path={ROUTES.signUp} element={<SignUpPage />} />
         <Route path={ROUTES.recover} element={<RecoverPage />} />
+        <Route path={ROUTES.confirm} element={<ConfirmEmailPage />} />
         <Route path={ROUTES.privacy} element={<PrivacyPage />} />
         <Route path={ROUTES.terms} element={<TermsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-      <Route element={<WorkspaceFrame />}>
+      <Route element={<SessionFrame />}>
+        <Route path={ROUTES.guide} element={<GuidePage />} />
+      </Route>
+      <Route element={<RequireSession><WorkspaceFrame /></RequireSession>}>
         <Route path={ROUTES.analyze} element={<EditorPage />} />
         <Route path={ROUTES.alignment} element={<AlignmentPage />} />
         <Route path={ROUTES.generate} element={<GeneratorPage />} />
@@ -80,8 +88,8 @@ function ApplicationRoutes(): React.JSX.Element {
         <Route path={ROUTES.library} element={<LibraryPage />} />
         <Route path={ROUTES.projects} element={<ProjectsPage />} />
         <Route path={ROUTES.profile} element={<ProfilePage />} />
-        <Route path={ROUTES.guide} element={<GuidePage />} />
       </Route>
+      <Route path={ROUTES.workspace} element={<OAuthReturn />} />
       {REDIRECTS.map((redirect) => <Route key={redirect.from} path={redirect.from} element={<Navigate to={redirect.to} replace />} />)}
     </Routes>
   );

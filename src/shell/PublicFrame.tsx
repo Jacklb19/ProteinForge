@@ -5,7 +5,7 @@ import { useAuth } from '../features/auth/authContext';
 import { BrandMark } from '../shared/BrandMark';
 import { Icon } from '../shared/Icon';
 import { RouteBoundary } from '../shared/RouteBoundary';
-import { AFTER_SIGN_IN_ROUTE, BAR_VEIL_SCROLL_PX, FOOTER_LINKS, PUBLIC_SECTIONS, ROUTES } from '../shared/navigation';
+import { AFTER_SIGN_IN_ROUTE, BAR_VEIL_SCROLL_PX, PUBLIC_FOOTER_LINKS, PUBLIC_SECTIONS, ROUTES } from '../shared/navigation';
 import { PreferenceControls } from './Preferences';
 import { Sheet } from './Sheet';
 
@@ -26,7 +26,10 @@ function SessionActions({ wide, onNavigate }: { wide: boolean; onNavigate?: () =
 
 function SectionLinks({ onNavigate }: { onNavigate?: () => void }): React.JSX.Element {
   const { t } = useTranslation();
-  return <>{PUBLIC_SECTIONS.map(section => <Link key={section.id} to={`${ROUTES.home}#${section.id}`} onClick={onNavigate}>{t(section.labelKey)}</Link>)}</>;
+  return <>
+    {PUBLIC_SECTIONS.map(section => <Link key={section.id} to={`${ROUTES.home}#${section.id}`} onClick={onNavigate}>{t(section.labelKey)}</Link>)}
+    <Link to={ROUTES.guide} onClick={onNavigate}>{t('nav.guide')}</Link>
+  </>;
 }
 
 /** Presentation, access and legal pages: a top bar without the laboratory sidebar. */
@@ -89,8 +92,7 @@ export function PublicFrame(): React.JSX.Element {
           <p>{t('app.tagline')}</p>
           <nav aria-label={t('footer.navigation')}>
             <ul className="footer-links">
-              <li><Link to={AFTER_SIGN_IN_ROUTE}>{t('public.laboratory')}</Link></li>
-              {FOOTER_LINKS.map((link) => <li key={link.path}><Link to={link.path}>{t(link.labelKey)}</Link></li>)}
+              {PUBLIC_FOOTER_LINKS.map((link) => <li key={link.path}><Link to={link.path}>{t(link.labelKey)}</Link></li>)}
             </ul>
           </nav>
         </div>

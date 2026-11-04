@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { Icon } from '../../shared/Icon';
-import { ViewTabs } from '../../shared/ViewTabs';
 import { AFTER_SIGN_IN_ROUTE, ROUTES } from '../../shared/navigation';
 import { useAuth } from '../auth/authContext';
 import { AlignmentMap, AlignmentMapKey } from '../alignment/AlignmentMap';
@@ -20,7 +19,7 @@ import { DEFAULT_EXAMPLE } from '../editor/examples';
 import { INITIAL_SEARCH_FORM } from '../generator/context';
 import { EVIDENCE_KINDS } from '../guide/config';
 import { StructureStage } from '../structure/StructureStage';
-import { HERO_FACTS, INTRO_POINTS, LANDING_TOOLS, QUESTIONS, WORKFLOW_STEPS } from './config';
+import { HERO_FACTS, LANDING_USES, OPEN_QUESTION, QUESTIONS } from './config';
 import type { LandingTool } from './config';
 
 const LandingLabExample = lazy(async () => ({ default: (await import('./LandingLabExample')).LandingLabExample }));
@@ -105,6 +104,18 @@ function DesignExample(): React.JSX.Element {
   </figure>;
 }
 
+/** Sign up and sign in without a session, the laboratory with one; nothing on this page opens a tool signed out. */
+function AccountActions({ className }: { className: string }): React.JSX.Element | null {
+  const { t } = useTranslation();
+  const { status } = useAuth();
+  if (status === 'loading') return null;
+  if (status === 'signed-in') return <div className={className}><Link className="button button-primary button-large" to={AFTER_SIGN_IN_ROUTE}><Icon name="arrow" /><span>{t('public.openLaboratory')}</span></Link></div>;
+  return <div className={className}>
+    {status === 'anonymous' && <Link className="button button-primary button-large" to={ROUTES.signUp}>{t('auth.signUpAction')}</Link>}
+    <Link className="button button-secondary button-large" to={ROUTES.signIn}>{t('shell.signIn')}</Link>
+  </div>;
+}
+
 function ToolExample({ tool }: { tool: LandingTool }): React.JSX.Element {
   const { t } = useTranslation();
   if (tool === 'analyze') return <AnalyzeExample />;
@@ -113,43 +124,35 @@ function ToolExample({ tool }: { tool: LandingTool }): React.JSX.Element {
   return <Suspense fallback={<p className="public-evidence" role="status">{t('shell.loadingPage')}</p>}><LandingLabExample /></Suspense>;
 }
 
-/** Tabbed examples; nothing is calculated until the section is on screen and a tool is shown. */
-function ToolsSection(): React.JSX.Element {
-  const { t } = useTranslation();
-  const [tool, setTool] = useState<LandingTool>('analyze');
-  // Without an observer there is no way to wait for the section, so the examples are shown at once.
+/** Whether an element has reached the screen; without an observer it counts as seen at once. Arrival never starts tool work. */
+function useNearScreen(): [React.RefObject<HTMLElement | null>, boolean] {
+  const element = useRef<HTMLElement>(null);
   const [seen, setSeen] = useState(() => typeof IntersectionObserver !== 'function');
-  const area = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const target = area.current;
+    const target = element.current;
     if (!target || seen) return;
-    const observer = new IntersectionObserver((entries) => { if (entries.some(entry => entry.isIntersecting)) { setSeen(true); observer.disconnect(); } }, { rootMargin: '200px' });
+    const observer = new IntersectionObserver((entries) => { if (entries.some(entry => entry.isIntersecting)) { setSeen(true); observer.disconnect(); } });
     observer.observe(target);
     return () => { observer.disconnect(); };
   }, [seen]);
-  return <Section id="tools" labelledBy="tools-title" className="public-tools">
-    <header className="public-section-head">
-      <h2 id="tools-title">{t('public.toolsTitle')}</h2>
-      <p>{t('public.toolsLead')}</p>
-    </header>
-    <ViewTabs id="public-tools" label={t('public.toolsTabs')} value={tool} onChange={setTool}
-      options={LANDING_TOOLS.map(entry => ({ value: entry.id, label: t(entry.labelKey) }))} />
-    <div ref={area}>
-      {LANDING_TOOLS.map(entry => <div key={entry.id} className="public-tool" role="tabpanel" id={`public-tools-${entry.id}-panel`}
-        aria-labelledby={`public-tools-${entry.id}-tab`} hidden={entry.id !== tool}>
-        <div className="public-tool-copy">
-          <h3>{t(entry.questionKey)}</h3>
-          <p>{t(entry.textKey)}</p>
-          <Link className="button button-secondary" to={entry.route}><span>{t('public.tryTool', { tool: t(entry.labelKey) })}</span><Icon name="arrow" /></Link>
-          <p className="public-scope">{t(entry.scopeKey)}</p>
-        </div>
-        {seen && entry.id === tool && <ToolExample tool={entry.id} />}
-      </div>)}
-    </div>
-  </Section>;
+  return [element, seen];
 }
 
-/** Public presentation: what ProteinForge is, real examples of each tool, how work flows and where its limits are. */
+/** One tool, what it answers and its real result; the result is calculated only once the row is on screen. */
+function UseRow({ use }: { use: (typeof LANDING_USES)[number] }): React.JSX.Element {
+  const { t } = useTranslation();
+  const [row, seen] = useNearScreen();
+  return <article ref={row} className="public-use" aria-labelledby={`use-${use.id}-title`}>
+    <div className="public-use-copy">
+      <h3 id={`use-${use.id}-title`}>{t(use.titleKey)}</h3>
+      <p>{t(use.textKey)}</p>
+      {use.scopeKey && <p className="public-scope">{t(use.scopeKey)}</p>}
+    </div>
+    {seen && <ToolExample tool={use.id} />}
+  </article>;
+}
+
+/** Public site: what ProteinForge does, shown with the real result of each tool, provenance, questions and the way to an account. */
 export function LandingPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const { status } = useAuth();
@@ -157,22 +160,15 @@ export function LandingPage(): React.JSX.Element {
   const annotations = annotationsFor(DEFAULT_EXAMPLE.source);
   const [selected, setSelected] = useState<number | null>(annotations?.highlight ?? null);
   const signedIn = status === 'signed-in';
-  const canSignUp = status === 'anonymous';
 
   return (
     <main className="public-page">
       <section className="public-hero" aria-labelledby="hero-title">
         <div className="public-hero-copy">
-          <p className="public-kicker">{t('public.kicker')}</p>
           <h1 id="hero-title" className="display">{t('public.heroTitle')}</h1>
           <p className="lead">{t('public.heroLead')}</p>
-          <div className="hero-actions">
-            {signedIn
-              ? <Link className="button button-primary button-large" to={AFTER_SIGN_IN_ROUTE}><Icon name="arrow" /><span>{t('public.openLaboratory')}</span></Link>
-              : canSignUp && <Link className="button button-primary button-large" to={ROUTES.signUp}><Icon name="arrow" /><span>{t('auth.signUpAction')}</span></Link>}
-            {!signedIn && <Link className="button button-secondary button-large" to={ROUTES.analyze}>{t('public.exploreExample')}</Link>}
-          </div>
-          <p className="hero-note">{t(signedIn ? 'public.heroNoteSignedIn' : 'public.heroNote')}</p>
+          <AccountActions className="hero-actions" />
+          {status !== 'loading' && <p className="hero-note">{t(signedIn ? 'public.heroNoteSignedIn' : 'public.heroNote')}</p>}
         </div>
         {annotations && <StructureStage variant="hero" annotations={annotations} selected={selected} onSelect={setSelected} />}
         {annotations && <div className="public-strand">
@@ -181,26 +177,15 @@ export function LandingPage(): React.JSX.Element {
         </div>}
       </section>
 
-      <Section id="about" labelledBy="about-title" className="public-about">
+      <Section id="uses" labelledBy="uses-title" className="public-uses">
         <header className="public-section-head">
-          <h2 id="about-title">{t('public.aboutTitle')}</h2>
-          <p>{t('public.aboutText')}</p>
+          <h2 id="uses-title">{t('public.usesTitle')}</h2>
+          <p>{t('public.usesLead')}</p>
         </header>
-        <ul className="public-points">
-          {INTRO_POINTS.map(point => <li key={point.titleKey}><Icon name={point.icon} /><h3>{t(point.titleKey)}</h3><p>{t(point.textKey)}</p></li>)}
-        </ul>
+        {LANDING_USES.map(use => <UseRow key={use.id} use={use} />)}
       </Section>
 
-      <ToolsSection />
-
-      <Section id="workflow" labelledBy="workflow-title" className="public-workflow">
-        <header className="public-section-head"><h2 id="workflow-title">{t('public.workflowTitle')}</h2></header>
-        <ol className="public-points">
-          {WORKFLOW_STEPS.map(step => <li key={step.titleKey}><Icon name={step.icon} /><h3>{t(step.titleKey)}</h3><p>{t(step.textKey)}</p></li>)}
-        </ol>
-      </Section>
-
-      <Section labelledBy="evidence-title" className="public-evidence-kinds">
+      <Section id="evidence" labelledBy="evidence-title" className="public-evidence-kinds">
         <header className="public-section-head">
           <h2 id="evidence-title">{t('public.evidenceTitle')}</h2>
           <p>{t('public.evidenceText')}</p>
@@ -210,25 +195,17 @@ export function LandingPage(): React.JSX.Element {
         </dl>
       </Section>
 
-      <Section labelledBy="cta-title" className="public-cta">
-        <h2 id="cta-title">{t(signedIn ? 'public.ctaSignedInTitle' : 'public.ctaTitle')}</h2>
-        <p>{t(signedIn ? 'public.ctaSignedInText' : canSignUp ? 'public.ctaText' : 'public.ctaLocalText')}</p>
-        <div className="actions">
-          {signedIn
-            ? <Link className="button button-primary button-large" to={AFTER_SIGN_IN_ROUTE}>{t('public.openLaboratory')}</Link>
-            : <>
-              {canSignUp && <Link className="button button-primary button-large" to={ROUTES.signUp}>{t('auth.signUpAction')}</Link>}
-              {status !== 'disabled' && status !== 'loading' && <Link className="button button-secondary button-large" to={ROUTES.signIn}>{t('shell.signIn')}</Link>}
-              {!canSignUp && <Link className="button button-secondary button-large" to={ROUTES.analyze}>{t('public.exploreExample')}</Link>}
-            </>}
-        </div>
-      </Section>
-
       <Section labelledBy="questions-title" className="public-questions">
         <h2 id="questions-title">{t('public.questionsTitle')}</h2>
         <div className="public-faq">
-          {QUESTIONS.map(question => <details key={question.questionKey}><summary>{t(question.questionKey)}</summary><p>{t(question.answerKey)}</p></details>)}
+          {QUESTIONS.map(question => <details key={question.questionKey} open={question.questionKey === OPEN_QUESTION}><summary>{t(question.questionKey)}</summary><p>{t(question.answerKey)}</p></details>)}
         </div>
+      </Section>
+
+      <Section labelledBy="cta-title" className="public-cta">
+        <h2 id="cta-title">{t(signedIn ? 'public.ctaSignedInTitle' : 'public.ctaTitle')}</h2>
+        <p>{t(signedIn ? 'public.ctaSignedInText' : 'public.ctaText')}</p>
+        <AccountActions className="actions" />
       </Section>
     </main>
   );

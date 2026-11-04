@@ -1,4 +1,4 @@
-import { AUTH_BASE_PATH, AUTH_ENDPOINTS } from './config';
+import { AUTH_BASE_PATH, AUTH_ENDPOINTS, EMAIL_CODE_RESEND_TYPE, EMAIL_CODE_VERIFY_TYPE } from './config';
 import type { AuthSettings } from './config';
 import type { AuthSession } from './session';
 import type { SessionResponse } from './schemas';
@@ -39,6 +39,10 @@ export interface AuthApi {
   getUser: (accessToken: string) => Promise<AuthSession['user']>;
   signOut: (accessToken: string) => Promise<void>;
   authorizeUrl: (provider: string, redirectTo: string) => string;
+  /** Confirms a new account with the code of its confirmation email; the answer is a session. */
+  verifyEmailCode: (email: string, code: string) => Promise<AuthSession>;
+  /** Sends the confirmation email (link and code) again. */
+  resendConfirmation: (email: string) => Promise<void>;
 }
 
 /** Converts a Supabase session payload to the browser session, computing the expiry when only `expires_in` is sent. */
@@ -132,6 +136,12 @@ export function createAuthApi(settings: AuthSettings, fetchImplementation?: Fetc
     },
     async signOut(accessToken) {
       await request(AUTH_ENDPOINTS.logout, { method: 'POST', accessToken });
+    },
+    async verifyEmailCode(email, code) {
+      return parseSessionResponse(await request(AUTH_ENDPOINTS.verify, { method: 'POST', body: { type: EMAIL_CODE_VERIFY_TYPE, email, token: code } }));
+    },
+    async resendConfirmation(email) {
+      await request(AUTH_ENDPOINTS.resend, { method: 'POST', body: { type: EMAIL_CODE_RESEND_TYPE, email } });
     },
     authorizeUrl(provider, redirectTo) {
       return `${base}${AUTH_ENDPOINTS.authorize}?provider=${encodeURIComponent(provider)}&redirect_to=${encodeURIComponent(redirectTo)}`;

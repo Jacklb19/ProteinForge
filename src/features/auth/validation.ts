@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EMAIL_MAX_LENGTH, PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH, TOTP_CODE_LENGTH, TOTP_FACTOR_NAME_MAX_LENGTH } from './config';
+import { EMAIL_CODE_LENGTH, EMAIL_MAX_LENGTH, PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH, TOTP_CODE_LENGTH, TOTP_FACTOR_NAME_MAX_LENGTH } from './config';
 import type { TranslationKey } from '../../i18n/translate';
 
 /** Field-level rules; each failure maps to a catalog key so the message is translated at render time. */
@@ -24,6 +24,11 @@ export function normalizeTotpCode(value: string): string {
 const totpCodePattern = new RegExp(`^[0-9]{${String(TOTP_CODE_LENGTH)}}$`);
 export const totpCodeSchema = z.string().transform(normalizeTotpCode)
   .pipe(z.string().min(1, 'auth.errorTotpCodeRequired').regex(totpCodePattern, 'auth.errorTotpCodeDigits'));
+const emailCodePattern = new RegExp(`^[0-9]{${String(EMAIL_CODE_LENGTH)}}$`);
+/** The confirmation code may be pasted with spaces; only its digits are sent. */
+export const emailCodeSchema = z.object({
+  code: z.string().transform(normalizeTotpCode).pipe(z.string().min(1, 'auth.errorCodeRequired').regex(emailCodePattern, 'auth.errorCodeDigits')),
+});
 export const factorNameSchema = z.string().trim().min(1, 'auth.errorFactorNameRequired').max(TOTP_FACTOR_NAME_MAX_LENGTH, 'auth.errorFactorNameLong');
 
 export type FieldErrors<Field extends string> = Partial<Record<Field, TranslationKey>>;

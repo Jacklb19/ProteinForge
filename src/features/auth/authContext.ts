@@ -24,6 +24,10 @@ export interface AuthContextValue {
   recover(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
   authorizeUrl(provider: string): string | null;
+  /** Confirms a new account with the emailed code and keeps the session it opens. */
+  verifyEmailCode(email: string, code: string): Promise<void>;
+  /** Sends the confirmation email again. */
+  resendConfirmation(email: string): Promise<void>;
   /** Assurance claims of the current access token, or `null` without a session. */
   assurance: SessionAssurance | null;
   /** Second factors of the account, verified or still being added. */
