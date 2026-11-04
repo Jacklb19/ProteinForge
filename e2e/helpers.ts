@@ -108,14 +108,22 @@ export function languageButton(scope: Page | Locator, name: string): Locator {
 
 /**
  * Chooses a theme as a visitor would: the Apariencia radios on the profile, otherwise the theme button
- * of the public bar, the sidebar without a session or the phone menu. That button only flips between
- * light and dark, so the system choice is made on the profile.
+ * of the public bar or its phone menu. That button only flips between light and dark, so the system
+ * choice is made on the profile. Inside the laboratory, which always has a session, the visitor opens the
+ * profile from the account link, chooses there and goes back; drafts live above the routes and stay.
  */
 export async function chooseTheme(page: Page, theme: keyof typeof themeLabels): Promise<void> {
   await routeLoaded(page);
   const radio = page.getByRole('radio', { name: themeLabels[theme], exact: true });
   if (await radio.isVisible()) {
     await radio.check();
+  } else if (await page.locator('.workspace').count()) {
+    const sidebar = page.locator('.workspace-sidebar');
+    const scope = await sidebar.isVisible() ? sidebar : await openSiteMenu(page);
+    await scope.locator('a.account-link').click();
+    await page.getByRole('radio', { name: themeLabels[theme], exact: true }).check();
+    await page.goBack();
+    await routeLoaded(page);
   } else {
     if (theme === 'system') throw new Error('The system theme is chosen on the profile, which needs a session.');
     let menu: Locator | null = null;

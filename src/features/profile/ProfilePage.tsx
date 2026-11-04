@@ -1,10 +1,9 @@
 import { useContext, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { LOCALES } from '../../i18n/config';
 import { usePreferences } from '../../preferences/usePreferences';
 import { LOCALE_LABEL_KEYS, THEMES, THEME_LABEL_KEYS } from '../../preferences/config';
-import { Icon } from '../../shared/Icon';
 import { ROUTES } from '../../shared/navigation';
 import { SegmentedControl } from '../../shared/SegmentedControl';
 import { useAuth } from '../auth/authContext';
@@ -14,7 +13,7 @@ import { isOpen } from '../projects/syncQueue';
 
 type PasswordState = 'idle' | 'sending' | 'sent' | 'error';
 
-/** Account, appearance, language and data preferences, the way back to the public site and signing out; the project collection has its own screen. */
+/** Account, appearance, language and data preferences and signing out; the project collection has its own screen. The route needs a session. */
 export function ProfilePage(): React.JSX.Element {
   const { t } = useTranslation();
   const { chosenLocale, theme, setLocale, setTheme } = usePreferences();
@@ -23,8 +22,7 @@ export function ProfilePage(): React.JSX.Element {
   const projects = useContext(ProjectContext);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
 
-  if (auth.status === 'loading') return <main className="page page-narrow"><p className="status-message" role="status">{t('projects.sessionLoading')}</p></main>;
-  if (auth.status !== 'signed-in' || !auth.session) return <Navigate to={ROUTES.signIn} state={{ from: ROUTES.profile }} replace />;
+  if (!auth.session) return <main className="page page-narrow"><p className="status-message" role="status">{t('projects.sessionLoading')}</p></main>;
   const email = auth.session.user.email;
   const owner = auth.session.user.id;
   // Saves waiting for the connection live only in this tab: a deliberate sign-out discards them, so it asks first.
@@ -45,7 +43,6 @@ export function ProfilePage(): React.JSX.Element {
           <p>{email}</p>
         </div>
         <div className="profile-head-actions">
-          <Link className="inline-link" to={ROUTES.home}><Icon name="globe" /><span>{t('shell.publicSite')}</span></Link>
           <button className="button button-secondary" type="button" aria-expanded={waiting ? confirmSignOut : undefined} onClick={() => { if (waiting) setConfirmSignOut(true); else signOut(); }}>{t('settings.signOut')}</button>
         </div>
       </header>
@@ -56,14 +53,6 @@ export function ProfilePage(): React.JSX.Element {
           <button className="button button-primary" type="button" onClick={signOut}>{t('settings.signOut')}</button>
         </div>
       </div>}
-      <nav className="profile-index" aria-label={t('workbench.account')}>
-        <a href="#account-title">{t('settings.account')}</a><a href="#appearance-title">{t('account.appearance')}</a><a href="#privacy-title">{t('account.privacy')}</a>
-      </nav>
-
-      <section className="profile-row" aria-labelledby="project-library-title">
-        <h2 id="project-library-title">{t('projects.title')}</h2>
-        <div className="profile-row-body"><p>{t('projects.profileHelp')}</p><Link className="inline-link" to={ROUTES.projects}>{t('projects.listLink')}</Link></div>
-      </section>
 
       <section className="profile-row" aria-labelledby="account-title">
         <h2 id="account-title">{t('settings.account')}</h2>

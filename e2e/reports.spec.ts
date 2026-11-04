@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
@@ -38,7 +38,11 @@ test('report choices support keyboard, touch targets and AA in both themes and w
 
 test('PDF, JSON and profile/alignment CSV are generated locally from the current scientific snapshot', async ({ page }) => {
   const outbound: string[] = [];
-  page.on('request', (request) => { if (!new URL(request.url()).hostname.match(/^(localhost|127\.0\.0\.1)$/)) outbound.push(request.url()); });
+  // The session only lists the account's projects and saved reports; the reports themselves send nothing anywhere.
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (!url.hostname.match(/^(localhost|127\.0\.0\.1)$/) && !/\.(ProjectService\/ListProjects|ReportService\/ListReports)$/.test(url.pathname)) outbound.push(request.url());
+  });
   await page.goto(ROUTES.analyze);
   // The page opens on the bundled insulin, already analyzed.
   await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();

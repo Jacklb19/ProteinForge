@@ -15,6 +15,10 @@ const route = (name) => {
   return value;
 };
 
+// The session key also comes from its module.
+const sessionKey = readFileSync(new URL('../src/features/auth/config.ts', import.meta.url), 'utf8').match(/SESSION_STORAGE_KEY = '([^']+)'/)?.[1];
+if (!sessionKey) throw new Error('The session storage key is missing.');
+
 const port = Number(process.env.PWA_CHECK_PORT ?? 4173);
 const baseURL = 'http://127.0.0.1:' + String(port);
 const browserName = process.env.PWA_CHECK_BROWSER ?? 'chromium';
@@ -41,6 +45,18 @@ try {
   } : {});
   process.stdout.write(`PWA browser: ${browserName} ${browser.version()}\n`);
   const context = await browser.newContext();
+  // Every tool needs a session since 4 Nov 2026. The build must have identity settings (placeholder
+  // *.invalid values are enough); a placeholder session is stored and its identity and API requests are
+  // answered or refused here, so nothing leaves the machine.
+  await context.addInitScript((key) => {
+    localStorage.setItem(key, JSON.stringify({
+      accessToken: 'pwa-check-token', refreshToken: 'pwa-check-refresh', expiresAt: Math.floor(Date.now() / 1000) + 3600,
+      user: { id: '00000000-0000-4000-8000-000000000001', email: 'pwa-check@example.org' },
+    }));
+  }, sessionKey);
+  await context.route((url) => url.origin !== baseURL, (request) => new URL(request.request().url()).pathname.includes('/auth/v1/')
+    ? request.fulfill({ status: 200, json: {} })
+    : request.abort());
   const page = await context.newPage();
   await page.goto(baseURL + '/');
   await page.waitForFunction(async () => { await navigator.serviceWorker.ready; return true; });

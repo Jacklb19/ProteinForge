@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { english } from '../src/i18n/en';
@@ -58,7 +58,8 @@ for (const width of [360, 1280]) {
     const up = tray.getByRole('button', { name: message('domains.moveUpLabel', { name: `${stretch(second)} · ${second.accession}` }) });
     await up.focus(); await page.keyboard.press('Enter');
     await expect(tray.getByText(second.sequence + first.sequence)).toBeVisible();
-    await expect(tray.getByRole('button', { name: message('domains.save') })).toBeDisabled();
+    // The laboratory always has a session, so the assembly can be saved to a project.
+    await expect(tray.getByRole('button', { name: message('domains.save') })).toBeEnabled();
 
     for (const theme of ['light', 'dark']) {
       await setTheme(page, theme);

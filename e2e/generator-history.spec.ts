@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import type { Project, WorkspaceSnapshot } from '../src/features/projects/contracts';
@@ -146,16 +146,6 @@ test('a project saved by a newer version is not overwritten', async ({ page }) =
   await expect(page.getByText(t('projects.requiresCurrentClient'))).toBeVisible();
   await expect(page.getByRole('button', { name: t('generator.reload'), exact: true })).toBeVisible();
   await expect(page.getByText(t('projects.conflict'))).toHaveCount(0);
-});
-
-test('without a session the search and its download stay available and saving invites to sign in', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(ROUTES.generate);
-  const t = (key: TranslationKey) => translate('es', key);
-  await expect(page.getByText(t('generator.signedOutNote'))).toBeVisible();
-  await expect(page.getByRole('button', { name: t('generator.download'), exact: true })).toBeEnabled();
-  await expect(page.getByRole('button', { name: t('generator.saveToProject'), exact: true })).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: t('generator.historyTitle') })).toHaveCount(0);
 });
 
 test('Projects counts saved searches and opens them in Design', async ({ page }) => {

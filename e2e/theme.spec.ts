@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { chooseTheme, message, openSequenceEditor, openValueTable, residueReader, signInWithEmptyAccount, setTheme, themeButton } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
@@ -53,11 +53,14 @@ test('the profile persists language and theme after reload', async ({ page }) =>
   await expect(page.getByRole('radio', { name: new RegExp(spanish['settings.english']) })).toBeChecked();
 });
 
-test('a signed-out visitor keeps the theme chosen from the sidebar after reload', async ({ page }) => {
+test.describe('without a session', () => {
+test.use({ signedIn: false });
+test('a signed-out visitor keeps the theme chosen from the public bar after reload', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto(ROUTES.analyze);
+  await page.goto(ROUTES.home);
   await expect(page.locator('html')).not.toHaveAttribute('data-theme');
-  const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
+  const sidebar = page.locator('header.site-bar');
   // On the system choice of a light device, the button leads to dark.
   await expect(themeButton(sidebar)).toHaveAccessibleName(spanish['shell.themeToDark']);
   await chooseTheme(page, 'dark');
@@ -69,4 +72,5 @@ test('a signed-out visitor keeps the theme chosen from the sidebar after reload'
   await chooseTheme(page, 'light');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect(themeButton(sidebar)).toHaveAccessibleName(spanish['shell.themeToDark']);
+});
 });

@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { assertFits } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_URL } from '../src/features/legal/config';

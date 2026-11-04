@@ -186,6 +186,15 @@ export function AuthProvider({ children, settings, api, mfaApi }: Props): React.
       await client.updatePassword(session.accessToken, password);
       setRecoveryPending(false);
     },
+    async verifyEmailCode(email, code) {
+      if (!client) return;
+      setRedirectError(null);
+      apply(await client.verifyEmailCode(email, code));
+    },
+    async resendConfirmation(email) {
+      if (!client) return;
+      await client.resendConfirmation(email);
+    },
     authorizeUrl(provider) {
       return client ? client.authorizeUrl(provider, `${window.location.origin}${ROUTES.workspace}`) : null;
     },

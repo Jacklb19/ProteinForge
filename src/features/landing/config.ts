@@ -1,6 +1,4 @@
 import type { TranslationKey } from '../../i18n';
-import type { IconName } from '../../shared/Icon';
-import { ROUTES } from '../../shared/navigation';
 import type { Descriptors } from '../descriptors/descriptors';
 
 /** Descriptors quoted under the analysis example. */
@@ -12,28 +10,23 @@ export const HERO_FACTS: readonly { key: keyof Descriptors }[] = [
 
 export type LandingTool = 'analyze' | 'compare' | 'design' | 'laboratory';
 
-/** Tools presented on the public page, each with the question it answers and the limit of its result. */
-export const LANDING_TOOLS: readonly { id: LandingTool; labelKey: TranslationKey; questionKey: TranslationKey; textKey: TranslationKey; scopeKey: TranslationKey; route: string }[] = [
-  { id: 'analyze', labelKey: 'nav.analyze', questionKey: 'public.analyzeQuestion', textKey: 'public.analyzeText', scopeKey: 'workbench.analysisScope', route: ROUTES.analyze },
-  { id: 'compare', labelKey: 'nav.alignment', questionKey: 'public.compareQuestion', textKey: 'public.compareText', scopeKey: 'workbench.scoreHelp', route: ROUTES.alignment },
-  { id: 'design', labelKey: 'nav.generate', questionKey: 'public.designQuestion', textKey: 'public.designText', scopeKey: 'generator.scope', route: ROUTES.generate },
-  { id: 'laboratory', labelKey: 'workbench.laboratory', questionKey: 'public.labQuestion', textKey: 'public.labText', scopeKey: 'public.labScope', route: ROUTES.laboratory },
-];
-
-export const INTRO_POINTS: readonly { icon: IconName; titleKey: TranslationKey; textKey: TranslationKey }[] = [
-  { icon: 'library', titleKey: 'public.pointSource', textKey: 'public.pointSourceText' },
-  { icon: 'analyze', titleKey: 'public.pointMeaning', textKey: 'public.pointMeaningText' },
-  { icon: 'projects', titleKey: 'public.pointKeep', textKey: 'public.pointKeepText' },
-];
-
-export const WORKFLOW_STEPS: readonly { icon: IconName; titleKey: TranslationKey; textKey: TranslationKey }[] = [
-  { icon: 'upload', titleKey: 'public.stepInput', textKey: 'public.stepInputText' },
-  { icon: 'compare', titleKey: 'public.stepExplore', textKey: 'public.stepExploreText' },
-  { icon: 'projects', titleKey: 'public.stepKeep', textKey: 'public.stepKeepText' },
+/**
+ * What each tool does, shown one after another with its real result; the public page never opens a tool.
+ * `scopeKey` is the limit of that result, where it needs saying.
+ */
+export const LANDING_USES: readonly { id: LandingTool; titleKey: TranslationKey; textKey: TranslationKey; scopeKey?: TranslationKey }[] = [
+  { id: 'analyze', titleKey: 'public.analyzeUse', textKey: 'public.analyzeText', scopeKey: 'workbench.analysisScope' },
+  { id: 'compare', titleKey: 'public.compareUse', textKey: 'public.compareText' },
+  { id: 'design', titleKey: 'public.designUse', textKey: 'public.designText' },
+  { id: 'laboratory', titleKey: 'public.labUse', textKey: 'public.labText', scopeKey: 'public.labScope' },
 ];
 
 export const QUESTIONS: readonly { questionKey: TranslationKey; answerKey: TranslationKey }[] = [
   { questionKey: 'public.questionAccount', answerKey: 'public.answerAccount' },
+  { questionKey: 'public.questionSequences', answerKey: 'account.sequencesText' },
   { questionKey: 'public.questionPrediction', answerKey: 'public.answerPrediction' },
   { questionKey: 'public.questionFunction', answerKey: 'public.answerFunction' },
 ];
+
+/** The answer about accounts opens by default: it is the question every visitor of the public site has. */
+export const OPEN_QUESTION: TranslationKey = 'public.questionAccount';

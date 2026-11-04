@@ -271,7 +271,7 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 
 /* Structure stage ---------------------------------------------------------- */
 .stage { position: relative; min-width: var(--space-none); border-radius: var(--radius-surface); background: var(--bg-subtle); overflow: hidden; }
-.stage-hero { height: var(--height-stage-hero); }
+.stage-hero, .stage-access { height: var(--height-stage-hero); }
 .stage-rail { --height-stage-caption: var(--height-stage-caption-compact); height: var(--height-stage-rail); }
 .stage-library { height: var(--height-structure-viewer); }
 .backbone-view { position: absolute; inset: var(--space-none) var(--space-none) var(--height-stage-caption); cursor: grab; touch-action: pan-y; font-family: var(--font-ui); }

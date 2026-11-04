@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Locator, Page } from '@playwright/test';
 import { identityEnabled, settle, signInWithEmptyAccount, TEST_ACCOUNT, themeButton } from './helpers';
 import { ROUTES } from '../src/shared/navigation';
@@ -100,29 +100,19 @@ for (const width of [360, WIDE]) {
         await expect(page.locator('.descriptor-panel .property')).toHaveCount(5);
         if (width === WIDE) {
           const sidebar = page.getByRole('complementary', { name: text['shell.sidebar'] });
+          // The laboratory always has a session: language and theme are on the profile, not in the sidebar.
+          await expect(sidebar.getByRole('group', { name: text['shell.languageLabel'] })).toHaveCount(0);
+          await expect(themeButton(sidebar, text)).toHaveCount(0);
           await audit(page, 'sidebar expanded');
-          for (const state of ['expanded', 'compact']) {
-            // Expanded: the ES / EN group; compact: one button for the other language. The theme button stays in both.
-            const other = text[locale === 'es' ? 'settings.english' : 'settings.spanish'];
-            if (state === 'expanded') await expect(sidebar.getByRole('group', { name: text['shell.languageLabel'] })).toBeVisible();
-            else await expect(sidebar.getByRole('button', { name: other, exact: true })).toHaveAttribute('lang', locale === 'es' ? 'en' : 'es');
-            const toggle = themeButton(sidebar, text);
-            await expect(toggle).toBeVisible();
-            await toggle.focus();
-            await audit(page, `sidebar ${state} with language and theme`);
-            if (state === 'expanded') {
-              await sidebar.getByRole('button', { name: text['shell.collapseSidebar'] }).click();
-              await expect(page.locator('.workspace')).toHaveAttribute('data-compact', 'true');
-              await audit(page, 'sidebar compact');
-            }
-          }
+          await sidebar.getByRole('button', { name: text['shell.collapseSidebar'] }).click();
+          await expect(page.locator('.workspace')).toHaveAttribute('data-compact', 'true');
+          await audit(page, 'sidebar compact');
           await sidebar.getByRole('button', { name: text['shell.expandSidebar'] }).click();
         } else {
           await page.getByRole('button', { name: text['shell.openMenu'] }).click();
           const menu = page.getByRole('dialog', { name: text['shell.menu'] });
           await expect(menu).toBeVisible();
-          await expect(menu.getByRole('group', { name: text['shell.languageLabel'] })).toBeVisible();
-          await expect(themeButton(menu, text)).toBeVisible();
+          await expect(menu.getByRole('group', { name: text['shell.languageLabel'] })).toHaveCount(0);
           await audit(page, 'laboratory menu');
           // Nothing pops up inside the menu: a single Escape closes it.
           await page.keyboard.press('Escape');

@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { assertFits, chooseTheme, signInWithEmptyAccount, TEST_ACCOUNT, token } from './helpers';
 import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
@@ -15,7 +15,8 @@ test('profile preferences fit both widths and themes with accessible controls', 
     await page.goto(ROUTES.settings);
     await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(spanish['account.title']);
-    await expect(page.getByRole('link', { name: spanish['projects.listLink'] })).toHaveAttribute('href', ROUTES.projects);
+    // Projects has its own section in the sidebar; the profile no longer repeats it.
+    await expect(page.getByRole('link', { name: spanish['projects.listLink'] })).toHaveCount(0);
     for (const theme of ['light', 'dark'] as const) {
       await chooseTheme(page, theme);
       await page.evaluate(() => document.fonts.ready);
@@ -59,7 +60,7 @@ test('profile holds the account, its projects and its data choices, and signs ou
   await signInWithEmptyAccount(page);
   await page.goto(ROUTES.profile);
   await expect(page.locator('.profile-head')).toContainText(TEST_ACCOUNT.email);
-  for (const title of ['projects.title', 'settings.account', 'account.appearance', 'settings.language', 'account.privacy'] as const) {
+  for (const title of ['settings.account', 'account.appearance', 'settings.language', 'account.privacy'] as const) {
     await expect(page.getByRole('region', { name: spanish[title], exact: true })).toBeVisible();
   }
   // The account entry of the sidebar is a plain link, marked as the page shown.
@@ -67,8 +68,11 @@ test('profile holds the account, its projects and its data choices, and signs ou
   await expect(account).toHaveAttribute('href', ROUTES.profile);
   await expect(account).toHaveAttribute('aria-current', 'page');
   await expect(account).not.toHaveAttribute('aria-expanded');
-  // The header leads back to the public site and signs out.
-  await expect(page.locator('.profile-head').getByRole('link', { name: spanish['shell.publicSite'], exact: true })).toHaveAttribute('href', ROUTES.home);
+  // Projects has its own section; the header only signs out, without an index or a link to the public site.
+  await expect(page.getByRole('region', { name: spanish['projects.title'], exact: true })).toHaveCount(0);
+  await expect(page.locator('.profile-head').getByRole('link')).toHaveCount(0);
+  await expect(page.locator('.profile-index')).toHaveCount(0);
+  await expect(page.locator('.profile-head').getByRole('button', { name: spanish['settings.signOut'], exact: true })).toBeVisible();
   await expect(page.getByRole('radio', { name: spanish['settings.spanish'], exact: true })).toBeChecked();
   await expect(page.getByRole('radio', { name: spanish['settings.system'], exact: true })).toBeChecked();
   await expect(page.getByRole('link', { name: spanish['account.policyAction'], exact: true })).toHaveAttribute('href', ROUTES.privacy);
@@ -89,10 +93,15 @@ test('profile holds the account, its projects and its data choices, and signs ou
   await expect(page.getByRole('banner').getByRole('link', { name: spanish['shell.signIn'], exact: true })).toBeVisible();
 });
 
-test('profile and the former settings address ask signed-out visitors to sign in', async ({ page }) => {
-  for (const route of [ROUTES.profile, ROUTES.settings]) {
-    await page.goto(route);
-    await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
-    await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signInTitle'] })).toBeVisible();
-  }
+test.describe('without a session', () => {
+  test.use({ signedIn: false });
+
+  test('profile and the former settings address ask to sign in and say where the visitor returns', async ({ page }) => {
+    for (const route of [ROUTES.profile, ROUTES.settings]) {
+      await page.goto(route);
+      await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
+      await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signInTitle'] })).toBeVisible();
+      await expect(page.getByRole('note')).toHaveText(spanish['auth.returnNote'].replace('{{page}}', spanish['nav.profile']));
+    }
+  });
 });

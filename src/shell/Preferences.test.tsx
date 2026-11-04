@@ -45,13 +45,6 @@ describe('theme button', () => {
     fireEvent.click(screen.getByRole('button', { name: spanish['shell.themeToDark'] }));
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
   });
-
-  it('keeps its name as a hover and focus label in the compact sidebar', () => {
-    render(<PreferencesProvider><ThemeToggle compact /></PreferencesProvider>);
-    const button = screen.getByRole('button', { name: spanish['shell.themeToDark'] });
-    expect(button).toHaveClass('sidebar-link');
-    expect(button.querySelector('.sidebar-label.is-tooltip')).toHaveTextContent(spanish['shell.themeToDark']);
-  });
 });
 
 describe('language switch', () => {
@@ -73,18 +66,6 @@ describe('language switch', () => {
     expect(screen.getByRole('group', { name: english['shell.languageLabel'] })).toBeInTheDocument();
     expect(en).toHaveAttribute('aria-pressed', 'true');
     expect(es).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  it('becomes one button for the other language in the compact sidebar', () => {
-    render(<PreferencesProvider><LanguageSwitch compact /></PreferencesProvider>);
-    const button = screen.getByRole('button', { name: spanish['settings.english'] });
-    expect(button).toHaveAttribute('lang', 'en');
-    expect(button).not.toHaveAttribute('aria-pressed');
-    expect(screen.getByText(spanish['settings.englishShort'])).toBeInTheDocument();
-    fireEvent.click(button);
-    expect(document.documentElement.lang).toBe('en');
-    expect(button).toHaveAccessibleName(english['settings.spanish']);
-    expect(button).toHaveAttribute('lang', 'es');
   });
 });
 

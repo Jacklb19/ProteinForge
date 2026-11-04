@@ -1,17 +1,18 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { readFile } from 'node:fs/promises';
 import {
-  alignmentVerdict, assertFits, examplePairTitle, followNavigation, identityEnabled, languageButton, message, navigationLink, openExportMenu,
+  alignmentVerdict, assertFits, examplePairTitle, identityEnabled, languageButton, message, navigationLink, openExportMenu,
   openPublicSite, openSequenceEditor, openSiteMenu, setTheme, signInWithEmptyAccount, siteMenu, TEST_ACCOUNT, themeButton,
 } from './helpers';
-import { BAR_VEIL_SCROLL_PX, FOOTER_LINKS, NAVIGATION_ITEMS, ROUTES, SIDEBAR_STORAGE_KEY } from '../src/shared/navigation';
+import { BAR_VEIL_SCROLL_PX, NAVIGATION_ITEMS, PUBLIC_FOOTER_LINKS, ROUTES, SIDEBAR_STORAGE_KEY } from '../src/shared/navigation';
 import { PREFERENCES_STORAGE_KEY } from '../src/preferences/config';
+import { SESSION_STORAGE_KEY } from '../src/features/auth/config';
 import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
 import references from '../src/features/descriptors/fixtures/protparam.json' with { type: 'json' };
 
-const destinations = NAVIGATION_ITEMS.filter(item => !item.signedInOnly).map((item) => spanish[item.labelKey]);
+const destinations = NAVIGATION_ITEMS.map((item) => spanish[item.labelKey]);
 const AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
 // The former workspace address now opens Analizar inside the laboratory, which starts on the bundled example.
@@ -47,7 +48,7 @@ for (const width of [360, 1280]) {
 
 test('first visit explores the example, exports results and keeps the draft across both frames', async ({ page }) => {
   await page.goto(ROUTES.home);
-  await page.locator('.hero-actions').getByRole('link', { name: spanish['public.exploreExample'] }).click();
+  await page.locator('.hero-actions').getByRole('link', { name: spanish['public.openLaboratory'] }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.analyze}$`));
   await expect(page.getByText(spanish['guide.mass'])).toBeVisible();
   const exportButton = (await openExportMenu(page)).getByRole('button', { name: spanish['report.download'] });
@@ -67,7 +68,7 @@ test('first visit explores the example, exports results and keeps the draft acro
   await (await openSequenceEditor(page)).fill('ACDEFGHIKLMNPQRSTVWY');
   await openPublicSite(page);
   await expect(page.locator('.workspace-sidebar')).toHaveCount(0);
-  await page.locator('.hero-actions').getByRole('link', { name: spanish['public.exploreExample'] }).click();
+  await page.locator('.hero-actions').getByRole('link', { name: spanish['public.openLaboratory'] }).click();
   await expect(page.getByRole('heading', { level: 2, name: spanish['editor.ownTitle'], exact: true })).toBeVisible();
   const editor = await openSequenceEditor(page);
   await expect(editor).toHaveValue('ACDEFGHIKLMNPQRSTVWY');
@@ -109,15 +110,13 @@ test('the laboratory phone menu is a dialog with the sidebar that closes four wa
   await expect(menu.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(destinations);
   await expect(menu.getByRole('link', { name: spanish['nav.analyze'], exact: true })).toHaveAttribute('aria-current', 'page');
   await expect(menu.getByRole('link', { name: spanish['nav.guide'], exact: true })).toHaveAttribute('href', ROUTES.guide);
-  await expect(menu.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveAttribute('href', ROUTES.signIn);
-  // Without a session, language and theme sit in the menu itself; the system choice lives on the profile.
-  await expect(menu.getByRole('group', { name: spanish['shell.languageLabel'] }).getByRole('button')).toHaveCount(2);
-  await expect(menu.getByRole('radio')).toHaveCount(0);
-  const theme = themeButton(menu);
+  // The laboratory always has a session: the menu ends with the account; language and theme are on the profile.
+  await expect(menu.getByRole('link', { name: new RegExp(TEST_ACCOUNT.email) })).toHaveAttribute('href', ROUTES.profile);
+  await expect(menu.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveCount(0);
+  await expect(menu.getByRole('group', { name: spanish['shell.languageLabel'] })).toHaveCount(0);
+  await expect(themeButton(menu)).toHaveCount(0);
   for (const shown of ['dark', 'light'] as const) {
-    await theme.click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', shown);
-    await expect(theme).toBeFocused();
+    await setTheme(page, shown);
     await assertFits(page);
     const axe = await new AxeBuilder({ page }).withTags(AA).analyze();
     expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
@@ -157,11 +156,11 @@ test('the laboratory phone menu is a dialog with the sidebar that closes four wa
   await expect(page.locator('#app-content')).toBeFocused();
 });
 
-test('the phone menu contains keyboard focus and keeps the pressed language or theme focused', async ({ page }) => {
+test('the public phone menu contains keyboard focus and keeps the pressed language or theme focused', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 });
-  await page.goto(ROUTES.analyze);
+  await page.goto(ROUTES.home);
   const menu = await openSiteMenu(page);
-  const first = menu.getByRole('link', { name: spanish['shell.home'], exact: true });
+  const first = menu.locator('a[href], button, summary').filter({ visible: true }).first();
   const last = menu.locator('a[href], button, summary').filter({ visible: true }).last();
   await last.focus();
   await page.keyboard.press('Tab');
@@ -210,7 +209,7 @@ test('the sidebar groups the tools, collapses to named icons and remembers only 
   const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
   await expect(sidebar.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(destinations);
   await expect(navigationLink(page, spanish['nav.analyze'])).toHaveAttribute('aria-current', 'page');
-  await expect(sidebar.locator('.sidebar-group-label')).toHaveText([spanish['nav.groupResearch'], spanish['nav.groupDesign']]);
+  await expect(sidebar.locator('.sidebar-group-label')).toHaveText([spanish['nav.groupResearch'], spanish['nav.groupDesign'], spanish['nav.groupOrganize']]);
   await expect(sidebar.getByRole('link', { name: spanish['shell.home'] })).toHaveAttribute('href', ROUTES.home);
   // The sidebar stays in place while the tool scrolls; its own list scrolls when the height is short.
   await page.evaluate(() => { window.scrollTo(0, 600); });
@@ -241,7 +240,7 @@ test('the sidebar groups the tools, collapses to named icons and remembers only 
   if (!label) throw new Error('The compact name has no box.');
   expect(label.x).toBeGreaterThanOrEqual(box.x + box.width);
   expect(await page.evaluate((key) => localStorage.getItem(key), SIDEBAR_STORAGE_KEY)).toBe('true');
-  expect(await page.evaluate((known) => Object.keys(localStorage).filter(key => !known.includes(key)), [PREFERENCES_STORAGE_KEY, SIDEBAR_STORAGE_KEY])).toEqual([]);
+  expect(await page.evaluate((known) => Object.keys(localStorage).filter(key => !known.includes(key)), [PREFERENCES_STORAGE_KEY, SIDEBAR_STORAGE_KEY, SESSION_STORAGE_KEY])).toEqual([]);
   const axe = await new AxeBuilder({ page }).withTags(AA).analyze();
   expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
   await assertFits(page);
@@ -262,9 +261,9 @@ test('the public bar veils after scrolling, links to its sections and keeps lega
   await page.evaluate(() => { window.scrollTo(0, 0); });
   await expect(page.getByRole('navigation', { name: spanish['nav.main'] })).toHaveCount(0);
   const sections = page.getByRole('navigation', { name: spanish['public.sections'] });
-  await sections.getByRole('link', { name: spanish['public.navTools'], exact: true }).click();
-  await expect(page).toHaveURL(new RegExp(`${ROUTES.home}#tools$`));
-  await expect(page.locator('#tools')).toBeInViewport();
+  await sections.getByRole('link', { name: spanish['public.navUses'], exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.home}#uses$`));
+  await expect(page.locator('#uses')).toBeInViewport();
   await expect(bar).toHaveAttribute('data-scrolled', 'true');
   expect(await bar.evaluate((element) => element.getBoundingClientRect().top)).toBe(0);
   await page.evaluate(() => { window.scrollTo(0, 0); });
@@ -274,8 +273,8 @@ test('the public bar veils after scrolling, links to its sections and keeps lega
   await expect(footer).toContainText(spanish['app.name']);
   await expect(footer).toContainText(spanish['app.tagline']);
   const links = footer.getByRole('navigation', { name: spanish['footer.navigation'] }).getByRole('link');
-  await expect(links).toHaveText([spanish['public.laboratory'], ...FOOTER_LINKS.map((link) => spanish[link.labelKey])]);
-  expect(await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')))).toEqual([ROUTES.analyze, ...FOOTER_LINKS.map((link) => link.path)]);
+  await expect(links).toHaveText(PUBLIC_FOOTER_LINKS.map((link) => spanish[link.labelKey]));
+  expect(await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')))).toEqual(PUBLIC_FOOTER_LINKS.map((link) => link.path));
   // Neither theme nor language sits in the footer or in the content: both belong to the bar.
   await expect(footer.getByRole('radio')).toHaveCount(0);
   await expect(footer.getByRole('button')).toHaveCount(0);
@@ -308,8 +307,8 @@ test('a signed-in visitor opens the account page straight from the sidebar and f
   const head = page.locator('.profile-head');
   await expect(head.getByRole('button', { name: spanish['settings.signOut'], exact: true })).toBeVisible();
 
-  // The profile header leads to the public site, which recognises the session and offers the laboratory instead of the account forms.
-  await head.getByRole('link', { name: spanish['shell.publicSite'], exact: true }).click();
+  // The brand leads to the public site, which recognises the session and offers the laboratory instead of the account forms.
+  await sidebar.getByRole('link', { name: spanish['shell.home'] }).click();
   await expect(page.getByRole('heading', { level: 1, name: spanish['public.heroTitle'] })).toBeVisible();
   await expect(page.locator('header.site-bar').getByRole('link', { name: spanish['public.openLaboratory'] })).toHaveAttribute('href', ROUTES.analyze);
   await expect(page.locator('header.site-bar').getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveCount(0);
@@ -324,6 +323,8 @@ test('a signed-in visitor opens the account page straight from the sidebar and f
   await expect(page).toHaveURL(new RegExp(`${ROUTES.profile}$`));
 });
 
+test.describe('without a session', () => {
+test.use({ signedIn: false });
 test('a visitor without a session finds account actions and switches language from every width', async ({ page }) => {
   const bar = page.locator('header.site-bar');
   const signUp = bar.getByRole('link', { name: spanish['auth.signUpAction'], exact: true });
@@ -350,7 +351,7 @@ test('a visitor without a session finds account actions and switches language fr
   if (identityEnabled) await expect(menu.getByRole('link', { name: spanish['auth.signUpAction'], exact: true })).toHaveAttribute('href', ROUTES.signUp);
   await expect(menu.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveAttribute('href', ROUTES.signIn);
 
-  // Language is reachable without a session: from the public menu and from the foot of the laboratory sidebar.
+  // Language is reachable without a session from the public menu, and it carries over to the access pages.
   await expect(themeButton(menu)).toBeVisible();
   await languageButton(menu, spanish['settings.english']).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -359,16 +360,15 @@ test('a visitor without a session finds account actions and switches language fr
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { level: 1, name: english['public.heroTitle'] })).toBeVisible();
   await page.setViewportSize({ width: 1280, height: 800 });
+  // A tool sends the visitor to sign in, in the chosen language, saying where they will return.
   await page.goto(ROUTES.analyze);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  const sidebar = page.getByRole('complementary', { name: english['shell.sidebar'] });
-  await expect(languageButton(sidebar, english['settings.english'])).toHaveAttribute('aria-pressed', 'true');
-  await languageButton(sidebar, english['settings.spanish']).click();
+  await expect(page.getByRole('heading', { level: 1, name: english['auth.signInTitle'] })).toBeVisible();
+  await expect(page.getByRole('note')).toHaveText(english['auth.returnNote'].replace('{{page}}', english['nav.analyze']));
+  await languageButton(bar, english['settings.spanish']).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-  await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'] })).toBeVisible();
-  await followNavigation(page, spanish['nav.alignment']);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(examplePairTitle);
   await assertFits(page);
+});
 });
 
 for (const width of [360, 1280]) {

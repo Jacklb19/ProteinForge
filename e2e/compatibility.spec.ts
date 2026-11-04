@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { ROUTES } from '../src/shared/navigation';
 import { spanish } from '../src/i18n/es';
 import { openValueTable } from './helpers';

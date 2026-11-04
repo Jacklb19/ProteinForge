@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import type { Page } from '@playwright/test';
 import { calculateDescriptors } from '../src/features/descriptors/descriptors';
 import { alignSequences } from '../src/features/alignment/gotoh';
@@ -182,9 +182,7 @@ for (const width of [360, 1280]) test(`approved cards, menus and confirmation fi
   await dialog.press('Escape'); await expect(dialog).toBeHidden(); await expect(summary).toBeFocused();
 });
 
-test('the project invitation and English collection stay usable without leaking saved data', async ({ page }) => {
-  await page.goto(ROUTES.projects); await expect(page.getByText(spanish['projects.signInLibrary'])).toBeVisible();
-  await expect(page.getByRole('link', { name: spanish['shell.signIn'], exact: true }).last()).toHaveAttribute('href', ROUTES.signIn);
+test('the English collection stays usable at 360px', async ({ page }) => {
   await mockCollection(page);
   await page.addInitScript(key => { localStorage.setItem(key, JSON.stringify({ locale: 'en', theme: 'dark' })); }, PREFERENCES_STORAGE_KEY);
   await page.setViewportSize({ width: 360, height: 900 }); await page.goto(ROUTES.projects);

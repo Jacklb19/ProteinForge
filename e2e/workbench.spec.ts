@@ -1,8 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { spanish } from '../src/i18n/es';
 import { english } from '../src/i18n/en';
 import { ROUTES } from '../src/shared/navigation';
-import { assertFits, chooseTheme, languageButton, openSequenceEditor, residueReader } from './helpers';
+import { assertFits, chooseTheme, openSequenceEditor, residueReader } from './helpers';
 
 for (const width of [360, 1280]) test(`related analysis views retain selection, window and draft at ${String(width)}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
@@ -35,13 +35,12 @@ for (const width of [360, 1280]) test(`related analysis views retain selection, 
   for (const theme of ['light', 'dark'] as const) { await chooseTheme(page, theme); await assertFits(page); }
 });
 
-test('desktop language works without an account and keeps its choice across navigation', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 }); await page.goto(ROUTES.analyze);
-  const englishButton = languageButton(page.locator('.workspace-sidebar'), spanish['settings.english']);
-  await englishButton.click();
-  await expect(englishButton).toBeFocused();
-  await expect(englishButton).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(english['workbench.analyzeTitle']);
+test('the language chosen on the profile keeps its choice across navigation and reloads', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 }); await page.goto(ROUTES.profile);
+  const englishOption = page.getByRole('radio', { name: spanish['settings.english'], exact: true });
+  await englishOption.check();
+  await expect(englishOption).toBeFocused();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(english['account.title']);
   await page.locator('.workspace-sidebar').getByRole('link', { name: english['nav.library'], exact: true }).click();
   await expect(page.getByRole('tab', { name: english['library.catalogTitle'] })).toHaveAttribute('aria-selected', 'true');
   await page.reload(); await expect(page.locator('html')).toHaveAttribute('lang', 'en');

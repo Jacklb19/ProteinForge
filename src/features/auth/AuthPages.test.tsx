@@ -10,6 +10,8 @@ import { useAuth } from './authContext';
 import { SignInPage } from './SignInPage';
 import { SignUpPage } from './SignUpPage';
 import { RecoverPage } from './RecoverPage';
+import { ConfirmEmailPage } from './ConfirmEmailPage';
+import { RequireSession } from './RequireSession';
 import { SESSION_STORAGE_KEY } from './config';
 import { spanish } from '../../i18n/es';
 import { AFTER_SIGN_IN_ROUTE, ROUTES } from '../../shared/navigation';
@@ -27,6 +29,8 @@ function mockApi(overrides: Partial<AuthApi> = {}): AuthApi {
     getUser: vi.fn().mockResolvedValue(session.user),
     signOut: vi.fn().mockResolvedValue(undefined),
     authorizeUrl: vi.fn().mockReturnValue('https://project.supabase.co/auth/v1/authorize?provider=google'),
+    verifyEmailCode: vi.fn().mockResolvedValue(session),
+    resendConfirmation: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -43,7 +47,9 @@ function renderAt(path: string, api: AuthApi | undefined, children: ReactNode, c
           <Route path={ROUTES.signIn} element={<SignInPage />} />
           <Route path={ROUTES.signUp} element={<SignUpPage />} />
           <Route path={ROUTES.recover} element={<RecoverPage />} />
+          <Route path={ROUTES.confirm} element={<ConfirmEmailPage />} />
           <Route path={AFTER_SIGN_IN_ROUTE} element={<Destination />} />
+          <Route path={ROUTES.library} element={<RequireSession><p>{spanish['nav.library']}</p></RequireSession>} />
           {children}
         </Routes>
       </MemoryRouter>
@@ -107,7 +113,7 @@ describe('identity screens', () => {
     expect(JSON.parse(window.localStorage.getItem(SESSION_STORAGE_KEY) ?? 'null')).toEqual(session);
   });
 
-  it('requires matching passwords of the minimum length and reports a pending confirmation', async () => {
+  it('requires matching passwords of the minimum length and moves on to the code for that address', async () => {
     const api = mockApi();
     renderAt(ROUTES.signUp, api, null);
     fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
@@ -120,8 +126,95 @@ describe('identity screens', () => {
     fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'long-enough-password' } });
     fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'long-enough-password' } });
     fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
-    await waitFor(() => { expect(screen.getByRole('status')).toHaveTextContent(spanish['auth.signedUpConfirm']); });
+    expect(await screen.findByRole('heading', { level: 1, name: spanish['auth.confirmTitle'] })).toBeInTheDocument();
+    expect(screen.getByText(/new@example\.org/)).toBeInTheDocument();
     expect(vi.mocked(api.signUp)).toHaveBeenCalledWith('new@example.org', 'long-enough-password');
+    // The address is in the page state, never in the address bar.
+    expect(window.location.href).not.toContain('new@example.org');
+    // The service has just sent the email, so another code waits.
+    expect(screen.getByRole('button', { name: spanish['auth.resendAction'] })).toBeDisabled();
+  });
+
+  it('confirms with the pasted code, spaces included, and offers to continue to the page that was asked for', async () => {
+    const api = mockApi();
+    renderAt(ROUTES.library, api, null);
+    // A protected page sends the visitor to sign in and says where they will return.
+    expect(await screen.findByRole('note')).toHaveTextContent(spanish['auth.returnNote'].replace('{{page}}', spanish['nav.library']));
+    fireEvent.click(screen.getByRole('link', { name: spanish['auth.signUpAction'] }));
+    fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'long-enough-password' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'long-enough-password' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
+    const code = await screen.findByLabelText(spanish['auth.codeLabel'].replace('{{count}}', '6'));
+    expect(code).toHaveAttribute('inputmode', 'numeric');
+    expect(code).toHaveAttribute('autocomplete', 'one-time-code');
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.verifyAction'] }));
+    expect(screen.getByRole('alert')).toHaveTextContent(spanish['auth.errorCodeRequired']);
+    fireEvent.change(code, { target: { value: '48a270' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.verifyAction'] }));
+    expect(screen.getByRole('alert')).toHaveTextContent(spanish['auth.errorCodeDigits']);
+    expect(vi.mocked(api.verifyEmailCode)).not.toHaveBeenCalled();
+    fireEvent.change(code, { target: { value: '481 270' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.verifyAction'] }));
+    expect(await screen.findByRole('heading', { level: 1, name: spanish['auth.confirmedTitle'] })).toBeInTheDocument();
+    expect(vi.mocked(api.verifyEmailCode)).toHaveBeenCalledWith('new@example.org', '481270');
+    fireEvent.click(screen.getByRole('link', { name: spanish['auth.continueTo'].replace('{{page}}', spanish['nav.library']) }));
+    expect(await screen.findByText(spanish['nav.library'])).toBeInTheDocument();
+  });
+
+  it('reports a wrong or expired code on the field and keeps the visitor on the page', async () => {
+    const api = mockApi({ verifyEmailCode: vi.fn().mockRejectedValue(new AuthError('otp_expired', 'Token has expired or is invalid', 403)) });
+    renderAt(ROUTES.signUp, api, null);
+    fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'long-enough-password' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'long-enough-password' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
+    const code = await screen.findByLabelText(spanish['auth.codeLabel'].replace('{{count}}', '6'));
+    fireEvent.change(code, { target: { value: '000000' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.verifyAction'] }));
+    await waitFor(() => { expect(screen.getByRole('alert')).toHaveTextContent(spanish['auth.errorCodeInvalid']); });
+    expect(code).toHaveAttribute('aria-invalid', 'true');
+    expect(window.localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it('offers the code when the email is not confirmed yet, and sends it again on request', async () => {
+    const api = mockApi({ signIn: vi.fn().mockRejectedValue(new AuthError('email_not_confirmed', 'Email not confirmed', 400)) });
+    renderAt(ROUTES.signIn, api, null);
+    fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'ana@example.org' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'secret-password' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.signInAction'] }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(spanish['auth.errorEmailNotConfirmed']);
+    fireEvent.click(screen.getByRole('link', { name: spanish['auth.enterCode'] }));
+    expect(await screen.findByRole('heading', { level: 1, name: spanish['auth.confirmTitle'] })).toBeInTheDocument();
+    expect(screen.getByText(/ana@example\.org/)).toBeInTheDocument();
+    // No email was sent from this page yet, so another one can be asked for at once; then it waits.
+    const resend = screen.getByRole('button', { name: spanish['auth.resendAction'] });
+    expect(resend).toBeEnabled();
+    fireEvent.click(resend);
+    await waitFor(() => { expect(screen.getByRole('status')).toHaveTextContent(spanish['auth.codeResent']); });
+    expect(vi.mocked(api.resendConfirmation)).toHaveBeenCalledWith('ana@example.org');
+    expect(screen.getByRole('button', { name: spanish['auth.resendAction'] })).toBeDisabled();
+  });
+
+  it('says to wait when the service refuses another email so soon', async () => {
+    const api = mockApi({
+      signIn: vi.fn().mockRejectedValue(new AuthError('email_not_confirmed', 'Email not confirmed', 400)),
+      resendConfirmation: vi.fn().mockRejectedValue(new AuthError('over_email_send_rate_limit', 'rate limited', 429)),
+    });
+    renderAt(ROUTES.signIn, api, null);
+    fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'ana@example.org' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'secret-password' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.signInAction'] }));
+    fireEvent.click(await screen.findByRole('link', { name: spanish['auth.enterCode'] }));
+    fireEvent.click(await screen.findByRole('button', { name: spanish['auth.resendAction'] }));
+    await waitFor(() => { expect(screen.getByRole('status')).toHaveTextContent(spanish['auth.errorResendWait']); });
+    expect(screen.getByRole('button', { name: spanish['auth.resendAction'] })).toBeDisabled();
+  });
+
+  it('asks for the address too when the confirmation page opens without one', () => {
+    renderAt(ROUTES.confirm, mockApi(), null);
+    expect(screen.getByLabelText(spanish['auth.email'])).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: spanish['auth.resendAction'] })).toBeEnabled();
   });
 
   // Supabase keeps only the first 72 bytes, so a longer password (accents count twice) is refused before sending.

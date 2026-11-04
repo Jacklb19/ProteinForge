@@ -24,7 +24,7 @@ function sessionAt(aal: 'aal1' | 'aal2', refreshToken: string, expiresIn = 3600)
 
 function mockApi(overrides: Partial<AuthApi> = {}): AuthApi {
   return {
-    signUp: vi.fn(), signIn: vi.fn(), recover: vi.fn(), updatePassword: vi.fn(), getUser: vi.fn(), authorizeUrl: vi.fn(),
+    signUp: vi.fn(), signIn: vi.fn(), recover: vi.fn(), updatePassword: vi.fn(), getUser: vi.fn(), authorizeUrl: vi.fn(), verifyEmailCode: vi.fn(), resendConfirmation: vi.fn(),
     refresh: vi.fn().mockResolvedValue(sessionAt('aal1', 'refreshed')),
     signOut: vi.fn().mockResolvedValue(undefined),
     ...overrides,
