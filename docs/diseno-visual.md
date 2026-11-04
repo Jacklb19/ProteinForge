@@ -1,5 +1,7 @@
 # Diseño visual vigente
 
+**Cambio del 4 nov:** cuenta obligatoria. Lo que este documento describe para usar la app sin sesión queda sustituido: sin sesión solo existen la portada informativa, la Guía, Privacidad, Términos y las páginas de acceso. Ver [decisiones](decisiones.md).
+
 Actualizado el 26 de octubre de 2026. Dirección A «Mesa clara», elegida por el propietario tras revisar tres maquetas y el plan por pantallas. Conserva la identidad de «ficha de lectura», la marca, las fuentes y el color químico. [Auditoría y propuesta aprobada](usability-redesign-proposal-2026-10-26.md).
 
 Ampliación aprobada el 26 oct con «Me gusta» y una condición: [presentación pública y laboratorio](public-laboratory-proposal-2026-10-26.md). Separa un sitio público de una sola página del entorno de trabajo con barra lateral. Cada control vive en su sección: identidad y sesión en Cuenta, guardar/exportar/importar junto a su herramienta. Iconos de trazo y animaciones de entrada están autorizados por esa petición y sustituyen la restricción anterior que los limitaba. Implementada localmente; sin publicar.

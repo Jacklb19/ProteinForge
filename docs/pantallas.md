@@ -1,5 +1,7 @@
 # Mapa vigente de pantallas
 
+**Cambio del 4 nov:** cuenta obligatoria. Lo que este documento describe para usar la app sin sesión queda sustituido: sin sesión solo existen la portada informativa, la Guía, Privacidad, Términos y las páginas de acceso. Ver [decisiones](decisiones.md).
+
 Revisado el 1 nov 2026. Presentación pública y laboratorio separados, sobre la base A «Mesa clara»; implementado localmente. El sitio público tiene cabecera y secciones; el laboratorio, barra lateral agrupada (Investigar: Analizar, Comparar, Biblioteca · Diseñar: Diseñar secuencias, Laboratorio 3D · Organizar: Proyectos con sesión) y, al pie, Guía y métodos y la cuenta (con sesión) o ES / EN, tema y acceso (sin sesión). Desde el 1 nov no hay panel «Preferencias» (propuesta A «Controles compactos»). Interfaz en español e inglés. Rutas en `src/shared/navigation.ts`.
 
 Proyectos conserva los contratos y garantías de A «Colección de secuencias» y adopta las filas con detalles de Mesa clara; [auditoría y decisión](projects-proposal.md). Laboratorio y persistencia ya publicados; [activación real del 22 oct y límites](laboratory-activation.md). La [lectura de resultados](assistant.md) está implementada localmente en Analizar y Laboratorio con la propuesta A aprobada; todavía sin publicar.
