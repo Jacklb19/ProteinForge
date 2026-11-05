@@ -2,6 +2,7 @@ import { useTranslation } from '../../i18n';
 import { RESIDUE_NAMES, residueClass } from '../chemistry/config';
 import { required } from './config';
 import type { LabDraft, LabReference, LabVariant } from './types';
+import { Glossed, Term } from '../../shared/Term';
 
 interface Props {
   reference: LabReference;
@@ -40,11 +41,11 @@ export function LabInspector({ reference, variant, draft, selected, modified, bu
       <div className="lab-metrics">
         <div>
           <strong className="numeric">{modified ? '—' : number(variant.meanPlddt)}</strong>
-          <span>{t('lab.meanConfidence')}</span>
+          <span>{t('lab.meanConfidence')} · <Term term="plddt">{t('glossary.plddtPhrase')}</Term></span>
         </div>
         <div>
           <strong className="numeric">{modified ? '—' : `${number(variant.rmsd, 3)} Å`}</strong>
-          <span>{t('lab.rmsd', { count: variant.sequence.length })}</span>
+          <span><Glossed text={t('lab.rmsd', { count: variant.sequence.length })} terms={['rmsd']} /></span>
         </div>
       </div>
       <p className="field-help">{modified ? t('lab.draftHint') : t('lab.scientificScope')}</p>
@@ -56,10 +57,10 @@ export function LabInspector({ reference, variant, draft, selected, modified, bu
           <div>
             <strong>{t('lab.residueName', { name: RESIDUE_NAMES[aa] ?? aa, chain: key.chain, number: key.number, insertion: key.insertion })}</strong>
             <p className="field-help">
-              {t('lab.referenceResidue', {
+              <Glossed text={t('lab.referenceResidue', {
                 residue: reference.sequence[selected] ?? '',
                 confidence: modified ? t('lab.noPrediction') : number(required(variant.plddt[selected]), 1),
-              })}
+              })} terms={['plddt']} />
             </p>
           </div>
         </div>

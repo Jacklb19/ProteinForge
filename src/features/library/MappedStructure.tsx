@@ -9,7 +9,8 @@ import { readApiBaseUrl } from '../api/config';
 import type { SequenceSource } from '../editor/source';
 import { annotatedCoverage, createLibraryApi } from './libraryApi';
 import type { PdbReference } from './libraryApi';
-import { PDB_URL } from './config';
+import { CHAIN_HELP_EXAMPLES, PDB_URL } from './config';
+import { Glossed } from '../../shared/Term';
 import type { MappingLoader } from './mappingTypes';
 import type { CoordinateResidue } from './residueMapping';
 import type { ReferenceBindingSelection } from './referenceBinding';
@@ -56,6 +57,7 @@ export function MappedStructure({ reference, structures, pdbId, position, chain,
   const stateKey: TranslationKey = !mapping.ready || mapping.reason !== 'ready' ? `mapping.${mapping.reason}`
     : result === null ? 'mapping.noSelection'
       : result.status === 'sequence-mismatch' || result.status === 'unverified' ? 'mapping.stale' : `mapping.${result.status}`;
+  const chainExample = CHAIN_HELP_EXAMPLES.find(item => item.accession === reference.accession && item.pdbId === pdbId);
   const changeSelection = (next: number | null, nextChain: string | null): void => { setPicked(null); onSelect(next, nextChain); };
   const pick = (id: string, residue: CoordinateResidue | null): void => {
     if (id !== pdbId || !mapping.ready || mapping.binding.status !== 'ready') return;
@@ -99,16 +101,17 @@ export function MappedStructure({ reference, structures, pdbId, position, chain,
             <option value="">{t('mapping.chooseChain')}</option>
             {mapping.binding.chains.map(item => <option key={item.labelAsymId} value={item.labelAsymId}>{t('mapping.chainOption', { chain: item.labelAsymId, author: item.authAsymId })}</option>)}
           </select>
+          <p className="field-help chain-help">{[t('glossary.chainHelp'), chainExample ? t(chainExample.text) : ''].filter(Boolean).join(' ')}</p>
         </div>
         <p className="field-meta mapped-position">{position !== null ? `${reference.accession}:${formatNumber(position)} · ${reference.sequence[position - 1] ?? ''}` : t('mapping.noSelection')}</p>
-        <p id={`${id}-status`} className="status-message mapping-status" role="status" aria-live="polite" data-mapping-state={stateKey.slice('mapping.'.length)}>{t(stateKey, { addresses, pdb: pdbId })}</p>
+        <p id={`${id}-status`} className="status-message mapping-status" role="status" aria-live="polite" data-mapping-state={stateKey.slice('mapping.'.length)}><Glossed text={t(stateKey, { addresses, pdb: pdbId })} terms={['authorChain', 'internalPosition']} /></p>
         {mapping.reason === 'session' && <Link className="button button-secondary" to={ROUTES.signIn}>{t('shell.signIn')}</Link>}
         {retryable && <button type="button" className="button button-secondary" onClick={mapping.retry}>{t('mapping.retry')}</button>}
         {onOpenAnalysis && <div className="actions"><button type="button" className="button button-secondary" onClick={onOpenAnalysis}>{t('mapping.openAnalysis')}</button></div>}
         <Suspense fallback={placeholder ?? <p className="status-message">{t('library.viewerLoading')}</p>}>
           <StructureViewer key={pdbId} pdbId={pdbId} placeholder={placeholder} residueSelection={{ pdbId, selected, onSelect: pick, onReady: mapping.onReady, onUnavailable: mapping.onUnavailable }} />
         </Suspense>
-        <p className="field-help">{t('mapping.scope')}</p>
+        <p className="field-help"><Glossed text={t('mapping.scope')} terms={['asymmetricUnit']} /></p>
         {compact && <Link className="button button-quiet" to={ROUTES.library}>{t('structure.openViewer')}</Link>}
       </>}
     </div>

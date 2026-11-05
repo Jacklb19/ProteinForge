@@ -37,10 +37,14 @@ import { LabContext } from '../design-lab/context';
 import { draftFingerprint } from '../design-lab/state';
 import { sha256 } from '../design-lab/zip';
 
-interface State { owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null; attempt: number }
+interface State {
+  owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null; attempt: number;
+  /** Design's own destination for searches: it follows the project open in Analyze until a project is chosen there. */
+  searchFollows: boolean; searchProject: Project | null;
+}
 /** A project created only to keep generator searches starts without analysis or comparison. */
 const EMPTY_WORKSPACE: WorkspaceSnapshot = { schemaVersion: 1, profileWindow: DEFAULT_HYDROPATHY_WINDOW, source: null, descriptors: null, alignment: { first: '', second: '', matrix: DEFAULT_MATRIX, mode: DEFAULT_MODE, result: null } };
-const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, listing: DEFAULT_PROJECT_QUERY, busy: false, error: null, notice: null, attempt: 0 };
+const EMPTY: State = { owner: null, active: null, items: [], nextPageToken: null, listing: DEFAULT_PROJECT_QUERY, busy: false, error: null, notice: null, attempt: 0, searchFollows: true, searchProject: null };
 
 function remember(owner: string, id: string | null): void {
   try {
@@ -413,8 +417,15 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       if (!signal.aborted) setState(value => ({ ...value, error: error instanceof ApiError ? error : new ApiError('unknown') }));
     }
   }
+  // The project whose saved searches Design shows and saves to; the copy in `active` is fresher when both are the same.
+  const searchProject = current.searchFollows ? current.active
+    : current.searchProject && current.active?.id === current.searchProject.id ? current.active : current.searchProject;
+  /** Keeps the stored copies of a project that was just written in step, wherever this screen holds them. */
+  const written = (project: Project) => (value: State): State => ({
+    ...value, active: value.active?.id === project.id ? project : value.active, searchProject: value.searchProject?.id === project.id ? project : value.searchProject,
+  });
   const value = {
-    laboratory,
+    laboratory, searchProject,
     enabled, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
     busy: current.busy || syncing, error: current.error, notice: current.notice, attempt: current.attempt, dirty, listing: current.listing,
     connection, pending: queue, syncing,
@@ -576,7 +587,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       if (signal.aborted) return;
       if (current.active?.id === project.id && user) remember(user, null);
       setLabBinding(binding=>binding?.project.id===project.id?null:binding);
-      setState((value) => ({ ...value, active: value.active?.id === project.id ? null : value.active, items: value.items.filter((item) => item.id !== project.id), notice: 'deleted' }));
+      setState((value) => ({ ...value, active: value.active?.id === project.id ? null : value.active, searchProject: value.searchProject?.id === project.id ? null : value.searchProject, items: value.items.filter((item) => item.id !== project.id), notice: 'deleted' }));
       await relist(service, signal);
     }); },
     async saveGeneratorRun(resultJson: string, selection: GeneratorRunSelection | null, target: GeneratorRunTarget): Promise<GeneratorRunSaved | null> {
@@ -610,15 +621,29 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
         catch (error) { if (!signal.aborted && error instanceof ApiError && isRetryable(error.code) && wait(!base, error)) return; throw error; }
         signal.throwIfAborted();
         if (project.workspace.generatorHistory?.documentSha256 !== history.documentSha256) throw new ApiError('invalid-response');
-        setState((value) => ({ ...value, active: value.active?.id === project.id ? project : value.active }));
+        setState(written(project));
         setLabBinding((binding) => binding?.project.id === project.id ? { ...binding, project } : binding);
         outcome.value = { project: project.name, added: true };
         await relist(service, signal);
       });
       return done ? outcome.value : null;
     },
+    chooseSearchProject(id: string | null) { return run(async (service, signal) => {
+      if (id === null) { setState(value => ({ ...value, searchFollows: false, searchProject: null })); return; }
+      // Choosing here reads the stored project; it neither opens it in Analyze nor touches the drafts.
+      const project = current.active?.id === id ? current.active : await service.open(id, token, signal);
+      if (signal.aborted) return;
+      setState(value => ({ ...value, searchFollows: false, searchProject: project }));
+    }); },
+    createSearchProject(name: string) { return run(async (service, signal) => {
+      // A project for searches starts empty: it does not take the sequence or comparison from Analyze.
+      const project = await service.save({ name: name.trim().slice(0, MAX_PROJECT_NAME_LENGTH), activeSequence: '', workspace: EMPTY_WORKSPACE }, token, undefined, signal, idempotent ? crypto.randomUUID() : undefined);
+      if (signal.aborted) return;
+      setState(value => ({ ...value, searchFollows: false, searchProject: project }));
+      await relist(service, signal);
+    }); },
     removeGeneratorRun(id: string) { return run(async (service, signal) => {
-      const base = current.active;
+      const base = searchProject;
       const history = base?.workspace.generatorHistory;
       if (!base || !history) throw new ApiError('validation');
       const { removeGeneratorRun } = await historyModule();
@@ -627,7 +652,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       const project = await service.save({ name: base.name, activeSequence: base.activeSequence, workspace }, token, base, signal);
       signal.throwIfAborted();
       if ((project.workspace.generatorHistory?.documentSha256 ?? null) !== (next?.documentSha256 ?? null)) throw new ApiError('invalid-response');
-      setState((value) => ({ ...value, active: value.active?.id === project.id ? project : value.active }));
+      setState(written(project));
       setLabBinding((binding) => binding?.project.id === project.id ? { ...binding, project } : binding);
       await relist(service, signal);
     }); },

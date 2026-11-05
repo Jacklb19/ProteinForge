@@ -31,14 +31,12 @@ export function useGeneratorSave(result: SearchResult, unavailable: boolean): { 
       </div>
     </div>
   ) };
-  const active = projects.active;
-  const button = <button type="button" className="button button-primary" disabled={unavailable || projects.busy} onClick={() => { setOpen(true); }}>{t('generator.saveToProject')}</button>;
+  // The destination is chosen once in the page heading; here it is only named.
+  const destination = projects.searchProject;
+  const button = <button type="button" className="button button-primary" disabled={unavailable || projects.busy || !destination} onClick={() => { setOpen(true); }}>{t('generator.saveToProject')}</button>;
   return { button, details: (
     <>
-      <p className="field-help generator-save-destination">
-        {active ? t('generator.savesTo', { project: active.name }) : t('generator.savesNowhere')}{' '}
-        <button type="button" className="button button-quiet" disabled={unavailable || projects.busy} onClick={() => { setOpen(true); }}>{t(active ? 'generator.changeProject' : 'generator.chooseProject')}</button>
-      </p>
+      <p className="field-help generator-save-destination">{destination ? t('generator.savesTo', { project: destination.name }) : t('generator.chooseAbove')}</p>
       <HistoryFeedback attempt={attempt} success={saved && !saved.queued ? t(saved.added ? 'generator.savedTo' : 'generator.alreadySaved', { project: saved.project }) : null} onDownload={() => { downloadSearch(resultJson); }} />
       {/* Without a connection the search waits in this tab; Projects shows it on its row. */}
       {saved?.queued && <div className="sync-state" role="status"><p><strong>{t('sync.queued', { name: saved.project })}</strong> {t('sync.queuedHelp')}</p></div>}

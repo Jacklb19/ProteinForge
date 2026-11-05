@@ -3,7 +3,7 @@ import { useTranslation } from '../../i18n';
 import { residueClass } from '../chemistry/config';
 import { useProjects } from '../projects/projectContext';
 import type { GeneratorRunSaved, GeneratorRunTarget } from '../projects/projectContext';
-import { MAX_PROJECT_NAME_LENGTH, PROJECT_ERROR_KEYS } from '../projects/config';
+import { PROJECT_ERROR_KEYS } from '../projects/config';
 import { CandidateRows } from './CandidateRows';
 import { CANDIDATE_GRAVY_FORMAT, CANDIDATE_MASS_FORMAT, GENERATOR_HISTORY_CONFIG as H } from './config';
 import { useGenerator } from './context';
@@ -50,11 +50,7 @@ export function SaveDialog({ result, resultJson, onClose, onStart, onDone }: { r
   const kilobytes = useKilobytes();
   const dialog = useRef<HTMLDialogElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
-  const active = projects.active;
-  const others = projects.items.filter((item) => item.id !== active?.id);
-  const [destination, setDestination] = useState<'active' | 'project' | 'new'>(active ? 'active' : others.length ? 'project' : 'new');
-  const [other, setOther] = useState(others[0]?.id ?? '');
-  const [name, setName] = useState('');
+  const destination = projects.searchProject;
   const [chosen, setChosen] = useState('none');
   useLayoutEffect(() => {
     const element = dialog.current;
@@ -64,14 +60,15 @@ export function SaveDialog({ result, resultJson, onClose, onStart, onDone }: { r
     cancel.current?.focus();
     return () => { element?.close(); if (previous?.isConnected) previous.focus(); };
   }, []);
-  const history = active?.workspace.generatorHistory;
+  const history = destination?.workspace.generatorHistory;
   const runsAfter = (history ? generatorHistoryRuns(history).length : 0) + 1;
   const bytesAfter = encoder.encode(history?.documentJson ?? '').byteLength + encoder.encode(resultJson).byteLength;
-  const invalid = (destination === 'project' && !other) || (destination === 'new' && !name.trim());
   async function submit(): Promise<void> {
+    if (!destination) return;
     const [arm, index] = chosen.split(':');
     const selection: GeneratorRunSelection | null = arm === 'guided' || arm === 'reference' ? { arm, index: Number(index) } : null;
-    const target: GeneratorRunTarget = destination === 'active' ? { kind: 'active' } : destination === 'project' ? { kind: 'project', id: other } : { kind: 'new', name };
+    // The project open in Analyze keeps its own save path (and its waiting copy); any other is read fresh.
+    const target: GeneratorRunTarget = destination.id === projects.active?.id ? { kind: 'active' } : { kind: 'project', id: destination.id };
     onStart(projects.attempt + 1);
     onDone(null);
     onClose();
@@ -82,19 +79,7 @@ export function SaveDialog({ result, resultJson, onClose, onStart, onDone }: { r
     <dialog ref={dialog} className="project-dialog" aria-labelledby="generator-save-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
       <form className="project-confirm" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
         <h2 id="generator-save-title">{t('generator.saveTitle')}</h2>
-        <fieldset className="generator-save-choices">
-          <legend>{t('generator.destination')}</legend>
-          {active && <label className="checkbox-option"><input type="radio" name="generator-destination" checked={destination === 'active'} onChange={() => { setDestination('active'); }} /><span>{t('generator.destinationActive', { project: active.name })}</span></label>}
-          <label className="checkbox-option"><input type="radio" name="generator-destination" checked={destination === 'project'} disabled={!others.length} onChange={() => { setDestination('project'); }} /><span>{t('generator.destinationOther')}</span></label>
-          {destination === 'project' && <select className="text-input" aria-label={t('generator.destinationOther')} value={other} onChange={(event) => { setOther(event.target.value); }}>
-            {others.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>}
-          {!others.length && <p className="field-help">{t('generator.noOtherProjects')}</p>}
-          <label className="checkbox-option"><input type="radio" name="generator-destination" checked={destination === 'new'} onChange={() => { setDestination('new'); }} /><span>{t('generator.destinationNew')}</span></label>
-          {destination === 'new' && <label className="field" htmlFor="generator-new-project"><span>{t('generator.newName')}</span>
-            <input id="generator-new-project" className="text-input" value={name} maxLength={MAX_PROJECT_NAME_LENGTH} required onChange={(event) => { setName(event.target.value); }} />
-          </label>}
-        </fieldset>
+        {destination && <p>{t('generator.savesTo', { project: destination.name })}</p>}
         <label className="field" htmlFor="generator-chosen"><span>{t('generator.chosen')}</span>
           <select id="generator-chosen" className="text-input" value={chosen} onChange={(event) => { setChosen(event.target.value); }}>
             <option value="none">{t('generator.chosenNone')}</option>
@@ -107,11 +92,11 @@ export function SaveDialog({ result, resultJson, onClose, onStart, onDone }: { r
           <h3 className="generator-save-subtitle">{t('generator.whatIsSaved')}</h3>
           <p>{t('generator.savedSummary', { seed: result.parameters.seed, length: result.parameters.length, budget: formatNumber(result.parameters.budget), method: result.methodVersion, size: kilobytes(encoder.encode(resultJson).byteLength) })}</p>
           <p className="field-help">{t('generator.savedNote')}</p>
-          {destination === 'active' && <p className="field-help">{t('generator.usageAfter', { runs: runsAfter, maximum: H.maxRuns, used: kilobytes(bytesAfter), limit: kilobytes(H.maxDocumentBytes) })}</p>}
+          {destination && <p className="field-help">{t('generator.usageAfter', { runs: runsAfter, maximum: H.maxRuns, used: kilobytes(bytesAfter), limit: kilobytes(H.maxDocumentBytes) })}</p>}
         </div>
         <div className="actions">
           <button ref={cancel} className="button button-secondary" type="button" onClick={onClose}>{t('generator.saveCancel')}</button>
-          <button className="button button-primary" type="submit" disabled={invalid || projects.busy}>{t('generator.save')}</button>
+          <button className="button button-primary" type="submit" disabled={!destination || projects.busy}>{t('generator.save')}</button>
         </div>
       </form>
     </dialog>
@@ -216,7 +201,7 @@ function SavedRun({ run, busy, onRemove }: { run: GeneratorRun; busy: boolean; o
   );
 }
 
-/** Searches saved in the project open in Analyze, where this build offers them. */
+/** Searches saved in Design's chosen project, where this build offers them. */
 export function SavedRuns() {
   return useGeneratorHistoryMode() === 'ready' ? <SavedRunsSection /> : null;
 }
@@ -226,17 +211,17 @@ function SavedRunsSection() {
   const projects = useProjects();
   const kilobytes = useKilobytes();
   const [attempt, setAttempt] = useState<number | null>(null);
-  const active = projects.active;
+  const active = projects.searchProject;
   const history = active?.workspace.generatorHistory;
   const runs = history ? generatorHistoryRuns(history) : [];
   return (
     <section className="section generator-saved-runs" aria-labelledby={SAVED_RUNS_ID}>
       <div className="section-header">
-        <h2 id={SAVED_RUNS_ID} tabIndex={-1}>{t('generator.historyTitle')}</h2>
+        <h2 id={SAVED_RUNS_ID} tabIndex={-1}>{active ? t('generator.historyIn', { project: active.name }) : t('generator.historyNone')}</h2>
         {active && <p className="generator-usage">{t('generator.usage', { runs: runs.length, maximum: H.maxRuns, used: kilobytes(encoder.encode(history?.documentJson ?? '').byteLength), limit: kilobytes(H.maxDocumentBytes) })}</p>}
       </div>
-      {!active ? <p>{t('generator.historyNoProject')}</p> : <>
-        <p>{t('generator.historyProject', { project: active.name })} {t('generator.historyIntro')}</p>
+      {!active ? <p className="field-help">{t('generator.chooseAbove')}</p> : <>
+        <p>{t('generator.historyIntro')}</p>
         <p className="field-help">{t('generator.reproduceNote')}</p>
         <HistoryFeedback attempt={attempt} success={t('generator.removed')} />
         {runs.length ? <div className="generator-runs">

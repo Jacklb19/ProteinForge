@@ -67,11 +67,15 @@ describe('alignment interface', () => {
     expect(screen.queryByText(translate(DEFAULT_LOCALE, 'alignment.limit', { count: '5.000' }))).not.toBeInTheDocument();
     enterSequences('AC-', 'AC');
     fireEvent.click(screen.getByRole('button', { name: spanish['alignment.start'] }));
-    expect(screen.getByRole('status')).toHaveTextContent(spanish['alignment.invalid']);
-    expect(screen.getByRole('status')).toHaveTextContent(translate(DEFAULT_LOCALE, 'alignment.invalidIn', { name: spanish['alignment.first'], positions: '3' }));
+    // The box names its own positions; the line under «Align» only says which box to check.
+    expect(screen.getByRole('status')).toHaveTextContent(translate(DEFAULT_LOCALE, 'alignment.invalidField', { name: spanish['alignment.first'] }));
     expect(screen.getByLabelText(spanish['alignment.first'])).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByLabelText(spanish['alignment.first'])).toHaveAccessibleDescription(screen.getByRole('status').textContent);
+    expect(screen.getByLabelText(spanish['alignment.first'])).toHaveAccessibleDescription(translate(DEFAULT_LOCALE, 'editor.invalidPositions', { positions: '3' }));
+    expect(screen.getByLabelText(spanish['alignment.first'])).toHaveFocus();
     expect(screen.getByLabelText(spanish['alignment.second'])).toHaveAttribute('aria-invalid', 'false');
+    enterSequences('AC-', 'A1');
+    fireEvent.click(screen.getByRole('button', { name: spanish['alignment.start'] }));
+    expect(screen.getByRole('status')).toHaveTextContent(spanish['alignment.invalidBoth']);
     enterSequences('A'.repeat(5001), 'AC');
     fireEvent.click(screen.getByRole('button', { name: spanish['alignment.start'] }));
     expect(screen.getByRole('status')).toHaveTextContent(translate(DEFAULT_LOCALE, 'alignment.limit', { count: '5.000' }));

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
@@ -8,15 +8,34 @@ import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { useGenerator } from './context';
 import { parseSearchForm, searchFormProblems } from './searchForm';
-import { GENERATOR_CONFIG as C } from './config';
+import { GENERATOR_FIELD_BOUNDS } from './config';
+import type { GeneratorNumberField } from './config';
+import type { SearchForm } from './context';
+import type { SearchFormProblem } from './searchForm';
 import type { SearchArm, SearchResult } from './search';
 import { downloadSearch } from './download';
 import { SavedRuns } from './GeneratorHistory';
 import { useGeneratorSave } from './useGeneratorSave';
+import { useSearchProjectPicker } from './SearchProjectPicker';
+import { generatorHistoryRuns, sha256Text } from './history';
+import { INITIAL_SEARCH_FORM } from './context';
+import { useGeneratorHistoryMode } from './historyMode';
+import { ProjectContext } from '../projects/projectContext';
+import { SaveState } from '../projects/SaveState';
+import type { SaveStateValue } from '../projects/draftSaveState';
 import { residueClass } from '../chemistry/config';
 import { ChemistryLegend } from '../chemistry/ChemistryLegend';
 
 const STATUS_ID = 'generator-status';
+/** Where each field's message sits: under the field itself, under its range, or under both ranges. */
+type MessageSpot = 'length' | 'budget' | 'seed' | 'gravy' | 'mass' | 'targets';
+const SPOT: Record<keyof SearchForm, MessageSpot> = {
+  length: 'length', budget: 'budget', seed: 'seed', gravyEnabled: 'targets', massEnabled: 'targets',
+  gravyMinimum: 'gravy', gravyMaximum: 'gravy', massMinimum: 'mass', massMaximum: 'mass',
+};
+const spotOf = (problem: SearchFormProblem): MessageSpot => SPOT[problem.fields[0] ?? 'length'];
+const messageId = (spot: MessageSpot): string => `generator-${spot}-message`;
+const fieldId = (field: keyof SearchForm): string => `generator-${field}`;
 
 /** The result's own actions; saving to a project sits next to the download of the same file. */
 function ResultActions({ result, unavailable, onCompare }: { result: SearchResult; unavailable: boolean; onCompare: () => void }): React.JSX.Element {
@@ -34,12 +53,40 @@ function ResultActions({ result, unavailable, onCompare }: { result: SearchResul
   );
 }
 
+/**
+ * Whether the search on screen is saved in Design's project: its identifier (the SHA-256 of the exported
+ * JSON) is among that project's saved searches. The opening search with the initial conditions is the example.
+ */
+function useSearchSaveState(result: SearchResult | null): SaveStateValue | null {
+  const { t } = useTranslation();
+  const mode = useGeneratorHistoryMode();
+  const projects = useContext(ProjectContext);
+  const [id, setId] = useState<{ json: string; value: string } | null>(null);
+  const json = result ? JSON.stringify(result, null, 2) : null;
+  useEffect(() => {
+    if (!json || mode !== 'ready') return;
+    let current = true;
+    void sha256Text(json).then((value) => { if (current) setId({ json, value }); });
+    return () => { current = false; };
+  }, [json, mode]);
+  if (!result || mode !== 'ready') return null;
+  const destination = projects?.searchProject;
+  const runs = destination?.workspace.generatorHistory ? generatorHistoryRuns(destination.workspace.generatorHistory) : [];
+  if (destination && id?.json === json && runs.some((run) => run.id === id.value)) return { kind: 'saved', project: destination.name };
+  const initial = parseSearchForm(INITIAL_SEARCH_FORM);
+  if (initial.success && JSON.stringify(initial.data) === JSON.stringify(result.parameters)) return { kind: 'example' };
+  return { kind: 'unsaved', detail: t('saveState.searchUnsaved') };
+}
+
 /** RF17 searches only explicitly calculated properties; every output remains an academic candidate. */
 export function GeneratorPage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const generator = useGenerator(); const { form, result, status, progress } = generator;
   const sequence = useSequenceDraft(); const alignment = useAlignmentDraft(); const navigate = useNavigate();
   const [pending, setPending] = useState<{ sequence: string } | { compare: true } | null>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const picker = useSearchProjectPicker();
+  const saveState = useSearchSaveState(result);
   const { run } = generator;
   // The page opens on a finished search with the initial conditions instead of an empty form.
   useEffect(() => { if (result === null && status === 'idle') run(); }, [result, status, run]);
@@ -47,10 +94,28 @@ export function GeneratorPage(): React.JSX.Element {
   const stale = result !== null && (!parsed.success || JSON.stringify(parsed.data) !== JSON.stringify(result.parameters));
   const busy = status === 'running';
   const unavailable = stale || busy;
-  // A refused search names what to fix and marks those fields; the browser already reports out-of-range numbers itself.
+  // A refused search names each problem next to its field and marks the fields involved.
   const problems = status === 'invalid' ? searchFormProblems(form) : [];
   const flagged = new Set(problems.flatMap((problem) => problem.fields));
-  const invalidProps = (key: keyof typeof form): { 'aria-invalid'?: true; 'aria-describedby'?: string } => flagged.has(key) ? { 'aria-invalid': true, 'aria-describedby': STATUS_ID } : {};
+  const invalidProps = (key: keyof SearchForm): { 'aria-invalid'?: true; 'aria-describedby'?: string } => flagged.has(key) ? { 'aria-invalid': true, 'aria-describedby': messageId(SPOT[key]) } : {};
+  const advancedFlagged = flagged.has('budget') || flagged.has('seed');
+  function messages(spot: MessageSpot): React.JSX.Element | null {
+    const here = problems.filter((problem) => spotOf(problem) === spot);
+    if (!here.length) return null;
+    return (
+      <p id={messageId(spot)} className="status-message generator-field-message" data-state="invalid">
+        {here.map((problem) => t(problem.messageKey, {
+          minimum: problem.bounds ? formatNumber(problem.bounds.minimum) : '', maximum: problem.bounds ? formatNumber(problem.bounds.maximum) : '',
+        })).join(' ')}
+      </p>
+    );
+  }
+  function submit(event: React.SyntheticEvent<HTMLFormElement>): void {
+    event.preventDefault(); setPending(null); generator.run();
+    // Focus goes to the first field to fix, once its message is on screen.
+    const first = searchFormProblems(form)[0]?.fields[0];
+    if (first) window.requestAnimationFrame(() => { document.getElementById(fieldId(first))?.focus(); });
+  }
 
   function analyze(value: string, confirmed = false): void {
     if (sequence.text && sequence.text !== value && !confirmed) { setPending({ sequence: value }); return; }
@@ -64,19 +129,21 @@ export function GeneratorPage(): React.JSX.Element {
     setPending(null); void navigate(ROUTES.alignment);
   }
 
-  type NumericField = 'length' | 'budget' | 'seed' | 'gravyMinimum' | 'gravyMaximum' | 'massMinimum' | 'massMaximum';
-  function numeric(key: NumericField, label: TranslationKey, minimum: number, maximum: number, step: number): React.JSX.Element {
+  function numeric(key: GeneratorNumberField, label: TranslationKey): React.JSX.Element {
+    const { minimum, maximum, step } = GENERATOR_FIELD_BOUNDS[key];
     return (
-      <label className="field" htmlFor={`generator-${key}`}>
+      <label className="field" htmlFor={fieldId(key)}>
         <span>{t(label)}</span>
         <input
-          id={`generator-${key}`} className="text-input" type="number" inputMode={step === 1 ? 'numeric' : 'decimal'}
+          id={fieldId(key)} className="text-input" type="number" inputMode={step === 1 ? 'numeric' : 'decimal'}
           min={minimum} max={maximum} step={step} value={form[key]} disabled={busy} required {...invalidProps(key)}
           onChange={(event) => { generator.setForm({ [key]: event.target.value }); setPending(null); }}
         />
       </label>
     );
   }
+  /** A single field with its own message underneath. */
+  const single = (key: 'length' | 'budget' | 'seed', label: TranslationKey): React.JSX.Element => <div className="generator-field">{numeric(key, label)}{messages(key)}</div>;
 
   function candidates(arm: SearchArm, label: TranslationKey): React.JSX.Element {
     return (
@@ -115,20 +182,25 @@ export function GeneratorPage(): React.JSX.Element {
 
   return (
     <main className="page generator-page">
-      <PageHeading titleKey="generator.title" introduction="generator.introduction">
+      <PageHeading titleKey="generator.title" introduction="generator.introduction" note={<>
+        {saveState && <p className="page-meta"><SaveState {...saveState} /></p>}
+        {picker.note && <p>{picker.note}</p>}
+      </>}>
+        {picker.field}
         <Link className="button button-primary" to={ROUTES.laboratory}>{t('lab.openLaboratory')}</Link>
       </PageHeading>
+      {picker.panel}
 
-      <form className="section generator-form" onSubmit={(event) => { event.preventDefault(); setPending(null); generator.run(); }}>
+      <form className="section generator-form" noValidate onSubmit={submit}>
         <h2>{t('generator.conditions')}</h2>
         <div className="generator-inputs">
-          {numeric('length', 'generator.length', C.minLength, C.maxLength, 1)}
+          {single('length', 'generator.length')}
         </div>
-        <details className="disclosure generator-advanced">
+        <details className="disclosure generator-advanced" open={advancedOpen || advancedFlagged} onToggle={(event) => { setAdvancedOpen(event.currentTarget.open); }}>
           <summary>{t('workbench.advanced')}</summary>
           <div className="generator-inputs">
-          {numeric('budget', 'generator.budget', C.minBudget, C.maxBudget, 1)}
-          {numeric('seed', 'generator.seed', 1, C.maxSeed, 1)}
+          {single('budget', 'generator.budget')}
+          {single('seed', 'generator.seed')}
           </div>
         </details>
         <p className="field-help">{t('generator.bounds')}</p>
@@ -137,32 +209,35 @@ export function GeneratorPage(): React.JSX.Element {
           <fieldset>
             <legend>{t('generator.gravy')}</legend>
             <label className="checkbox-option">
-              <input type="checkbox" checked={form.gravyEnabled} disabled={busy} {...invalidProps('gravyEnabled')} onChange={(event) => { generator.setForm({ gravyEnabled: event.target.checked }); setPending(null); }} />
+              <input id={fieldId('gravyEnabled')} type="checkbox" checked={form.gravyEnabled} disabled={busy} {...invalidProps('gravyEnabled')} onChange={(event) => { generator.setForm({ gravyEnabled: event.target.checked }); setPending(null); }} />
               <span>{t('generator.enableGravy')}</span>
             </label>
             <div className="generator-range">
-              {numeric('gravyMinimum', 'generator.minimum', -4.5, 4.5, 0.01)}
-              {numeric('gravyMaximum', 'generator.maximum', -4.5, 4.5, 0.01)}
+              {numeric('gravyMinimum', 'generator.minimum')}
+              {numeric('gravyMaximum', 'generator.maximum')}
             </div>
+            {messages('gravy')}
           </fieldset>
           <fieldset>
             <legend>{t('generator.mass')}</legend>
             <label className="checkbox-option">
-              <input type="checkbox" checked={form.massEnabled} disabled={busy} {...invalidProps('massEnabled')} onChange={(event) => { generator.setForm({ massEnabled: event.target.checked }); setPending(null); }} />
+              <input id={fieldId('massEnabled')} type="checkbox" checked={form.massEnabled} disabled={busy} {...invalidProps('massEnabled')} onChange={(event) => { generator.setForm({ massEnabled: event.target.checked }); setPending(null); }} />
               <span>{t('generator.enableMass')}</span>
             </label>
             <div className="generator-range">
-              {numeric('massMinimum', 'generator.minimum', 0.01, 100_000, 0.01)}
-              {numeric('massMaximum', 'generator.maximum', 0.01, 100_000, 0.01)}
+              {numeric('massMinimum', 'generator.minimum')}
+              {numeric('massMaximum', 'generator.maximum')}
             </div>
+            {messages('mass')}
           </fieldset>
         </div>
+        {messages('targets')}
 
         <div className="actions">
           <button type="submit" className="button button-primary" disabled={busy}>{t('generator.run')}</button>
           {busy && <button type="button" className="button button-secondary" onClick={generator.cancel}>{t('generator.cancel')}</button>}
         </div>
-        <p id={STATUS_ID} role="status" className="status-message" data-state={status === 'invalid' || status === 'error' ? 'error' : undefined}>{status === 'idle' ? '' : [t(`generator.${status}`), ...problems.map((problem) => t(problem.messageKey, { range: problem.rangeKey ? t(problem.rangeKey) : '' }))].join(' ')}</p>
+        <p id={STATUS_ID} role="status" className="status-message" data-state={status === 'invalid' || status === 'error' ? 'error' : undefined}>{status === 'idle' ? '' : t(`generator.${status}`)}</p>
         {progress && (
           <div className="generator-progress">
             <label htmlFor="generator-progress">{t('generator.progress', { done: progress.completed, total: progress.total })}</label>
@@ -193,9 +268,10 @@ export function GeneratorPage(): React.JSX.Element {
                 {([['generator.guided', result.guided], ['generator.reference', result.reference]] as const).map(([label, arm]) => (
                   <tr key={label}>
                     <th scope="row">{t(label)}</th>
-                    <td>{formatNumber(arm.evaluations)}</td>
-                    <td>{formatNumber(arm.matchingEvaluations)}</td>
-                    <td>{formatNumber(arm.bestLoss, { maximumFractionDigits: 4 })}</td>
+                    {/* On phones each row stacks and every figure carries its column name. */}
+                    <td data-label={t('generator.evaluations')}>{formatNumber(arm.evaluations)}</td>
+                    <td data-label={t('generator.matchingEvaluations')}>{formatNumber(arm.matchingEvaluations)}</td>
+                    <td data-label={t('generator.bestLoss')}>{formatNumber(arm.bestLoss, { maximumFractionDigits: 4 })}</td>
                   </tr>
                 ))}
               </tbody>

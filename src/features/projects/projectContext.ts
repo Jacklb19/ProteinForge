@@ -48,7 +48,13 @@ export interface ProjectContextValue {
   remove(project: ProjectSummary): Promise<boolean>;
   /** Adds the exact exported search to the project's history; the analysis, comparison and laboratory stay as stored. */
   saveGeneratorRun(resultJson: string, selection: GeneratorRunSelection | null, target: GeneratorRunTarget): Promise<GeneratorRunSaved | null>;
-  /** Removes one run from the history of the project open in Analyze. */
+  /** Design's destination for searches: the project open in Analyze until another one (or none) is chosen in Design. */
+  searchProject: Project | null;
+  /** Chooses Design's destination without opening it in Analyze; `null` keeps searches out of any project. */
+  chooseSearchProject(id: string | null): Promise<boolean>;
+  /** Creates an empty project and makes it Design's destination. */
+  createSearchProject(name: string): Promise<boolean>;
+  /** Removes one run from the history of Design's destination project. */
   removeGeneratorRun(id: string): Promise<boolean>;
   detach(): void;
 }

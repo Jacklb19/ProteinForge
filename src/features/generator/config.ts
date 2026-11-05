@@ -6,6 +6,17 @@ export const GENERATOR_CONFIG = {
   minimumGravyScale: 0.01, minimumMassScale: 1, timeoutMs: 60_000,
   filename: 'proteinforge-candidates.json', downloadRevokeMs: 1000, referenceSalt: 0x9e3779b9,
 } as const;
+/** Accepted values of each number in the search form; the inputs, their messages and the checks read them here. */
+export const GENERATOR_FIELD_BOUNDS = {
+  length: { minimum: GENERATOR_CONFIG.minLength, maximum: GENERATOR_CONFIG.maxLength, step: 1 },
+  budget: { minimum: GENERATOR_CONFIG.minBudget, maximum: GENERATOR_CONFIG.maxBudget, step: 1 },
+  seed: { minimum: 1, maximum: GENERATOR_CONFIG.maxSeed, step: 1 },
+  gravyMinimum: { minimum: -4.5, maximum: 4.5, step: 0.01 },
+  gravyMaximum: { minimum: -4.5, maximum: 4.5, step: 0.01 },
+  massMinimum: { minimum: 0.01, maximum: 100_000, step: 0.01 },
+  massMaximum: { minimum: 0.01, maximum: 100_000, step: 0.01 },
+} as const;
+export type GeneratorNumberField = keyof typeof GENERATOR_FIELD_BOUNDS;
 export const GENERATOR_REFERENCES = [
   'https://research.ibm.com/publications/optimization-by-simulated-annealing',
   'https://www.jstatsoft.org/article/view/v008i14',

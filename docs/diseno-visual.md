@@ -1,6 +1,8 @@
 # Diseño visual vigente
 
-**Cambio del 4 nov:** cuenta obligatoria, implementada con la propuesta A (`artifacts/cuenta-obligatoria-2026-11-04/`). Sin sesión solo existen la portada informativa, la Guía, Privacidad, Términos y las páginas de acceso; el laboratorio siempre tiene sesión. Ver [decisiones](decisiones.md).
+**Cambio del 4 nov:** cuenta obligatoria, implementada con la propuesta A (`artifacts/cuenta-obligatoria-2026-11-04/`).
+
+**Pendientes de UX de la auditoría, 4 nov** («Tu recomendación», `artifacts/auditoria-ux-2026-11-04/`): proyecto propio de Diseñar en su cabecera; mensajes de validación debajo de cada campo en Comparar y Diseñar; la ficha de Analizar ofrece cambiar el ejemplo a una cuenta sin proyectos; «Introducir secuencia» abierta con el ejemplo; estado de guardado en negrita al inicio de la línea de datos de cada herramienta; propiedades tapadas mientras la secuencia no es válida; definiciones al pulsar los términos de Biblioteca y Laboratorio (subrayado de puntos, objetivo de 44 px); la lectura se pide con «Pedir una lectura»; la tabla de métodos de Diseñar se apila en teléfono. Implementado localmente; sin publicar.Sin sesión solo existen la portada informativa, la Guía, Privacidad, Términos y las páginas de acceso; el laboratorio siempre tiene sesión. Ver [decisiones](decisiones.md).
 
 Actualizado el 26 de octubre de 2026. Dirección A «Mesa clara», elegida por el propietario tras revisar tres maquetas y el plan por pantallas. Conserva la identidad de «ficha de lectura», la marca, las fuentes y el color químico. [Auditoría y propuesta aprobada](usability-redesign-proposal-2026-10-26.md).
 
@@ -8,7 +10,7 @@ Ampliación aprobada el 26 oct con «Me gusta» y una condición: [presentación
 
 Cambio aprobado el 1 nov («Implementa la A»): propuesta A «Controles compactos» de `artifacts/preferences-account-2026-11-01/` (plan y maquetas). Desaparece el panel «Preferencias»: idioma y tema quedan a la vista como **ES / EN** y un botón luna/sol en la cabecera pública, su menú de teléfono y el pie lateral sin sesión. La cuenta es un enlace directo a Cuenta y preferencias, sin menú. Sustituye la condición del 26 oct «tema e idioma en Preferencias». Implementado localmente; sin publicar.
 
-Ampliación aprobada del 23 oct: [Lectura de los resultados](assistant.md) al pie de Analizar y Laboratorio, sin icono ni color adicional. Prosa de 62 caracteres e interlineado 1,75 mediante tokens; cifras enviadas a la derecha en escritorio y debajo en móvil, separadas por un filete. Cabecera en rejilla en pantallas estrechas, foco conservado y estados bilingües. Implementada localmente; no cambia la dirección visual vigente.
+Ampliación aprobada del 23 oct: [Lectura de los resultados](assistant.md) en Analizar y Laboratorio (desde el 4 nov se abre con «Pedir una lectura»), sin icono ni color adicional. Prosa de 62 caracteres e interlineado 1,75 mediante tokens; cifras enviadas a la derecha en escritorio y debajo en móvil, separadas por un filete. Cabecera en rejilla en pantallas estrechas, foco conservado y estados bilingües. Implementada localmente; no cambia la dirección visual vigente.
 
 ## Principios
 
@@ -47,7 +49,7 @@ Dos composiciones con la misma marca, fuentes y química. Los borradores, la ses
 
 ### Herramientas
 
-- Cabecera de página: tarea o sujeto, propósito explicado y acciones jerarquizadas. En Analizar, «Analizar mi secuencia» abre la entrada; Guardar/Exportar/Comparar son secundarios. Los controles se ajustan en móvil.
+- Cabecera de página: tarea o sujeto, propósito explicado y acciones jerarquizadas. En Analizar, «Introducir secuencia» abre o cierra la entrada, que llega abierta con el ejemplo; Guardar/Exportar/Comparar son secundarios. Los controles se ajustan en móvil.
 - Analizar: Resumen, Secuencia, Perfil y Estructura. Un único Worker de perfil permanece activo; revelar el perfil redibuja su canvas. Ventana y selección se comparten.
 - Laboratorio: selector de variantes siempre antes de Estructura, Comparación y Archivos y procedencia. El borrador conserva protección/deshacer y retira la predicción incompatible. Abrir y guardar archivo y guardar en Proyectos están en su cabecera.
 - Biblioteca: catálogo y UniProt como vistas, con ficha seleccionada explícita. Proyectos: filas con acciones, longitud/procedencia y detalles científicos desplegables. Parámetros de comparación y reproducibilidad del generador se abren a demanda.

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import { ROUTES } from '../../shared/navigation';
@@ -20,7 +20,8 @@ interface Props {
 }
 
 /**
- * Reads the figures of the screen it closes, in the reader's language. It sends those figures and
+ * Reads the figures of the screen, in the reader's language, only when asked: until then it is a single
+ * secondary action, «Ask for a reading», next to the figures it would read. It sends those figures and
  * nothing else: the sequence stays in the browser, which is why the notice can be one line.
  */
 export function ReadingSection({ subject, build, revision, api }: Props): React.JSX.Element | null {
@@ -47,13 +48,22 @@ function SessionReading({ subject, build, revision, api }: Props): React.JSX.Ele
   const client = api === undefined ? loaded : api;
   const token = auth.session?.accessToken ?? null;
   const { reading, facts, busy, error, read } = useReading(client, subject, token, build, revision);
+  const [asked, setAsked] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { if (asked) heading.current?.focus(); }, [asked]);
   if (auth.status === 'disabled' || !configuredUrl) return null;
 
   const signedIn = auth.status === 'signed-in';
+  // Every tool needs an account, so without a session there is nothing to ask for.
+  if (!asked) return signedIn ? (
+    <p className="reading-ask">
+      <button type="button" className="button button-quiet" disabled={!client} onClick={() => { setAsked(true); read(); }}>{t('assistant.ask')}</button>
+    </p>
+  ) : null;
   return (
     <section className="reading" aria-labelledby={`reading-${subject}`}>
       <div className="section-header">
-        <h2 id={`reading-${subject}`}>{t('assistant.title')}</h2>
+        <h2 id={`reading-${subject}`} ref={heading} tabIndex={-1}>{t('assistant.title')}</h2>
         {signedIn && (reading
           ? <button type="button" className="button button-quiet" disabled={busy} onClick={read}>{t('assistant.again')}</button>
           : <button type="button" className="button button-secondary" disabled={busy || !client} onClick={read}>{t(`assistant.read.${subject}`)}</button>)}

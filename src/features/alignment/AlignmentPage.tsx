@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { validateSequence } from '../editor/sequence';
 import { useSequenceDraft } from '../editor/sequenceDraft';
+import { MarkedTextarea } from '../editor/MarkedTextarea';
 import { annotationsForAccession } from '../editor/annotations';
 import { useTranslation } from '../../i18n';
 import {
@@ -20,9 +21,12 @@ import { ChemistryLegend } from '../chemistry/ChemistryLegend';
 import { SegmentedControl } from '../../shared/SegmentedControl';
 import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
+import { SaveState } from '../projects/SaveState';
+import { useDraftSaveState } from '../projects/draftSaveState';
 
 const PROJECT_PANEL_ID = 'project-panel';
 const STATUS_ID = 'alignment-status';
+const FIELD_STATUS_IDS = { first: 'alignment-first-status', second: 'alignment-second-status' } as const;
 
 /** Two sequences side by side: what they share, where they part, and the residues behind each difference. */
 export function AlignmentPage(): React.JSX.Element {
@@ -32,6 +36,10 @@ export function AlignmentPage(): React.JSX.Element {
   const analysis = useSequenceDraft();
   const [message, setMessage] = useState('');
   const [projectOpen, setProjectOpen] = useState(false);
+  // After a refused «Align», each box with invalid characters says which positions under itself.
+  const [attempted, setAttempted] = useState(false);
+  const firstBox = useRef<HTMLTextAreaElement>(null);
+  const secondBox = useRef<HTMLTextAreaElement>(null);
   const analysisSequence = useMemo(() => validateSequence(analysis.text).sequence, [analysis.text]);
   const receive = useCallback((next: AlignmentResult, input: AlignmentInput) => { update({ result: next, resultInput: input }); }, [update]);
   const worker = useAlignmentWorker(receive);
@@ -47,13 +55,13 @@ export function AlignmentPage(): React.JSX.Element {
 
   function start(): void {
     if (a.invalidPositions.length > 0 || b.invalidPositions.length > 0) {
-      // Each sequence with invalid characters is named with its positions, counted from 1 as in the editor.
-      const where = [{ name: firstName, positions: a.invalidPositions }, { name: secondName, positions: b.invalidPositions }]
-        .filter((field) => field.positions.length > 0)
-        .map((field) => t('alignment.invalidIn', { name: field.name, positions: field.positions.map((position) => formatNumber(position + 1)).join(', ') }));
-      setMessage([t('alignment.invalid'), ...where].join(' '));
+      // The positions are named under each box; focus goes to the first box to fix.
+      setAttempted(true);
+      setMessage('');
+      (a.invalidPositions.length > 0 ? firstBox : secondBox).current?.focus();
       return;
     }
+    setAttempted(false);
     if (!a.sequence || !b.sequence) { setMessage(t('alignment.empty')); return; }
     if (a.sequence.length > MAX_ALIGNMENT_RESIDUES || b.sequence.length > MAX_ALIGNMENT_RESIDUES) {
       setMessage(t('alignment.limit', { count: formatNumber(MAX_ALIGNMENT_RESIDUES) }));
@@ -77,6 +85,13 @@ export function AlignmentPage(): React.JSX.Element {
   const secondReference = referenceFor(b.sequence);
   const firstName = firstReference ? t(firstReference.label) : t('alignment.first');
   const secondName = secondReference ? t(secondReference.label) : t('alignment.second');
+  const positionsOf = (positions: readonly number[]): string => positions.map((position) => formatNumber(position + 1)).join(', ');
+  const firstInvalid = attempted && a.invalidPositions.length > 0;
+  const secondInvalid = attempted && b.invalidPositions.length > 0;
+  const invalidMessage = firstInvalid && secondInvalid ? t('alignment.invalidBoth')
+    : firstInvalid || secondInvalid ? t('alignment.invalidField', { name: firstInvalid ? firstName : secondName }) : '';
+  const statusMessage = invalidMessage || message;
+  const saveState = useDraftSaveState(isExampleInput(currentInput));
   // A name that starts with a capitalized word (not an acronym) drops the capital in the middle of the title.
   const midSentence = (name: string): string => (/^\p{Lu}\p{Ll}/u.test(name) ? name.charAt(0).toLocaleLowerCase(locale) + name.slice(1) : name);
   const title = firstReference && secondReference ? t('alignment.pairTitle', { first: firstName, second: midSentence(secondName) }) : t('alignment.title');
@@ -95,7 +110,7 @@ export function AlignmentPage(): React.JSX.Element {
           <p className="page-kicker">{t('nav.alignment')}</p>
           <h1>{title}</h1>
           <p className="page-purpose">{t('alignment.purpose')}</p>
-          <p className="page-meta">{[isExampleInput(currentInput) ? t('editor.exampleTag') : '', meta, metaSecond].filter(Boolean).join(' · ')}</p>
+          <p className="page-meta"><SaveState {...saveState} />{` · ${[meta, metaSecond].filter(Boolean).join(' · ')}`}</p>
         </div>
         <div className="toolbar">
           <button className="button button-secondary" type="button" aria-expanded={projectOpen} aria-controls={PROJECT_PANEL_ID} onClick={() => { setProjectOpen((current) => !current); }}>{t('projects.save')}</button>
@@ -112,7 +127,9 @@ export function AlignmentPage(): React.JSX.Element {
               <label htmlFor="alignment-first">{firstName}</label>
               <span className="field-meta">{residueCount(a.sequence)}</span>
             </div>
-            <textarea id="alignment-first" spellCheck={false} aria-invalid={a.invalidPositions.length > 0} aria-describedby={a.invalidPositions.length > 0 ? STATUS_ID : undefined} value={first} onChange={(event) => { update({ first: event.target.value }); }} />
+            <MarkedTextarea id="alignment-first" textareaRef={firstBox} spellCheck={false} autoCapitalize="characters" value={first} invalidPositions={a.invalidPositions}
+              aria-describedby={firstInvalid ? FIELD_STATUS_IDS.first : undefined} onValueChange={(value) => { update({ first: value }); }} />
+            {firstInvalid && <p id={FIELD_STATUS_IDS.first} className="status-message" data-state="invalid">{t('editor.invalidPositions', { positions: positionsOf(a.invalidPositions) })}</p>}
             {analysisSequence.length > 0 && analysisSequence !== a.sequence && (
               <button className="button button-quiet" type="button" onClick={() => { update({ first: analysisSequence }); }}>{t('alignment.useAnalysis')}</button>
             )}
@@ -122,7 +139,9 @@ export function AlignmentPage(): React.JSX.Element {
               <label htmlFor="alignment-second">{secondName}</label>
               <span className="field-meta">{residueCount(b.sequence)}</span>
             </div>
-            <textarea id="alignment-second" spellCheck={false} aria-invalid={b.invalidPositions.length > 0} aria-describedby={b.invalidPositions.length > 0 ? STATUS_ID : undefined} value={second} onChange={(event) => { update({ second: event.target.value }); }} />
+            <MarkedTextarea id="alignment-second" textareaRef={secondBox} spellCheck={false} autoCapitalize="characters" value={second} invalidPositions={b.invalidPositions}
+              aria-describedby={secondInvalid ? FIELD_STATUS_IDS.second : undefined} onValueChange={(value) => { update({ second: value }); }} />
+            {secondInvalid && <p id={FIELD_STATUS_IDS.second} className="status-message" data-state="invalid">{t('editor.invalidPositions', { positions: positionsOf(b.invalidPositions) })}</p>}
           </div>
         </div>
         <div className="comparison-controls">
@@ -150,8 +169,8 @@ export function AlignmentPage(): React.JSX.Element {
           </div>
         </div>
         {status === 'running' && <progress className="alignment-progress" max={1} value={worker.progress} aria-label={t('alignment.progress')} />}
-        <div id={STATUS_ID} className="status-message" data-state={message || failure ? 'error' : status} role="status" aria-live="polite">
-          {message || failure || (status === 'running' && t('alignment.running', { percent: formatNumber(worker.progress, PROGRESS_FORMAT) })) || (status === 'cancelled' && t('alignment.cancelled'))}
+        <div id={STATUS_ID} className="status-message" data-state={statusMessage || failure ? 'error' : status} role="status" aria-live="polite">
+          {statusMessage || failure || (status === 'running' && t('alignment.running', { percent: formatNumber(worker.progress, PROGRESS_FORMAT) })) || (status === 'cancelled' && t('alignment.cancelled'))}
         </div>
         {warnings.map((warning) => <p className="notice" key={warning} role="note">{t(warning)}</p>)}
       </section>
