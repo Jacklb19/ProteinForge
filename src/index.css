@@ -366,6 +366,17 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .editor-layer textarea::selection { background: var(--bg-selected); }
 .editor-layer textarea::placeholder { color: var(--text-secondary); font-family: var(--font-ui); }
 .invalid-residue { color: var(--status-error); background: var(--status-error-subtle); font-weight: var(--font-weight-regular); text-decoration: underline; text-decoration-thickness: var(--border-width-indicator); text-underline-offset: var(--decoration-offset); }
+/* Glossary terms: a dotted underline that opens a definition below. Invisible vertical padding, taken back by a negative margin, makes the target 44 px without moving the line. */
+.term-host { position: relative; display: inline; }
+.term { display: inline-block; min-inline-size: var(--size-touch); padding: calc((var(--size-touch) - 1lh) / 2) var(--space-none); margin-block: calc((1lh - var(--size-touch)) / 2); border: none; background: var(--transparent); color: inherit; font: inherit; line-height: inherit; text-align: center; text-decoration: underline dotted; text-decoration-thickness: var(--border-width); text-underline-offset: var(--decoration-offset); cursor: help; }
+.term:focus-visible { outline: var(--outline-width-focus) solid var(--focus-ring); outline-offset: var(--outline-offset-focus); }
+.term-panel { position: absolute; inset-block-start: calc(100% + var(--space-2xs)); inset-inline-start: var(--space-none); z-index: var(--layer-overlay); display: block; width: max-content; max-width: min(var(--width-form), calc(100vw - 2 * var(--space-md))); padding: var(--space-sm) var(--space-md); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); background: var(--bg-raised); box-shadow: var(--shadow-floating); color: var(--text-primary); font-family: var(--font-ui); font-size: var(--font-size-small); font-weight: var(--font-weight-regular); line-height: var(--line-height-base); letter-spacing: normal; text-align: start; white-space: normal; }
+.term-panel strong, .lab-metrics .term-panel strong { display: inline; font-size: inherit; font-weight: var(--font-weight-strong); }
+/* Inside the laboratory figures the label spans are blocks; the term and its definition keep their own layout. */
+.lab-metrics .term-host { display: inline; }
+.lab-metrics .term-panel { display: block; color: var(--text-primary); font-size: var(--font-size-small); }
+.chain-help { margin: var(--space-none); }
+.reading-ask { margin: var(--space-none); }
 .editor-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); }
 
 .fasta-panel { display: grid; gap: var(--space-xs); }
@@ -442,6 +453,8 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .alignment-inputs { display: grid; gap: var(--space-md); }
 .sequence-pair { display: grid; gap: var(--space-md); }
 .sequence-pair textarea { min-height: var(--height-alignment-input); }
+.sequence-pair .editor-layer textarea { height: var(--height-alignment-input); resize: vertical; }
+.editor-layer textarea[aria-invalid='true'] { border-color: var(--status-error); }
 .sequence-pair .button-quiet { font-size: var(--font-size-small); }
 .alignment-parameters { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-md) var(--space-lg); }
 .alignment-parameters .field-help { align-self: center; }
@@ -572,6 +585,9 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .generator-targets fieldset { min-width: var(--space-none); border: none; border-block-start: var(--border-width) solid var(--border-subtle); padding-block: var(--space-md); }
 .generator-targets legend { padding-inline-end: var(--space-xs); font-weight: var(--font-weight-strong); }
 .generator-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-sm); }
+.generator-field { display: grid; align-content: start; gap: var(--space-2xs); min-width: var(--space-none); }
+.generator-field-message { margin: var(--space-none); }
+.generator-range + .generator-field-message { margin-block-start: var(--space-sm); }
 .generator-targets .checkbox-option { display: flex; align-items: center; gap: var(--space-xs); min-height: var(--size-touch); margin-block-end: var(--space-sm); }
 .generator-progress { display: grid; gap: var(--space-xs); }
 .generator-progress progress { width: var(--width-full); accent-color: var(--text-primary); }
@@ -583,6 +599,14 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .generator-table table { width: var(--width-full); border-collapse: collapse; }
 .generator-table caption { text-align: start; font-weight: var(--font-weight-strong); padding-block: var(--space-sm); }
 .generator-table th, .generator-table td { text-align: start; padding: var(--space-sm); border-block-end: var(--border-width) solid var(--border-subtle); }
+/* Phones: each method is a block of labelled figures, so the table never scrolls sideways. */
+@media (max-width: 47.99rem) {
+  .generator-table { overflow-x: visible; }
+  .generator-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .generator-table tbody tr { display: grid; gap: var(--space-3xs); padding-block: var(--space-sm); border-block-end: var(--border-width) solid var(--border-subtle); }
+  .generator-table tbody th, .generator-table tbody td { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-none) var(--space-sm); padding: var(--space-none); border: none; }
+  .generator-table tbody td::before { content: attr(data-label); color: var(--text-secondary); font-size: var(--font-size-small); }
+}
 
 .legal-updated { color: var(--text-secondary); margin-block-end: var(--space-xl); }
 .legal-sections { display: grid; gap: var(--space-xl); }

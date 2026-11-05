@@ -5,6 +5,7 @@ import { RESIDUE_NAMES } from '../chemistry/config';
 import { required } from './config';
 import { traceModel } from './presentation';
 import type { LabReference, LabVariant } from './types';
+import { Glossed } from '../../shared/Term';
 
 interface Props {
   reference: LabReference;
@@ -36,7 +37,7 @@ export function LabViewer({ reference, variant, selected, modified, busy, onSele
     <section className="lab-viewer" id="lab-structure" tabIndex={-1} aria-label={t('lab.structureTitle', { sample: variant.sample })}>
       <div className="lab-viewer-heading">
         <h2>{t('lab.structureTitle', { sample: variant.sample })}</h2>
-        <span className="field-help">{t('lab.traceCaption')}</span>
+        <span className="field-help"><Glossed text={t('lab.traceCaption')} terms={['trace']} /></span>
       </div>
 
       <div className="lab-figure">

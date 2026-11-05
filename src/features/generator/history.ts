@@ -107,7 +107,8 @@ export type GeneratorRun = z.infer<typeof generatorRunSchema>;
 export type GeneratorRunSelection = z.infer<typeof selectionSchema>;
 export type GeneratorHistorySnapshot = z.infer<typeof generatorHistorySnapshotSchema>;
 
-const sha256Text = (text: string): Promise<string> => sha256(encoder.encode(text));
+/** The identifier a search gets when saved: the SHA-256 of its exported JSON. */
+export const sha256Text = (text: string): Promise<string> => sha256(encoder.encode(text));
 
 /** Runs of a validated envelope, in recording order. */
 export function generatorHistoryRuns(envelope: GeneratorHistorySnapshot): GeneratorRun[] {

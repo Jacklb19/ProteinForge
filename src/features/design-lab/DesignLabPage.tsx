@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../i18n';
 import { PageHeading } from '../../shared/PageHeading';
 import { useLab } from './context';
@@ -15,6 +15,10 @@ import { LabProjectControls } from './LabProjectControls';
 import { ViewTabs } from '../../shared/ViewTabs';
 import { predictionEnabled } from './predictionConfig';
 import { PredictionSection } from './PredictionSection';
+import { ProjectContext } from '../projects/projectContext';
+import { SaveState } from '../projects/SaveState';
+import type { SaveStateValue } from '../projects/draftSaveState';
+import { useRelativeTime } from '../projects/syncSummary';
 
 function ReplaceDialog({ onClose, onConfirm, returnFocus }: {
   onClose: () => void;
@@ -45,6 +49,8 @@ function ReplaceDialog({ onClose, onConfirm, returnFocus }: {
 export function DesignLabPage(): React.JSX.Element {
   const lab = useLab();
   const { t, formatNumber } = useTranslation();
+  const projects = useContext(ProjectContext);
+  const relative = useRelativeTime();
   const file = useRef<HTMLInputElement>(null), undo = useRef<HTMLButtonElement>(null), openButton = useRef<HTMLButtonElement>(null);
   const [pending, setPending] = useState<{ value: File | 'example'; returnFocus: HTMLElement | null } | null>(null);
   const [replacement, setReplacement] = useState('A');
@@ -80,6 +86,9 @@ export function DesignLabPage(): React.JSX.Element {
     downloadLabFile(JSON.stringify(draftDocument(dataset.reference, variant, draft), null, 2), C.constraintsFilename, 'application/json');
   }
 
+  // Saved: bound to a project at this very revision; any edit or another file leaves it unsaved.
+  const saveState: SaveStateValue | null = !dataset ? null : projects?.laboratory ? { kind: 'saved', project: projects.laboratory.name, detail: relative(projects.laboratory.updatedAt) }
+    : !lab.dirty && dataset.source === 'example' ? { kind: 'example', detail: t('saveState.labExample') } : { kind: 'unsaved' };
   const headingName = dataset?.reference.id === '1UBQ' && dataset.reference.sequence === C.ubiquitinSequence ? t('lab.ubiquitin') : dataset?.reference.id ?? '';
   const selectedKey = variant?.keys[lab.selected];
   const aa = draft?.sequence[lab.selected];
@@ -92,6 +101,7 @@ export function DesignLabPage(): React.JSX.Element {
         titleVariables={{ reference: headingName }}
         introduction={dataset ? 'workbench.labIntro' : 'lab.emptyIntroduction'}
         introductionVariables={{ reference: dataset?.reference.id ?? '', chain: dataset?.reference.chain ?? '', length: dataset?.reference.sequence.length ?? 0 }}
+        note={saveState && <p className="page-meta"><SaveState {...saveState} /></p>}
       >
         <button ref={openButton} type="button" className="button button-secondary" disabled={busy} onClick={() => { file.current?.click(); }}>{t('lab.openFile')}</button>
         <button type="button" className="button button-secondary" disabled={!dataset || busy} onClick={lab.save}>{t('lab.saveFile')}</button>

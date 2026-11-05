@@ -37,6 +37,18 @@
 .alignment-inputs, .generator-form, .library-section { padding: var(--space-lg); margin-block: var(--space-lg); background: var(--bg-raised); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-control); }
 .alignment-inputs .sequence-pair { gap: var(--space-lg); }
 .generator-advanced { max-width: var(--width-copy); }
+.page-heading-note { display: grid; gap: var(--space-3xs); font-size: var(--font-size-small); }
+.page-heading-note p { margin: var(--space-none); }
+.save-state strong { color: var(--text-primary); font-weight: var(--font-weight-strong); }
+.toolbar > .button[aria-expanded='true'] { background: var(--bg-selected); color: var(--text-primary); border-color: var(--border-strong); }
+.subject-next { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); margin-block-start: var(--space-md); padding-block-start: var(--space-md); border-block-start: var(--border-width) solid var(--border-subtle); }
+.subject-next p { margin: var(--space-none); color: var(--text-secondary); font-size: var(--font-size-small); }
+.stale-cover { display: grid; gap: var(--space-xs); justify-items: start; padding: var(--space-md) var(--space-lg); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); background: var(--bg-raised); }
+.stale-cover p { margin: var(--space-none); max-width: var(--width-copy); }
+.page-heading-actions:has(.generator-project-picker) { align-items: end; }
+.generator-project-picker { min-width: var(--width-setting-copy); }
+.generator-new-project-form { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-sm); }
+.generator-new-project-form .field { flex: 1 1 var(--width-setting-copy); max-width: var(--width-form); }
 .generator-advanced .generator-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-block: var(--space-sm); }
 .generator-form > .generator-inputs { max-width: var(--width-form); grid-template-columns: minmax(0, 1fr); }
 .generator-results > h2 { margin-block-end: var(--space-sm); }

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { updateInvalidPositions, splitStandardResidues, validateSequence } from './sequence';
 import { FastaLoader } from './FastaLoader';
@@ -24,6 +24,10 @@ import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
 import { isCurrentReference } from '../library/referenceView';
 import { ViewTabs } from '../../shared/ViewTabs';
+import { REFERENCE_CATALOG } from '../library/catalog';
+import { ProjectContext } from '../projects/projectContext';
+import { SaveState } from '../projects/SaveState';
+import { useDraftSaveState } from '../projects/draftSaveState';
 
 const MappedStructure = lazy(() => import('../library/MappedStructure').then(module => ({ default: module.MappedStructure })));
 
@@ -45,9 +49,12 @@ export function EditorPage(): React.JSX.Element {
   const validation = useMemo(() => validateSequence(text), [text]);
   const additional = splitStandardResidues(validation.sequence).excluded;
   const [invalidPositions, setInvalidPositions] = useState<number[]>([]);
-  // An empty draft opens with the editor ready; it stays open while the visitor types. A sequence brought
-  // from Library to be saved opens with project saving shown.
-  const [panel, setPanel] = useState<Panel>(() => (text === '' ? 'sequence' : opensProject(location.state) ? 'project' : null));
+  // An empty draft or the untouched example opens with the entry ready (the example is selected when the box
+  // takes the focus, so pasting replaces it); it stays open while the person types. A sequence brought from
+  // Library to be saved opens with project saving shown.
+  const [panel, setPanel] = useState<Panel>(() => (opensProject(location.state) ? 'project' : text === '' || text === DEFAULT_EXAMPLE.text ? 'sequence' : null));
+  const input = useRef<HTMLTextAreaElement>(null);
+  const projects = useContext(ProjectContext);
   const [localSelected, setLocalSelected] = useState<number | null>(() => annotationsFor(source)?.highlight ?? null);
   const activeView = isCurrentReference(referenceView, text, source) ? referenceView : null;
   const [view, setView] = useState<AnalysisView>(() => activeView ? 'structure' : 'summary');
@@ -88,7 +95,24 @@ export function EditorPage(): React.JSX.Element {
     loadEntry({ number: 0, header: '', sequence: DEFAULT_EXAMPLE.text, invalidPositions: [] });
     setSource(DEFAULT_EXAMPLE.source);
     setLocalSelected(annotationsFor(DEFAULT_EXAMPLE.source)?.highlight ?? null);
-    setPanel(null);
+    // Back on the example the entry stays open, as it arrives, so pasting replaces it again.
+    setPanel('sequence');
+  };
+
+  /** Opens the entry and puts the caret where it is needed: on a position, or over the whole example. */
+  const focusEntry = (position?: number): void => {
+    setPanel('sequence');
+    window.requestAnimationFrame(() => {
+      const box = input.current;
+      if (!box) return;
+      box.focus();
+      if (position !== undefined) box.setSelectionRange(position, position + 1);
+    });
+  };
+  const chooseReference = (reference: (typeof REFERENCE_CATALOG)[number]): void => {
+    loadEntry({ number: 0, header: '', sequence: reference.sequence, invalidPositions: [] });
+    setSource({ origin: 'catalog', accession: reference.accession, sequence: reference.sequence, entryVersion: null, sequenceVersion: reference.sequenceVersion, retrievedAt: null });
+    setReferenceView(null);
   };
 
   const sendToAlignment = (): void => {
@@ -120,8 +144,13 @@ export function EditorPage(): React.JSX.Element {
     : reference ? t(reference.label)
       : hasInput ? t('editor.ownTitle') : t('editor.emptyTitle');
   const count = residueCount > 0 ? t(residueCount === 1 ? 'editor.residueCountOne' : 'editor.residueCount', { count: formatNumber(residueCount) }) : '';
-  const meta = [text === DEFAULT_EXAMPLE.text ? t('editor.exampleTag') : '', source?.accession ?? reference?.accession, annotations?.organism ?? reference?.organism, count, annotations ? t('editor.fullPrecursor') : '']
+  const isExample = text === DEFAULT_EXAMPLE.text;
+  const meta = [source?.accession ?? reference?.accession, annotations?.organism ?? reference?.organism, count, annotations ? t('editor.fullPrecursor') : '']
     .filter(Boolean).join(' · ');
+  const saveState = useDraftSaveState(isExample);
+  // A new account with no project yet, looking at the untouched example: the card offers the next step.
+  const firstUse = isExample && Boolean(projects?.enabled) && !projects?.busy && !projects?.active && projects?.items.length === 0;
+  const firstInvalid = invalidPositions[0];
   const descriptorResult = descriptors.result;
   const sequencePanelOpen = panel === 'sequence';
   const toggle = (next: Exclude<Panel, null>): void => { setPanel((current) => (current === next ? null : next)); };
@@ -134,7 +163,7 @@ export function EditorPage(): React.JSX.Element {
           <p className="page-meta">{t('workbench.analyzeIntro')}</p>
         </div>
         <div className="toolbar">
-          <button className="button button-primary" type="button" aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
+          <button className={`button ${sequencePanelOpen ? 'button-secondary' : 'button-primary'}`} type="button" aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
             {t('editor.inputTitle')}
           </button>
           {hasInput && <button className="button button-secondary" type="button" aria-expanded={panel === 'project'} aria-controls={PROJECT_PANEL_ID} onClick={() => { toggle('project'); }}>{t('projects.save')}</button>}
@@ -151,7 +180,19 @@ export function EditorPage(): React.JSX.Element {
         </div>
       </header>
       <section className="subject-summary" aria-label={title}>
-        <h2>{title}</h2><p className="page-meta">{hasInput ? meta : t('editor.emptyText')}</p>
+        <h2>{title}</h2>
+        <p className="page-meta">{hasInput ? <><SaveState {...saveState} detail={saveState.kind === 'example' ? t('saveState.exampleDetail') : saveState.detail} />{meta && ` · ${meta}`}</> : t('editor.emptyText')}</p>
+        {firstUse && (
+          <div className="subject-next" role="group" aria-label={t('editor.switchLabel')}>
+            <p>{t('editor.switchLead')}</p>
+            <button className="button button-secondary" type="button" onClick={() => { focusEntry(); }}>{t('editor.switchMine')}</button>
+            {REFERENCE_CATALOG.filter((item) => item.sequence !== text).map((item) => (
+              <button key={item.accession} className="button button-quiet" type="button" onClick={() => { chooseReference(item); }}>{t(item.label)}</button>
+            ))}
+            <p>{t('editor.switchOr')}</p>
+            <Link className="button button-quiet" to={ROUTES.alignment}>{t('editor.switchCompare')}</Link>
+          </div>
+        )}
       </section>
 
       {sequencePanelOpen && (
@@ -159,12 +200,13 @@ export function EditorPage(): React.JSX.Element {
           <h2 id="sequence-panel-title" className="visually-hidden">{t('editor.inputTitle')}</h2>
           <div className="field">
             <div className="field-header">
-              <label htmlFor="sequence-input">{t('editor.label')}</label>
+              <label htmlFor="sequence-input">{t(isExample ? 'editor.labelExample' : 'editor.label')}</label>
               {count && <span className="field-meta">{count}</span>}
             </div>
             <div className="editor-layer">
               <pre aria-hidden="true" className="editor-highlight" ref={highlight}>{fragments}{'\n'}</pre>
               <textarea
+                ref={input}
                 id="sequence-input"
                 aria-describedby="sequence-help sequence-status"
                 aria-invalid={invalidPositions.length > 0}
@@ -173,6 +215,7 @@ export function EditorPage(): React.JSX.Element {
                 placeholder={t('guide.placeholder')}
                 value={text}
                 onChange={(event) => { setText(event.target.value.replace(/\*([\r\n]*)$/, '$1')); }}
+                onFocus={(event) => { if (isExample) event.currentTarget.select(); }}
                 onScroll={(event) => {
                   if (highlight.current) {
                     highlight.current.scrollTop = event.currentTarget.scrollTop;
@@ -182,7 +225,7 @@ export function EditorPage(): React.JSX.Element {
               />
             </div>
             <p id="sequence-status" className="status-message" data-state={invalidPositions.length > 0 ? 'invalid' : 'current'} role="status" aria-live="polite">{hasInput ? description : ''}</p>
-            <p id="sequence-help" className="field-help">{t('editor.help')}</p>
+            <p id="sequence-help" className="field-help">{isExample ? `${t('editor.helpExample')} ${t('editor.help')}` : t('editor.help')}</p>
           </div>
           {additional > 0 && <p className="notice" role="note">{t(additional === 1 ? 'editor.additionalOne' : 'editor.additional', { count: formatNumber(additional) })}</p>}
           <FastaLoader onSelect={loadEntry} />
@@ -203,7 +246,13 @@ export function EditorPage(): React.JSX.Element {
         <ViewTabs id="analysis" label={t('workbench.analysisViews')} value={view} onChange={setView}
           options={(['summary', 'sequence', 'profile', 'structure'] as const).map(value => ({ value, label: t(`workbench.${value}`) }))} />
         <div id="analysis-summary-panel" role="tabpanel" aria-labelledby="analysis-summary-tab" hidden={view !== 'summary'} className="analysis-summary">
-            <DescriptorPanel data={descriptors} />
+            <DescriptorPanel data={descriptors} pending={firstInvalid === undefined ? null : {
+              position: firstInvalid + 1, character: text[firstInvalid] ?? '', onGo: () => { focusEntry(firstInvalid); },
+            }} />
+            {/* The reading is asked for next to «How they are calculated», not offered as a section of its own. */}
+            {descriptorResult && descriptors.status === 'current' && invalidPositions.length === 0 && <ReadingSection
+              subject="analysis" revision={`${validation.sequence}:${String(profileWindow)}`}
+              build={() => analysisFacts({ t, formatNumber }, validation.sequence, descriptorResult, profileWindow)} />}
             <p className="notice">{t('workbench.analysisScope')}</p>
             <div className="analysis-overview-grid">
             {residueCount > 0 && invalidPositions.length === 0 && (
@@ -215,9 +264,6 @@ export function EditorPage(): React.JSX.Element {
             {annotations && <StructureStage variant="rail" annotations={annotations} selected={selected} onSelect={setSelected}
               caption={<>{t('structure.measured')} · <button className="button button-quiet" type="button" onClick={() => { setView('structure'); }}>{t('structure.openViewer')}</button></>} />}
             </div>
-            {descriptorResult && descriptors.status === 'current' && invalidPositions.length === 0 && <ReadingSection
-              subject="analysis" revision={`${validation.sequence}:${String(profileWindow)}`}
-              build={() => analysisFacts({ t, formatNumber }, validation.sequence, descriptorResult, profileWindow)} />}
         </div>
         <HydropathyProfile text={text} windowSize={profileWindow} onWindowChange={setProfileWindow} selected={selected} onSelect={setSelected} annotations={annotations}
           view={view === 'sequence' || view === 'profile' || (view === 'structure' && activeView) ? view : 'none'} panelId="analysis" />
