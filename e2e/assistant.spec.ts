@@ -35,8 +35,8 @@ test('reads the analysis, sends only its figures and lists them beside the text'
   const calls = await mockAssistant(page);
   await page.goto(ROUTES.analyze);
   const reading = page.locator('.reading');
+  await page.getByRole('button', { name: spanish['assistant.ask'], exact: true }).click();
   await expect(reading.getByRole('heading', { name: spanish['assistant.title'] })).toBeVisible();
-  await reading.getByRole('button', { name: spanish['assistant.read.analysis'] }).click();
   await expect(reading.getByText('El punto isoeléctrico es 4,81, el pH en el que la carga neta sería cero.')).toBeVisible();
   await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
   await expect(reading.getByText(MODEL, { exact: false })).toBeVisible();
@@ -55,7 +55,7 @@ test('a reading does not survive the figures it describes', async ({ page }) => 
   await mockAssistant(page);
   await page.goto(ROUTES.analyze);
   const reading = page.locator('.reading');
-  await reading.getByRole('button', { name: spanish['assistant.read.analysis'] }).click();
+  await page.getByRole('button', { name: spanish['assistant.ask'], exact: true }).click();
   await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
   // Changing the profile window changes the figures; the previous reading stops being shown.
   await page.getByRole('tab', { name: spanish['workbench.profile'], exact: true }).click();
@@ -69,7 +69,7 @@ test('a refused reading is explained and leaves the action usable', async ({ pag
   await mockAssistant(page, 'rate-limit');
   await page.goto(ROUTES.analyze);
   const reading = page.locator('.reading');
-  await reading.getByRole('button', { name: spanish['assistant.read.analysis'] }).click();
+  await page.getByRole('button', { name: spanish['assistant.ask'], exact: true }).click();
   await expect(reading.getByText(spanish['assistant.rateLimit'])).toBeVisible();
   await expect(reading.getByText(spanish['assistant.sources'])).toHaveCount(0);
   await expect(reading.getByRole('button', { name: spanish['assistant.read.analysis'] })).toBeEnabled();
@@ -85,7 +85,7 @@ test('an unconfigured assistant uses the unavailable message in both languages',
       await page.getByRole('radio', { name: spanish['settings.english'], exact: true }).check();
       await page.goto(ROUTES.analyze);
     }
-    await reading.getByRole('button', { name: catalog['assistant.read.analysis'] }).click();
+    await page.getByRole('button', { name: catalog['assistant.ask'], exact: true }).click();
     await expect(reading.getByRole('status')).toHaveText(catalog['assistant.unavailable']);
     await expect(reading.getByText(catalog['assistant.sources'])).toHaveCount(0);
     await expect(reading.getByRole('button', { name: catalog['assistant.read.analysis'] })).toBeEnabled();
@@ -99,7 +99,7 @@ test('the laboratory reading leaves the figures of an edited draft out', async (
   await page.goto(ROUTES.laboratory);
   await expect(page.locator('.lab-table tbody tr')).toHaveCount(3);
   const reading = page.locator('.reading');
-  await reading.getByRole('button', { name: spanish['assistant.read.laboratory'] }).click();
+  await page.getByRole('button', { name: spanish['assistant.ask'], exact: true }).click();
   await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
   expect(required(calls.requests[0]).subject).toBe(Subject.LABORATORY);
   expect(required(calls.requests[0]).facts.map((fact) => fact.label)).toContain(message('assistant.factRmsd'));
@@ -118,7 +118,7 @@ test('reopening a laboratory dataset retires its reading even when variant ident
   await mockAssistant(page);
   await page.goto(ROUTES.laboratory);
   const reading = page.locator('.reading');
-  await reading.getByRole('button', { name: spanish['assistant.read.laboratory'] }).click();
+  await page.getByRole('button', { name: spanish['assistant.ask'], exact: true }).click();
   await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
 
   await page.getByRole('tab', { name: spanish['lab.provenanceTab'] }).click();await page.getByRole('button', { name: spanish['lab.openExample'] }).click();
@@ -133,7 +133,7 @@ for (const width of [360, 1280]) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(ROUTES.analyze);
     const reading = page.locator('.reading');
-    await reading.getByRole('button', { name: spanish['assistant.read.analysis'] }).click();
+    await page.getByRole('button', { name: spanish['assistant.ask'], exact: true }).click();
     await expect(reading.getByText(spanish['assistant.sources'])).toBeVisible();
     for (const theme of ['light', 'dark']) {
       await setTheme(page, theme);

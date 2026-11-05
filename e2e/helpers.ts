@@ -203,7 +203,8 @@ export async function openSequenceEditor(page: Page): Promise<Locator> {
   await expect(toggle).toHaveAttribute('aria-controls', 'sequence-panel');
   if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  const editor = page.getByRole('textbox', { name: spanish['editor.label'], exact: true });
+  // The label adds «· ejemplo» while the box holds the example, so the box is found by its id.
+  const editor = page.locator('#sequence-input');
   await expect(editor).toBeVisible();
   return editor;
 }

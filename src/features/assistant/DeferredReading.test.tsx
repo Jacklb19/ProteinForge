@@ -39,7 +39,7 @@ it('discards an abandoned client import and a late reading across owner changes'
   if (!session) throw new Error('Missing fixture session.');
   const second: AuthContextValue = { ...signedInFixture, session: { ...session, accessToken: 'second-token', user: { id: 'second', email: 'second@example.org' } } };
   view.rerender(content(second));
-  const read = screen.getByRole('button', { name: spanish['assistant.read.analysis'] });
+  const read = screen.getByRole('button', { name: spanish['assistant.ask'] });
   await waitFor(() => { expect(read).toBeEnabled(); });
   fireEvent.click(read);
   expect(deferred.interpret.mock.calls[0]?.[3]).toBe('second-token');

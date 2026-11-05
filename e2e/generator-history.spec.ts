@@ -121,7 +121,7 @@ for (const locale of ['es', 'en'] as const) for (const theme of ['light', 'dark'
       await page.setViewportSize({ width, height: 900 });
       await assertFits(page);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
-      await page.getByRole('heading', { name: t('generator.historyTitle') }).scrollIntoViewIfNeeded();
+      await page.getByRole('heading', { name: t('generator.historyIn', { project: base.name }) }).scrollIntoViewIfNeeded();
       await page.screenshot({ path: `test-results/generator-history-${locale}-${theme}-${String(width)}.png` });
     }
   });

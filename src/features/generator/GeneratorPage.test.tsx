@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest';
@@ -13,6 +13,7 @@ import { useSequenceDraft } from '../editor/sequenceDraft';
 import { useAlignmentDraft } from '../alignment/alignmentDraft';
 import { ROUTES } from '../../shared/navigation';
 import { spanish } from '../../i18n/es';
+import { translate } from '../../i18n/translate';
 import { GENERATOR_CONFIG } from './config';
 
 class TestWorker {
@@ -119,8 +120,11 @@ it('does not create another Worker when all constraints are disabled', async () 
   await user.click(screen.getByLabelText(spanish['generator.enableGravy']));
   expect(screen.getByLabelText(spanish['generator.enableGravy'])).not.toBeChecked(); expect(screen.getByLabelText(spanish['generator.enableMass'])).not.toBeChecked();
   await user.click(screen.getByRole('button', { name: spanish['generator.run'] }));
-  expect(document.getElementById('generator-status')).toHaveTextContent(`${spanish['generator.invalid']} ${spanish['generator.invalidNoRange']}`); expect(TestWorker.instances).toHaveLength(1);
+  expect(document.getElementById('generator-status')).toHaveTextContent(spanish['generator.invalid']); expect(TestWorker.instances).toHaveLength(1);
+  // The message sits under both ranges and the first box to fix takes the focus.
   expect(screen.getByLabelText(spanish['generator.enableGravy'])).toHaveAttribute('aria-invalid', 'true');
+  expect(screen.getByLabelText(spanish['generator.enableGravy'])).toHaveAccessibleDescription(spanish['generator.invalidNoRange']);
+  await waitFor(() => { expect(screen.getByLabelText(spanish['generator.enableGravy'])).toHaveFocus(); });
 });
 it('names a range whose minimum is above its maximum and marks both limits', async () => {
   const user = userEvent.setup(); renderPage(); await complete(await initialWorker());
@@ -128,7 +132,29 @@ it('names a range whose minimum is above its maximum and marks both limits', asy
   const minimum = gravy.getByLabelText(spanish['generator.minimum']);
   await user.clear(minimum); await user.type(minimum, '1');
   await user.click(screen.getByRole('button', { name: spanish['generator.run'] }));
-  expect(document.getElementById('generator-status')).toHaveTextContent(spanish['generator.invalidOrder'].replace('{{range}}', spanish['generator.gravy']));
+  expect(document.getElementById('generator-status')).toHaveTextContent(spanish['generator.invalid']);
   expect(minimum).toHaveAttribute('aria-invalid', 'true'); expect(gravy.getByLabelText(spanish['generator.maximum'])).toHaveAttribute('aria-invalid', 'true');
+  expect(minimum).toHaveAccessibleDescription(spanish['generator.orderShort']);
+  expect(gravy.getByText(spanish['generator.orderShort'])).toBeVisible();
   expect(TestWorker.instances).toHaveLength(1);
+});
+it('says the accepted length under the field instead of the browser bubble', async () => {
+  const user = userEvent.setup(); renderPage(); await complete(await initialWorker());
+  const length = screen.getByLabelText(spanish['generator.length']);
+  await user.clear(length); await user.type(length, '500');
+  await user.click(screen.getByRole('button', { name: spanish['generator.run'] }));
+  const message = translate('es', 'generator.lengthRange', { minimum: '5', maximum: '300' });
+  expect(length).toHaveAttribute('aria-invalid', 'true'); expect(length).toHaveAccessibleDescription(message);
+  await waitFor(() => { expect(length).toHaveFocus(); });
+  expect(TestWorker.instances).toHaveLength(1);
+});
+it('opens the reproducibility options when the budget is out of bounds', async () => {
+  const user = userEvent.setup(); renderPage(); await complete(await initialWorker());
+  await user.click(screen.getByText(spanish['workbench.advanced']));
+  const budget = screen.getByLabelText(spanish['generator.budget']);
+  await user.clear(budget); await user.type(budget, '50');
+  await user.click(screen.getByText(spanish['workbench.advanced']));
+  await user.click(screen.getByRole('button', { name: spanish['generator.run'] }));
+  expect(budget).toBeVisible();
+  expect(budget).toHaveAccessibleDescription(translate('es', 'generator.fieldWhole', { minimum: '100', maximum: '5.000' }));
 });

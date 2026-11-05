@@ -16,9 +16,9 @@ for (const width of [360, 1280]) {
       await page.evaluate(() => document.fonts.ready);
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
-      // The page opens on the bundled insulin with its editor closed; the panel holds the overlaid editor.
+      // The page opens on the bundled insulin with its entry already open; the panel holds the overlaid editor.
       await expect(page.getByRole('heading', { level: 2, name: spanish['examples.insulinName'], exact: true })).toBeVisible();
-      await expect(page.locator('#sequence-panel')).toHaveCount(0);
+      await expect(page.locator('#sequence-panel')).toHaveCount(1);
       const input = await openSequenceEditor(page);
       await expect(input).toHaveValue(sequence);
       await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
@@ -75,7 +75,10 @@ for (const width of [360, 1280]) {
         await expect(input).toHaveAttribute('aria-invalid', 'true');
         await expect(page.locator('.invalid-residue')).toHaveText('?');
         await page.getByRole('tab', { name: spanish['workbench.summary'], exact: true }).click();
-        await expect(page.getByText(spanish['descriptors.invalid'])).toBeVisible();
+        // The previous figures are covered and the panel leads to the character to fix.
+        const position = String(sequence.length * 12 + 1);
+        await expect(page.getByText(message('descriptors.pending', { position: new Intl.NumberFormat('es-CO').format(Number(position)), char: '?' }))).toBeVisible();
+        await expect(page.getByRole('button', { name: message('descriptors.goTo', { position: new Intl.NumberFormat('es-CO').format(Number(position)) }) })).toBeVisible();
         const geometry = await page.evaluate(() => {
           const textarea = document.querySelector<HTMLTextAreaElement>('#sequence-input');
           const overlay = document.querySelector<HTMLElement>('.editor-highlight');
@@ -144,7 +147,8 @@ test('editor empty and scientific warning states remain accessible', async ({ pa
   await page.screenshot({ path: 'artifacts/editor-empty-short.png', fullPage: true });
   await restore.click();
   await expect(title).toHaveText(spanish['examples.insulinName']);
-  await expect(page.locator('#sequence-panel')).toHaveCount(0);
+  // Back on the example the entry stays open, as it arrives.
+  await expect(page.locator('#sequence-panel')).toHaveCount(1);
   await page.getByRole('tab', { name: spanish['workbench.sequence'], exact: true }).click();
   await expect(residueReader(page).locator('[data-position="96"]')).toHaveClass(/is-selected/);
 });

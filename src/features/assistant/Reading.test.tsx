@@ -38,7 +38,7 @@ beforeEach(() => { vi.clearAllMocks(); vi.stubEnv('VITE_API_BASE_URL', 'https://
 it('removes the reading and its facts on sign-out and does not expose them to the next owner', async () => {
   const { client } = api();
   const view = mount(client, () => FACTS);
-  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.read.analysis'] }));
+  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.ask'] }));
   await screen.findByText('Primera frase de entrada.');
   const content = (identity: typeof signedInFixture) => <MemoryRouter><AuthContext.Provider value={identity}>
     <ReadingSection subject="analysis" build={() => FACTS} revision="r1" api={client} />
@@ -55,7 +55,7 @@ it('removes the reading and its facts on sign-out and does not expose them to th
 it('asks for a reading, shows it in paragraphs and lists the figures it sent', async () => {
   const { client, interpret } = api();
   mount(client, () => FACTS);
-  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.read.analysis'] }));
+  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.ask'] }));
   expect(screen.getByText(spanish['assistant.busy'])).toBeVisible();
   await screen.findByText('Primera frase de entrada.');
   expect(screen.getByText('Segundo párrafo con 4,81 dentro.')).toBeVisible();
@@ -69,7 +69,7 @@ it('asks for a reading, shows it in paragraphs and lists the figures it sent', a
 
 it('drops a reading when the figures change, and never shows it beside other numbers', async () => {
   const view = mount(api().client, () => FACTS);
-  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.read.analysis'] }));
+  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.ask'] }));
   await screen.findByText('Primera frase de entrada.');
   view.rerender(
     <MemoryRouter>
@@ -85,16 +85,21 @@ it('drops a reading when the figures change, and never shows it beside other num
 
 it('explains a refusal in its own words and keeps the action available', async () => {
   mount(api(() => Promise.reject(new ApiError('rate-limit'))).client, () => FACTS);
-  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.read.analysis'] }));
+  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.ask'] }));
   await screen.findByText(spanish['assistant.rateLimit']);
   expect(screen.queryByText(spanish['assistant.sources'])).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: spanish['assistant.read.analysis'] })).toBeEnabled();
 });
 
-it('offers sign-in instead of the action without a session', () => {
+it('stays a single secondary action until asked, and offers nothing without a session', () => {
+  const { client, interpret } = api();
+  const view = mount(client, () => FACTS);
+  expect(screen.queryByRole('heading', { name: spanish['assistant.title'] })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: spanish['assistant.ask'] })).toBeEnabled();
+  expect(interpret).not.toHaveBeenCalled();
+  view.unmount();
   mount(api().client, () => FACTS, 'r1', 'anonymous');
-  expect(screen.getByText(spanish['assistant.signInHelp'])).toBeVisible();
-  expect(screen.queryByRole('button', { name: spanish['assistant.read.analysis'] })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: spanish['assistant.ask'] })).not.toBeInTheDocument();
 });
 
 it('builds the analysis facts from what the screen prints, and never the sequence', () => {

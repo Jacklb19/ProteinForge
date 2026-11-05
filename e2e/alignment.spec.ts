@@ -105,7 +105,9 @@ test('alignment empty, invalid and length limit states remain explicit', async (
       await first.fill('AC-');
       await second.fill('AC');
       await start.click();
-      await expect(status).toContainText(spanish['alignment.invalid']);
+      await expect(status).toContainText(message('alignment.invalidField', { name: spanish['alignment.first'] }));
+      await expect(page.locator('#alignment-first-status')).toHaveText(message('editor.invalidPositions', { positions: '3' }));
+      await expect(first).toBeFocused();
       await first.fill('A'.repeat(MAX_ALIGNMENT_RESIDUES + 1));
       await start.click();
       await expect(status).toContainText(message('alignment.limit', { count: '5.000' }));

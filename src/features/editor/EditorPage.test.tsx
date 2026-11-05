@@ -74,21 +74,21 @@ describe('EditorPage', () => {
     expect(screen.getByRole('button', { name: spanish['editor.toAlignment'] })).toBeEnabled();
   });
 
-  it('opens on the bundled example and keeps its editor behind the change button', () => {
+  it('opens on the bundled example with its entry open, selected on focus so pasting replaces it', () => {
     render(<EditorPage />, { wrapper: ExampleProviders });
     expect(screen.getByRole('heading', { level: 2, name: spanish['examples.insulinName'] })).toBeInTheDocument();
     const toggle = changeButton();
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('textbox', { name: spanish['editor.label'] })).not.toBeInTheDocument();
-    expect(document.getElementById('sequence-panel')).toBeNull();
-
-    fireEvent.click(toggle);
+    expect(toggle).toHaveTextContent(spanish['editor.inputTitle']);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     const panel = document.getElementById('sequence-panel');
-    const editor = screen.getByRole('textbox', { name: spanish['editor.label'] });
+    const editor = screen.getByRole('textbox', { name: spanish['editor.labelExample'] });
     expect(panel).toContainElement(editor);
     expect(panel).toContainElement(screen.getByRole('region', { name: spanish['fasta.title'] }));
     expect(editor).toHaveValue(DEFAULT_EXAMPLE.text);
+    expect(editor).toHaveAccessibleDescription(expect.stringContaining(spanish['editor.helpExample']) as string);
+    fireEvent.focus(editor);
+    expect((editor as HTMLTextAreaElement).selectionStart).toBe(0);
+    expect((editor as HTMLTextAreaElement).selectionEnd).toBe(DEFAULT_EXAMPLE.text.length);
     expect(screen.queryByRole('button', { name: spanish['editor.restoreExample'] })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: spanish['editor.clear'] }));
@@ -99,11 +99,23 @@ describe('EditorPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: spanish['editor.restoreExample'] }));
     expect(screen.getByRole('heading', { level: 2, name: spanish['examples.insulinName'] })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: spanish['editor.labelExample'] })).toHaveValue(DEFAULT_EXAMPLE.text);
+    fireEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('textbox', { name: spanish['editor.label'] })).not.toBeInTheDocument();
-    fireEvent.click(toggle);
-    expect(screen.getByRole('textbox', { name: spanish['editor.label'] })).toHaveValue(DEFAULT_EXAMPLE.text);
-    fireEvent.click(toggle);
     expect(document.getElementById('sequence-panel')).toBeNull();
+  });
+
+  it('covers the previous figures while a character is not a residue and leads to it', () => {
+    vi.useFakeTimers();
+    render(<EditorPage />, { wrapper: ExampleProviders });
+    const editor = screen.getByRole('textbox', { name: spanish['editor.labelExample'] });
+    act(() => { vi.advanceTimersByTime(50); });
+    fireEvent.change(editor, { target: { value: 'ACD1EF' } });
+    act(() => { vi.advanceTimersByTime(50); });
+    expect(screen.getByText(translate('es', 'descriptors.pending', { position: '4', char: '1' }))).toBeInTheDocument();
+    expect(screen.queryByText('11.980,91', { exact: false })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: translate('es', 'descriptors.goTo', { position: '4' }) }));
+    act(() => { vi.runOnlyPendingTimers(); });
+    vi.useRealTimers();
   });
 });

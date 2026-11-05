@@ -37,7 +37,7 @@ function projects(changes: Partial<ProjectContextValue> = {}): ProjectContextVal
     connection: 'online', pending: [], syncing: false, queuedAnalysis: null, queuedLaboratory: null,
     retry: vi.fn(), discard: vi.fn(), discardAll: vi.fn(), clearSaved: vi.fn(), resolve: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn(), open: vi.fn(), saveLaboratory: vi.fn(), save: vi.fn(), rename: vi.fn(), duplicate: vi.fn(), remove: vi.fn(), detach: vi.fn(),
-    saveGeneratorRun: vi.fn(), removeGeneratorRun: vi.fn(), ...changes,
+    saveGeneratorRun: vi.fn(), removeGeneratorRun: vi.fn(), searchProject: null, chooseSearchProject: vi.fn(), createSearchProject: vi.fn(), ...changes,
   };
 }
 function mount(element: React.JSX.Element, value: ProjectContextValue, auth: AuthContextValue = signedInFixture) {

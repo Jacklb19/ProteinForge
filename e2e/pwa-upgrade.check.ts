@@ -147,7 +147,9 @@ test('an installed pre-CORP PWA updates without clearing its profile or saved wo
     await page.locator(`.site-nav a[href="${ROUTES.analyze}"]`).first().click();
     checkpoint('Previous PWA reopened under its existing controller.');
     await expect(page.locator('.descriptor-panel [data-state="current"]')).toBeAttached();
-    await page.getByRole('button', { name: spanish['editor.inputTitle'], exact: true }).click();
+    // The untouched example arrives with the entry already open.
+    const entry = page.getByRole('button', { name: spanish['editor.inputTitle'], exact: true });
+    if (await entry.getAttribute('aria-expanded') !== 'true') await entry.click();
     await page.locator('#sequence-input').fill(sequence);
     await page.locator('input[value="19"]').check();
     await expect(page.locator('.descriptor-panel [data-state="current"]')).toBeAttached();
