@@ -8,6 +8,8 @@ import { FOOTER_LINKS, ROUTES, SIDEBAR_STORAGE_KEY } from '../shared/navigation'
 import { MENU_ID } from './PublicFrame';
 import { Sheet } from './Sheet';
 import { SidebarContent } from './Sidebar';
+import { CommandPalette } from './CommandPalette';
+import { PALETTE_KEY } from './paletteEntries';
 import { useSyncShortLabel } from '../features/projects/syncSummary';
 
 /** The width choice is a visual preference; storage may be unavailable, and then it lasts for the visit. */
@@ -43,12 +45,23 @@ export function WorkspaceFrame(): React.JSX.Element {
     toggle.current?.focus();
   }, [menuOpen]);
   useEffect(() => { writeCompact(compact); }, [compact]);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== PALETTE_KEY) return;
+      event.preventDefault();
+      setMenuOpen(false);
+      setPaletteOpen(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('keydown', onKey); };
+  }, []);
 
   return (
     <div className="workspace" data-compact={compact}>
       <a className="skip-link" href="#app-content">{t('shell.skip')}</a>
       <aside className="workspace-sidebar" aria-label={t('shell.sidebar')} onPointerOver={placeTooltip} onFocus={placeTooltip}>
-        <SidebarContent variant="rail" compact={compact} onToggle={() => { setCompact(value => !value); }} />
+        <SidebarContent variant="rail" compact={compact} onToggle={() => { setCompact(value => !value); }} onPalette={() => { setPaletteOpen(true); }} />
       </aside>
       <div className="workspace-body">
         <header className="workspace-bar">
@@ -61,8 +74,9 @@ export function WorkspaceFrame(): React.JSX.Element {
           </button>
         </header>
         {menuOpen && <Sheet id={MENU_ID} label={t('shell.menu')} className="workspace-sheet" onClose={closeMenu}>
-          <SidebarContent variant="sheet" onClose={closeMenu} />
+          <SidebarContent variant="sheet" onClose={closeMenu} onPalette={() => { setMenuOpen(false); setPaletteOpen(true); }} />
         </Sheet>}
+        {paletteOpen && <CommandPalette onClose={() => { setPaletteOpen(false); }} />}
         <div className="app-content" id="app-content" tabIndex={-1}>
           <RouteBoundary key={pathname}>
             <Suspense fallback={<main className="page"><p role="status">{t('shell.loadingPage')}</p></main>}><Outlet /></Suspense>

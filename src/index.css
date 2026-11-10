@@ -551,6 +551,14 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .projects-list-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); }
 .project-dialog { margin: auto; width: min(calc(var(--width-full) - var(--space-xl)), var(--width-reading)); max-height: calc(100dvh - var(--space-xl)); padding: var(--space-none); border: none; border-radius: var(--radius-control); color: var(--text-primary); background: var(--bg-raised); }
 .project-dialog::backdrop { background: var(--bg-scrim); }
+/* Command palette: the dialog sits near the top so the list can grow downwards without moving the field. */
+.command-palette { margin-block-start: var(--space-3xl); }
+.palette-body { display: grid; gap: var(--space-sm); padding: var(--space-md); }
+.palette-list { display: grid; gap: var(--space-xs); max-height: var(--height-palette-list); overflow-y: auto; }
+.palette-list ul { display: grid; margin: var(--space-none); padding: var(--space-none); list-style: none; }
+.palette-group { padding: var(--space-2xs) var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
+.palette-option { display: flex; align-items: center; min-height: var(--size-touch); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-control); overflow-wrap: anywhere; cursor: pointer; }
+.palette-option[aria-selected='true'] { background: var(--bg-selected); font-weight: var(--font-weight-strong); }
 .project-dialog-name { font-weight: var(--font-weight-strong); overflow-wrap: anywhere; }
 .project-confirm { display: grid; gap: var(--space-md); padding: var(--space-lg); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); background: var(--bg-raised); }
 .project-confirm h3 { overflow-wrap: anywhere; }
