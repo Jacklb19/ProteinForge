@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
@@ -6,6 +7,7 @@ import { PageHeading } from '../../shared/PageHeading';
 import { ROUTES } from '../../shared/navigation';
 import { DESCRIPTOR_FIELDS, HYDROPATHY_WINDOWS, METHOD_REFERENCES, WINDOW_PURPOSE_KEYS } from '../descriptors/config';
 import { EVIDENCE_KINDS, GUIDE_SECTIONS } from './config';
+import { TourContext } from '../../shell/tour';
 
 function GuideSection({ section, children }: { section: (typeof GUIDE_SECTIONS)[keyof typeof GUIDE_SECTIONS]; children: ReactNode }): React.JSX.Element {
   const { t } = useTranslation();
@@ -18,12 +20,15 @@ function GuideSection({ section, children }: { section: (typeof GUIDE_SECTIONS)[
 /** Methods and reading criteria already used by the tools, gathered in one place with a way back to each tool. */
 export function GuidePage(): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
+  const tour = useContext(TourContext);
   const toolLink = (route: string, labelKey: TranslationKey): React.JSX.Element =>
     <Link className="inline-link" to={route}>{t('guide.openTool', { tool: t(labelKey) })}</Link>;
 
   return (
     <main className="page guide-page">
-      <PageHeading titleKey="guide.title" introduction="guide.intro" />
+      <PageHeading titleKey="guide.title" introduction="guide.intro">
+        {tour && <button type="button" className="button button-secondary" onClick={tour.start}>{t('tour.start')}</button>}
+      </PageHeading>
       <div className="legal-layout">
         <nav className="legal-index" aria-label={t('workbench.legalIndex')}>
           {Object.values(GUIDE_SECTIONS).map(entry => <a key={entry.id} href={`#${entry.id}`}>{t(entry.titleKey)}</a>)}

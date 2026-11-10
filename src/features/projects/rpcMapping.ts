@@ -1,6 +1,6 @@
 import type { MessageInitShape } from '@bufbuild/protobuf';
 import { ProjectStatus } from '../../gen/proteinforge/project/v1/project_service_pb';
-import type { Project as ProjectMessage, ProjectSummary as SummaryMessage } from '../../gen/proteinforge/project/v1/project_service_pb';
+import type { Project as ProjectMessage, ProjectPreview as PreviewMessage, ProjectSummary as SummaryMessage, ProjectVersion as VersionMessage } from '../../gen/proteinforge/project/v1/project_service_pb';
 import { AlignmentMode, SourceOrigin, SubstitutionMatrix, TerminalGaps } from '../../gen/proteinforge/project/v1/workspace_pb';
 import type { Workspace as WorkspaceMessage, WorkspaceSchema } from '../../gen/proteinforge/project/v1/workspace_pb';
 import { isoFromTimestamp, timestampFromIso } from '../api/timestamps';
@@ -81,14 +81,10 @@ export function workspaceDocument(workspace: WorkspaceMessage | undefined): unkn
   };
 }
 
-export function summaryDocument(summary: SummaryMessage | undefined): Record<string, unknown> {
-  const preview = summary?.preview;
-  const alignment = preview?.alignment;
-  const descriptors = preview?.descriptors;
+function previewDocument(preview: PreviewMessage): Record<string, unknown> {
+  const alignment = preview.alignment;
+  const descriptors = preview.descriptors;
   return {
-    id: summary?.id, name: summary?.name, status: summary ? STATUSES[summary.status] : undefined,
-    createdAt: isoFromTimestamp(summary?.createTime), updatedAt: isoFromTimestamp(summary?.updateTime),
-    ...(preview ? { preview: {
       sequenceLength: preview.sequenceLength, sequencePrefix: preview.sequencePrefix, excluded: preview.excluded,
       hasLaboratory: preview.hasLaboratory, laboratoryVariants: preview.laboratoryVariants, generatorRuns: preview.generatorRuns,
       descriptors: descriptors ? { massDa: descriptors.massDa, isoelectricPoint: descriptors.isoelectricPoint, instabilityIndex: descriptors.instabilityIndex, aliphaticIndex: descriptors.aliphaticIndex, gravy: descriptors.gravy, length: descriptors.length } : null,
@@ -98,8 +94,20 @@ export function summaryDocument(summary: SummaryMessage | undefined): Record<str
         matrix: nameOf(MATRICES, alignment.matrix), mode: nameOf(MODES, alignment.mode),
         result: alignment.result ? { identities: alignment.result.identities, similarities: alignment.result.similarities, columns: alignment.result.columns } : null,
       } : null,
-    } } : {}),
   };
+}
+
+export function summaryDocument(summary: SummaryMessage | undefined): Record<string, unknown> {
+  const preview = summary?.preview;
+  return {
+    id: summary?.id, name: summary?.name, status: summary ? STATUSES[summary.status] : undefined,
+    createdAt: isoFromTimestamp(summary?.createTime), updatedAt: isoFromTimestamp(summary?.updateTime),
+    ...(preview ? { preview: previewDocument(preview) } : {}),
+  };
+}
+
+export function versionDocument(version: VersionMessage): Record<string, unknown> {
+  return { id: version.id, savedAt: isoFromTimestamp(version.saveTime), preview: version.preview ? previewDocument(version.preview) : null };
 }
 
 export function projectDocument(project: ProjectMessage | undefined): unknown {

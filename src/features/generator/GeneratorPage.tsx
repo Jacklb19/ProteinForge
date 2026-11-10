@@ -187,7 +187,7 @@ export function GeneratorPage(): React.JSX.Element {
         {picker.note && <p>{picker.note}</p>}
       </>}>
         {picker.field}
-        <Link className="button button-primary" to={ROUTES.laboratory}>{t('lab.openLaboratory')}</Link>
+        <Link className="button button-secondary" to={ROUTES.laboratory}>{t('lab.openLaboratory')}</Link>
       </PageHeading>
       {picker.panel}
 

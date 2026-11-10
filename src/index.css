@@ -186,6 +186,9 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .status-message[data-state='error'],
 .status-message[data-state='invalid'] { color: var(--status-error); font-weight: var(--font-weight-strong); }
 .status-message[data-state='success'] { color: var(--status-success); font-weight: var(--font-weight-strong); }
+/* A notice with one action: the text takes the room and the action stays beside it, or under it on phones. */
+.remote-change { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); margin-block: var(--space-md); }
+.remote-change p { flex: 1 1 var(--width-form); max-width: var(--width-copy); }
 .notice { padding: var(--space-xs) var(--space-sm); border-inline-start: var(--border-width-indicator) solid var(--text-primary); background: var(--bg-subtle); font-size: var(--font-size-small); }
 
 .disclosure { border-block-start: var(--border-width) solid var(--border-subtle); }
@@ -363,6 +366,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 }
 .editor-highlight { position: absolute; inset: var(--space-none); z-index: var(--layer-base); border-color: var(--transparent); background: var(--bg-raised); color: var(--text-primary); pointer-events: none; scrollbar-width: none; }
 .editor-layer textarea { position: relative; z-index: var(--layer-overlay); height: var(--height-editor); color: var(--transparent); caret-color: var(--text-primary); background: var(--transparent); }
+/* The entry is as tall as its sequence, within bounds, so the results stay close; browsers without field-sizing keep the fixed height. */
+@supports (field-sizing: content) {
+  .editor-layer textarea { field-sizing: content; height: auto; min-height: var(--height-editor-min); max-height: var(--height-editor); }
+  .sequence-pair .editor-layer textarea { min-height: var(--height-editor-min); max-height: var(--height-alignment-input); }
+}
 .editor-layer textarea::selection { background: var(--bg-selected); }
 .editor-layer textarea::placeholder { color: var(--text-secondary); font-family: var(--font-ui); }
 .invalid-residue { color: var(--status-error); background: var(--status-error-subtle); font-weight: var(--font-weight-regular); text-decoration: underline; text-decoration-thickness: var(--border-width-indicator); text-underline-offset: var(--decoration-offset); }
@@ -450,6 +458,15 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 
 /* Alignment ------------------------------------------------------------ */
 .alignment-page { display: grid; }
+/* Several sequences: numbered rows in blocks that fit the screen, with the names listed once above. */
+.multiple-alignment { display: grid; gap: var(--space-md); margin-block-start: var(--space-xl); }
+.multiple-alignment[open] > summary { margin-block-end: var(--space-sm); }
+.multiple-alignment textarea { height: var(--height-editor); }
+.multiple-result { display: grid; gap: var(--space-md); }
+.multiple-result.is-stale { color: var(--text-secondary); }
+.multiple-rows { display: grid; gap: var(--space-md); }
+.multiple-names { margin: var(--space-none); padding-inline-start: var(--space-lg); font-size: var(--font-size-small); overflow-wrap: anywhere; }
+.multiple-block { margin: var(--space-none); font-family: var(--font-sequence); font-size: var(--font-size-small); line-height: var(--line-height-base); white-space: pre; overflow: hidden; }
 .alignment-inputs { display: grid; gap: var(--space-md); }
 .sequence-pair { display: grid; gap: var(--space-md); }
 .sequence-pair textarea { min-height: var(--height-alignment-input); }
@@ -543,6 +560,19 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .projects-list-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); }
 .project-dialog { margin: auto; width: min(calc(var(--width-full) - var(--space-xl)), var(--width-reading)); max-height: calc(100dvh - var(--space-xl)); padding: var(--space-none); border: none; border-radius: var(--radius-control); color: var(--text-primary); background: var(--bg-raised); }
 .project-dialog::backdrop { background: var(--bg-scrim); }
+/* Command palette: the dialog sits near the top so the list can grow downwards without moving the field. */
+.command-palette { margin-block-start: var(--space-3xl); }
+.palette-body { display: grid; gap: var(--space-sm); padding: var(--space-md); }
+.palette-list { display: grid; gap: var(--space-xs); max-height: var(--height-palette-list); overflow-y: auto; }
+.palette-list ul { display: grid; margin: var(--space-none); padding: var(--space-none); list-style: none; }
+.palette-group { padding: var(--space-2xs) var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
+.palette-option { display: flex; align-items: center; min-height: var(--size-touch); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-control); overflow-wrap: anywhere; cursor: pointer; }
+.palette-option[aria-selected='true'] { background: var(--bg-selected); font-weight: var(--font-weight-strong); }
+/* Read-only links: the address beside its copy button, and the shared sequence in print layout. */
+.share-url { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.share-url .text-input { flex: 1 1 var(--width-setting-copy); min-width: var(--space-none); font-family: var(--font-sequence); font-size: var(--font-size-small); }
+.shared-sequence { margin: var(--space-none); padding: var(--space-md); overflow-x: auto; border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-control); background: var(--bg-raised); font-family: var(--font-sequence); font-size: var(--font-size-small); line-height: var(--line-height-reading); }
+.shared-missing, .shared-invite { display: grid; gap: var(--space-sm); justify-items: start; }
 .project-dialog-name { font-weight: var(--font-weight-strong); overflow-wrap: anywhere; }
 .project-confirm { display: grid; gap: var(--space-md); padding: var(--space-lg); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); background: var(--bg-raised); }
 .project-confirm h3 { overflow-wrap: anywhere; }
@@ -579,6 +609,10 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .structure-canvas[data-ready='false'] { position: absolute; inset: var(--space-none); height: auto; visibility: hidden; }
 .sequence-provenance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-md); }
 
+/* Substitution preview under the sequence reader. */
+.mutation-preview { display: grid; gap: var(--space-sm); margin-block-start: var(--space-lg); padding-block-start: var(--space-lg); border-block-start: var(--border-width) solid var(--border-subtle); }
+.mutation-controls { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-sm); }
+.mutation-controls .field { flex: 1 1 var(--width-setting-copy); max-width: var(--width-form); }
 .generator-form { display: grid; gap: var(--space-md); }
 .generator-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md); }
 .generator-targets, .candidate-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); }
@@ -654,8 +688,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
   .page { padding: var(--space-none) var(--space-md) var(--space-2xl); }
   .container { padding-inline: var(--space-md); }
   .page-head { display: grid; padding-block: var(--space-md); }
-  .toolbar > *, .toolbar-menu summary { flex: 1 1 0; min-width: var(--space-none); }
-  .toolbar .button { width: var(--width-full); padding-inline: var(--space-2xs); font-size: var(--font-size-small); }
+  /* Two columns keep every label on one line; an odd last action takes the whole row. */
+  .toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar > *, .toolbar-menu summary { min-width: var(--space-none); }
+  .toolbar > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .toolbar .button { width: var(--width-full); padding-inline: var(--space-xs); font-size: var(--font-size-small); }
   .toolbar .label-long { display: none; }
   .toolbar-popover { inset-inline: auto var(--space-none); }
   .section { padding-block: var(--space-lg); }
@@ -715,9 +752,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .lab-inspector .section-header { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: var(--space-xs); }
 .lab-inspector .section-header h2 { font-size: var(--font-size-section); }
 .lab-inspector .section-header .button { font-size: var(--font-size-small); }
-.lab-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); padding-block: var(--space-lg) var(--space-md); }
-.lab-metrics strong { display: block; font-size: var(--font-size-stat); font-weight: var(--font-weight-regular); }
-.lab-metrics span { display: block; color: var(--text-secondary); font-size: var(--font-size-note); }
+/* One figure per row, its label beside it: the label keeps a readable measure in the narrow inspector. */
+.lab-metrics { display: grid; gap: var(--space-sm); padding-block: var(--space-lg) var(--space-md); }
+.lab-metrics > div { display: grid; grid-template-columns: minmax(var(--width-lab-figure-value), auto) minmax(0, 1fr); align-items: baseline; gap: var(--space-md); }
+.lab-metrics strong { display: block; font-size: var(--font-size-stat); font-weight: var(--font-weight-regular); white-space: nowrap; }
+.lab-metrics span { display: block; color: var(--text-secondary); font-size: var(--font-size-note); text-wrap: pretty; }
 .lab-residue-inspector { display: grid; gap: var(--space-sm); margin-block-start: var(--space-lg); padding-block-start: var(--space-md); border-block-start: var(--border-width) solid var(--border-subtle); }
 .lab-residue-inspector > .button { justify-self: start; }
 .lab-residue-readout { display: flex; align-items: center; gap: var(--space-md); }

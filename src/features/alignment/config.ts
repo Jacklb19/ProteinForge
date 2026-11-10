@@ -23,6 +23,10 @@ export const ALIGNMENT_MARKS = { identical: '|', similar: ':', none: ' ' } as co
 /** Tile edge for the parallel wavefront and the public length limit per sequence. */
 export const TILE_SIZE = 256;
 export const MAX_ALIGNMENT_RESIDUES = 5000;
+/** Several sequences together: every pair is aligned once, so the bounds keep that work in seconds. */
+export const MULTIPLE_MIN_SEQUENCES = 3;
+export const MULTIPLE_MAX_SEQUENCES = 8;
+export const MULTIPLE_MAX_RESIDUES = 1000;
 
 /** Columns per rendered alignment block and blocks rendered beyond the viewport. */
 export const BLOCK_COLUMNS = 55;

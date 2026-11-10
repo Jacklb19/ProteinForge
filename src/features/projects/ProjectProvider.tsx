@@ -22,6 +22,10 @@ import type { GeneratorRun, GeneratorRunSelection } from '../generator/history';
 import type { ProjectWrite } from './contracts';
 import { afterFailure, due, enqueue, isOpen, isRetryable, newKey, nextRetry, sameContent } from './syncQueue';
 import type { ConflictChoice, SyncChange, SyncEntry } from './syncQueue';
+import { LIVE_HIDDEN_GRACE_MS, readLiveUrl } from '../live/config';
+import { openLiveChannel } from '../live/liveChannel';
+import type { LiveChange, LiveChannel, LiveConnector } from '../live/liveChannel';
+import { isNews, sameInstant } from '../live/liveNews';
 
 /**
  * The generator history is written in zod and is only read when a search result is stored or
@@ -38,7 +42,7 @@ import { draftFingerprint } from '../design-lab/state';
 import { sha256 } from '../design-lab/zip';
 
 interface State {
-  owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null; attempt: number;
+  owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | 'restored' | null; attempt: number;
   /** Design's own destination for searches: it follows the project open in Analyze until a project is chosen there. */
   searchFollows: boolean; searchProject: Project | null;
 }
@@ -67,7 +71,7 @@ function lastProject(owner: string): string | null {
 }
 
 /** Holds no private sequence in browser storage. On reload, retrieves the last project with the user's JWT. */
-export function ProjectProvider({ children, api }: { children: ReactNode; api?: ProjectApi | null }): React.JSX.Element {
+export function ProjectProvider({ children, api, live }: { children: ReactNode; api?: ProjectApi | null; live?: LiveConnector | null }): React.JSX.Element {
   const auth = useAuth();
   const lab = useContext(LabContext);
   const [labBinding,setLabBinding]=useState<{owner:string;project:Project;revision:number}|null>(null);
@@ -172,6 +176,8 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     return {
       list: (...args) => observe(service.list(...args)), open: (...args) => observe(service.open(...args)),
       save: (...args) => observe(service.save(...args)), remove: (...args) => observe(service.remove(...args)),
+      ...(service.versions ? { versions: (...args: Parameters<NonNullable<ProjectApi['versions']>>) => observe(service.versions?.(...args) ?? Promise.reject(new ApiError('unavailable'))) } : {}),
+      ...(service.restore ? { restore: (...args: Parameters<NonNullable<ProjectApi['restore']>>) => observe(service.restore?.(...args) ?? Promise.reject(new ApiError('unavailable'))) } : {}),
     };
   }, []);
   /** Queues a change when it cannot be sent now; returns false when the queue is full. */
@@ -407,6 +413,69 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue, wake, user, token, enabled, online]);
 
+  // Live channel: the API says when this account's projects change in another tab or device.
+  const [liveUrl] = useState(readLiveUrl);
+  const connectLive = live === undefined ? liveUrl : live;
+  const channel = useRef<LiveChannel | null>(null);
+  const liveChanges = useRef<LiveChange[]>([]);
+  // What the channel last said about a project: its newer version elsewhere, or null once it was deleted.
+  const [remoteStamp, setRemoteStamp] = useState<{ id: string; updatedAt: string | null; against: string } | null>(null);
+  useEffect(() => {
+    if (!connectLive || !user || !enabled) return;
+    const onChange = (change: LiveChange): void => { liveChanges.current.push(change); setWake(value => value + 1); };
+    const opened = typeof connectLive === 'string' ? openLiveChannel({ url: connectLive, token: null, onChange }) : connectLive({ token: null, onChange });
+    channel.current = opened;
+    // A hidden tab keeps its connection for a while, then lets it go and catches up when it is shown again.
+    let hiding: number | undefined;
+    const look = (): void => {
+      window.clearTimeout(hiding);
+      if (!navigator.onLine) opened.setActive(false);
+      else if (document.visibilityState === 'visible') opened.setActive(true);
+      else hiding = window.setTimeout(() => { opened.setActive(false); }, LIVE_HIDDEN_GRACE_MS);
+    };
+    look();
+    window.addEventListener('online', look);
+    window.addEventListener('offline', look);
+    document.addEventListener('visibilitychange', look);
+    return () => {
+      window.clearTimeout(hiding);
+      window.removeEventListener('online', look); window.removeEventListener('offline', look); document.removeEventListener('visibilitychange', look);
+      channel.current = null; liveChanges.current = [];
+      opened.close();
+    };
+  }, [connectLive, user, enabled]);
+  // The channel follows the session: a refreshed token replaces the one it reads with.
+  useEffect(() => { channel.current?.setToken(user && token ? token : null); }, [connectLive, user, enabled, token]);
+  // Notices wait for the action in progress: its own result often already holds what they announce.
+  useEffect(() => {
+    if (!liveChanges.current.length || !user || !token || !client || locked.current) return;
+    const changes = liveChanges.current;
+    liveChanges.current = [];
+    const known = [...current.items, ...(current.active ? [current.active] : [])];
+    const open = current.active;
+    for (const change of changes) {
+      if (!open) break;
+      // Kept with the version this tab held then: any later version of its own makes the notice void.
+      const stamp = change.changed?.find(item => item.id === open.id);
+      if (stamp) setRemoteStamp({ ...stamp, against: open.updatedAt });
+      else if (change.removed.includes(open.id)) setRemoteStamp({ id: open.id, updatedAt: null, against: open.updatedAt });
+    }
+    if (!changes.some(change => isNews(change, known))) return;
+    const epoch = generation.current, owner = user, listing = current.listing;
+    // Read only, so it takes no lock; an action that starts meanwhile wins and lists again itself.
+    void client.list(token, '', undefined, listing).then((result) => {
+      if (generation.current !== epoch || locked.current) return;
+      setState(value => value.owner === owner && value.listing === listing ? { ...value, items: result.items, nextPageToken: result.nextPageToken } : value);
+    }, () => undefined);
+    // Reads the latest list through this render; wake is the moment to look.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wake, user, token, client]);
+
+  // Derived, so it clears itself once this tab holds that version (its own save, or opening it again).
+  const remoteChange = !current.active || remoteStamp?.id !== current.active.id || remoteStamp.against !== current.active.updatedAt ? null
+    : remoteStamp.updatedAt === null ? 'removed' as const
+      : sameInstant(remoteStamp.updatedAt, current.active.updatedAt) ? null : 'changed' as const;
+
   const dirty = Boolean(current.active && workspaceInputKey(sequence.text, alignment, sequence.profileWindow) !== workspaceInputKey(current.active.activeSequence, current.active.workspace.alignment, current.active.workspace.profileWindow));
   async function relist(service: ProjectApi, signal: AbortSignal): Promise<void> {
     try {
@@ -425,7 +494,7 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     ...value, active: value.active?.id === project.id ? project : value.active, searchProject: value.searchProject?.id === project.id ? project : value.searchProject,
   });
   const value = {
-    laboratory, searchProject,
+    laboratory, searchProject, remoteChange,
     enabled, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
     busy: current.busy || syncing, error: current.error, notice: current.notice, attempt: current.attempt, dirty, listing: current.listing,
     connection, pending: queue, syncing,
@@ -654,6 +723,37 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
       if ((project.workspace.generatorHistory?.documentSha256 ?? null) !== (next?.documentSha256 ?? null)) throw new ApiError('invalid-response');
       setState(written(project));
       setLabBinding((binding) => binding?.project.id === project.id ? { ...binding, project } : binding);
+      await relist(service, signal);
+    }); },
+    async versions(id: string) {
+      // A read: it takes no lock, so the list can open while another action runs.
+      const service = client ?? await serviceClient();
+      if (!service?.versions || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      return watched(service).versions?.(id, token) ?? [];
+    },
+    // Links change nothing this tab holds, so they take no lock either.
+    async share(id: string) {
+      const service = client ?? await serviceClient();
+      if (!service?.share || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      return service.share(id, token);
+    },
+    async createShare(id: string) {
+      const service = client ?? await serviceClient();
+      if (!service?.createShare || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      return service.createShare(id, token);
+    },
+    async removeShare(id: string) {
+      const service = client ?? await serviceClient();
+      if (!service?.removeShare || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      await service.removeShare(id, token);
+    },
+    restoreVersion(project: ProjectSummary, versionId: string) { return run(async (service, signal) => {
+      if (!service.restore) throw new ApiError('unavailable');
+      const restored = await service.restore(project.id, versionId, project.updatedAt, token, signal);
+      if (signal.aborted) return;
+      // The project open in Analyze shows the content it now has; the confirmation said so.
+      if (current.active?.id === restored.id) { restore(restored); if (user) remember(user, restored.id); bind('analysis', null); }
+      setState(value => ({ ...written(restored)(value), items: value.items.map(item => item.id === restored.id ? restored : item), notice: 'restored' }));
       await relist(service, signal);
     }); },
     detach() { if (locked.current) return; if (user) remember(user, null); bind('analysis', null); setState((value) => ({ ...value, active: null, error: null, notice: null })); },

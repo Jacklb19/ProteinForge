@@ -19,7 +19,7 @@ import { ROUTES } from '../../shared/navigation';
 import { DESCRIPTOR_FIELDS } from '../descriptors/config';
 import { ReadingSection } from '../assistant/ReadingSection';
 import { analysisFacts } from '../assistant/facts';
-import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
+import { descriptorCsv, downloadDescriptorCsv, downloadSequenceFasta, sequenceFasta } from '../reports/descriptorReport';
 import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
 import { isCurrentReference } from '../library/referenceView';
@@ -27,6 +27,8 @@ import { ViewTabs } from '../../shared/ViewTabs';
 import { REFERENCE_CATALOG } from '../library/catalog';
 import { ProjectContext } from '../projects/projectContext';
 import { SaveState } from '../projects/SaveState';
+import { MutationPreview } from '../descriptors/MutationPreview';
+import { RemoteChange } from '../projects/RemoteChange';
 import { useDraftSaveState } from '../projects/draftSaveState';
 
 const MappedStructure = lazy(() => import('../library/MappedStructure').then(module => ({ default: module.MappedStructure })));
@@ -163,22 +165,26 @@ export function EditorPage(): React.JSX.Element {
           <p className="page-meta">{t('workbench.analyzeIntro')}</p>
         </div>
         <div className="toolbar">
-          <button className={`button ${sequencePanelOpen ? 'button-secondary' : 'button-primary'}`} type="button" aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
+          <button className={`button ${hasInput ? 'button-secondary' : 'button-primary'}`} type="button" aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
             {t('editor.inputTitle')}
           </button>
-          {hasInput && <button className="button button-secondary" type="button" aria-expanded={panel === 'project'} aria-controls={PROJECT_PANEL_ID} onClick={() => { toggle('project'); }}>{t('projects.save')}</button>}
+          {hasInput && <button className={`button ${panel === 'project' ? 'button-secondary' : 'button-primary'}`} type="button" aria-expanded={panel === 'project'} aria-controls={PROJECT_PANEL_ID} onClick={() => { toggle('project'); }}>{t('projects.save')}</button>}
           <ReportActions>
             {hasInput && <button className="button" type="button" disabled={descriptors.status !== 'current'} onClick={() => {
               if (descriptors.status !== 'current' || !descriptors.result) return;
               const methods = Object.fromEntries(DESCRIPTOR_FIELDS.map((field) => [field.key, t(field.methodKey)]));
               downloadDescriptorCsv(descriptorCsv(validation.sequence, descriptors.result, descriptors.excluded, methods));
             }}>{t('report.download')}</button>}
+            {residueCount > 0 && invalidPositions.length === 0 && <button className="button" type="button" onClick={() => {
+              downloadSequenceFasta(sequenceFasta(validation.sequence, title, source?.accession ?? null));
+            }}>{t('report.fasta')}</button>}
           </ReportActions>
           {residueCount > 0 && invalidPositions.length === 0 && (
             <button className="button button-secondary" type="button" onClick={sendToAlignment}>{t('editor.toAlignment')}</button>
           )}
         </div>
       </header>
+      <RemoteChange />
       <section className="subject-summary" aria-label={title}>
         <h2>{title}</h2>
         <p className="page-meta">{hasInput ? <><SaveState {...saveState} detail={saveState.kind === 'example' ? t('saveState.exampleDetail') : saveState.detail} />{meta && ` · ${meta}`}</> : t('editor.emptyText')}</p>
@@ -267,6 +273,7 @@ export function EditorPage(): React.JSX.Element {
         </div>
         <HydropathyProfile text={text} windowSize={profileWindow} onWindowChange={setProfileWindow} selected={selected} onSelect={setSelected} annotations={annotations}
           view={view === 'sequence' || view === 'profile' || (view === 'structure' && activeView) ? view : 'none'} panelId="analysis" />
+        {view === 'sequence' && invalidPositions.length === 0 && <MutationPreview sequence={validation.sequence} selected={selected} base={descriptors} onApply={setText} />}
         <div id="analysis-structure-panel" role="tabpanel" aria-labelledby="analysis-structure-tab" hidden={view !== 'structure'}>
             {view === 'structure' && (activeView ? <section aria-label={t('library.structureTitle')}>
               <h3>{t('library.structureTitle')}</h3>

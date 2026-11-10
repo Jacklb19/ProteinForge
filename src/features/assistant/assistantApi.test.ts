@@ -81,3 +81,17 @@ it('cancels a delayed reading immediately when its caller leaves', async () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
   } finally { vi.useRealTimers(); }
 });
+
+it.each([
+  [{ 'X-Assistant-Remaining': '4' }, 4],
+  [{ 'X-Assistant-Remaining': '0' }, 0],
+  [{ 'X-Assistant-Remaining': 'many' }, null],
+  [{}, null],
+] as const)('reads the remaining readings from the response header %j', async (headers, remaining) => {
+  const fetcher = vi.fn().mockResolvedValue(grpcWebResponse(InterpretResponseSchema, {
+    text: 'Estos son los resultados calculados.', model: 'openai/gpt-oss-120b', provider: 'groq', createTime: { seconds: 1_793_016_000n, nanos: 0 },
+  }, headers));
+  const reading = await createAssistantApi('https://api.example.com', fetcher).interpret('analysis', 'es', [{ label: 'Longitud', value: '110' }], 'test-token');
+  expect(reading.remaining).toBe(remaining);
+  expect(reading.text).toBe('Estos son los resultados calculados.');
+});

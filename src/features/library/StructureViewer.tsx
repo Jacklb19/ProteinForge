@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { PluginContext } from 'molstar/lib/mol-plugin/context';
 import { useTranslation } from '../../i18n';
 import { useThemeRevision } from '../../theme/useThemeRevision';
-import { CAMERA_ROTATION_RADIANS, CAMERA_ZOOM_FACTOR, MAX_STRUCTURE_BYTES, STRUCTURE_DOWNLOAD_URL, STRUCTURE_TIMEOUT_MS } from './config';
+import { CAMERA_ROTATION_RADIANS, CAMERA_ZOOM_FACTOR, MAX_STRUCTURE_BYTES, STRUCTURE_CHAIN_COLOR_TOKENS, STRUCTURE_DOWNLOAD_URL, STRUCTURE_TIMEOUT_MS } from './config';
 import type { CoordinateResidue } from './residueMapping';
 import type { indexStructureResidues } from './structureResidues';
 
@@ -86,7 +86,10 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
         const polymer = await instance.builders.structure.tryCreateComponentStatic(structure, 'polymer');
         if (!isCurrent()) return;
         if (!polymer) throw new Error('No polymer coordinates');
-        await instance.builders.structure.representation.addRepresentation(polymer, { type: 'cartoon', color: 'chain-id' });
+        // Read when the structure is drawn; a theme change repaints the background, not the chains.
+        const style = getComputedStyle(target);
+        const colors = STRUCTURE_CHAIN_COLOR_TOKENS.map(token => Color.fromHexStyle(style.getPropertyValue(token).trim()));
+        await instance.builders.structure.representation.addRepresentation(polymer, { type: 'cartoon', color: 'chain-id', colorParams: { palette: { name: 'colors', params: { list: { kind: 'set', colors } } } } });
         if (!isCurrent()) return;
         if (selectionEnabled && structure.obj) {
           let index: ReturnType<typeof indexStructureResidues> | null = null;

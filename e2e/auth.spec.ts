@@ -85,6 +85,8 @@ test('identity screens link to each other and the password toggle reveals the fi
   await page.goto(ROUTES.home);
   await page.getByRole('banner').getByRole('link', { name: spanish['shell.signIn'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signIn}$`));
+  // The address changes before the lazily loaded page replaces the home page, which has its own «Crear cuenta».
+  await expect(page.getByRole('heading', { level: 1, name: spanish['auth.signInTitle'] })).toBeVisible();
   await page.locator('#app-content').getByRole('link', { name: spanish['auth.signUpAction'], exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${ROUTES.signUp}$`));
   await page.getByRole('link', { name: spanish['auth.signInAction'], exact: true }).click();

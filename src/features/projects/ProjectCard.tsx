@@ -7,7 +7,7 @@ import type { ProjectSummary } from './contracts';
 import { PROJECT_MASS_DA_PER_KDA, PROJECT_PREVIEW_PRECISION, PROJECT_RELATIVE_INTERVALS, PROJECT_RELATIVE_NOW_SECONDS } from './config';
 
 export type ProjectDestination = 'analyze' | 'alignment' | 'laboratory' | 'generator';
-export type ProjectAction = 'rename' | 'duplicate' | 'delete';
+export type ProjectAction = 'rename' | 'duplicate' | 'share' | 'delete';
 /**
  * A save waiting for the connection: `note` replaces the date, `actions` the open buttons (`false` hides them),
  * `section` follows the footer (a conflict), and `pending` marks a project that exists only in this tab.
@@ -45,7 +45,7 @@ export function ProjectCard({ project, busy, active, dirty, showRuns = false, of
       if (event.key === 'Escape' && menu.current) { event.preventDefault(); menu.current.open = false; menu.current.querySelector('summary')?.focus(); }
     }}>
       <summary aria-label={t('projects.actionsNamed', { name: project.name })}><span aria-hidden="true">⋯</span></summary>
-      <div className="project-card-options">{(['rename', 'duplicate', 'delete'] as const).map(action => <button key={action} type="button" disabled={busy || offline} className={`button button-quiet${action === 'delete' ? ' link-danger' : ''}`} aria-label={t(`projects.${action}Named`, { name: project.name })} onClick={() => {
+      <div className="project-card-options">{(['rename', 'duplicate', 'share', 'delete'] as const).map(action => <button key={action} type="button" disabled={busy || offline} className={`button button-quiet${action === 'delete' ? ' link-danger' : ''}`} aria-label={t(`projects.${action}Named`, { name: project.name })} onClick={() => {
         if (menu.current) { menu.current.open = false; menu.current.querySelector('summary')?.focus(); } onAction(action);
       }}>{t(`projects.${action}`)}</button>)}</div>
     </details>}

@@ -12,6 +12,8 @@ interface Props {
   compact?: boolean;
   onToggle?: () => void;
   onClose?: () => void;
+  /** Opens the dialog that reaches any tool or project by name. */
+  onPalette?: () => void;
 }
 
 /** Signed-in identity: a plain link to the account page, which holds every setting and the session. */
@@ -29,7 +31,7 @@ function AccountLink({ compact, onNavigate }: { compact: boolean; onNavigate?: (
 }
 
 /** Laboratory navigation: grouped tools, help, the save status and the account; the laboratory needs a session. */
-export function SidebarContent({ variant, compact = false, onToggle, onClose }: Props): React.JSX.Element {
+export function SidebarContent({ variant, compact = false, onToggle, onClose, onPalette }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const label = (text: string): React.JSX.Element => <span className={compact ? 'sidebar-label is-tooltip' : 'sidebar-label'}>{text}</span>;
   const groups = NAVIGATION_GROUPS.map(group => ({ ...group, items: NAVIGATION_ITEMS.filter(item => item.group === group.id) }));
@@ -54,6 +56,7 @@ export function SidebarContent({ variant, compact = false, onToggle, onClose }: 
       </div>)}
     </nav>
     <div className="sidebar-foot">
+      {onPalette && <button className="sidebar-link" type="button" aria-haspopup="dialog" onClick={onPalette}><Icon name="search" />{label(t('palette.open'))}</button>}
       <NavLink className="sidebar-link" to={ROUTES.guide} onClick={onClose}><Icon name="help" />{label(t('nav.guide'))}</NavLink>
       <SyncStatus compact={compact} onNavigate={onClose} />
       <AccountLink compact={compact} onNavigate={onClose} />

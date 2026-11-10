@@ -32,7 +32,7 @@ export function ReadingSection({ subject, build, revision, api }: Props): React.
 
 /** Readings and pending imports belong to one owner; token refresh keeps that owner's view. */
 function SessionReading({ subject, build, revision, api }: Props): React.JSX.Element | null {
-  const { t, formatDate } = useTranslation();
+  const { t, formatDate, formatNumber } = useTranslation();
   const auth = useAuth();
   const [configuredUrl] = useState(readApiBaseUrl);
   const [loaded, setLoaded] = useState<AssistantApi | null>(null);
@@ -87,6 +87,7 @@ function SessionReading({ subject, build, revision, api }: Props): React.JSX.Ele
                 ))}
               </div>
               <p className="field-help">{t('assistant.provenance', { model: reading.model, provider: reading.provider, time: formatDate(new Date(reading.createdAt), { dateStyle: 'medium', timeStyle: 'short' }) })}</p>
+              {typeof reading.remaining === 'number' && <p className="field-help">{reading.remaining === 0 ? t('assistant.remainingNone') : t(reading.remaining === 1 ? 'assistant.remainingOne' : 'assistant.remainingMany', { count: formatNumber(reading.remaining) })}</p>}
             </>}
             {!reading && !busy && !error && <p className="field-help">{t('assistant.scope')}</p>}
           </>}

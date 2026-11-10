@@ -3,6 +3,11 @@ export const DESCRIPTOR_REPORT_FILENAME = 'proteinforge-properties.csv';
 export const CSV_SEPARATOR = ',';
 export const CSV_LINE_ENDING = '\r\n';
 export const CSV_MIME_TYPE = 'text/csv;charset=utf-8';
+/** FASTA as other tools read it: one header line, then the sequence in fixed-width lines. */
+export const FASTA_FILENAME = 'proteinforge-sequence.fasta';
+export const FASTA_MIME_TYPE = 'text/x-fasta;charset=utf-8';
+export const FASTA_LINE_WIDTH = 60;
+export const FASTA_HEADER_MAX_LENGTH = 200;
 export const REPORT_SCHEMA_VERSION = 1;
 export const REPORT_TIMEOUT_MS = 20_000;
 export const REPORT_FILENAMES = { pdf: 'proteinforge-report.pdf', json: 'proteinforge-report.json', profile: 'proteinforge-profile.csv', alignment: 'proteinforge-alignment.csv' } as const;

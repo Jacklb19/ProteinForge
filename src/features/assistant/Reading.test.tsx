@@ -144,3 +144,22 @@ it('keeps the newest reading when an aborted provider request resolves late', as
   await act(async () => { finishFirst(READING); await first; });
   expect(result.current.reading?.text).toBe('Newest reading.');
 });
+
+it.each([
+  [3, 'Te quedan 3 lecturas en este minuto.'],
+  [1, 'Te queda 1 lectura en este minuto.'],
+  [0, 'No te quedan lecturas en este minuto. Espera un momento antes de pedir otra.'],
+])('says how many readings are left when the API reports %i', async (remaining, text) => {
+  const { client } = api(() => Promise.resolve({ ...READING, remaining }));
+  mount(client, () => FACTS);
+  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.ask'] }));
+  expect(await screen.findByText(text)).toBeVisible();
+});
+
+it('says nothing about a budget the API does not report', async () => {
+  const { client } = api();
+  mount(client, () => FACTS);
+  fireEvent.click(screen.getByRole('button', { name: spanish['assistant.ask'] }));
+  await screen.findByText('Primera frase de entrada.');
+  expect(screen.queryByText(/en este minuto/)).not.toBeInTheDocument();
+});

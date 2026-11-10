@@ -32,6 +32,7 @@ const TermsPage = lazy(async () => ({ default: (await import('./features/legal/T
 const SignInPage = lazy(async () => ({ default: (await import('./features/auth/SignInPage')).SignInPage }));
 const SignUpPage = lazy(async () => ({ default: (await import('./features/auth/SignUpPage')).SignUpPage }));
 const RecoverPage = lazy(async () => ({ default: (await import('./features/auth/RecoverPage')).RecoverPage }));
+const SharedPage = lazy(async () => ({ default: (await import('./features/projects/SharedPage')).SharedPage }));
 const ConfirmEmailPage = lazy(async () => ({ default: (await import('./features/auth/ConfirmEmailPage')).ConfirmEmailPage }));
 
 /**
@@ -75,6 +76,7 @@ function ApplicationRoutes(): React.JSX.Element {
         <Route path={ROUTES.confirm} element={<ConfirmEmailPage />} />
         <Route path={ROUTES.privacy} element={<PrivacyPage />} />
         <Route path={ROUTES.terms} element={<TermsPage />} />
+        <Route path={ROUTES.shared} element={<SharedPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
       <Route element={<SessionFrame />}>

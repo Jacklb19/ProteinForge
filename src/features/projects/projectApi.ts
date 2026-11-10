@@ -5,9 +5,11 @@ import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { timestampFromIso } from '../api/timestamps';
 import { DEFAULT_PROJECT_QUERY, PROJECT_PAGE_SIZE } from './config';
 import type { ProjectQuery } from './config';
-import { projectListSchema, projectSchema } from './contracts';
-import type { Project, ProjectWrite } from './contracts';
-import { projectDocument, summaryDocument, workspaceMessage } from './rpcMapping';
+import { projectListSchema, projectSchema, projectVersionListSchema } from './contracts';
+import type { Project, ProjectVersion, ProjectWrite } from './contracts';
+import { projectDocument, summaryDocument, versionDocument, workspaceMessage } from './rpcMapping';
+import { createdShareSchema, projectShareSchema, shareDocument } from './sharing';
+import type { CreatedShare, ProjectShare } from './sharing';
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -44,6 +46,32 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
     remove: async (id: string, updatedAt: string, token: string, signal?: AbortSignal): Promise<void> => {
       await rpc(() => client.deleteProject({ id, expectedUpdateTime: timestampFromIso(updatedAt) }, callOptions(signal, session(token))));
     },
+    /** Earlier contents, newest first; compact previews only. */
+    versions: async (id: string, token: string, signal?: AbortSignal): Promise<ProjectVersion[]> => {
+      const response = await rpc(() => client.listProjectVersions({ projectId: id }, callOptions(signal, session(token))));
+      return validated(projectVersionListSchema, response.versions.map(versionDocument));
+    },
+    /** Puts a version back; what is stored now becomes a version. Guarded by the project's update time. */
+    restore: async (id: string, versionId: string, updatedAt: string, token: string, signal?: AbortSignal): Promise<Project> => {
+      const { project } = await rpc(() => client.restoreProjectVersion({ projectId: id, versionId, expectedUpdateTime: timestampFromIso(updatedAt) }, callOptions(signal, session(token))));
+      return validated(projectSchema, projectDocument(project));
+    },
+    /** Starts or replaces the read-only link; the token is in this answer only. */
+    createShare: async (id: string, token: string, signal?: AbortSignal): Promise<CreatedShare> => {
+      const response = await rpc(() => client.createProjectShare({ projectId: id }, callOptions(signal, session(token))));
+      return validated(createdShareSchema, { token: response.token, share: shareDocument(response.share) });
+    },
+    /** The current link's dates, never its token; null when there is none. */
+    share: async (id: string, token: string, signal?: AbortSignal): Promise<ProjectShare | null> => {
+      const response = await rpc(() => client.getProjectShare({ projectId: id }, callOptions(signal, session(token))));
+      return response.share ? validated(projectShareSchema, shareDocument(response.share)) : null;
+    },
+    removeShare: async (id: string, token: string, signal?: AbortSignal): Promise<void> => {
+      await rpc(() => client.deleteProjectShare({ projectId: id }, callOptions(signal, session(token))));
+    },
   };
 }
-export type ProjectApi = ReturnType<typeof createProjectApi>;
+type FullProjectApi = ReturnType<typeof createProjectApi>;
+/** Versions are optional for callers: a stand-in without them answers that versions are unavailable. */
+type Optional = 'versions' | 'restore' | 'createShare' | 'share' | 'removeShare';
+export type ProjectApi = Omit<FullProjectApi, Optional> & Partial<Pick<FullProjectApi, Optional>>;
