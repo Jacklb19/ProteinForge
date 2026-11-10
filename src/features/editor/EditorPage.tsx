@@ -163,10 +163,10 @@ export function EditorPage(): React.JSX.Element {
           <p className="page-meta">{t('workbench.analyzeIntro')}</p>
         </div>
         <div className="toolbar">
-          <button className={`button ${sequencePanelOpen ? 'button-secondary' : 'button-primary'}`} type="button" aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
+          <button className={`button ${hasInput ? 'button-secondary' : 'button-primary'}`} type="button" aria-expanded={sequencePanelOpen} aria-controls={SEQUENCE_PANEL_ID} onClick={() => { toggle('sequence'); }}>
             {t('editor.inputTitle')}
           </button>
-          {hasInput && <button className="button button-secondary" type="button" aria-expanded={panel === 'project'} aria-controls={PROJECT_PANEL_ID} onClick={() => { toggle('project'); }}>{t('projects.save')}</button>}
+          {hasInput && <button className={`button ${panel === 'project' ? 'button-secondary' : 'button-primary'}`} type="button" aria-expanded={panel === 'project'} aria-controls={PROJECT_PANEL_ID} onClick={() => { toggle('project'); }}>{t('projects.save')}</button>}
           <ReportActions>
             {hasInput && <button className="button" type="button" disabled={descriptors.status !== 'current'} onClick={() => {
               if (descriptors.status !== 'current' || !descriptors.result) return;

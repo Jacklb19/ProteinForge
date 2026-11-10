@@ -196,6 +196,7 @@
   --ratio-public-main: 1.3fr;
 
   --height-editor: 11rem;
+  --height-editor-min: 4.5rem;
   --height-alignment-input: 5.5rem;
   --height-fasta-list: 16.5rem;
   --height-fasta-row-default: 44px;
@@ -210,6 +211,7 @@
   --height-lab-figure: 21rem;
   --height-lab-reader: 21rem;
   --width-lab-inspector: 21rem;
+  --width-lab-figure-value: 7.5rem;
   --lab-sequence-columns: 10;
   --height-stage-hero: 28.75rem;
   --height-stage-rail: 15rem;

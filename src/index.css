@@ -363,6 +363,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 }
 .editor-highlight { position: absolute; inset: var(--space-none); z-index: var(--layer-base); border-color: var(--transparent); background: var(--bg-raised); color: var(--text-primary); pointer-events: none; scrollbar-width: none; }
 .editor-layer textarea { position: relative; z-index: var(--layer-overlay); height: var(--height-editor); color: var(--transparent); caret-color: var(--text-primary); background: var(--transparent); }
+/* The entry is as tall as its sequence, within bounds, so the results stay close; browsers without field-sizing keep the fixed height. */
+@supports (field-sizing: content) {
+  .editor-layer textarea { field-sizing: content; height: auto; min-height: var(--height-editor-min); max-height: var(--height-editor); }
+  .sequence-pair .editor-layer textarea { min-height: var(--height-editor-min); max-height: var(--height-alignment-input); }
+}
 .editor-layer textarea::selection { background: var(--bg-selected); }
 .editor-layer textarea::placeholder { color: var(--text-secondary); font-family: var(--font-ui); }
 .invalid-residue { color: var(--status-error); background: var(--status-error-subtle); font-weight: var(--font-weight-regular); text-decoration: underline; text-decoration-thickness: var(--border-width-indicator); text-underline-offset: var(--decoration-offset); }
@@ -654,8 +659,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
   .page { padding: var(--space-none) var(--space-md) var(--space-2xl); }
   .container { padding-inline: var(--space-md); }
   .page-head { display: grid; padding-block: var(--space-md); }
-  .toolbar > *, .toolbar-menu summary { flex: 1 1 0; min-width: var(--space-none); }
-  .toolbar .button { width: var(--width-full); padding-inline: var(--space-2xs); font-size: var(--font-size-small); }
+  /* Two columns keep every label on one line; an odd last action takes the whole row. */
+  .toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar > *, .toolbar-menu summary { min-width: var(--space-none); }
+  .toolbar > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .toolbar .button { width: var(--width-full); padding-inline: var(--space-xs); font-size: var(--font-size-small); }
   .toolbar .label-long { display: none; }
   .toolbar-popover { inset-inline: auto var(--space-none); }
   .section { padding-block: var(--space-lg); }
@@ -715,9 +723,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .lab-inspector .section-header { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: var(--space-xs); }
 .lab-inspector .section-header h2 { font-size: var(--font-size-section); }
 .lab-inspector .section-header .button { font-size: var(--font-size-small); }
-.lab-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); padding-block: var(--space-lg) var(--space-md); }
-.lab-metrics strong { display: block; font-size: var(--font-size-stat); font-weight: var(--font-weight-regular); }
-.lab-metrics span { display: block; color: var(--text-secondary); font-size: var(--font-size-note); }
+/* One figure per row, its label beside it: the label keeps a readable measure in the narrow inspector. */
+.lab-metrics { display: grid; gap: var(--space-sm); padding-block: var(--space-lg) var(--space-md); }
+.lab-metrics > div { display: grid; grid-template-columns: minmax(var(--width-lab-figure-value), auto) minmax(0, 1fr); align-items: baseline; gap: var(--space-md); }
+.lab-metrics strong { display: block; font-size: var(--font-size-stat); font-weight: var(--font-weight-regular); white-space: nowrap; }
+.lab-metrics span { display: block; color: var(--text-secondary); font-size: var(--font-size-note); text-wrap: pretty; }
 .lab-residue-inspector { display: grid; gap: var(--space-sm); margin-block-start: var(--space-lg); padding-block-start: var(--space-md); border-block-start: var(--border-width) solid var(--border-subtle); }
 .lab-residue-inspector > .button { justify-self: start; }
 .lab-residue-readout { display: flex; align-items: center; gap: var(--space-md); }
