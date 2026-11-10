@@ -458,6 +458,15 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 
 /* Alignment ------------------------------------------------------------ */
 .alignment-page { display: grid; }
+/* Several sequences: numbered rows in blocks that fit the screen, with the names listed once above. */
+.multiple-alignment { display: grid; gap: var(--space-md); margin-block-start: var(--space-xl); }
+.multiple-alignment[open] > summary { margin-block-end: var(--space-sm); }
+.multiple-alignment textarea { height: var(--height-editor); }
+.multiple-result { display: grid; gap: var(--space-md); }
+.multiple-result.is-stale { color: var(--text-secondary); }
+.multiple-rows { display: grid; gap: var(--space-md); }
+.multiple-names { margin: var(--space-none); padding-inline-start: var(--space-lg); font-size: var(--font-size-small); overflow-wrap: anywhere; }
+.multiple-block { margin: var(--space-none); font-family: var(--font-sequence); font-size: var(--font-size-small); line-height: var(--line-height-base); white-space: pre; overflow: hidden; }
 .alignment-inputs { display: grid; gap: var(--space-md); }
 .sequence-pair { display: grid; gap: var(--space-md); }
 .sequence-pair textarea { min-height: var(--height-alignment-input); }

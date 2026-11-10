@@ -23,6 +23,7 @@ import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
 import { SaveState } from '../projects/SaveState';
 import { RemoteChange } from '../projects/RemoteChange';
+import { MultipleAlignment } from './MultipleAlignment';
 import { useDraftSaveState } from '../projects/draftSaveState';
 
 const PROJECT_PANEL_ID = 'project-panel';
@@ -207,6 +208,7 @@ export function AlignmentPage(): React.JSX.Element {
           </section>
         </div>
       )}
+      <MultipleAlignment initial={[{ name: firstName, sequence: a.invalidPositions.length ? '' : a.sequence }, { name: secondName, sequence: b.invalidPositions.length ? '' : b.sequence }]} matrix={matrix} />
     </main>
   );
 }
