@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proteinforge/project/v1/project_service.proto.
  */
 export const file_proteinforge_project_v1_project_service: GenFile = /*@__PURE__*/
-  fileDesc("Ci1wcm90ZWluZm9yZ2UvcHJvamVjdC92MS9wcm9qZWN0X3NlcnZpY2UucHJvdG8SF3Byb3RlaW5mb3JnZS5wcm9qZWN0LnYxIv4BCg5Qcm9qZWN0U3VtbWFyeRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjYKBnN0YXR1cxgDIAEoDjImLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTdGF0dXMSLwoLY3JlYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3VwZGF0ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI4CgdwcmV2aWV3GAYgASgLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFByZXZpZXci5QIKDlByb2plY3RQcmV2aWV3EhcKD3NlcXVlbmNlX2xlbmd0aBgBIAEoBRIXCg9zZXF1ZW5jZV9wcmVmaXgYAiABKAkSPgoLZGVzY3JpcHRvcnMYAyABKAsyKS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZXNjcmlwdG9yUmVzdWx0EkMKCWFsaWdubWVudBgEIAEoCzIwLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RBbGlnbm1lbnRQcmV2aWV3Ej0KBnNvdXJjZRgFIAEoCzItLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTb3VyY2VQcmV2aWV3EhAKCGV4Y2x1ZGVkGAYgASgFEhYKDmhhc19sYWJvcmF0b3J5GAcgASgIEhsKE2xhYm9yYXRvcnlfdmFyaWFudHMYCCABKAUSFgoOZ2VuZXJhdG9yX3J1bnMYCSABKAUiqAIKF1Byb2plY3RBbGlnbm1lbnRQcmV2aWV3EhQKDGZpcnN0X2xlbmd0aBgBIAEoBRIVCg1zZWNvbmRfbGVuZ3RoGAIgASgFEhQKDGZpcnN0X3ByZWZpeBgDIAEoCRIVCg1zZWNvbmRfcHJlZml4GAQgASgJEjsKBm1hdHJpeBgFIAEoDjIrLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlN1YnN0aXR1dGlvbk1hdHJpeBI0CgRtb2RlGAYgASgOMiYucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQWxpZ25tZW50TW9kZRJACgZyZXN1bHQYByABKAsyMC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0QWxpZ25tZW50TWV0cmljcyJUChdQcm9qZWN0QWxpZ25tZW50TWV0cmljcxISCgppZGVudGl0aWVzGAEgASgFEhQKDHNpbWlsYXJpdGllcxgCIAEoBRIPCgdjb2x1bW5zGAMgASgFImAKFFByb2plY3RTb3VyY2VQcmV2aWV3EjUKBm9yaWdpbhgBIAEoDjIlLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlNvdXJjZU9yaWdpbhIRCglhY2Nlc3Npb24YAiABKAkikwEKB1Byb2plY3QSOAoHc3VtbWFyeRgBIAEoCzInLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTdW1tYXJ5EhcKD2FjdGl2ZV9zZXF1ZW5jZRgCIAEoCRI1Cgl3b3Jrc3BhY2UYAyABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2UigQEKE0xpc3RQcm9qZWN0c1JlcXVlc3QSEQoJcGFnZV9zaXplGAEgASgFEhIKCnBhZ2VfdG9rZW4YAiABKAkSDQoFcXVlcnkYAyABKAkSNAoFb3JkZXIYBCABKA4yJS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0T3JkZXIigQEKFExpc3RQcm9qZWN0c1Jlc3BvbnNlEjkKCHByb2plY3RzGAEgAygLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFN1bW1hcnkSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJEhUKDXF1ZXJ5X2FwcGxpZWQYAyABKAgiHwoRR2V0UHJvamVjdFJlcXVlc3QSCgoCaWQYASABKAkiRwoSR2V0UHJvamVjdFJlc3BvbnNlEjEKB3Byb2plY3QYASABKAsyIC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0IogBChRDcmVhdGVQcm9qZWN0UmVxdWVzdBIMCgRuYW1lGAEgASgJEhcKD2FjdGl2ZV9zZXF1ZW5jZRgCIAEoCRI1Cgl3b3Jrc3BhY2UYAyABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2USEgoKcmVxdWVzdF9pZBgEIAEoCSJKChVDcmVhdGVQcm9qZWN0UmVzcG9uc2USMQoHcHJvamVjdBgBIAEoCzIgLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3QiugEKFFVwZGF0ZVByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJEjgKFGV4cGVjdGVkX3VwZGF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIMCgRuYW1lGAMgASgJEhcKD2FjdGl2ZV9zZXF1ZW5jZRgEIAEoCRI1Cgl3b3Jrc3BhY2UYBSABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2UiSgoVVXBkYXRlUHJvamVjdFJlc3BvbnNlEjEKB3Byb2plY3QYASABKAsyIC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0IlwKFERlbGV0ZVByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJEjgKFGV4cGVjdGVkX3VwZGF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIXChVEZWxldGVQcm9qZWN0UmVzcG9uc2UqSQoNUHJvamVjdFN0YXR1cxIeChpQUk9KRUNUX1NUQVRVU19VTlNQRUNJRklFRBAAEhgKFFBST0pFQ1RfU1RBVFVTX0RSQUZUEAEqXwoMUHJvamVjdE9yZGVyEh0KGVBST0pFQ1RfT1JERVJfVU5TUEVDSUZJRUQQABIYChRQUk9KRUNUX09SREVSX1JFQ0VOVBABEhYKElBST0pFQ1RfT1JERVJfTkFNRRACMr4ECg5Qcm9qZWN0U2VydmljZRJwCgxMaXN0UHJvamVjdHMSLC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5MaXN0UHJvamVjdHNSZXF1ZXN0Gi0ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuTGlzdFByb2plY3RzUmVzcG9uc2UiA5ACARJqCgpHZXRQcm9qZWN0EioucHJvdGVpbmZvcmdlLnByb2plY3QudjEuR2V0UHJvamVjdFJlcXVlc3QaKy5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5HZXRQcm9qZWN0UmVzcG9uc2UiA5ACARJuCg1DcmVhdGVQcm9qZWN0Ei0ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQ3JlYXRlUHJvamVjdFJlcXVlc3QaLi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5DcmVhdGVQcm9qZWN0UmVzcG9uc2USbgoNVXBkYXRlUHJvamVjdBItLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlVwZGF0ZVByb2plY3RSZXF1ZXN0Gi4ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuVXBkYXRlUHJvamVjdFJlc3BvbnNlEm4KDURlbGV0ZVByb2plY3QSLS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZWxldGVQcm9qZWN0UmVxdWVzdBouLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkRlbGV0ZVByb2plY3RSZXNwb25zZWIGcHJvdG8z", [file_google_protobuf_timestamp, file_proteinforge_project_v1_workspace]);
+  fileDesc("Ci1wcm90ZWluZm9yZ2UvcHJvamVjdC92MS9wcm9qZWN0X3NlcnZpY2UucHJvdG8SF3Byb3RlaW5mb3JnZS5wcm9qZWN0LnYxIv4BCg5Qcm9qZWN0U3VtbWFyeRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjYKBnN0YXR1cxgDIAEoDjImLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTdGF0dXMSLwoLY3JlYXRlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3VwZGF0ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI4CgdwcmV2aWV3GAYgASgLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFByZXZpZXci5QIKDlByb2plY3RQcmV2aWV3EhcKD3NlcXVlbmNlX2xlbmd0aBgBIAEoBRIXCg9zZXF1ZW5jZV9wcmVmaXgYAiABKAkSPgoLZGVzY3JpcHRvcnMYAyABKAsyKS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5EZXNjcmlwdG9yUmVzdWx0EkMKCWFsaWdubWVudBgEIAEoCzIwLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RBbGlnbm1lbnRQcmV2aWV3Ej0KBnNvdXJjZRgFIAEoCzItLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTb3VyY2VQcmV2aWV3EhAKCGV4Y2x1ZGVkGAYgASgFEhYKDmhhc19sYWJvcmF0b3J5GAcgASgIEhsKE2xhYm9yYXRvcnlfdmFyaWFudHMYCCABKAUSFgoOZ2VuZXJhdG9yX3J1bnMYCSABKAUiqAIKF1Byb2plY3RBbGlnbm1lbnRQcmV2aWV3EhQKDGZpcnN0X2xlbmd0aBgBIAEoBRIVCg1zZWNvbmRfbGVuZ3RoGAIgASgFEhQKDGZpcnN0X3ByZWZpeBgDIAEoCRIVCg1zZWNvbmRfcHJlZml4GAQgASgJEjsKBm1hdHJpeBgFIAEoDjIrLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlN1YnN0aXR1dGlvbk1hdHJpeBI0CgRtb2RlGAYgASgOMiYucHJvdGVpbmZvcmdlLnByb2plY3QudjEuQWxpZ25tZW50TW9kZRJACgZyZXN1bHQYByABKAsyMC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0QWxpZ25tZW50TWV0cmljcyJUChdQcm9qZWN0QWxpZ25tZW50TWV0cmljcxISCgppZGVudGl0aWVzGAEgASgFEhQKDHNpbWlsYXJpdGllcxgCIAEoBRIPCgdjb2x1bW5zGAMgASgFImAKFFByb2plY3RTb3VyY2VQcmV2aWV3EjUKBm9yaWdpbhgBIAEoDjIlLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlNvdXJjZU9yaWdpbhIRCglhY2Nlc3Npb24YAiABKAkikwEKB1Byb2plY3QSOAoHc3VtbWFyeRgBIAEoCzInLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RTdW1tYXJ5EhcKD2FjdGl2ZV9zZXF1ZW5jZRgCIAEoCRI1Cgl3b3Jrc3BhY2UYAyABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2UigQEKE0xpc3RQcm9qZWN0c1JlcXVlc3QSEQoJcGFnZV9zaXplGAEgASgFEhIKCnBhZ2VfdG9rZW4YAiABKAkSDQoFcXVlcnkYAyABKAkSNAoFb3JkZXIYBCABKA4yJS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0T3JkZXIigQEKFExpc3RQcm9qZWN0c1Jlc3BvbnNlEjkKCHByb2plY3RzGAEgAygLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFN1bW1hcnkSFwoPbmV4dF9wYWdlX3Rva2VuGAIgASgJEhUKDXF1ZXJ5X2FwcGxpZWQYAyABKAgiHwoRR2V0UHJvamVjdFJlcXVlc3QSCgoCaWQYASABKAkiRwoSR2V0UHJvamVjdFJlc3BvbnNlEjEKB3Byb2plY3QYASABKAsyIC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0IogBChRDcmVhdGVQcm9qZWN0UmVxdWVzdBIMCgRuYW1lGAEgASgJEhcKD2FjdGl2ZV9zZXF1ZW5jZRgCIAEoCRI1Cgl3b3Jrc3BhY2UYAyABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2USEgoKcmVxdWVzdF9pZBgEIAEoCSJKChVDcmVhdGVQcm9qZWN0UmVzcG9uc2USMQoHcHJvamVjdBgBIAEoCzIgLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3QiugEKFFVwZGF0ZVByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJEjgKFGV4cGVjdGVkX3VwZGF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIMCgRuYW1lGAMgASgJEhcKD2FjdGl2ZV9zZXF1ZW5jZRgEIAEoCRI1Cgl3b3Jrc3BhY2UYBSABKAsyIi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Xb3Jrc3BhY2UiSgoVVXBkYXRlUHJvamVjdFJlc3BvbnNlEjEKB3Byb2plY3QYASABKAsyIC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5Qcm9qZWN0IlwKFERlbGV0ZVByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJEjgKFGV4cGVjdGVkX3VwZGF0ZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIXChVEZWxldGVQcm9qZWN0UmVzcG9uc2UihQEKDlByb2plY3RWZXJzaW9uEgoKAmlkGAEgASgJEi0KCXNhdmVfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASOAoHcHJldmlldxgDIAEoCzInLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlByb2plY3RQcmV2aWV3IjAKGkxpc3RQcm9qZWN0VmVyc2lvbnNSZXF1ZXN0EhIKCnByb2plY3RfaWQYASABKAkiWAobTGlzdFByb2plY3RWZXJzaW9uc1Jlc3BvbnNlEjkKCHZlcnNpb25zGAEgAygLMicucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdFZlcnNpb24igAEKHFJlc3RvcmVQcm9qZWN0VmVyc2lvblJlcXVlc3QSEgoKcHJvamVjdF9pZBgBIAEoCRISCgp2ZXJzaW9uX2lkGAIgASgJEjgKFGV4cGVjdGVkX3VwZGF0ZV90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJSCh1SZXN0b3JlUHJvamVjdFZlcnNpb25SZXNwb25zZRIxCgdwcm9qZWN0GAEgASgLMiAucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUHJvamVjdCpJCg1Qcm9qZWN0U3RhdHVzEh4KGlBST0pFQ1RfU1RBVFVTX1VOU1BFQ0lGSUVEEAASGAoUUFJPSkVDVF9TVEFUVVNfRFJBRlQQASpfCgxQcm9qZWN0T3JkZXISHQoZUFJPSkVDVF9PUkRFUl9VTlNQRUNJRklFRBAAEhgKFFBST0pFQ1RfT1JERVJfUkVDRU5UEAESFgoSUFJPSkVDVF9PUkRFUl9OQU1FEAIyzwYKDlByb2plY3RTZXJ2aWNlEnAKDExpc3RQcm9qZWN0cxIsLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkxpc3RQcm9qZWN0c1JlcXVlc3QaLS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5MaXN0UHJvamVjdHNSZXNwb25zZSIDkAIBEmoKCkdldFByb2plY3QSKi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5HZXRQcm9qZWN0UmVxdWVzdBorLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkdldFByb2plY3RSZXNwb25zZSIDkAIBEm4KDUNyZWF0ZVByb2plY3QSLS5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5DcmVhdGVQcm9qZWN0UmVxdWVzdBouLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkNyZWF0ZVByb2plY3RSZXNwb25zZRJuCg1VcGRhdGVQcm9qZWN0Ei0ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuVXBkYXRlUHJvamVjdFJlcXVlc3QaLi5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5VcGRhdGVQcm9qZWN0UmVzcG9uc2USbgoNRGVsZXRlUHJvamVjdBItLnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLkRlbGV0ZVByb2plY3RSZXF1ZXN0Gi4ucHJvdGVpbmZvcmdlLnByb2plY3QudjEuRGVsZXRlUHJvamVjdFJlc3BvbnNlEoUBChNMaXN0UHJvamVjdFZlcnNpb25zEjMucHJvdGVpbmZvcmdlLnByb2plY3QudjEuTGlzdFByb2plY3RWZXJzaW9uc1JlcXVlc3QaNC5wcm90ZWluZm9yZ2UucHJvamVjdC52MS5MaXN0UHJvamVjdFZlcnNpb25zUmVzcG9uc2UiA5ACARKGAQoVUmVzdG9yZVByb2plY3RWZXJzaW9uEjUucHJvdGVpbmZvcmdlLnByb2plY3QudjEuUmVzdG9yZVByb2plY3RWZXJzaW9uUmVxdWVzdBo2LnByb3RlaW5mb3JnZS5wcm9qZWN0LnYxLlJlc3RvcmVQcm9qZWN0VmVyc2lvblJlc3BvbnNlYgZwcm90bzM", [file_google_protobuf_timestamp, file_proteinforge_project_v1_workspace]);
 
 /**
  * @generated from message proteinforge.project.v1.ProjectSummary
@@ -513,6 +513,119 @@ export const DeleteProjectResponseSchema: GenMessage<DeleteProjectResponse> = /*
   messageDesc(file_proteinforge_project_v1_project_service, 15);
 
 /**
+ * @generated from message proteinforge.project.v1.ProjectVersion
+ */
+export type ProjectVersion = Message<"proteinforge.project.v1.ProjectVersion"> & {
+  /**
+   * UUID.
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * When this content was saved.
+   *
+   * @generated from field: google.protobuf.Timestamp save_time = 2;
+   */
+  saveTime?: Timestamp | undefined;
+
+  /**
+   * @generated from field: proteinforge.project.v1.ProjectPreview preview = 3;
+   */
+  preview?: ProjectPreview | undefined;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.ProjectVersion.
+ * Use `create(ProjectVersionSchema)` to create a new message.
+ */
+export const ProjectVersionSchema: GenMessage<ProjectVersion> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 16);
+
+/**
+ * @generated from message proteinforge.project.v1.ListProjectVersionsRequest
+ */
+export type ListProjectVersionsRequest = Message<"proteinforge.project.v1.ListProjectVersionsRequest"> & {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId: string;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.ListProjectVersionsRequest.
+ * Use `create(ListProjectVersionsRequestSchema)` to create a new message.
+ */
+export const ListProjectVersionsRequestSchema: GenMessage<ListProjectVersionsRequest> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 17);
+
+/**
+ * @generated from message proteinforge.project.v1.ListProjectVersionsResponse
+ */
+export type ListProjectVersionsResponse = Message<"proteinforge.project.v1.ListProjectVersionsResponse"> & {
+  /**
+   * At most five, newest first.
+   *
+   * @generated from field: repeated proteinforge.project.v1.ProjectVersion versions = 1;
+   */
+  versions: ProjectVersion[];
+};
+
+/**
+ * Describes the message proteinforge.project.v1.ListProjectVersionsResponse.
+ * Use `create(ListProjectVersionsResponseSchema)` to create a new message.
+ */
+export const ListProjectVersionsResponseSchema: GenMessage<ListProjectVersionsResponse> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 18);
+
+/**
+ * @generated from message proteinforge.project.v1.RestoreProjectVersionRequest
+ */
+export type RestoreProjectVersionRequest = Message<"proteinforge.project.v1.RestoreProjectVersionRequest"> & {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId: string;
+
+  /**
+   * @generated from field: string version_id = 2;
+   */
+  versionId: string;
+
+  /**
+   * The update_time the client last read; ABORTED when it no longer matches.
+   *
+   * @generated from field: google.protobuf.Timestamp expected_update_time = 3;
+   */
+  expectedUpdateTime?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.RestoreProjectVersionRequest.
+ * Use `create(RestoreProjectVersionRequestSchema)` to create a new message.
+ */
+export const RestoreProjectVersionRequestSchema: GenMessage<RestoreProjectVersionRequest> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 19);
+
+/**
+ * @generated from message proteinforge.project.v1.RestoreProjectVersionResponse
+ */
+export type RestoreProjectVersionResponse = Message<"proteinforge.project.v1.RestoreProjectVersionResponse"> & {
+  /**
+   * @generated from field: proteinforge.project.v1.Project project = 1;
+   */
+  project?: Project | undefined;
+};
+
+/**
+ * Describes the message proteinforge.project.v1.RestoreProjectVersionResponse.
+ * Use `create(RestoreProjectVersionResponseSchema)` to create a new message.
+ */
+export const RestoreProjectVersionResponseSchema: GenMessage<RestoreProjectVersionResponse> = /*@__PURE__*/
+  messageDesc(file_proteinforge_project_v1_project_service, 20);
+
+/**
  * @generated from enum proteinforge.project.v1.ProjectStatus
  */
 export enum ProjectStatus {
@@ -630,6 +743,28 @@ export const ProjectService: GenService<{
     methodKind: "unary";
     input: typeof DeleteProjectRequestSchema;
     output: typeof DeleteProjectResponseSchema;
+  },
+  /**
+   * Earlier contents of a project, newest first, as compact previews. Every update that changes
+   * the sequence or the workspace keeps the content it replaces; a rename alone keeps none.
+   *
+   * @generated from rpc proteinforge.project.v1.ProjectService.ListProjectVersions
+   */
+  listProjectVersions: {
+    methodKind: "unary";
+    input: typeof ListProjectVersionsRequestSchema;
+    output: typeof ListProjectVersionsResponseSchema;
+  },
+  /**
+   * Puts a version back as the content, keeping the name; the current content becomes a version
+   * first, so a restore can be undone. NOT_FOUND names "project-version-not-found".
+   *
+   * @generated from rpc proteinforge.project.v1.ProjectService.RestoreProjectVersion
+   */
+  restoreProjectVersion: {
+    methodKind: "unary";
+    input: typeof RestoreProjectVersionRequestSchema;
+    output: typeof RestoreProjectVersionResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_proteinforge_project_v1_project_service, 0);
