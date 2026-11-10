@@ -186,6 +186,9 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .status-message[data-state='error'],
 .status-message[data-state='invalid'] { color: var(--status-error); font-weight: var(--font-weight-strong); }
 .status-message[data-state='success'] { color: var(--status-success); font-weight: var(--font-weight-strong); }
+/* A notice with one action: the text takes the room and the action stays beside it, or under it on phones. */
+.remote-change { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); margin-block: var(--space-md); }
+.remote-change p { flex: 1 1 var(--width-form); max-width: var(--width-copy); }
 .notice { padding: var(--space-xs) var(--space-sm); border-inline-start: var(--border-width-indicator) solid var(--text-primary); background: var(--bg-subtle); font-size: var(--font-size-small); }
 
 .disclosure { border-block-start: var(--border-width) solid var(--border-subtle); }

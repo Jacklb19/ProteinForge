@@ -20,6 +20,8 @@ function Probe(): React.JSX.Element {
     <output data-testid="names">{projects.items.map(item => item.name).join('|')}</output>
     <output data-testid="busy">{String(projects.busy)}</output>
     <output data-testid="notice">{projects.notice ?? ''}</output>
+    <output data-testid="remote">{projects.remoteChange ?? ''}</output>
+    <button onClick={() => { void projects.open(project.id); }}>open</button>
     <button onClick={() => { void projects.save('Study'); }}>save</button>
   </>;
 }
@@ -85,6 +87,26 @@ describe('live project list', () => {
     await waitFor(() => { expect(screen.getByTestId('notice')).toHaveTextContent('saved'); expect(screen.getByTestId('busy')).toHaveTextContent('false'); });
     // The save lists once itself; its own echo adds no further request.
     expect(api.list).toHaveBeenCalledTimes(2);
+  });
+
+  it('says when the open project was saved or deleted elsewhere, until this tab holds that version', async () => {
+    const api = service();
+    const { notify } = setup(api);
+    await listed();
+    fireEvent.click(screen.getByRole('button', { name: 'open' }));
+    await waitFor(() => { expect(screen.getByTestId('notice')).toHaveTextContent('opened'); });
+    // Its own version, in PostgreSQL's notation: nothing to say.
+    notify({ changed: [{ id: project.id, updatedAt: '2026-11-02T08:00:00.123456+00:00' }], removed: [] });
+    expect(screen.getByTestId('remote')).toHaveTextContent('');
+    const newer = { ...project, updatedAt: '2026-11-02T11:00:00.5Z' };
+    vi.mocked(api.list).mockResolvedValue({ items: [newer], nextPageToken: null });
+    notify({ changed: [{ id: project.id, updatedAt: '2026-11-02T11:00:00.500000+00:00' }], removed: [] });
+    await waitFor(() => { expect(screen.getByTestId('remote')).toHaveTextContent('changed'); });
+    vi.mocked(api.open).mockResolvedValue(newer);
+    fireEvent.click(screen.getByRole('button', { name: 'open' }));
+    await waitFor(() => { expect(screen.getByTestId('remote')).toHaveTextContent(''); });
+    notify({ changed: [], removed: [project.id] });
+    await waitFor(() => { expect(screen.getByTestId('remote')).toHaveTextContent('removed'); });
   });
 
   it('follows the session: token on sign-in and refresh, closed on sign-out', async () => {

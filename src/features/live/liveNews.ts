@@ -10,6 +10,11 @@ function instant(value: string): string | null {
   return `${String(milliseconds)}.${(FRACTION.exec(value)?.[1] ?? '').slice(0, NANOS_DIGITS).padEnd(NANOS_DIGITS, '0')}`;
 }
 
+export function sameInstant(first: string, second: string): boolean {
+  const moment = instant(first);
+  return moment !== null && moment === instant(second);
+}
+
 /**
  * Whether a notice says something this tab does not already show. A tab hears about its own saves too;
  * those match the versions it holds and need no second request.

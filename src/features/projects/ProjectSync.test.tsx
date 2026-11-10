@@ -34,7 +34,7 @@ function entry(changes: Partial<SyncEntry> = {}): SyncEntry {
 function projects(changes: Partial<ProjectContextValue> = {}): ProjectContextValue {
   return {
     enabled: true, active: null, laboratory: null, items: [stored], nextPageToken: null, dirty: false, busy: false, error: null, notice: null, attempt: 0, listing: DEFAULT_PROJECT_QUERY,
-    connection: 'online', pending: [], syncing: false, queuedAnalysis: null, queuedLaboratory: null,
+    remoteChange: null, connection: 'online', pending: [], syncing: false, queuedAnalysis: null, queuedLaboratory: null,
     retry: vi.fn(), discard: vi.fn(), discardAll: vi.fn(), clearSaved: vi.fn(), resolve: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn(), open: vi.fn(), saveLaboratory: vi.fn(), save: vi.fn(), rename: vi.fn(), duplicate: vi.fn(), remove: vi.fn(), detach: vi.fn(),
     saveGeneratorRun: vi.fn(), removeGeneratorRun: vi.fn(), searchProject: null, chooseSearchProject: vi.fn(), createSearchProject: vi.fn(), ...changes,

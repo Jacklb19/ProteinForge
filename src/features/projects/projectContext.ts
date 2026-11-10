@@ -57,6 +57,8 @@ export interface ProjectContextValue {
   /** Removes one run from the history of Design's destination project. */
   removeGeneratorRun(id: string): Promise<boolean>;
   detach(): void;
+  /** The project open here was saved or deleted in another tab or device since this tab read it; null otherwise. */
+  remoteChange: 'changed' | 'removed' | null;
 }
 export const ProjectContext = createContext<ProjectContextValue | null>(null);
 export function useProjects(): ProjectContextValue { return useRequiredContext(ProjectContext, 'ProjectProvider'); }

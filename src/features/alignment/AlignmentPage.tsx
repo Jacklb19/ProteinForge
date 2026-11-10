@@ -22,6 +22,7 @@ import { SegmentedControl } from '../../shared/SegmentedControl';
 import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
 import { SaveState } from '../projects/SaveState';
+import { RemoteChange } from '../projects/RemoteChange';
 import { useDraftSaveState } from '../projects/draftSaveState';
 
 const PROJECT_PANEL_ID = 'project-panel';
@@ -117,6 +118,7 @@ export function AlignmentPage(): React.JSX.Element {
           <ReportActions screen="alignment" />
         </div>
       </header>
+      <RemoteChange />
       {projectOpen && <section id={PROJECT_PANEL_ID} className="tool-panel" aria-labelledby="project-panel-title"><ProjectControls /></section>}
 
       <section className="section alignment-inputs" aria-labelledby="alignment-inputs-title">

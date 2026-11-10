@@ -25,7 +25,7 @@ import type { ConflictChoice, SyncChange, SyncEntry } from './syncQueue';
 import { LIVE_HIDDEN_GRACE_MS, readLiveUrl } from '../live/config';
 import { openLiveChannel } from '../live/liveChannel';
 import type { LiveChange, LiveChannel, LiveConnector } from '../live/liveChannel';
-import { isNews } from '../live/liveNews';
+import { isNews, sameInstant } from '../live/liveNews';
 
 /**
  * The generator history is written in zod and is only read when a search result is stored or
@@ -416,6 +416,8 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
   const connectLive = live === undefined ? liveUrl : live;
   const channel = useRef<LiveChannel | null>(null);
   const liveChanges = useRef<LiveChange[]>([]);
+  // What the channel last said about a project: its newer version elsewhere, or null once it was deleted.
+  const [remoteStamp, setRemoteStamp] = useState<{ id: string; updatedAt: string | null; against: string } | null>(null);
   useEffect(() => {
     if (!connectLive || !user || !enabled) return;
     const onChange = (change: LiveChange): void => { liveChanges.current.push(change); setWake(value => value + 1); };
@@ -448,6 +450,14 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
     const changes = liveChanges.current;
     liveChanges.current = [];
     const known = [...current.items, ...(current.active ? [current.active] : [])];
+    const open = current.active;
+    for (const change of changes) {
+      if (!open) break;
+      // Kept with the version this tab held then: any later version of its own makes the notice void.
+      const stamp = change.changed?.find(item => item.id === open.id);
+      if (stamp) setRemoteStamp({ ...stamp, against: open.updatedAt });
+      else if (change.removed.includes(open.id)) setRemoteStamp({ id: open.id, updatedAt: null, against: open.updatedAt });
+    }
     if (!changes.some(change => isNews(change, known))) return;
     const epoch = generation.current, owner = user, listing = current.listing;
     // Read only, so it takes no lock; an action that starts meanwhile wins and lists again itself.
@@ -458,6 +468,11 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
     // Reads the latest list through this render; wake is the moment to look.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wake, user, token, client]);
+
+  // Derived, so it clears itself once this tab holds that version (its own save, or opening it again).
+  const remoteChange = !current.active || remoteStamp?.id !== current.active.id || remoteStamp.against !== current.active.updatedAt ? null
+    : remoteStamp.updatedAt === null ? 'removed' as const
+      : sameInstant(remoteStamp.updatedAt, current.active.updatedAt) ? null : 'changed' as const;
 
   const dirty = Boolean(current.active && workspaceInputKey(sequence.text, alignment, sequence.profileWindow) !== workspaceInputKey(current.active.activeSequence, current.active.workspace.alignment, current.active.workspace.profileWindow));
   async function relist(service: ProjectApi, signal: AbortSignal): Promise<void> {
@@ -477,7 +492,7 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
     ...value, active: value.active?.id === project.id ? project : value.active, searchProject: value.searchProject?.id === project.id ? project : value.searchProject,
   });
   const value = {
-    laboratory, searchProject,
+    laboratory, searchProject, remoteChange,
     enabled, active: current.active, items: current.items, nextPageToken: current.nextPageToken,
     busy: current.busy || syncing, error: current.error, notice: current.notice, attempt: current.attempt, dirty, listing: current.listing,
     connection, pending: queue, syncing,

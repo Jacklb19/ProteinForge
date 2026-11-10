@@ -27,6 +27,7 @@ import { ViewTabs } from '../../shared/ViewTabs';
 import { REFERENCE_CATALOG } from '../library/catalog';
 import { ProjectContext } from '../projects/projectContext';
 import { SaveState } from '../projects/SaveState';
+import { RemoteChange } from '../projects/RemoteChange';
 import { useDraftSaveState } from '../projects/draftSaveState';
 
 const MappedStructure = lazy(() => import('../library/MappedStructure').then(module => ({ default: module.MappedStructure })));
@@ -179,6 +180,7 @@ export function EditorPage(): React.JSX.Element {
           )}
         </div>
       </header>
+      <RemoteChange />
       <section className="subject-summary" aria-label={title}>
         <h2>{title}</h2>
         <p className="page-meta">{hasInput ? <><SaveState {...saveState} detail={saveState.kind === 'example' ? t('saveState.exampleDetail') : saveState.detail} />{meta && ` · ${meta}`}</> : t('editor.emptyText')}</p>
