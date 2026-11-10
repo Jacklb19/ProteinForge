@@ -96,6 +96,11 @@
 .workspace-sidebar { position: sticky; inset-block-start: var(--space-none); display: flex; flex-direction: column; height: 100dvh; padding: var(--space-md) var(--space-sm) var(--space-sm); border-inline-end: var(--border-width) solid var(--border-subtle); background: var(--bg-raised); }
 .workspace-body { display: flex; flex-direction: column; min-width: var(--space-none); min-height: 100dvh; }
 .workspace-bar { display: none; }
+/* Guided visit: docked at the foot of the tool it describes, never over it. */
+.tour-panel { position: sticky; inset-block-end: var(--space-none); z-index: var(--layer-overlay); display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--space-sm) var(--space-xl); padding: var(--space-md) var(--space-xl); border-block-start: var(--border-width) solid var(--border-strong); background: var(--bg-raised); box-shadow: var(--shadow-floating); }
+.tour-text { display: grid; gap: var(--space-3xs); flex: 1 1 var(--width-form); max-width: var(--width-copy); }
+.tour-text h2 { font-size: var(--font-size-section); }
+.tour-panel .actions { flex-wrap: wrap; }
 .workspace-footer { padding: var(--space-md) var(--space-xl); border-block-start: var(--border-width) solid var(--border-subtle); font-size: var(--font-size-small); }
 
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2xs); padding-inline: var(--space-2xs); padding-block-end: var(--space-md); }

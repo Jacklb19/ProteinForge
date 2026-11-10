@@ -9,6 +9,8 @@ import { MENU_ID } from './PublicFrame';
 import { Sheet } from './Sheet';
 import { SidebarContent } from './Sidebar';
 import { CommandPalette } from './CommandPalette';
+import { TourPanel } from './TourPanel';
+import { TourContext } from './tour';
 import { PALETTE_KEY } from './paletteEntries';
 import { useSyncShortLabel } from '../features/projects/syncSummary';
 
@@ -46,6 +48,9 @@ export function WorkspaceFrame(): React.JSX.Element {
   }, [menuOpen]);
   useEffect(() => { writeCompact(compact); }, [compact]);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // The guided visit lasts while this frame is mounted; nothing about it is stored.
+  const [tourStop, setTourStop] = useState<number | null>(null);
+  const [tour] = useState(() => ({ start: (): void => { setTourStop(0); } }));
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== PALETTE_KEY) return;
@@ -78,10 +83,13 @@ export function WorkspaceFrame(): React.JSX.Element {
         </Sheet>}
         {paletteOpen && <CommandPalette onClose={() => { setPaletteOpen(false); }} />}
         <div className="app-content" id="app-content" tabIndex={-1}>
-          <RouteBoundary key={pathname}>
-            <Suspense fallback={<main className="page"><p role="status">{t('shell.loadingPage')}</p></main>}><Outlet /></Suspense>
-          </RouteBoundary>
+          <TourContext.Provider value={tour}>
+            <RouteBoundary key={pathname}>
+              <Suspense fallback={<main className="page"><p role="status">{t('shell.loadingPage')}</p></main>}><Outlet /></Suspense>
+            </RouteBoundary>
+          </TourContext.Provider>
         </div>
+        {tourStop !== null && <TourPanel stop={tourStop} onStop={setTourStop} onEnd={() => { setTourStop(null); }} />}
         <footer className="workspace-footer">
           <nav aria-label={t('footer.navigation')}>
             <ul className="footer-links">
