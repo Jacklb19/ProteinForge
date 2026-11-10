@@ -18,6 +18,8 @@ export const ROUTES = {
   confirm: '/confirm',
   privacy: '/privacy',
   terms: '/terms',
+  /** A read-only link; its token follows `#`. */
+  shared: '/shared',
   /** Former addresses kept as redirects; `workspace` is also the registered OAuth return address. */
   workspace: '/app',
   settings: '/settings',
@@ -39,6 +41,7 @@ export const PAGE_TITLES: Readonly<Record<string, TranslationKey>> = {
   [ROUTES.confirm]: 'auth.confirmTitle',
   [ROUTES.privacy]: 'nav.privacy',
   [ROUTES.terms]: 'nav.terms',
+  [ROUTES.shared]: 'shared.kicker',
 };
 
 /** Laboratory destinations, in display order within their sidebar group. */

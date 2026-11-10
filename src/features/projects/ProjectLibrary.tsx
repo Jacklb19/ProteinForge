@@ -21,6 +21,7 @@ import { isOpen, needsAttention, pendingSummary } from './syncQueue';
 import type { SyncEntry } from './syncQueue';
 import { ProjectReports, UnlinkedReports } from '../reports/storage/SavedReportList';
 import { ProjectVersions } from './ProjectVersions';
+import { ShareDialog } from './ShareDialog';
 
 /** Search and sorting apply to the whole owned collection before paging. */
 export function ProjectLibrary(): React.JSX.Element {
@@ -32,6 +33,7 @@ export function ProjectLibrary(): React.JSX.Element {
   const alignment = useAlignmentDraft();
   const navigate = useNavigate();
   const [intent, setIntent] = useState<ProjectIntent | null>(null);
+  const [sharing, setSharing] = useState<ProjectSummary | null>(null);
   const [name, setName] = useState('');
   const [query, setQuery] = useState<ProjectQuery>(projects.listing);
   const showRuns = useGeneratorHistoryMode() === 'ready';
@@ -102,6 +104,7 @@ export function ProjectLibrary(): React.JSX.Element {
           offline={offline} sync={syncOf(entryOf(project.id))}
           onOpen={destination => { requestOpen(project, destination); }}
           onAction={action => {
+            if (action === 'share') { setSharing(project); return; }
             setName(action === 'duplicate' ? t('projects.copyName', { name: project.name }).slice(0, MAX_PROJECT_NAME_LENGTH) : project.name);
             setIntent({ action, project });
           }}
@@ -112,6 +115,7 @@ export function ProjectLibrary(): React.JSX.Element {
     {/* With every project loaded, a report whose project is missing belongs to one deleted since. */}
     <UnlinkedReports projectIds={!projects.busy && projects.nextPageToken === null && !projects.listing.query ? projects.items.map(project => project.id) : null} />
     <div className="projects-list-footer"><p className="field-help" role="status">{t(projects.items.length === 1 ? 'projects.loadedOne' : 'projects.loaded', { count: formatNumber(projects.items.length) })}</p><div className="actions">{projects.nextPageToken !== null && <button className="button button-secondary" disabled={projects.busy} type="button" onClick={() => { void projects.refresh(true); }}>{t('projects.more')}</button>}<button className="button button-quiet" type="button" disabled={projects.busy} onClick={() => { void projects.refresh(false, projects.listing); }}>{t('projects.refresh')}</button></div></div>
+    {sharing && <ShareDialog project={sharing} onClose={() => { setSharing(null); }} />}
     {intent && <ProjectDialog intent={intent} name={name} setName={setName} onClose={() => { setIntent(null); }} onSubmit={submit} />}
   </section>;
 }

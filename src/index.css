@@ -568,6 +568,11 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .palette-group { padding: var(--space-2xs) var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); }
 .palette-option { display: flex; align-items: center; min-height: var(--size-touch); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-control); overflow-wrap: anywhere; cursor: pointer; }
 .palette-option[aria-selected='true'] { background: var(--bg-selected); font-weight: var(--font-weight-strong); }
+/* Read-only links: the address beside its copy button, and the shared sequence in print layout. */
+.share-url { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.share-url .text-input { flex: 1 1 var(--width-setting-copy); min-width: var(--space-none); font-family: var(--font-sequence); font-size: var(--font-size-small); }
+.shared-sequence { margin: var(--space-none); padding: var(--space-md); overflow-x: auto; border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-control); background: var(--bg-raised); font-family: var(--font-sequence); font-size: var(--font-size-small); line-height: var(--line-height-reading); }
+.shared-missing, .shared-invite { display: grid; gap: var(--space-sm); justify-items: start; }
 .project-dialog-name { font-weight: var(--font-weight-strong); overflow-wrap: anywhere; }
 .project-confirm { display: grid; gap: var(--space-md); padding: var(--space-lg); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); background: var(--bg-raised); }
 .project-confirm h3 { overflow-wrap: anywhere; }

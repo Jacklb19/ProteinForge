@@ -7,6 +7,11 @@ export const PROJECT_PAGE_SIZE = 30;
 export const PROJECT_PREVIEW_RESIDUES = 40;
 /** Earlier contents the API keeps per project (PROJECT_VERSION_LIMIT in the backend). */
 export const PROJECT_VERSION_LIMIT = 5;
+/** A link's token: 43 URL-safe characters (PROJECT_SHARE_TOKEN_PATTERN in the backend). */
+export const PROJECT_SHARE_TOKEN_PATTERN = /[A-Za-z0-9_-]{43}/;
+/** The shared sequence reads in lines of sixty residues, in blocks of ten. */
+export const SHARED_SEQUENCE_LINE = 60;
+export const SHARED_SEQUENCE_BLOCK = 10;
 export const PROJECT_ORDERS = ['recent', 'name'] as const;
 export type ProjectOrder = (typeof PROJECT_ORDERS)[number];
 export interface ProjectQuery { query: string; order: ProjectOrder }

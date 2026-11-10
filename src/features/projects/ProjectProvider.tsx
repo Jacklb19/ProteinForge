@@ -731,6 +731,22 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
       if (!service?.versions || !token) throw new ApiError(token ? 'unavailable' : 'session');
       return watched(service).versions?.(id, token) ?? [];
     },
+    // Links change nothing this tab holds, so they take no lock either.
+    async share(id: string) {
+      const service = client ?? await serviceClient();
+      if (!service?.share || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      return service.share(id, token);
+    },
+    async createShare(id: string) {
+      const service = client ?? await serviceClient();
+      if (!service?.createShare || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      return service.createShare(id, token);
+    },
+    async removeShare(id: string) {
+      const service = client ?? await serviceClient();
+      if (!service?.removeShare || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      await service.removeShare(id, token);
+    },
     restoreVersion(project: ProjectSummary, versionId: string) { return run(async (service, signal) => {
       if (!service.restore) throw new ApiError('unavailable');
       const restored = await service.restore(project.id, versionId, project.updatedAt, token, signal);

@@ -8,6 +8,8 @@ import type { ProjectQuery } from './config';
 import { projectListSchema, projectSchema, projectVersionListSchema } from './contracts';
 import type { Project, ProjectVersion, ProjectWrite } from './contracts';
 import { projectDocument, summaryDocument, versionDocument, workspaceMessage } from './rpcMapping';
+import { createdShareSchema, projectShareSchema, shareDocument } from './sharing';
+import type { CreatedShare, ProjectShare } from './sharing';
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -54,8 +56,22 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
       const { project } = await rpc(() => client.restoreProjectVersion({ projectId: id, versionId, expectedUpdateTime: timestampFromIso(updatedAt) }, callOptions(signal, session(token))));
       return validated(projectSchema, projectDocument(project));
     },
+    /** Starts or replaces the read-only link; the token is in this answer only. */
+    createShare: async (id: string, token: string, signal?: AbortSignal): Promise<CreatedShare> => {
+      const response = await rpc(() => client.createProjectShare({ projectId: id }, callOptions(signal, session(token))));
+      return validated(createdShareSchema, { token: response.token, share: shareDocument(response.share) });
+    },
+    /** The current link's dates, never its token; null when there is none. */
+    share: async (id: string, token: string, signal?: AbortSignal): Promise<ProjectShare | null> => {
+      const response = await rpc(() => client.getProjectShare({ projectId: id }, callOptions(signal, session(token))));
+      return response.share ? validated(projectShareSchema, shareDocument(response.share)) : null;
+    },
+    removeShare: async (id: string, token: string, signal?: AbortSignal): Promise<void> => {
+      await rpc(() => client.deleteProjectShare({ projectId: id }, callOptions(signal, session(token))));
+    },
   };
 }
 type FullProjectApi = ReturnType<typeof createProjectApi>;
 /** Versions are optional for callers: a stand-in without them answers that versions are unavailable. */
-export type ProjectApi = Omit<FullProjectApi, 'versions' | 'restore'> & Partial<Pick<FullProjectApi, 'versions' | 'restore'>>;
+type Optional = 'versions' | 'restore' | 'createShare' | 'share' | 'removeShare';
+export type ProjectApi = Omit<FullProjectApi, Optional> & Partial<Pick<FullProjectApi, Optional>>;
