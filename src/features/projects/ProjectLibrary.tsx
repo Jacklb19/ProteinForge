@@ -20,6 +20,7 @@ import { ConflictSection, SyncActions, SyncNote } from './ProjectSync';
 import { isOpen, needsAttention, pendingSummary } from './syncQueue';
 import type { SyncEntry } from './syncQueue';
 import { ProjectReports, UnlinkedReports } from '../reports/storage/SavedReportList';
+import { ProjectVersions } from './ProjectVersions';
 
 /** Search and sorting apply to the whole owned collection before paging. */
 export function ProjectLibrary(): React.JSX.Element {
@@ -104,7 +105,8 @@ export function ProjectLibrary(): React.JSX.Element {
             setName(action === 'duplicate' ? t('projects.copyName', { name: project.name }).slice(0, MAX_PROJECT_NAME_LENGTH) : project.name);
             setIntent({ action, project });
           }}
-        ><ProjectReports projectId={project.id} name={project.name} /></ProjectCard>
+        ><ProjectReports projectId={project.id} name={project.name} />
+          <ProjectVersions project={project} active={project.id === projects.active?.id} dirty={projects.dirty} offline={offline} /></ProjectCard>
       ))}
     </div>
     {/* With every project loaded, a report whose project is missing belongs to one deleted since. */}

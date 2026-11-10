@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import { useRequiredContext } from '../../shared/useRequiredContext';
 import type { ApiError } from '../api/apiClient';
 import type { DescriptorState } from '../descriptors/useDescriptors';
-import type { Project, ProjectSummary } from './contracts';
+import type { Project, ProjectSummary, ProjectVersion } from './contracts';
 import type { GeneratorRunSelection } from '../generator/history';
 import type { ProjectQuery } from './config';
 import type { ConflictChoice, SyncEntry } from './syncQueue';
@@ -20,7 +20,7 @@ export interface ProjectContextValue {
   dirty: boolean;
   busy: boolean;
   error: ApiError | null;
-  notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null;
+  notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | 'restored' | null;
   /** Counts the actions started, so feedback can tell an earlier success from a new one. */
   attempt: number;
   listing: ProjectQuery;
@@ -57,6 +57,10 @@ export interface ProjectContextValue {
   /** Removes one run from the history of Design's destination project. */
   removeGeneratorRun(id: string): Promise<boolean>;
   detach(): void;
+  /** Earlier contents of a saved project, newest first; rejects with an ApiError. */
+  versions(id: string): Promise<ProjectVersion[]>;
+  /** Puts a version back; the project open in Analyze reloads with it. */
+  restoreVersion(project: ProjectSummary, versionId: string): Promise<boolean>;
   /** The project open here was saved or deleted in another tab or device since this tab read it; null otherwise. */
   remoteChange: 'changed' | 'removed' | null;
 }

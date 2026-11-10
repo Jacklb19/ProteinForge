@@ -42,7 +42,7 @@ import { draftFingerprint } from '../design-lab/state';
 import { sha256 } from '../design-lab/zip';
 
 interface State {
-  owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | null; attempt: number;
+  owner: string | null; active: Project | null; items: ProjectSummary[]; nextPageToken: string | null; listing: ProjectQuery; busy: boolean; error: ApiError | null; notice: 'saved' | 'opened' | 'deleted' | 'duplicated' | 'restored' | null; attempt: number;
   /** Design's own destination for searches: it follows the project open in Analyze until a project is chosen there. */
   searchFollows: boolean; searchProject: Project | null;
 }
@@ -176,6 +176,8 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
     return {
       list: (...args) => observe(service.list(...args)), open: (...args) => observe(service.open(...args)),
       save: (...args) => observe(service.save(...args)), remove: (...args) => observe(service.remove(...args)),
+      ...(service.versions ? { versions: (...args: Parameters<NonNullable<ProjectApi['versions']>>) => observe(service.versions?.(...args) ?? Promise.reject(new ApiError('unavailable'))) } : {}),
+      ...(service.restore ? { restore: (...args: Parameters<NonNullable<ProjectApi['restore']>>) => observe(service.restore?.(...args) ?? Promise.reject(new ApiError('unavailable'))) } : {}),
     };
   }, []);
   /** Queues a change when it cannot be sent now; returns false when the queue is full. */
@@ -721,6 +723,21 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
       if ((project.workspace.generatorHistory?.documentSha256 ?? null) !== (next?.documentSha256 ?? null)) throw new ApiError('invalid-response');
       setState(written(project));
       setLabBinding((binding) => binding?.project.id === project.id ? { ...binding, project } : binding);
+      await relist(service, signal);
+    }); },
+    async versions(id: string) {
+      // A read: it takes no lock, so the list can open while another action runs.
+      const service = client ?? await serviceClient();
+      if (!service?.versions || !token) throw new ApiError(token ? 'unavailable' : 'session');
+      return watched(service).versions?.(id, token) ?? [];
+    },
+    restoreVersion(project: ProjectSummary, versionId: string) { return run(async (service, signal) => {
+      if (!service.restore) throw new ApiError('unavailable');
+      const restored = await service.restore(project.id, versionId, project.updatedAt, token, signal);
+      if (signal.aborted) return;
+      // The project open in Analyze shows the content it now has; the confirmation said so.
+      if (current.active?.id === restored.id) { restore(restored); if (user) remember(user, restored.id); bind('analysis', null); }
+      setState(value => ({ ...written(restored)(value), items: value.items.map(item => item.id === restored.id ? restored : item), notice: 'restored' }));
       await relist(service, signal);
     }); },
     detach() { if (locked.current) return; if (user) remember(user, null); bind('analysis', null); setState((value) => ({ ...value, active: null, error: null, notice: null })); },

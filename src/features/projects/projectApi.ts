@@ -5,9 +5,9 @@ import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { timestampFromIso } from '../api/timestamps';
 import { DEFAULT_PROJECT_QUERY, PROJECT_PAGE_SIZE } from './config';
 import type { ProjectQuery } from './config';
-import { projectListSchema, projectSchema } from './contracts';
-import type { Project, ProjectWrite } from './contracts';
-import { projectDocument, summaryDocument, workspaceMessage } from './rpcMapping';
+import { projectListSchema, projectSchema, projectVersionListSchema } from './contracts';
+import type { Project, ProjectVersion, ProjectWrite } from './contracts';
+import { projectDocument, summaryDocument, versionDocument, workspaceMessage } from './rpcMapping';
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -44,6 +44,18 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
     remove: async (id: string, updatedAt: string, token: string, signal?: AbortSignal): Promise<void> => {
       await rpc(() => client.deleteProject({ id, expectedUpdateTime: timestampFromIso(updatedAt) }, callOptions(signal, session(token))));
     },
+    /** Earlier contents, newest first; compact previews only. */
+    versions: async (id: string, token: string, signal?: AbortSignal): Promise<ProjectVersion[]> => {
+      const response = await rpc(() => client.listProjectVersions({ projectId: id }, callOptions(signal, session(token))));
+      return validated(projectVersionListSchema, response.versions.map(versionDocument));
+    },
+    /** Puts a version back; what is stored now becomes a version. Guarded by the project's update time. */
+    restore: async (id: string, versionId: string, updatedAt: string, token: string, signal?: AbortSignal): Promise<Project> => {
+      const { project } = await rpc(() => client.restoreProjectVersion({ projectId: id, versionId, expectedUpdateTime: timestampFromIso(updatedAt) }, callOptions(signal, session(token))));
+      return validated(projectSchema, projectDocument(project));
+    },
   };
 }
-export type ProjectApi = ReturnType<typeof createProjectApi>;
+type FullProjectApi = ReturnType<typeof createProjectApi>;
+/** Versions are optional for callers: a stand-in without them answers that versions are unavailable. */
+export type ProjectApi = Omit<FullProjectApi, 'versions' | 'restore'> & Partial<Pick<FullProjectApi, 'versions' | 'restore'>>;

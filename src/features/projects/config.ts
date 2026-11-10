@@ -5,6 +5,8 @@ export const MAX_PROJECT_NAME_LENGTH = 120;
 export const MAX_PROJECT_SEQUENCE_LENGTH = 100_000;
 export const PROJECT_PAGE_SIZE = 30;
 export const PROJECT_PREVIEW_RESIDUES = 40;
+/** Earlier contents the API keeps per project (PROJECT_VERSION_LIMIT in the backend). */
+export const PROJECT_VERSION_LIMIT = 5;
 export const PROJECT_ORDERS = ['recent', 'name'] as const;
 export type ProjectOrder = (typeof PROJECT_ORDERS)[number];
 export interface ProjectQuery { query: string; order: ProjectOrder }

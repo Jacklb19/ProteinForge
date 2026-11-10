@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ALIGNMENT_MODES, GAP_EXTEND, GAP_OPEN, MATRIX_NAMES, MAX_ALIGNMENT_RESIDUES } from '../alignment/config';
 import { HYDROPATHY_WINDOWS } from '../descriptors/config';
-import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_NAME_LENGTH, MAX_PROJECT_SEQUENCE_LENGTH, PROJECT_PREVIEW_RESIDUES } from './config';
+import { DESCRIPTOR_METHOD_VERSION, MAX_PROJECT_NAME_LENGTH, MAX_PROJECT_SEQUENCE_LENGTH, PROJECT_PREVIEW_RESIDUES, PROJECT_VERSION_LIMIT } from './config';
 import { sequenceSourceSchema } from '../editor/sourceSchema';
 import { GENERATOR_HISTORY_CONFIG } from '../generator/config';
 import { generatorHistorySnapshotSchema } from '../generator/history';
@@ -63,6 +63,10 @@ export const projectSchema = projectSummarySchema.extend({ activeSequence: seque
   return true;
 });
 export const projectListSchema = z.object({ items: z.array(projectSummarySchema), nextPageToken: z.string().min(1).nullable() });
+/** An earlier content of a project: when it was saved and a compact preview, never the snapshot. */
+export const projectVersionSchema = z.object({ id: z.uuid(), savedAt: z.iso.datetime({ offset: true }), preview: projectPreviewSchema.nullable() });
+export const projectVersionListSchema = z.array(projectVersionSchema).max(PROJECT_VERSION_LIMIT);
+export type ProjectVersion = z.infer<typeof projectVersionSchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 export type ProjectPreview = z.infer<typeof projectPreviewSchema>;
