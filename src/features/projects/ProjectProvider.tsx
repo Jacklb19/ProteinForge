@@ -22,6 +22,10 @@ import type { GeneratorRun, GeneratorRunSelection } from '../generator/history';
 import type { ProjectWrite } from './contracts';
 import { afterFailure, due, enqueue, isOpen, isRetryable, newKey, nextRetry, sameContent } from './syncQueue';
 import type { ConflictChoice, SyncChange, SyncEntry } from './syncQueue';
+import { LIVE_HIDDEN_GRACE_MS, readLiveUrl } from '../live/config';
+import { openLiveChannel } from '../live/liveChannel';
+import type { LiveChange, LiveChannel, LiveConnector } from '../live/liveChannel';
+import { isNews } from '../live/liveNews';
 
 /**
  * The generator history is written in zod and is only read when a search result is stored or
@@ -67,7 +71,7 @@ function lastProject(owner: string): string | null {
 }
 
 /** Holds no private sequence in browser storage. On reload, retrieves the last project with the user's JWT. */
-export function ProjectProvider({ children, api }: { children: ReactNode; api?: ProjectApi | null }): React.JSX.Element {
+export function ProjectProvider({ children, api, live }: { children: ReactNode; api?: ProjectApi | null; live?: LiveConnector | null }): React.JSX.Element {
   const auth = useAuth();
   const lab = useContext(LabContext);
   const [labBinding,setLabBinding]=useState<{owner:string;project:Project;revision:number}|null>(null);
@@ -406,6 +410,54 @@ export function ProjectProvider({ children, api }: { children: ReactNode; api?: 
     // flush reads the latest queue and drafts through refs; these are the moments to look again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue, wake, user, token, enabled, online]);
+
+  // Live channel: the API says when this account's projects change in another tab or device.
+  const [liveUrl] = useState(readLiveUrl);
+  const connectLive = live === undefined ? liveUrl : live;
+  const channel = useRef<LiveChannel | null>(null);
+  const liveChanges = useRef<LiveChange[]>([]);
+  useEffect(() => {
+    if (!connectLive || !user || !enabled) return;
+    const onChange = (change: LiveChange): void => { liveChanges.current.push(change); setWake(value => value + 1); };
+    const opened = typeof connectLive === 'string' ? openLiveChannel({ url: connectLive, token: null, onChange }) : connectLive({ token: null, onChange });
+    channel.current = opened;
+    // A hidden tab keeps its connection for a while, then lets it go and catches up when it is shown again.
+    let hiding: number | undefined;
+    const look = (): void => {
+      window.clearTimeout(hiding);
+      if (!navigator.onLine) opened.setActive(false);
+      else if (document.visibilityState === 'visible') opened.setActive(true);
+      else hiding = window.setTimeout(() => { opened.setActive(false); }, LIVE_HIDDEN_GRACE_MS);
+    };
+    look();
+    window.addEventListener('online', look);
+    window.addEventListener('offline', look);
+    document.addEventListener('visibilitychange', look);
+    return () => {
+      window.clearTimeout(hiding);
+      window.removeEventListener('online', look); window.removeEventListener('offline', look); document.removeEventListener('visibilitychange', look);
+      channel.current = null; liveChanges.current = [];
+      opened.close();
+    };
+  }, [connectLive, user, enabled]);
+  // The channel follows the session: a refreshed token replaces the one it reads with.
+  useEffect(() => { channel.current?.setToken(user && token ? token : null); }, [connectLive, user, enabled, token]);
+  // Notices wait for the action in progress: its own result often already holds what they announce.
+  useEffect(() => {
+    if (!liveChanges.current.length || !user || !token || !client || locked.current) return;
+    const changes = liveChanges.current;
+    liveChanges.current = [];
+    const known = [...current.items, ...(current.active ? [current.active] : [])];
+    if (!changes.some(change => isNews(change, known))) return;
+    const epoch = generation.current, owner = user, listing = current.listing;
+    // Read only, so it takes no lock; an action that starts meanwhile wins and lists again itself.
+    void client.list(token, '', undefined, listing).then((result) => {
+      if (generation.current !== epoch || locked.current) return;
+      setState(value => value.owner === owner && value.listing === listing ? { ...value, items: result.items, nextPageToken: result.nextPageToken } : value);
+    }, () => undefined);
+    // Reads the latest list through this render; wake is the moment to look.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wake, user, token, client]);
 
   const dirty = Boolean(current.active && workspaceInputKey(sequence.text, alignment, sequence.profileWindow) !== workspaceInputKey(current.active.activeSequence, current.active.workspace.alignment, current.active.workspace.profileWindow));
   async function relist(service: ProjectApi, signal: AbortSignal): Promise<void> {

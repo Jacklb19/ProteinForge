@@ -17,6 +17,8 @@ interface ImportMetaEnv {
   readonly VITE_STRUCTURE_PREDICTION?: string;
   /** `enabled` lets queued project creates retry on their own; needs CreateProject request ids in the API. */
   readonly VITE_PROJECT_CREATE_IDEMPOTENCY?: string;
+  /** `enabled` opens the API's live channel (WebSocket) for project changes; needs an API with LIVE_ENABLED. */
+  readonly VITE_PROJECT_LIVE?: string;
 }
 
 interface ImportMeta {
