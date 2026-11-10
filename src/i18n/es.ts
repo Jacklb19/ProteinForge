@@ -219,6 +219,7 @@ export const spanish = {
   'nav.terms': 'Condiciones',
   'report.download': 'Propiedades CSV',
   'report.export': 'Exportar',
+  'report.fasta': 'Secuencia FASTA',
   'report.help': 'Descarga un informe del análisis activo y la comparación vigente. Se genera localmente, sin enviar datos. JSON conserva valores completos, perfiles, parámetros y hashes; PDF resume y pagina las secuencias.',
   'report.pdf': 'Informe PDF',
   'report.json': 'Informe reproducible JSON',

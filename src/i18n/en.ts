@@ -221,6 +221,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'nav.terms': 'Terms',
   'report.download': 'Properties CSV',
   'report.export': 'Export',
+  'report.fasta': 'FASTA sequence',
   'report.help': 'Download a report of the active analysis and the current comparison. It is generated locally, without sending data. JSON keeps full values, profiles, parameters and hashes; PDF summarizes and paginates the sequences.',
   'report.pdf': 'PDF report',
   'report.json': 'Reproducible JSON report',

@@ -19,7 +19,7 @@ import { ROUTES } from '../../shared/navigation';
 import { DESCRIPTOR_FIELDS } from '../descriptors/config';
 import { ReadingSection } from '../assistant/ReadingSection';
 import { analysisFacts } from '../assistant/facts';
-import { descriptorCsv, downloadDescriptorCsv } from '../reports/descriptorReport';
+import { descriptorCsv, downloadDescriptorCsv, downloadSequenceFasta, sequenceFasta } from '../reports/descriptorReport';
 import { ProjectControls } from '../projects/ProjectControls';
 import { ReportActions } from '../reports/ReportActions';
 import { isCurrentReference } from '../library/referenceView';
@@ -175,6 +175,9 @@ export function EditorPage(): React.JSX.Element {
               const methods = Object.fromEntries(DESCRIPTOR_FIELDS.map((field) => [field.key, t(field.methodKey)]));
               downloadDescriptorCsv(descriptorCsv(validation.sequence, descriptors.result, descriptors.excluded, methods));
             }}>{t('report.download')}</button>}
+            {residueCount > 0 && invalidPositions.length === 0 && <button className="button" type="button" onClick={() => {
+              downloadSequenceFasta(sequenceFasta(validation.sequence, title, source?.accession ?? null));
+            }}>{t('report.fasta')}</button>}
           </ReportActions>
           {residueCount > 0 && invalidPositions.length === 0 && (
             <button className="button button-secondary" type="button" onClick={sendToAlignment}>{t('editor.toAlignment')}</button>
