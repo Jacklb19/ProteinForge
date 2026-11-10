@@ -27,6 +27,7 @@ import { ViewTabs } from '../../shared/ViewTabs';
 import { REFERENCE_CATALOG } from '../library/catalog';
 import { ProjectContext } from '../projects/projectContext';
 import { SaveState } from '../projects/SaveState';
+import { MutationPreview } from '../descriptors/MutationPreview';
 import { RemoteChange } from '../projects/RemoteChange';
 import { useDraftSaveState } from '../projects/draftSaveState';
 
@@ -269,6 +270,7 @@ export function EditorPage(): React.JSX.Element {
         </div>
         <HydropathyProfile text={text} windowSize={profileWindow} onWindowChange={setProfileWindow} selected={selected} onSelect={setSelected} annotations={annotations}
           view={view === 'sequence' || view === 'profile' || (view === 'structure' && activeView) ? view : 'none'} panelId="analysis" />
+        {view === 'sequence' && invalidPositions.length === 0 && <MutationPreview sequence={validation.sequence} selected={selected} base={descriptors} onApply={setText} />}
         <div id="analysis-structure-panel" role="tabpanel" aria-labelledby="analysis-structure-tab" hidden={view !== 'structure'}>
             {view === 'structure' && (activeView ? <section aria-label={t('library.structureTitle')}>
               <h3>{t('library.structureTitle')}</h3>
