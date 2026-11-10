@@ -3,7 +3,7 @@ import { AssistantService, Subject } from '../../gen/proteinforge/assistant/v1/a
 import { ApiError, validated } from '../api/apiClient';
 import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { isoFromTimestamp } from '../api/timestamps';
-import { MAX_FACTS, MAX_LABEL_LENGTH, MAX_READING_LENGTH, MAX_UNIT_LENGTH, MAX_VALUE_LENGTH, READING_TIMEOUT_MS } from './config';
+import { ASSISTANT_REMAINING_HEADER, MAX_FACTS, MAX_LABEL_LENGTH, MAX_READING_LENGTH, MAX_UNIT_LENGTH, MAX_VALUE_LENGTH, READING_TIMEOUT_MS } from './config';
 import type { ReadingSubject } from './config';
 
 const SUBJECT_MESSAGES: Record<ReadingSubject, Subject> = {
@@ -23,7 +23,8 @@ export const readingSchema = z.object({
   createdAt: z.iso.datetime({ offset: true }),
 });
 export type Fact = z.infer<typeof factSchema>;
-export type Reading = z.infer<typeof readingSchema>;
+/** `remaining`: readings the account may still ask for this minute, when the API reports it. */
+export type Reading = z.infer<typeof readingSchema> & { remaining?: number | null };
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -39,13 +40,19 @@ export function createAssistantApi(baseUrl: string, fetchImplementation?: FetchL
       // Shape first: a request the contract would reject never reaches the network or the budget.
       if (facts.length === 0 || facts.length > MAX_FACTS) throw new ApiError('validation');
       const checked = facts.map((fact) => validated(factSchema, fact));
-      const response = await rpc(() => client.interpret({ subject: SUBJECT_MESSAGES[subject], language, facts: checked }, { ...callOptions(signal, token), timeoutMs: READING_TIMEOUT_MS }));
-      return validated(readingSchema, {
+      let remaining: number | null = null;
+      const onHeader = (headers: Headers): void => {
+        const value = headers.get(ASSISTANT_REMAINING_HEADER);
+        remaining = value !== null && /^\d+$/.test(value) ? Number(value) : null;
+      };
+      const response = await rpc(() => client.interpret({ subject: SUBJECT_MESSAGES[subject], language, facts: checked }, { ...callOptions(signal, token), timeoutMs: READING_TIMEOUT_MS, onHeader }));
+      const reading = validated(readingSchema, {
         text: response.text,
         model: response.model,
         provider: response.provider,
         createdAt: isoFromTimestamp(response.createTime),
       });
+      return { ...reading, remaining };
     },
   };
 }
