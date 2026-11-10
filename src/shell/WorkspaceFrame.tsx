@@ -10,7 +10,7 @@ import { Sheet } from './Sheet';
 import { SidebarContent } from './Sidebar';
 import { CommandPalette } from './CommandPalette';
 import { TourPanel } from './TourPanel';
-import { TourContext } from './tour';
+import { TourContext, setTourStop, useTourStop } from './tour';
 import { PALETTE_KEY } from './paletteEntries';
 import { useSyncShortLabel } from '../features/projects/syncSummary';
 
@@ -48,8 +48,7 @@ export function WorkspaceFrame(): React.JSX.Element {
   }, [menuOpen]);
   useEffect(() => { writeCompact(compact); }, [compact]);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  // The guided visit lasts while this frame is mounted; nothing about it is stored.
-  const [tourStop, setTourStop] = useState<number | null>(null);
+  const tourStop = useTourStop();
   const [tour] = useState(() => ({ start: (): void => { setTourStop(0); } }));
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
