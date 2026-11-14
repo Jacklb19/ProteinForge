@@ -10,6 +10,8 @@ export const RPC_DETAIL_CODES: Partial<Record<string, ApiErrorCode>> = {
   'assistant-not-configured': 'unavailable',
   // Still ABORTED on the wire, so clients without this entry keep treating it as a conflict.
   'project-requires-current-client': 'requires-current-client',
+  // RESOURCE_EXHAUSTED on the wire like a rate limit, but waiting never helps: it must not be retried.
+  'project-quota-exceeded': 'project-quota',
 };
 /** Only explicit HTTP(S) origins/paths are allowed; credentials and URL fragments are rejected. */
 export function readApiBaseUrl(environment: ImportMetaEnv = import.meta.env): string | null {

@@ -6,7 +6,8 @@ import {
 import { AlignmentMode, SubstitutionMatrix } from '../../gen/proteinforge/project/v1/workspace_pb';
 import { timestampFromIso } from '../api/timestamps';
 import { GRPC_CODES, grpcWebError, grpcWebRequest, grpcWebResponse } from '../../test/grpcWeb';
-import { PROJECT_PAGE_SIZE } from './config';
+import { PROJECT_ERROR_KEYS, PROJECT_PAGE_SIZE, SYNC_RETRYABLE_ERRORS } from './config';
+import { translate } from '../../i18n/translate';
 import { createProjectApi } from './projectApi';
 
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
@@ -103,5 +104,14 @@ describe('project transport', () => {
     await expect(api.open(summary.id, 'user-token')).rejects.toMatchObject({ code: 'invalid-response' });
     await expect(api.remove(summary.id, UPDATED, '')).rejects.toMatchObject({ code: 'session' });
     expect(fetcher).toHaveBeenCalledTimes(3);
+  });
+  it('reports the per-account project quota as its own category, not as a rate limit', async () => {
+    const fetcher = vi.fn<Fetcher>().mockResolvedValueOnce(grpcWebError(GRPC_CODES.resourceExhausted, 'project-quota-exceeded'))
+      .mockResolvedValueOnce(grpcWebError(GRPC_CODES.resourceExhausted, 'rate-limit'));
+    const api = createProjectApi('https://api.example', fetcher);
+    await expect(api.save(payload, 'user-token')).rejects.toMatchObject({ code: 'project-quota' });
+    await expect(api.save(payload, 'user-token')).rejects.toMatchObject({ code: 'rate-limit' });
+    expect(SYNC_RETRYABLE_ERRORS).not.toContain('project-quota');
+    for (const locale of ['es', 'en'] as const) expect(translate(locale, PROJECT_ERROR_KEYS['project-quota'])).not.toBe(translate(locale, PROJECT_ERROR_KEYS['rate-limit']));
   });
 });
