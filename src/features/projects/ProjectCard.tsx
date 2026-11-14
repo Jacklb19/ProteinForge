@@ -27,6 +27,8 @@ export function ProjectCard({ project, busy, active, dirty, showRuns = false, of
   const precision = PROJECT_PREVIEW_PRECISION;
   const [now] = useState(Date.now);
   const seconds = (new Date(project.updatedAt).getTime() - now) / 1_000;
+  // Only an unexpired link is shown; the listing already leaves out expired ones, this covers a tab left open.
+  const sharedUntil = project.shareExpiresAt && new Date(project.shareExpiresAt).getTime() > now ? new Date(project.shareExpiresAt) : null;
   const interval = PROJECT_RELATIVE_INTERVALS.find(item => Math.abs(seconds) >= item.seconds);
   const relative = Math.abs(seconds) < PROJECT_RELATIVE_NOW_SECONDS || !interval ? t('projects.justNow')
     : new Intl.RelativeTimeFormat(languageTags[locale], { numeric: 'auto' }).format(Math.round(seconds / interval.seconds), interval.unit);
@@ -56,6 +58,7 @@ export function ProjectCard({ project, busy, active, dirty, showRuns = false, of
       {preview?.hasLaboratory && <p className="project-origin">{t(preview.laboratoryVariants === 1 ? 'lab.projectVariantsOne' : 'lab.projectVariants', { count: preview.laboratoryVariants ?? 0 })}</p>}
       {showRuns && Boolean(preview?.generatorRuns) && <p className="project-origin">{t(preview?.generatorRuns === 1 ? 'projects.generatorRunsOne' : 'projects.generatorRuns', { count: formatNumber(preview?.generatorRuns ?? 0) })}</p>}
       {source && <p className="project-origin">{t(source.origin === 'catalog' ? 'projects.catalogSource' : 'projects.uniprotSource', { accession: source.accession })}</p>}
+      {sharedUntil && <p className="project-shared">{t('projects.sharedUntil', { date: formatDate(sharedUntil, { day: 'numeric', month: 'short' }) })}</p>}
       {preview && <p className="project-length">{comparison && !preview.sequenceLength ? t('projects.comparisonLengths', { first: formatNumber(comparison.firstLength), second: formatNumber(comparison.secondLength) }) : t('fasta.residues', { count: formatNumber(preview.sequenceLength) })}</p>}
       {active && <p className="field-help project-active">{t(dirty ? 'projects.activeDirty' : 'projects.active')}</p>}
       {!preview && <p className="field-help project-evidence-note">{t('projects.noPreview')}</p>}

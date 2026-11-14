@@ -103,6 +103,7 @@ export function summaryDocument(summary: SummaryMessage | undefined): Record<str
     id: summary?.id, name: summary?.name, status: summary ? STATUSES[summary.status] : undefined,
     createdAt: isoFromTimestamp(summary?.createTime), updatedAt: isoFromTimestamp(summary?.updateTime),
     ...(preview ? { preview: previewDocument(preview) } : {}),
+    ...(summary?.shareExpireTime ? { shareExpiresAt: isoFromTimestamp(summary.shareExpireTime) } : {}),
   };
 }
 

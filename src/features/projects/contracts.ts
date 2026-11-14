@@ -43,7 +43,8 @@ export const projectPreviewSchema = z.object({
     firstPrefix: previewPrefix, secondPrefix: previewPrefix, matrix: z.enum(MATRIX_NAMES), mode: z.enum(ALIGNMENT_MODES), result: alignmentMetricsSchema.nullable(),
   }).refine(a => a.firstLength + a.secondLength > 0 && a.firstPrefix.length === Math.min(a.firstLength, PROJECT_PREVIEW_RESIDUES) && a.secondPrefix.length === Math.min(a.secondLength, PROJECT_PREVIEW_RESIDUES) && (!a.result || (a.firstLength > 0 && a.secondLength > 0))).nullable(),
 }).refine(p => p.sequencePrefix.length === Math.min(p.sequenceLength, PROJECT_PREVIEW_RESIDUES) && p.excluded <= p.sequenceLength && (!p.descriptors || p.descriptors.length + p.excluded === p.sequenceLength));
-export const projectSummarySchema = z.object({ id: z.uuid(), name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH), status: z.string(), createdAt: z.iso.datetime({ offset: true }), updatedAt: z.iso.datetime({ offset: true }), preview: projectPreviewSchema.nullable().optional() });
+/** `shareExpiresAt`: when the project's read-only link stops working; absent without one or from older servers. */
+export const projectSummarySchema = z.object({ id: z.uuid(), name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH), status: z.string(), createdAt: z.iso.datetime({ offset: true }), updatedAt: z.iso.datetime({ offset: true }), preview: projectPreviewSchema.nullable().optional(), shareExpiresAt: z.iso.datetime({ offset: true }).nullable().optional() });
 export const projectSchema = projectSummarySchema.extend({ activeSequence: sequence, workspace: workspaceSchema }).refine((project) => {
   const source = project.workspace.source;
   const descriptors = project.workspace.descriptors;

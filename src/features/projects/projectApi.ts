@@ -3,8 +3,8 @@ import { create, toBinary } from '@bufbuild/protobuf';
 import { ApiError, validated } from '../api/apiClient';
 import { callOptions, createRpcClient, rpc } from '../api/rpc';
 import { timestampFromIso } from '../api/timestamps';
-import { DEFAULT_PROJECT_QUERY, PROJECT_PAGE_SIZE } from './config';
-import type { ProjectQuery } from './config';
+import { DEFAULT_PROJECT_QUERY, PROJECT_PAGE_SIZE, PROJECT_SHARE_DEFAULT_DAYS } from './config';
+import type { ProjectQuery, ProjectShareDuration } from './config';
 import { projectListSchema, projectSchema, projectVersionListSchema } from './contracts';
 import type { Project, ProjectVersion, ProjectWrite } from './contracts';
 import { projectDocument, summaryDocument, versionDocument, workspaceMessage } from './rpcMapping';
@@ -57,8 +57,8 @@ export function createProjectApi(baseUrl: string, fetchImplementation?: FetchLik
       return validated(projectSchema, projectDocument(project));
     },
     /** Starts or replaces the read-only link; the token is in this answer only. */
-    createShare: async (id: string, token: string, signal?: AbortSignal): Promise<CreatedShare> => {
-      const response = await rpc(() => client.createProjectShare({ projectId: id }, callOptions(signal, session(token))));
+    createShare: async (id: string, token: string, days: ProjectShareDuration = PROJECT_SHARE_DEFAULT_DAYS, signal?: AbortSignal): Promise<CreatedShare> => {
+      const response = await rpc(() => client.createProjectShare({ projectId: id, durationDays: days }, callOptions(signal, session(token))));
       return validated(createdShareSchema, { token: response.token, share: shareDocument(response.share) });
     },
     /** The current link's dates, never its token; null when there is none. */
