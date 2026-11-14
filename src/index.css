@@ -534,6 +534,7 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .project-card-body { flex: 1; padding: var(--space-lg); }
 .project-card h2 { font-size: var(--font-size-section); padding-inline-end: var(--space-lg); overflow-wrap: anywhere; text-wrap: pretty; margin-block: var(--space-xs); }
 .project-kind, .project-origin { color: var(--text-secondary); font-size: var(--font-size-small); }
+.version-change { font-size: var(--font-size-small); }
 .project-kind { padding-inline-end: var(--space-xl); }
 .project-length { font-size: var(--font-size-small); margin-block-start: var(--space-xs); }
 .project-preview-ribbon { margin-block-start: var(--space-lg); }

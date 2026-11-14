@@ -107,7 +107,10 @@ export function summaryDocument(summary: SummaryMessage | undefined): Record<str
 }
 
 export function versionDocument(version: VersionMessage): Record<string, unknown> {
-  return { id: version.id, savedAt: isoFromTimestamp(version.saveTime), preview: version.preview ? previewDocument(version.preview) : null };
+  return {
+    id: version.id, savedAt: isoFromTimestamp(version.saveTime), preview: version.preview ? previewDocument(version.preview) : null,
+    ...(version.sameSequence === undefined ? {} : { sameSequence: version.sameSequence }),
+  };
 }
 
 export function projectDocument(project: ProjectMessage | undefined): unknown {
