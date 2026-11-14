@@ -4,6 +4,15 @@ import { NAVIGATION_ITEMS, ROUTES } from '../shared/navigation';
 /** With Ctrl (or ⌘ on a Mac) this key opens the palette from any tool. */
 export const PALETTE_KEY = 'k';
 export const PALETTE_ID = 'command-palette';
+/** Key caps for the shortcut beside "Go to…": Command on Apple systems, Control elsewhere. */
+const PALETTE_MODIFIERS = { apple: { cap: '⌘', name: 'Meta' }, other: { cap: 'Ctrl', name: 'Control' } } as const;
+const APPLE_PLATFORM = /Mac|iPhone|iPad|iPod/i;
+/** The shortcut as shown (`label`) and as announced to assistive technology (`aria`, for aria-keyshortcuts). */
+export function paletteShortcut(platform: string): { label: string; aria: string } {
+  const modifier = APPLE_PLATFORM.test(platform) ? PALETTE_MODIFIERS.apple : PALETTE_MODIFIERS.other;
+  const key = PALETTE_KEY.toUpperCase();
+  return { label: `${modifier.cap} ${key}`, aria: `${modifier.name}+${key}` };
+}
 /** Projects offered at once; typing narrows them. */
 export const PALETTE_MAX_PROJECTS = 8;
 /** Every destination of the laboratory, in sidebar order, then the two that sit at its foot. */

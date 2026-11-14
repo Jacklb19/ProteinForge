@@ -5,6 +5,7 @@ import { BrandMark } from '../shared/BrandMark';
 import { Icon } from '../shared/Icon';
 import { NAVIGATION_GROUPS, NAVIGATION_ITEMS, ROUTES } from '../shared/navigation';
 import { SyncStatus } from '../features/projects/ProjectSync';
+import { paletteShortcut } from './paletteEntries';
 
 interface Props {
   /** `rail` is the desktop column; `sheet` is the same content inside the phone menu. */
@@ -35,6 +36,7 @@ export function SidebarContent({ variant, compact = false, onToggle, onClose, on
   const { t } = useTranslation();
   const label = (text: string): React.JSX.Element => <span className={compact ? 'sidebar-label is-tooltip' : 'sidebar-label'}>{text}</span>;
   const groups = NAVIGATION_GROUPS.map(group => ({ ...group, items: NAVIGATION_ITEMS.filter(item => item.group === group.id) }));
+  const shortcut = paletteShortcut(navigator.platform);
 
   return <>
     <div className="sidebar-head">
@@ -45,6 +47,10 @@ export function SidebarContent({ variant, compact = false, onToggle, onClose, on
         </button>
         : <button className="button button-icon" type="button" aria-label={t('shell.closeMenu')} onClick={onClose} data-autofocus><Icon name="close" /></button>}
     </div>
+    {/* On the desktop rail "Go to…" sits at the top, drawn like a field, with its shortcut; the phone menu keeps it in the foot. */}
+    {variant === 'rail' && onPalette && <button className="sidebar-link palette-trigger" type="button" aria-haspopup="dialog" aria-keyshortcuts={shortcut.aria} onClick={onPalette}>
+      <Icon name="search" />{label(t('palette.open'))}<kbd className="palette-shortcut" aria-hidden="true">{shortcut.label}</kbd>
+    </button>}
     <nav className="sidebar-nav" aria-label={t('nav.main')}>
       {groups.map(group => <div className="sidebar-group" key={group.id}>
         <p className="sidebar-group-label" aria-hidden={compact || undefined}>{t(group.labelKey)}</p>
@@ -56,7 +62,7 @@ export function SidebarContent({ variant, compact = false, onToggle, onClose, on
       </div>)}
     </nav>
     <div className="sidebar-foot">
-      {onPalette && <button className="sidebar-link" type="button" aria-haspopup="dialog" onClick={onPalette}><Icon name="search" />{label(t('palette.open'))}</button>}
+      {variant === 'sheet' && onPalette && <button className="sidebar-link" type="button" aria-haspopup="dialog" onClick={onPalette}><Icon name="search" />{label(t('palette.open'))}</button>}
       <NavLink className="sidebar-link" to={ROUTES.guide} onClick={onClose}><Icon name="help" />{label(t('nav.guide'))}</NavLink>
       <SyncStatus compact={compact} onNavigate={onClose} />
       <AccountLink compact={compact} onNavigate={onClose} />

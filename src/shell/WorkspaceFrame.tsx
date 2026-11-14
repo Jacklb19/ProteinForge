@@ -72,10 +72,16 @@ export function WorkspaceFrame(): React.JSX.Element {
           <Link to={ROUTES.home} className="brand" aria-label={t('shell.home')}><BrandMark /><span>{t('app.name')}</span></Link>
           {/* The short form only; the sidebar foot in the menu says the rest and is the one announced. */}
           {syncLabel && <p className="bar-status">{syncLabel}</p>}
-          <button ref={toggle} className="button button-icon" type="button" aria-label={t('shell.openMenu')}
-            aria-expanded={menuOpen} aria-controls={MENU_ID} onClick={() => { setMenuOpen(true); }}>
-            <Icon name="menu" />
-          </button>
+          <div className="bar-actions">
+            {/* One tap to "Go to…" on a phone; the menu keeps its own entry. */}
+            <button className="button button-icon" type="button" aria-label={t('palette.label')} aria-haspopup="dialog" onClick={() => { setPaletteOpen(true); }}>
+              <Icon name="search" />
+            </button>
+            <button ref={toggle} className="button button-icon" type="button" aria-label={t('shell.openMenu')}
+              aria-expanded={menuOpen} aria-controls={MENU_ID} onClick={() => { setMenuOpen(true); }}>
+              <Icon name="menu" />
+            </button>
+          </div>
         </header>
         {menuOpen && <Sheet id={MENU_ID} label={t('shell.menu')} className="workspace-sheet" onClose={closeMenu}>
           <SidebarContent variant="sheet" onClose={closeMenu} onPalette={() => { setMenuOpen(false); setPaletteOpen(true); }} />
