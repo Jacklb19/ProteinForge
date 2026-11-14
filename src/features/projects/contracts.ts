@@ -65,7 +65,8 @@ export const projectSchema = projectSummarySchema.extend({ activeSequence: seque
 });
 export const projectListSchema = z.object({ items: z.array(projectSummarySchema), nextPageToken: z.string().min(1).nullable() });
 /** An earlier content of a project: when it was saved and a compact preview, never the snapshot. */
-export const projectVersionSchema = z.object({ id: z.uuid(), savedAt: z.iso.datetime({ offset: true }), preview: projectPreviewSchema.nullable() });
+/** `sameSequence`: whether its sequence equals the current one, compared in full by the server; absent from older servers. */
+export const projectVersionSchema = z.object({ id: z.uuid(), savedAt: z.iso.datetime({ offset: true }), preview: projectPreviewSchema.nullable(), sameSequence: z.boolean().optional() });
 export const projectVersionListSchema = z.array(projectVersionSchema).max(PROJECT_VERSION_LIMIT);
 export type ProjectVersion = z.infer<typeof projectVersionSchema>;
 export type Project = z.infer<typeof projectSchema>;
