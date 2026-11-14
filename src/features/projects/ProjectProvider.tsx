@@ -11,8 +11,8 @@ import { sha256 } from '../design-lab/zip';
 import type { LiveConnector } from '../live/liveChannel';
 import type { ProjectApi } from './projectApi';
 import type { Project, ProjectSummary } from './contracts';
-import { readCreateIdempotency } from './config';
-import type { ProjectQuery } from './config';
+import { PROJECT_SHARE_DEFAULT_DAYS, readCreateIdempotency } from './config';
+import type { ProjectQuery, ProjectShareDuration } from './config';
 import { ProjectContext } from './projectContext';
 import { captureWorkspace, workspaceInputKey, workspaceVersion } from './snapshot';
 import { isRetryable } from './syncQueue';
@@ -120,6 +120,10 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
     const method = service ? pick(service) : undefined;
     if (!method || !token) throw new ApiError(token ? 'unavailable' : 'session');
     return method(id, token);
+  };
+  /** Keeps the card's "shared until" line in step with a link just started or ended, without listing again. */
+  const shared = (id: string, expiresAt: string | null): void => {
+    setState(value => ({ ...value, items: value.items.map(item => item.id === id ? { ...item, shareExpiresAt: expiresAt } : item) }));
   };
   const value = {
     ...design, ...sync.actions, laboratory, remoteChange,
@@ -251,8 +255,12 @@ export function ProjectProvider({ children, api, live }: { children: ReactNode; 
     }); },
     versions: (id: string) => read(service => service.versions && ((projectId: string, key: string) => watched(service).versions?.(projectId, key) ?? Promise.resolve([])), id),
     share: (id: string) => read(service => service.share, id),
-    createShare: (id: string) => read(service => service.createShare, id),
-    removeShare: async (id: string): Promise<void> => { await read(service => service.removeShare, id); },
+    async createShare(id: string, days: ProjectShareDuration = PROJECT_SHARE_DEFAULT_DAYS) {
+      const created = await read(service => { const create = service.createShare; return create && ((projectId: string, key: string) => create(projectId, key, days)); }, id);
+      shared(id, created.share.expiresAt);
+      return created;
+    },
+    async removeShare(id: string): Promise<void> { await read(service => service.removeShare, id); shared(id, null); },
     restoreVersion(project: ProjectSummary, versionId: string) { return run(async (service, signal) => {
       if (!service.restore) throw new ApiError('unavailable');
       const restored = await service.restore(project.id, versionId, project.updatedAt, token, signal);

@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../i18n';
 import type { ApiError } from '../api/apiClient';
-import { PROJECT_ERROR_KEYS } from './config';
+import { SegmentedControl } from '../../shared/SegmentedControl';
+import { MS_PER_DAY, PROJECT_ERROR_KEYS, PROJECT_SHARE_DEFAULT_DAYS, PROJECT_SHARE_DURATIONS_DAYS } from './config';
+import type { ProjectShareDuration } from './config';
 import type { ProjectSummary } from './contracts';
 import { useProjects } from './projectContext';
 import { shareUrl } from './sharing';
@@ -14,7 +16,7 @@ type View = { kind: 'loading' } | { kind: 'none' } | { kind: 'active'; share: Pr
  * The address is only known when it is created; later the dialog says until when one is active.
  */
 export function ShareDialog({ project, onClose }: { project: ProjectSummary; onClose: () => void }): React.JSX.Element {
-  const { t, formatDate } = useTranslation();
+  const { t, formatDate, formatNumber } = useTranslation();
   const projects = useProjects();
   const dialog = useRef<HTMLDialogElement>(null);
   const field = useRef<HTMLInputElement>(null);
@@ -22,6 +24,9 @@ export function ShareDialog({ project, onClose }: { project: ProjectSummary; onC
   const [working, setWorking] = useState(false);
   const [failure, setFailure] = useState<ApiError | null>(null);
   const [copied, setCopied] = useState(false);
+  const [days, setDays] = useState<ProjectShareDuration>(PROJECT_SHARE_DEFAULT_DAYS);
+  // The date a new link would stop working is counted from when the dialog opened, as a preview.
+  const [openedAt] = useState(Date.now);
   const latest = useRef(projects);
   useLayoutEffect(() => { latest.current = projects; });
   useLayoutEffect(() => {
@@ -44,7 +49,7 @@ export function ShareDialog({ project, onClose }: { project: ProjectSummary; onC
     setWorking(true); setFailure(null); setCopied(false);
     try { setView(await task()); } catch (error) { setFailure(error as ApiError); } finally { setWorking(false); }
   };
-  const create = (): void => { void act(async () => { const created = await latest.current.createShare(project.id); return { kind: 'created', share: created.share, url: shareUrl(created.token) }; }); };
+  const create = (): void => { void act(async () => { const created = await latest.current.createShare(project.id, days); return { kind: 'created', share: created.share, url: shareUrl(created.token) }; }); };
   const remove = (): void => { void act(async () => { await latest.current.removeShare(project.id); return { kind: 'none' }; }); };
   const copy = async (url: string): Promise<void> => {
     try { await navigator.clipboard.writeText(url); setCopied(true); } catch { field.current?.select(); }
@@ -68,6 +73,11 @@ export function ShareDialog({ project, onClose }: { project: ProjectSummary; onC
           </div>
           <p id="share-once" className="field-help">{t('share.once', { date: until(view.share) })}</p>
           <p className="status-message" data-state={copied ? 'success' : undefined} role="status">{copied ? t('share.copied') : ''}</p>
+        </div>}
+        {view.kind !== 'loading' && <div className="field share-duration">
+          <SegmentedControl legend={t('share.duration')} describedBy="share-until" value={days} onChange={setDays}
+            options={PROJECT_SHARE_DURATIONS_DAYS.map(count => ({ value: count, label: count === 1 ? t('share.dayOne') : t('share.days', { count: formatNumber(count) }) }))} />
+          <p id="share-until" className="field-help">{t('share.until', { date: formatDate(new Date(openedAt + days * MS_PER_DAY), { dateStyle: 'long', timeStyle: 'short' }) })}</p>
         </div>}
         {failure && <p className="status-message" data-state="error" role="alert">{t(PROJECT_ERROR_KEYS[failure.code])}</p>}
         <div className="actions">
