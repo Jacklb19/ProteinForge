@@ -113,6 +113,11 @@
 .sidebar-link:hover { background: var(--bg-subtle); color: var(--text-primary); }
 .sidebar-link[aria-current='page'] { background: var(--bg-selected); color: var(--text-primary); font-weight: var(--font-weight-strong); }
 .sidebar-label { min-width: var(--space-none); overflow-wrap: anywhere; }
+/* "Go to…" under the rail head, drawn like a field, with its shortcut at the end (3A). */
+.palette-trigger { margin-block-end: var(--space-md); border: var(--border-width) solid var(--border-strong); background: var(--bg-raised); }
+.palette-shortcut { margin-inline-start: auto; color: var(--text-secondary); font-family: inherit; font-size: var(--font-size-note); white-space: nowrap; }
+.workspace[data-compact='true'] .palette-shortcut { display: none; }
+.bar-actions { display: flex; align-items: center; gap: var(--space-3xs); }
 .sidebar-foot { display: grid; gap: var(--space-2xs); padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
 /* Saves waiting for the connection (RF-15 A): one status line beside the account, and its short form in the phone bar. */
 .sync-status { display: grid; gap: var(--space-3xs); padding: var(--space-2xs) var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-note); }
