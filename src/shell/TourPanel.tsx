@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
+import { KEEP_FOCUS_ATTRIBUTE } from '../shared/navigation';
 import { TOUR_STOPS } from './tour';
 
 /**
@@ -21,7 +22,7 @@ export function TourPanel({ stop, onStop, onEnd }: { stop: number; onStop: (stop
   if (!current) return null;
   const last = stop === TOUR_STOPS.length - 1;
   return (
-    <aside className="tour-panel" aria-labelledby="tour-title">
+    <aside className="tour-panel" aria-labelledby="tour-title" {...{ [KEEP_FOCUS_ATTRIBUTE]: '' }}>
       <div className="tour-text">
         <p className="field-meta">{t('tour.progress', { current: formatNumber(stop + 1), total: formatNumber(TOUR_STOPS.length) })}</p>
         <h2 id="tour-title" ref={title} tabIndex={-1}>{t(current.titleKey)}</h2>

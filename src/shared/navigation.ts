@@ -25,6 +25,12 @@ export const ROUTES = {
   settings: '/settings',
 } as const;
 
+/**
+ * Marks a region that moves the focus itself when it changes the route, such as the guided visit: the
+ * route change then leaves the focus where that region put it instead of moving it to the page content.
+ */
+export const KEEP_FOCUS_ATTRIBUTE = 'data-keep-focus';
+
 /** Name each page gives the browser tab, ahead of the application name; the home page keeps the full title. */
 export const PAGE_TITLES: Readonly<Record<string, TranslationKey>> = {
   [ROUTES.analyze]: 'nav.analyze',
