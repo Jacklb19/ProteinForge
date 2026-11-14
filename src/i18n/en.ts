@@ -645,6 +645,7 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'projects.cancelled': 'Operation canceled.',
   'projects.session': 'Your session expired. Sign in again; your work is still here.',
   'projects.rateLimit': 'Too many queries in a row. Wait a moment and try again.',
+  'projects.quota': 'You have reached the maximum number of projects per account. Delete one you no longer need to save this one as new; existing projects can still be edited.',
   'projects.unavailable': 'Saving is not available right now. Your work stays in this visit.',
   'projects.invalidResponse': 'That project could not be read. Your current work was not replaced.',
   'projects.error': 'The operation could not be completed. Your draft is kept.',

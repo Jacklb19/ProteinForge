@@ -643,6 +643,7 @@ export const spanish = {
   'projects.cancelled': 'Operación cancelada.',
   'projects.session': 'Tu sesión caducó. Inicia sesión de nuevo; tu trabajo sigue aquí.',
   'projects.rateLimit': 'Demasiadas consultas seguidas. Espera un momento y vuelve a intentarlo.',
+  'projects.quota': 'Alcanzaste el máximo de proyectos por cuenta. Elimina uno que no necesites para guardar este como nuevo; los existentes se pueden seguir editando.',
   'projects.unavailable': 'El guardado no está disponible ahora. Tu trabajo sigue en esta visita.',
   'projects.invalidResponse': 'No se pudo leer ese proyecto. Tu trabajo actual no se reemplazó.',
   'projects.error': 'No se pudo completar la operación. Tu borrador se conserva.',

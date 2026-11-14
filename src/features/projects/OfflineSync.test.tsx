@@ -279,4 +279,15 @@ describe('review fixes', () => {
     await waitFor(() => { expect(state().pending).toEqual([expect.objectContaining({ state: 'failed', error: 'network' })]); });
     expect(api.save).toHaveBeenCalledTimes(1);
   });
+  it('shows the project quota where saves report errors and never queues it for a retry', async () => {
+    const api = service();
+    vi.mocked(api.save).mockRejectedValue(new ApiError('project-quota'));
+    await ready(api, false);
+    fireEvent.change(screen.getByLabelText('sequence'), { target: { value: 'ACDE' } });
+    fireEvent.click(screen.getByRole('button', { name: 'save' }));
+    await waitFor(() => { expect(state().error).toBe('project-quota'); });
+    expect(state().pending).toEqual([]);
+    later(SYNC_RETRY_DELAYS_MS[0]);
+    expect(api.save).toHaveBeenCalledTimes(1);
+  });
 });
