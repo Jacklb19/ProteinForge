@@ -28,6 +28,8 @@
 .explore-current h4:focus-visible { outline-offset: var(--space-xs); }
 .explore-residues { font-family: var(--font-sequence); overflow-wrap: anywhere; }
 .explore-picked { padding: var(--space-md); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-surface); }
+.explore-trial { display: grid; gap: var(--space-sm); min-width: 0; }
+.explore-trial .mutation-preview { margin-block-start: var(--space-none); }
 .explore-actions { align-items: center; flex-wrap: wrap; padding-block-start: var(--space-md); border-block-start: var(--border-width) solid var(--border-subtle); }
 
 @media (min-width: 64rem) {

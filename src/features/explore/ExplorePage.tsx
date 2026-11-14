@@ -10,7 +10,10 @@ import { readApiBaseUrl } from '../api/config';
 import { useAuth } from '../auth/authContext';
 import { ChemistryLegend } from '../chemistry/ChemistryLegend';
 import { RESIDUE_NAMES } from '../chemistry/config';
+import { MutationPreview } from '../descriptors/MutationPreview';
+import { useDescriptors } from '../descriptors/useDescriptors';
 import { useSequenceDraft } from '../editor/sequenceDraft';
+import type { SequenceSource } from '../editor/source';
 import { REFERENCE_CATALOG } from '../library/catalog';
 import { UNIPROT_QUERY_MAX_LENGTH, UNIPROT_URL } from '../library/config';
 import { createLibraryApi } from '../library/libraryApi';
@@ -18,7 +21,7 @@ import type { EntrySummary, UniProtEntry } from '../library/libraryApi';
 import type { ModelProblem } from './alphafold';
 import {
   ALPHAFOLD_ENTRY_URL, CONFIDENCE_BANDS, EXPLORE_DEFAULT_ACCESSION, EXPLORE_PARAM, FOCUS_STICKS_MAX_RESIDUES,
-  STOP_GROUP_LABEL_KEYS, STOP_KIND_LABEL_KEYS, STOP_KIND_MEANING_KEYS,
+  STOP_GROUP_LABEL_KEYS, STOP_GROUP_OF, STOP_KIND_LABEL_KEYS, STOP_KIND_MEANING_KEYS,
 } from './config';
 import { groupStops, stopPositions, stopSize, stopsAt, stopsFrom } from './stops';
 import type { Stop } from './stops';
@@ -54,6 +57,8 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
   const stop = ordered.find(item => item.id === current.stop) ?? null;
   const stopIndex = stop ? ordered.indexOf(stop) : -1;
   const heading = useRef<HTMLHeadingElement>(null);
+  // A substitution is tried on one residue: the one picked on the model, or the one a single-residue stop marks.
+  const trial = current.picked ?? (stop && stop.begin === stop.end ? stop.begin : null);
 
   function open(next: string): void { setParameters({ [EXPLORE_PARAM]: next }); }
   function visit(next: Stop | null): void {
@@ -117,6 +122,7 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
                 </p>
               </>}
               {current.picked !== null && <PickedResidue position={current.picked} entry={entry} stops={stopsAt(ordered, current.picked)} onVisit={visit} />}
+              {trial !== null && <ResidueTrial key={`${accession}-${String(trial)}`} position={trial} entry={entry} stops={stopsAt(ordered, trial)} />}
             </div>
 
             <div className="explore-reading">
@@ -222,31 +228,57 @@ function PickedResidue({ position, entry, stops, onVisit }: { position: number; 
   );
 }
 
-/** Where the protein on screen can be taken next, and the public records behind it. */
-function ProteinActions({ entry, hasModel }: { entry: UniProtEntry; hasModel: boolean }): React.JSX.Element {
+/** Takes a sequence to the analysis, asking first when that replaces a different one being analysed. */
+function useAnalysis(): { open: (sequence: string, source: SequenceSource | null) => void; confirmation: React.JSX.Element | null } {
   const { t } = useTranslation();
   const draft = useSequenceDraft(); const navigate = useNavigate();
-  const [confirming, setConfirming] = useState(false);
-  function analyze(): void {
-    draft.setText(entry.sequence);
-    draft.setSource({ origin: 'uniprot', accession: entry.accession, sequence: entry.sequence, entryVersion: entry.entryVersion, sequenceVersion: entry.sequenceVersion, retrievedAt: entry.retrievedAt });
-    draft.setReferenceView(null);
+  const [pending, setPending] = useState<{ sequence: string; source: SequenceSource | null } | null>(null);
+  function load(sequence: string, source: SequenceSource | null): void {
+    draft.setText(sequence); draft.setSource(source); draft.setReferenceView(null);
     void navigate(ROUTES.analyze);
   }
-  return <>
-    {/* Analysing this protein replaces the sequence being analysed, so it is confirmed first. */}
-    {confirming && (
+  return {
+    open: (sequence, source) => { if (draft.text && draft.text !== sequence) setPending({ sequence, source }); else load(sequence, source); },
+    confirmation: pending && (
       <section className="project-confirm" aria-label={t('library.replaceTitle')}>
         <h3>{t('library.replaceTitle')}</h3>
         <p>{t('library.replaceHelp')}</p>
         <div className="actions">
-          <button type="button" className="button button-secondary" onClick={() => { setConfirming(false); }}>{t('projects.cancel')}</button>
-          <button type="button" className="button button-primary" onClick={analyze}>{t('library.confirmLoad')}</button>
+          <button type="button" className="button button-secondary" onClick={() => { setPending(null); }}>{t('projects.cancel')}</button>
+          <button type="button" className="button button-primary" onClick={() => { load(pending.sequence, pending.source); }}>{t('library.confirmLoad')}</button>
         </div>
       </section>
-    )}
+    ),
+  };
+}
+
+/** What replacing one residue would do to the calculated properties, with what is annotated at that position. */
+function ResidueTrial({ position, entry, stops }: { position: number; entry: UniProtEntry; stops: readonly Stop[] }): React.JSX.Element {
+  const { t, formatNumber } = useTranslation();
+  const base = useDescriptors(entry.sequence);
+  const analysis = useAnalysis();
+  const annotated = stops.filter(stop => STOP_GROUP_OF[stop.kind] === 'function' || STOP_GROUP_OF[stop.kind] === 'chemistry');
+  const variants = stops.filter(stop => stop.kind === 'variant' && stop.description);
+  return (
+    <div className="explore-trial">
+      <MutationPreview sequence={entry.sequence} selected={position} base={base} applyKey="explore.trialApply" onApply={(sequence) => { analysis.open(sequence, null); }} />
+      <p className="field-help">{t('explore.trialHelp')}</p>
+      {annotated.length > 0 && <p className="notice">{t('explore.trialAnnotated', { stops: annotated.map(stop => `${t(STOP_KIND_LABEL_KEYS[stop.kind])} (${placeOf(stop, t, formatNumber)})`).join(', ') })}</p>}
+      {variants.length > 0 && <p className="field-help">{t('explore.trialVariants', { variants: variants.map(stop => stop.description).join('; ') })}</p>}
+      {analysis.confirmation}
+    </div>
+  );
+}
+
+/** Where the protein on screen can be taken next, and the public records behind it. */
+function ProteinActions({ entry, hasModel }: { entry: UniProtEntry; hasModel: boolean }): React.JSX.Element {
+  const { t } = useTranslation();
+  const analysis = useAnalysis();
+  const source: SequenceSource = { origin: 'uniprot', accession: entry.accession, sequence: entry.sequence, entryVersion: entry.entryVersion, sequenceVersion: entry.sequenceVersion, retrievedAt: entry.retrievedAt };
+  return <>
+    {analysis.confirmation}
     <div className="actions explore-actions">
-      <button type="button" className="button button-secondary" onClick={() => { if (draft.text && draft.text !== entry.sequence) setConfirming(true); else analyze(); }}>{t('explore.analyze')}</button>
+      <button type="button" className="button button-secondary" onClick={() => { analysis.open(entry.sequence, source); }}>{t('explore.analyze')}</button>
       <a className="inline-link" href={`${UNIPROT_URL}${entry.accession}`}>{t('library.source')}</a>
       {hasModel && <a className="inline-link" href={`${ALPHAFOLD_ENTRY_URL}${entry.accession}`}>{t('explore.alphafoldSource')}</a>}
       {entry.structures.length > 0 && <Link className="inline-link" to={ROUTES.library}>{t('explore.measured')}</Link>}

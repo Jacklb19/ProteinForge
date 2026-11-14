@@ -1445,4 +1445,8 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'explore.alphafoldSource': 'See the model in AlphaFold DB',
   'explore.measured': 'See its measured structures in Library',
   'library.explore': 'Explore in 3D',
+  'explore.trialApply': 'Analyse the variant',
+  'explore.trialAnnotated': 'This residue belongs to: {{stops}}. Changing it may alter what that part does.',
+  'explore.trialVariants': 'UniProt records these natural variants here: {{variants}}.',
+  'explore.trialHelp': 'Choose another residue to see how the calculated properties of the chain would change. The three-dimensional model is not recalculated.',
 };

@@ -91,6 +91,12 @@ test('a protein opens with its predicted model and a tour that explains each sto
   await expect(reading(page)).toContainText(message('explore.tourProgress', { index: '1', total: '13' }));
   await expect(reading(page)).toContainText(message('explore.residue', { name: 'Glu', position: '53' }));
   await expect(reading(page)).toContainText(spanish['explore.meansActiveSite']);
+  // A stop of one residue offers to try a substitution, with the properties before and after.
+  const trial = page.locator('.explore-trial');
+  await expect(trial.getByRole('heading', { name: spanish['mutation.title'] })).toBeVisible();
+  await trial.getByLabel(message('mutation.replace', { residue: 'Glu', position: '53' })).selectOption('Q');
+  await expect(trial.getByRole('table')).toContainText(message('mutation.caption', { from: 'E', position: '53', to: 'Q' }));
+  await expect(trial).toContainText(message('explore.trialAnnotated', { stops: `${spanish['explore.kindActiveSite']} (${message('explore.single', { begin: '53' })})` }));
   await reading(page).getByRole('button', { name: spanish['explore.tourNext'] }).click();
   await expect(reading(page)).toContainText(message('explore.residue', { name: 'Asp', position: '70' }));
 

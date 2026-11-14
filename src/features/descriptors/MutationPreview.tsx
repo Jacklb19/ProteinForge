@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { useTranslation } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 import { RESIDUE_NAMES } from '../chemistry/config';
 import { DESCRIPTOR_FIELDS } from './config';
 import type { Descriptors } from './descriptors';
@@ -36,7 +37,7 @@ export function MutationFigures({ caption, current, next }: { caption: string; c
  * Under the sequence reader: what replacing the selected residue would do to the calculated properties,
  * before touching the draft. The second calculation runs in its own Worker, like the first.
  */
-export function MutationPreview({ sequence, selected, base, onApply }: { sequence: string; selected: number | null; base: DescriptorState; onApply: (sequence: string) => void }): React.JSX.Element {
+export function MutationPreview({ sequence, selected, base, onApply, applyKey = 'mutation.apply' }: { sequence: string; selected: number | null; base: DescriptorState; onApply: (sequence: string) => void; /** Names what applying does where the result does not go to a draft. */ applyKey?: TranslationKey }): React.JSX.Element {
   const { t, formatNumber } = useTranslation();
   const id = useId();
   const residue = selected === null ? '' : sequence[selected - 1] ?? '';
@@ -57,7 +58,7 @@ export function MutationPreview({ sequence, selected, base, onApply }: { sequenc
             {RESIDUES.filter(letter => letter !== residue).map(letter => <option key={letter} value={letter}>{letter} · {RESIDUE_NAMES[letter]}</option>)}
           </select>
         </label>
-        <button type="button" className="button button-secondary" onClick={() => { onApply(mutated); }}>{t('mutation.apply')}</button>
+        <button type="button" className="button button-secondary" onClick={() => { onApply(mutated); }}>{t(applyKey)}</button>
       </div>
       {before && after
         ? <MutationFigures caption={t('mutation.caption', { from: residue, position: formatNumber(selected), to: replacement })} current={before} next={after} />

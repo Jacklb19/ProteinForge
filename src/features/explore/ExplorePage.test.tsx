@@ -94,6 +94,24 @@ it('names a residue picked on the model and the stops it belongs to', async () =
   expect(screen.queryByText(spanish['explore.pickedNone'])).not.toBeInTheDocument();
 });
 
+it('tries a substitution on the residue of a stop, says what is annotated there and takes the variant to the analysis', async () => {
+  const user = userEvent.setup();
+  renderPage({ entry: () => Promise.resolve(entry), model: () => Promise.resolve(model) });
+  await screen.findByTestId('model');
+  // A whole domain is not one residue: nothing to substitute until a single one is on screen.
+  expect(screen.queryByRole('heading', { name: spanish['mutation.title'] })).not.toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: spanish['explore.tourStart'] }));
+  expect(screen.getByRole('heading', { name: spanish['mutation.title'] })).toBeVisible();
+  expect(screen.getByLabelText(text('mutation.replace', { residue: 'Glu', position: '7' }))).toBeVisible();
+  expect(screen.getByText(text('explore.trialAnnotated', { stops: `${spanish['explore.kindActiveSite']} (${text('explore.single', { begin: '7' })})` }))).toBeVisible();
+  expect(screen.getByText(text('explore.trialVariants', { variants: 'E > Q' }))).toBeVisible();
+  await user.selectOptions(screen.getByLabelText(text('mutation.replace', { residue: 'Glu', position: '7' })), 'Q');
+  await user.click(screen.getByRole('button', { name: spanish['explore.trialApply'] }));
+  // The variant is a sequence of its own: it no longer carries the reference's provenance.
+  expect(await screen.findByTestId('draft')).toHaveTextContent(`${entry.sequence.slice(0, 6)}Q${entry.sequence.slice(7)}|`);
+  expect(screen.getByTestId('draft')).not.toHaveTextContent('P00698');
+});
+
 it('keeps the tour as text when there is no model, and opens the protein named in the address', async () => {
   const user = userEvent.setup();
   const loadEntry = vi.fn().mockResolvedValue({ ...entry, accession: 'P01308' });

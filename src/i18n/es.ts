@@ -1443,4 +1443,8 @@ export const spanish = {
   'explore.alphafoldSource': 'Ver el modelo en AlphaFold DB',
   'explore.measured': 'Ver sus estructuras medidas en Biblioteca',
   'library.explore': 'Explorar en 3D',
+  'explore.trialApply': 'Analizar la variante',
+  'explore.trialAnnotated': 'Este residuo pertenece a: {{stops}}. Cambiarlo puede alterar lo que esa parte hace.',
+  'explore.trialVariants': 'UniProt registra aquí estas variantes naturales: {{variants}}.',
+  'explore.trialHelp': 'Elige otro residuo para ver cómo cambiarían las propiedades calculadas de la cadena. El modelo tridimensional no se recalcula.',
 } as const;
