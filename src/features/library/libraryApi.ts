@@ -11,11 +11,16 @@ import type { ResidueMappingRequest } from './mappingTypes';
 
 export const entrySummarySchema = z.object({ accession: z.string().regex(/^[A-Z0-9]{6,10}$/), name: z.string().min(1).max(2000), organism: z.string().min(1).max(500), length: z.number().int().positive().max(100_000), reviewed: z.boolean() });
 export const pdbReferenceSchema = z.object({ id: z.string().regex(/^[0-9][A-Z0-9]{3}$/), method: z.string(), resolution: z.string().nullable(), chains: z.string().nullable() });
-export const entrySchema = entrySummarySchema.extend({ sequence: z.string().max(100_000).regex(/^[ACDEFGHIKLMNPQRSTVWYUOBZX]+$/), entryVersion: z.number().int().positive(), sequenceVersion: z.number().int().positive(), retrievedAt: z.iso.datetime({ offset: true }), function: z.string().nullable(), structures: z.array(pdbReferenceSchema) }).refine((entry) => entry.sequence.length === entry.length);
+/** A positional annotation in sequence numbering; the kind is a slug the reference service documents. */
+export const featureSchema = z.object({ kind: z.string().regex(/^[a-z]+(?:-[a-z]+)*$/).max(32), description: z.string().max(400), begin: z.number().int().positive().max(100_000), end: z.number().int().positive().max(100_000), paired: z.boolean() });
+/** Most annotations one entry carries; the service keeps the same bound. */
+export const MAX_ENTRY_FEATURES = 300;
+export const entrySchema = entrySummarySchema.extend({ sequence: z.string().max(100_000).regex(/^[ACDEFGHIKLMNPQRSTVWYUOBZX]+$/), entryVersion: z.number().int().positive(), sequenceVersion: z.number().int().positive(), retrievedAt: z.iso.datetime({ offset: true }), function: z.string().nullable(), structures: z.array(pdbReferenceSchema), features: z.array(featureSchema).max(MAX_ENTRY_FEATURES).default([]), featuresTruncated: z.boolean().default(false) }).refine((entry) => entry.sequence.length === entry.length);
 export const searchSchema = z.object({ items: z.array(entrySummarySchema).max(10), limit: z.number().int().positive(), truncated: z.boolean(), retrievedAt: z.iso.datetime({ offset: true }) });
 export type EntrySummary = z.infer<typeof entrySummarySchema>;
 export type UniProtEntry = z.infer<typeof entrySchema>;
 export type PdbReference = z.infer<typeof pdbReferenceSchema>;
+export type EntryFeature = z.infer<typeof featureSchema>;
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -64,6 +69,8 @@ export function createLibraryApi(baseUrl: string, fetchImplementation?: FetchLik
         ...summaryDocument(entry?.summary), sequence: entry?.sequence, entryVersion: entry?.entryVersion, sequenceVersion: entry?.sequenceVersion,
         retrievedAt: isoFromTimestamp(entry?.retrieveTime), function: entry?.function ?? null,
         structures: entry?.structures.map((item) => ({ id: item.id, method: item.method, resolution: item.resolution ?? null, chains: item.chains ?? null })),
+        features: entry?.features.map((item) => ({ kind: item.kind, description: item.description, begin: item.begin, end: item.end, paired: item.paired })),
+        featuresTruncated: entry?.featuresTruncated,
       });
       if (parsed.accession !== accession) throw new ApiError('invalid-response');
       return parsed;

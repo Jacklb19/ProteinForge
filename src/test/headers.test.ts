@@ -17,6 +17,7 @@ describe('deployed application headers', () => {
     expect(csp).toMatch(/script-src[^;]*'wasm-unsafe-eval'/);
     expect(csp).toMatch(/worker-src 'self' blob:/);
     expect(csp).toMatch(/connect-src[^;]*https:\/\/models\.rcsb\.org/);
+    expect(csp).toMatch(/connect-src[^;]*https:\/\/alphafold\.ebi\.ac\.uk/);
   });
 
   // Nothing inline and nothing from elsewhere: a preload hint chosen while the page loads has to

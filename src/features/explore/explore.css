@@ -1,0 +1,36 @@
+.explore-page { display: grid; gap: var(--space-md); }
+.explore-identity { display: grid; gap: var(--space-xs); }
+.explore-identity h2 { overflow-wrap: anywhere; }
+.explore-identity .field-meta { font-family: var(--font-sequence); }
+.explore-layout { display: grid; gap: var(--space-xl); min-width: 0; }
+.explore-layout > * { min-width: 0; }
+.explore-stage, .explore-reading, .explore-tour, .explore-group, .explore-picked { display: grid; gap: var(--space-md); align-content: start; }
+.explore-reading section { display: grid; gap: var(--space-sm); }
+.explore-reading .entry-annotation p:last-child { overflow-wrap: anywhere; }
+.explore-suggested { display: grid; gap: var(--space-xs); }
+.explore-suggested ul, .explore-stops { list-style: none; padding: var(--space-none); }
+.explore-suggested ul { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.explore-suggested .button[aria-pressed='true'] { border-color: var(--text-primary); font-weight: var(--font-weight-strong); }
+.explore-stops { display: grid; }
+.explore-stop {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-none) var(--space-md); align-items: baseline;
+  width: var(--width-full); min-height: var(--size-touch); padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid transparent; border-block-end-color: var(--border-subtle);
+  background: none; color: inherit; font: inherit; text-align: start; cursor: pointer;
+}
+.explore-stop:hover { background: var(--bg-subtle); }
+.explore-stop[aria-pressed='true'] { border-color: var(--text-primary); background: var(--bg-subtle); }
+.explore-stop-kind { font-weight: var(--font-weight-strong); }
+.explore-stop-place { font-family: var(--font-sequence); font-size: var(--font-size-small); color: var(--text-secondary); }
+.explore-stop-note { grid-column: 1 / -1; font-size: var(--font-size-small); color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Stops differ in length; the model below keeps its place while they change. */
+.explore-current { min-height: var(--height-stage-rail); align-content: start; }
+.explore-current h4:focus-visible { outline-offset: var(--space-xs); }
+.explore-residues { font-family: var(--font-sequence); overflow-wrap: anywhere; }
+.explore-picked { padding: var(--space-md); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-surface); }
+.explore-actions { align-items: center; flex-wrap: wrap; padding-block-start: var(--space-md); border-block-start: var(--border-width) solid var(--border-subtle); }
+
+@media (min-width: 64rem) {
+  .explore-layout { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  .explore-stage { position: sticky; inset-block-start: var(--space-lg); }
+}

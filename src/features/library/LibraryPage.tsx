@@ -23,6 +23,7 @@ import type { MappingLoader } from './mappingTypes';
 import { ViewTabs } from '../../shared/ViewTabs';
 import { DomainsPanel } from '../domains/DomainsPanel';
 import { OPEN_PROJECT_STATE } from '../editor/config';
+import { EXPLORE_PARAM } from '../explore/config';
 
 const INSULIN_ACCESSION = 'P01308';
 const INSULIN_STRUCTURE: PdbReference = { id: '1TRZ', method: 'X-ray', resolution: '1.60 Å', chains: 'A/C=90-110, B/D=25-54' };
@@ -205,6 +206,7 @@ export function LibraryPage({ mappingLoader }: { mappingLoader?: MappingLoader |
             )}
             <div className="actions">
               <a className="inline-link" href={`${UNIPROT_URL}${entry.accession}`}>{t('library.source')}</a>
+              <Link className="button button-secondary" to={`${ROUTES.explore}?${EXPLORE_PARAM}=${entry.accession}`}>{t('library.explore')}</Link>
               <button
                 type="button" className="button button-primary"
                 onClick={() => { choose({ origin: 'uniprot', accession: entry.accession, sequence: entry.sequence, entryVersion: entry.entryVersion, sequenceVersion: entry.sequenceVersion, retrievedAt: entry.retrievedAt }); }}
