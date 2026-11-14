@@ -13,7 +13,7 @@ import { LabProvider } from './features/design-lab/LabProvider';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { PreferencesProvider } from './preferences/PreferencesProvider';
 import { NotFoundPage } from './shared/NotFoundPage';
-import { PAGE_TITLES, REDIRECTS, ROUTES } from './shared/navigation';
+import { KEEP_FOCUS_ATTRIBUTE, PAGE_TITLES, REDIRECTS, ROUTES } from './shared/navigation';
 import { useTranslation } from './i18n';
 import { PublicFrame } from './shell/PublicFrame';
 import { WorkspaceFrame } from './shell/WorkspaceFrame';
@@ -63,6 +63,8 @@ function ApplicationRoutes(): React.JSX.Element {
     }
     if (!changedPath) return;
     window.scrollTo(0, 0);
+    // Parents run their effects after their children, so this would undo a focus the region just set.
+    if (document.activeElement?.closest(`[${KEEP_FOCUS_ATTRIBUTE}]`)) return;
     document.getElementById('app-content')?.focus({ preventScroll: true });
   }, [location.pathname, location.hash]);
 
