@@ -9,6 +9,11 @@ export const PROJECT_PREVIEW_RESIDUES = 40;
 export const PROJECT_VERSION_LIMIT = 5;
 /** A link's token: 43 URL-safe characters (PROJECT_SHARE_TOKEN_PATTERN in the backend). */
 export const PROJECT_SHARE_TOKEN_PATTERN = /[A-Za-z0-9_-]{43}/;
+/** Days a new link may last, and the one chosen first (PROJECT_SHARE_DURATIONS_DAYS in the backend). */
+export const PROJECT_SHARE_DURATIONS_DAYS = [1, 7, 30] as const;
+export type ProjectShareDuration = typeof PROJECT_SHARE_DURATIONS_DAYS[number];
+export const PROJECT_SHARE_DEFAULT_DAYS: ProjectShareDuration = 7;
+export const MS_PER_DAY = 86_400_000;
 /** The shared sequence reads in lines of sixty residues, in blocks of ten. */
 export const SHARED_SEQUENCE_LINE = 60;
 export const SHARED_SEQUENCE_BLOCK = 10;
@@ -30,6 +35,7 @@ export const PROJECT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
   'draft-changed': 'projects.draftChanged',
   'laboratory-size':'lab.projectSize', 'rate-limit': 'projects.rateLimit',
   'generator-history-size': 'generator.historySize', 'requires-current-client': 'projects.requiresCurrentClient',
+  'project-quota': 'projects.quota',
   network: 'projects.network', timeout: 'projects.timeout', cancelled: 'projects.cancelled', session: 'projects.session',
   unavailable: 'projects.unavailable', 'invalid-response': 'projects.invalidResponse', unknown: 'projects.error',
   conflict: 'projects.conflict', 'not-found': 'projects.notFound', validation: 'projects.validation', schema: 'projects.schema', forbidden: 'projects.forbidden',

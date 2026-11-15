@@ -5,7 +5,7 @@ version: v2
 clean: true
 inputs:
   - git_repo: https://github.com/Jacklb19/Protein_Back.git
-    ref: 510ee591846f0d44a823f55f953f613ca51a40df
+    ref: 58f61dcc01916528c646b179f8b2bd56e4569395
     subdir: proto
 plugins:
   - local: protoc-gen-es

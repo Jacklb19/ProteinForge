@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import type { PluginContext } from 'molstar/lib/mol-plugin/context';
 import { useTranslation } from '../../i18n';
 import { useThemeRevision } from '../../theme/useThemeRevision';
-import { CAMERA_ROTATION_RADIANS, CAMERA_ZOOM_FACTOR, MAX_STRUCTURE_BYTES, STRUCTURE_CHAIN_COLOR_TOKENS, STRUCTURE_DOWNLOAD_URL, STRUCTURE_TIMEOUT_MS } from './config';
+import { rotateCamera, zoomCamera } from './camera';
+import { MAX_STRUCTURE_BYTES, STRUCTURE_CHAIN_COLOR_TOKENS, STRUCTURE_DOWNLOAD_URL, STRUCTURE_TIMEOUT_MS } from './config';
 import type { CoordinateResidue } from './residueMapping';
 import type { indexStructureResidues } from './structureResidues';
 
@@ -138,21 +139,8 @@ export default function StructureViewer({ pdbId, placeholder, residueSelection }
     });
   }, [themeRevision]);
 
-  function rotate(direction: number): void {
-    const camera = plugin.current?.canvas3d?.camera;
-    if (!camera) return;
-    const snapshot = camera.getSnapshot();
-    const angle = CAMERA_ROTATION_RADIANS * direction;
-    const targetX = snapshot.target[0] ?? 0; const targetZ = snapshot.target[2] ?? 0;
-    const x = (snapshot.position[0] ?? 0) - targetX; const z = (snapshot.position[2] ?? 0) - targetZ;
-    snapshot.position[0] = targetX + x * Math.cos(angle) - z * Math.sin(angle);
-    snapshot.position[2] = targetZ + x * Math.sin(angle) + z * Math.cos(angle);
-    camera.setState({ position: snapshot.position }, 0);
-  }
-  function zoom(inward: boolean): void {
-    const camera = plugin.current?.canvas3d?.camera;
-    if (camera) camera.setState({ radius: Math.max(0.1, camera.getSnapshot().radius * (inward ? CAMERA_ZOOM_FACTOR : 1 / CAMERA_ZOOM_FACTOR)) }, 0);
-  }
+  function rotate(direction: number): void { rotateCamera(plugin.current, direction); }
+  function zoom(inward: boolean): void { zoomCamera(plugin.current, inward); }
   const covered = placeholder !== undefined && state !== 'ready';
   return <div className="structure-viewer">
     <div className="structure-frame">{covered && placeholder}<div className="structure-canvas" data-ready={!covered} ref={container} role="img" tabIndex={0} aria-label={t('library.viewerLabel', { id: pdbId })} aria-describedby="structure-instructions" onKeyDown={(event) => {

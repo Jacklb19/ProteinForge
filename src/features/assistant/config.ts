@@ -22,6 +22,7 @@ export const ASSISTANT_ERROR_KEYS: Record<ApiErrorCode, TranslationKey> = {
   conflict: 'assistant.error', 'not-found': 'assistant.error', schema: 'assistant.unavailable',
   forbidden: 'assistant.session', 'laboratory-size': 'assistant.validation', 'draft-changed': 'assistant.error',
   'generator-history-size': 'assistant.validation', 'requires-current-client': 'assistant.error',
+  'project-quota': 'assistant.error',
 };
 /** Response header with the readings the account may still ask for this minute; absent when the API sets no budget. */
 export const ASSISTANT_REMAINING_HEADER = 'X-Assistant-Remaining';

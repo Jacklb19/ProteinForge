@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proteinforge/reference/v1/reference_service.proto.
  */
 export const file_proteinforge_reference_v1_reference_service: GenFile = /*@__PURE__*/
-  fileDesc("CjFwcm90ZWluZm9yZ2UvcmVmZXJlbmNlL3YxL3JlZmVyZW5jZV9zZXJ2aWNlLnByb3RvEhlwcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxImMKDEVudHJ5U3VtbWFyeRIRCglhY2Nlc3Npb24YASABKAkSDAoEbmFtZRgCIAEoCRIQCghvcmdhbmlzbRgDIAEoCRIQCghyZXZpZXdlZBgEIAEoCBIOCgZsZW5ndGgYBSABKAUicgoMUGRiUmVmZXJlbmNlEgoKAmlkGAEgASgJEg4KBm1ldGhvZBgCIAEoCRIXCgpyZXNvbHV0aW9uGAMgASgJSACIAQESEwoGY2hhaW5zGAQgASgJSAGIAQFCDQoLX3Jlc29sdXRpb25CCQoHX2NoYWlucyKYAgoFRW50cnkSOAoHc3VtbWFyeRgBIAEoCzInLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuRW50cnlTdW1tYXJ5EhAKCHNlcXVlbmNlGAIgASgJEhUKDWVudHJ5X3ZlcnNpb24YAyABKAUSGAoQc2VxdWVuY2VfdmVyc2lvbhgEIAEoBRIxCg1yZXRyaWV2ZV90aW1lGAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIVCghmdW5jdGlvbhgGIAEoCUgAiAEBEjsKCnN0cnVjdHVyZXMYByADKAsyJy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlBkYlJlZmVyZW5jZUILCglfZnVuY3Rpb24iJQoUU2VhcmNoRW50cmllc1JlcXVlc3QSDQoFcXVlcnkYASABKAkipgEKFVNlYXJjaEVudHJpZXNSZXNwb25zZRI4CgdlbnRyaWVzGAEgAygLMicucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5FbnRyeVN1bW1hcnkSDQoFbGltaXQYAiABKAUSEQoJdHJ1bmNhdGVkGAMgASgIEjEKDXJldHJpZXZlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIiQKD0dldEVudHJ5UmVxdWVzdBIRCglhY2Nlc3Npb24YASABKAkiQwoQR2V0RW50cnlSZXNwb25zZRIvCgVlbnRyeRgBIAEoCzIgLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuRW50cnkiVwoYR2V0UmVzaWR1ZU1hcHBpbmdSZXF1ZXN0Eg4KBnBkYl9pZBgBIAEoCRIRCglhY2Nlc3Npb24YAiABKAkSGAoQc2VxdWVuY2VfdmVyc2lvbhgDIAEoBSKGAQoYUmVzaWR1ZU1hcHBpbmdQcm92ZW5hbmNlEhAKCHByb3ZpZGVyGAEgASgJEg8KB3htbF91cmwYAiABKAkSGwoTcmVzaWR1ZV9saXN0aW5nX3VybBgDIAEoCRIUCgxyZXRyaWV2ZWRfYXQYBCABKAkSFAoMcmVsZWFzZV9kYXRlGAUgASgJIosCChFSZXNpZHVlTWFwcGluZ1JvdxIRCgllbnRpdHlfaWQYASABKAkSFQoNbGFiZWxfYXN5bV9pZBgCIAEoCRIUCgxhdXRoX2FzeW1faWQYAyABKAkSFAoMbGFiZWxfc2VxX2lkGAQgASgFEhgKC2F1dGhfc2VxX2lkGAUgASgJSACIAQESFgoOaW5zZXJ0aW9uX2NvZGUYBiABKAkSEgoKc2VnbWVudF9pZBgHIAEoCRIRCglhY2Nlc3Npb24YCCABKAkSEAoIcG9zaXRpb24YCSABKAUSDwoHcmVzaWR1ZRgKIAEoCRIUCgxub3Rfb2JzZXJ2ZWQYCyABKAhCDgoMX2F1dGhfc2VxX2lkIr4BChZSZXNpZHVlTWFwcGluZ0RvY3VtZW50Eg8KB3ZlcnNpb24YASABKAUSDgoGcGRiX2lkGAIgASgJEkcKCnByb3ZlbmFuY2UYAyABKAsyMy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlJlc2lkdWVNYXBwaW5nUHJvdmVuYW5jZRI6CgRyb3dzGAQgAygLMiwucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5SZXNpZHVlTWFwcGluZ1JvdyKmAQoZR2V0UmVzaWR1ZU1hcHBpbmdSZXNwb25zZRJCCgdtYXBwaW5nGAEgASgLMjEucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5SZXNpZHVlTWFwcGluZ0RvY3VtZW50EiIKGnJlZmVyZW5jZV9zZXF1ZW5jZV92ZXJzaW9uGAIgASgFEiEKGXJlZmVyZW5jZV9zZXF1ZW5jZV9zaGEyNTYYAyABKAky+wIKEFJlZmVyZW5jZVNlcnZpY2USdwoNU2VhcmNoRW50cmllcxIvLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuU2VhcmNoRW50cmllc1JlcXVlc3QaMC5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlNlYXJjaEVudHJpZXNSZXNwb25zZSIDkAIBEmgKCEdldEVudHJ5EioucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5HZXRFbnRyeVJlcXVlc3QaKy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkdldEVudHJ5UmVzcG9uc2UiA5ACARKDAQoRR2V0UmVzaWR1ZU1hcHBpbmcSMy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkdldFJlc2lkdWVNYXBwaW5nUmVxdWVzdBo0LnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuR2V0UmVzaWR1ZU1hcHBpbmdSZXNwb25zZSIDkAIBYgZwcm90bzM", [file_google_protobuf_timestamp]);
+  fileDesc("CjFwcm90ZWluZm9yZ2UvcmVmZXJlbmNlL3YxL3JlZmVyZW5jZV9zZXJ2aWNlLnByb3RvEhlwcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxImMKDEVudHJ5U3VtbWFyeRIRCglhY2Nlc3Npb24YASABKAkSDAoEbmFtZRgCIAEoCRIQCghvcmdhbmlzbRgDIAEoCRIQCghyZXZpZXdlZBgEIAEoCBIOCgZsZW5ndGgYBSABKAUicgoMUGRiUmVmZXJlbmNlEgoKAmlkGAEgASgJEg4KBm1ldGhvZBgCIAEoCRIXCgpyZXNvbHV0aW9uGAMgASgJSACIAQESEwoGY2hhaW5zGAQgASgJSAGIAQFCDQoLX3Jlc29sdXRpb25CCQoHX2NoYWlucyJfCg5Qcm90ZWluRmVhdHVyZRIMCgRraW5kGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEg0KBWJlZ2luGAMgASgFEgsKA2VuZBgEIAEoBRIOCgZwYWlyZWQYBSABKAgi8QIKBUVudHJ5EjgKB3N1bW1hcnkYASABKAsyJy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkVudHJ5U3VtbWFyeRIQCghzZXF1ZW5jZRgCIAEoCRIVCg1lbnRyeV92ZXJzaW9uGAMgASgFEhgKEHNlcXVlbmNlX3ZlcnNpb24YBCABKAUSMQoNcmV0cmlldmVfdGltZRgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASFQoIZnVuY3Rpb24YBiABKAlIAIgBARI7CgpzdHJ1Y3R1cmVzGAcgAygLMicucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5QZGJSZWZlcmVuY2USOwoIZmVhdHVyZXMYCCADKAsyKS5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlByb3RlaW5GZWF0dXJlEhoKEmZlYXR1cmVzX3RydW5jYXRlZBgJIAEoCEILCglfZnVuY3Rpb24iJQoUU2VhcmNoRW50cmllc1JlcXVlc3QSDQoFcXVlcnkYASABKAkipgEKFVNlYXJjaEVudHJpZXNSZXNwb25zZRI4CgdlbnRyaWVzGAEgAygLMicucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5FbnRyeVN1bW1hcnkSDQoFbGltaXQYAiABKAUSEQoJdHJ1bmNhdGVkGAMgASgIEjEKDXJldHJpZXZlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIiQKD0dldEVudHJ5UmVxdWVzdBIRCglhY2Nlc3Npb24YASABKAkiQwoQR2V0RW50cnlSZXNwb25zZRIvCgVlbnRyeRgBIAEoCzIgLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuRW50cnkiVwoYR2V0UmVzaWR1ZU1hcHBpbmdSZXF1ZXN0Eg4KBnBkYl9pZBgBIAEoCRIRCglhY2Nlc3Npb24YAiABKAkSGAoQc2VxdWVuY2VfdmVyc2lvbhgDIAEoBSKGAQoYUmVzaWR1ZU1hcHBpbmdQcm92ZW5hbmNlEhAKCHByb3ZpZGVyGAEgASgJEg8KB3htbF91cmwYAiABKAkSGwoTcmVzaWR1ZV9saXN0aW5nX3VybBgDIAEoCRIUCgxyZXRyaWV2ZWRfYXQYBCABKAkSFAoMcmVsZWFzZV9kYXRlGAUgASgJIosCChFSZXNpZHVlTWFwcGluZ1JvdxIRCgllbnRpdHlfaWQYASABKAkSFQoNbGFiZWxfYXN5bV9pZBgCIAEoCRIUCgxhdXRoX2FzeW1faWQYAyABKAkSFAoMbGFiZWxfc2VxX2lkGAQgASgFEhgKC2F1dGhfc2VxX2lkGAUgASgJSACIAQESFgoOaW5zZXJ0aW9uX2NvZGUYBiABKAkSEgoKc2VnbWVudF9pZBgHIAEoCRIRCglhY2Nlc3Npb24YCCABKAkSEAoIcG9zaXRpb24YCSABKAUSDwoHcmVzaWR1ZRgKIAEoCRIUCgxub3Rfb2JzZXJ2ZWQYCyABKAhCDgoMX2F1dGhfc2VxX2lkIr4BChZSZXNpZHVlTWFwcGluZ0RvY3VtZW50Eg8KB3ZlcnNpb24YASABKAUSDgoGcGRiX2lkGAIgASgJEkcKCnByb3ZlbmFuY2UYAyABKAsyMy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlJlc2lkdWVNYXBwaW5nUHJvdmVuYW5jZRI6CgRyb3dzGAQgAygLMiwucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5SZXNpZHVlTWFwcGluZ1JvdyKmAQoZR2V0UmVzaWR1ZU1hcHBpbmdSZXNwb25zZRJCCgdtYXBwaW5nGAEgASgLMjEucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5SZXNpZHVlTWFwcGluZ0RvY3VtZW50EiIKGnJlZmVyZW5jZV9zZXF1ZW5jZV92ZXJzaW9uGAIgASgFEiEKGXJlZmVyZW5jZV9zZXF1ZW5jZV9zaGEyNTYYAyABKAky+wIKEFJlZmVyZW5jZVNlcnZpY2USdwoNU2VhcmNoRW50cmllcxIvLnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuU2VhcmNoRW50cmllc1JlcXVlc3QaMC5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLlNlYXJjaEVudHJpZXNSZXNwb25zZSIDkAIBEmgKCEdldEVudHJ5EioucHJvdGVpbmZvcmdlLnJlZmVyZW5jZS52MS5HZXRFbnRyeVJlcXVlc3QaKy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkdldEVudHJ5UmVzcG9uc2UiA5ACARKDAQoRR2V0UmVzaWR1ZU1hcHBpbmcSMy5wcm90ZWluZm9yZ2UucmVmZXJlbmNlLnYxLkdldFJlc2lkdWVNYXBwaW5nUmVxdWVzdBo0LnByb3RlaW5mb3JnZS5yZWZlcmVuY2UudjEuR2V0UmVzaWR1ZU1hcHBpbmdSZXNwb25zZSIDkAIBYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message proteinforge.reference.v1.EntrySummary
@@ -98,6 +98,54 @@ export const PdbReferenceSchema: GenMessage<PdbReference> = /*@__PURE__*/
   messageDesc(file_proteinforge_reference_v1_reference_service, 1);
 
 /**
+ * A positional annotation of the entry, in UniProt sequence numbering (1-based, inclusive).
+ * Only annotations whose two ends are exact and inside the sequence are returned.
+ *
+ * @generated from message proteinforge.reference.v1.ProteinFeature
+ */
+export type ProteinFeature = Message<"proteinforge.reference.v1.ProteinFeature"> & {
+  /**
+   * Stable slug of the UniProt feature type: active-site, binding-site, site, dna-binding, zinc-finger, motif,
+   * domain, region, transmembrane, signal, transit-peptide, propeptide, chain, peptide, disulfide,
+   * modified-residue, glycosylation or variant.
+   *
+   * @generated from field: string kind = 1;
+   */
+  kind: string;
+
+  /**
+   * Text in the source language, at most 400 characters; empty when UniProt gives none.
+   *
+   * @generated from field: string description = 2;
+   */
+  description: string;
+
+  /**
+   * @generated from field: int32 begin = 3;
+   */
+  begin: number;
+
+  /**
+   * @generated from field: int32 end = 4;
+   */
+  end: number;
+
+  /**
+   * True when the annotation names two residues (a bond) rather than the span between them.
+   *
+   * @generated from field: bool paired = 5;
+   */
+  paired: boolean;
+};
+
+/**
+ * Describes the message proteinforge.reference.v1.ProteinFeature.
+ * Use `create(ProteinFeatureSchema)` to create a new message.
+ */
+export const ProteinFeatureSchema: GenMessage<ProteinFeature> = /*@__PURE__*/
+  messageDesc(file_proteinforge_reference_v1_reference_service, 2);
+
+/**
  * @generated from message proteinforge.reference.v1.Entry
  */
 export type Entry = Message<"proteinforge.reference.v1.Entry"> & {
@@ -137,6 +185,20 @@ export type Entry = Message<"proteinforge.reference.v1.Entry"> & {
    * @generated from field: repeated proteinforge.reference.v1.PdbReference structures = 7;
    */
   structures: PdbReference[];
+
+  /**
+   * At most 300, and at most 60 of one kind, ordered by kind and then by position.
+   *
+   * @generated from field: repeated proteinforge.reference.v1.ProteinFeature features = 8;
+   */
+  features: ProteinFeature[];
+
+  /**
+   * True when the entry had more usable annotations than those limits keep.
+   *
+   * @generated from field: bool features_truncated = 9;
+   */
+  featuresTruncated: boolean;
 };
 
 /**
@@ -144,7 +206,7 @@ export type Entry = Message<"proteinforge.reference.v1.Entry"> & {
  * Use `create(EntrySchema)` to create a new message.
  */
 export const EntrySchema: GenMessage<Entry> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 2);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 3);
 
 /**
  * @generated from message proteinforge.reference.v1.SearchEntriesRequest
@@ -163,7 +225,7 @@ export type SearchEntriesRequest = Message<"proteinforge.reference.v1.SearchEntr
  * Use `create(SearchEntriesRequestSchema)` to create a new message.
  */
 export const SearchEntriesRequestSchema: GenMessage<SearchEntriesRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 3);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 4);
 
 /**
  * @generated from message proteinforge.reference.v1.SearchEntriesResponse
@@ -199,7 +261,7 @@ export type SearchEntriesResponse = Message<"proteinforge.reference.v1.SearchEnt
  * Use `create(SearchEntriesResponseSchema)` to create a new message.
  */
 export const SearchEntriesResponseSchema: GenMessage<SearchEntriesResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 4);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 5);
 
 /**
  * @generated from message proteinforge.reference.v1.GetEntryRequest
@@ -216,7 +278,7 @@ export type GetEntryRequest = Message<"proteinforge.reference.v1.GetEntryRequest
  * Use `create(GetEntryRequestSchema)` to create a new message.
  */
 export const GetEntryRequestSchema: GenMessage<GetEntryRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 5);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 6);
 
 /**
  * @generated from message proteinforge.reference.v1.GetEntryResponse
@@ -233,7 +295,7 @@ export type GetEntryResponse = Message<"proteinforge.reference.v1.GetEntryRespon
  * Use `create(GetEntryResponseSchema)` to create a new message.
  */
 export const GetEntryResponseSchema: GenMessage<GetEntryResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 6);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 7);
 
 /**
  * @generated from message proteinforge.reference.v1.GetResidueMappingRequest
@@ -260,7 +322,7 @@ export type GetResidueMappingRequest = Message<"proteinforge.reference.v1.GetRes
  * Use `create(GetResidueMappingRequestSchema)` to create a new message.
  */
 export const GetResidueMappingRequestSchema: GenMessage<GetResidueMappingRequest> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 7);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 8);
 
 /**
  * @generated from message proteinforge.reference.v1.ResidueMappingProvenance
@@ -297,7 +359,7 @@ export type ResidueMappingProvenance = Message<"proteinforge.reference.v1.Residu
  * Use `create(ResidueMappingProvenanceSchema)` to create a new message.
  */
 export const ResidueMappingProvenanceSchema: GenMessage<ResidueMappingProvenance> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 8);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 9);
 
 /**
  * @generated from message proteinforge.reference.v1.ResidueMappingRow
@@ -364,7 +426,7 @@ export type ResidueMappingRow = Message<"proteinforge.reference.v1.ResidueMappin
  * Use `create(ResidueMappingRowSchema)` to create a new message.
  */
 export const ResidueMappingRowSchema: GenMessage<ResidueMappingRow> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 9);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 10);
 
 /**
  * @generated from message proteinforge.reference.v1.ResidueMappingDocument
@@ -396,7 +458,7 @@ export type ResidueMappingDocument = Message<"proteinforge.reference.v1.ResidueM
  * Use `create(ResidueMappingDocumentSchema)` to create a new message.
  */
 export const ResidueMappingDocumentSchema: GenMessage<ResidueMappingDocument> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 10);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 11);
 
 /**
  * @generated from message proteinforge.reference.v1.GetResidueMappingResponse
@@ -425,7 +487,7 @@ export type GetResidueMappingResponse = Message<"proteinforge.reference.v1.GetRe
  * Use `create(GetResidueMappingResponseSchema)` to create a new message.
  */
 export const GetResidueMappingResponseSchema: GenMessage<GetResidueMappingResponse> = /*@__PURE__*/
-  messageDesc(file_proteinforge_reference_v1_reference_service, 11);
+  messageDesc(file_proteinforge_reference_v1_reference_service, 12);
 
 /**
  * Public UniProt annotations through the API. Only the text query or accession is sent

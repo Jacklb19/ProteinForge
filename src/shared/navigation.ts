@@ -9,6 +9,7 @@ export const ROUTES = {
   generate: '/generate',
   laboratory: '/generate/lab',
   library: '/library',
+  explore: '/explore',
   profile: '/profile',
   projects: '/projects',
   guide: '/guide',
@@ -25,6 +26,12 @@ export const ROUTES = {
   settings: '/settings',
 } as const;
 
+/**
+ * Marks a region that moves the focus itself when it changes the route, such as the guided visit: the
+ * route change then leaves the focus where that region put it instead of moving it to the page content.
+ */
+export const KEEP_FOCUS_ATTRIBUTE = 'data-keep-focus';
+
 /** Name each page gives the browser tab, ahead of the application name; the home page keeps the full title. */
 export const PAGE_TITLES: Readonly<Record<string, TranslationKey>> = {
   [ROUTES.analyze]: 'nav.analyze',
@@ -32,6 +39,7 @@ export const PAGE_TITLES: Readonly<Record<string, TranslationKey>> = {
   [ROUTES.generate]: 'nav.generate',
   [ROUTES.laboratory]: 'workbench.laboratory',
   [ROUTES.library]: 'nav.library',
+  [ROUTES.explore]: 'nav.explore',
   [ROUTES.projects]: 'nav.projects',
   [ROUTES.profile]: 'nav.profile',
   [ROUTES.guide]: 'nav.guide',
@@ -49,6 +57,7 @@ export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey
   { path: ROUTES.analyze, labelKey: 'nav.analyze', icon: 'analyze', group: 'research', end: false },
   { path: ROUTES.alignment, labelKey: 'nav.alignment', icon: 'compare', group: 'research', end: false },
   { path: ROUTES.library, labelKey: 'nav.library', icon: 'library', group: 'research', end: false },
+  { path: ROUTES.explore, labelKey: 'nav.explore', icon: 'explore', group: 'research', end: false },
   { path: ROUTES.generate, labelKey: 'nav.generate', icon: 'design', group: 'design', end: true },
   { path: ROUTES.laboratory, labelKey: 'workbench.laboratory', icon: 'laboratory', group: 'design', end: false },
   { path: ROUTES.projects, labelKey: 'nav.projects', icon: 'projects', group: 'organize', end: false },

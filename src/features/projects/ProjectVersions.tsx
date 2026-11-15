@@ -2,7 +2,8 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../i18n';
 import type { ApiError } from '../api/apiClient';
 import { PROJECT_ERROR_KEYS } from './config';
-import type { ProjectSummary, ProjectVersion } from './contracts';
+import type { ProjectPreview, ProjectSummary, ProjectVersion } from './contracts';
+import { versionChanges } from './versionChanges';
 import { useProjects } from './projectContext';
 
 /** What a version holds, in the same words as the card: residues, a comparison or the laboratory. */
@@ -16,6 +17,16 @@ function VersionMeta({ version }: { version: ProjectVersion }): React.JSX.Elemen
     preview.generatorRuns ? t(preview.generatorRuns === 1 ? 'projects.generatorRunsOne' : 'projects.generatorRuns', { count: formatNumber(preview.generatorRuns) }) : '',
   ].filter(Boolean);
   return <p className="report-row-meta">{parts.length ? parts.join(' · ') : t('versions.empty')}</p>;
+}
+
+/** One sentence saying what restoring this version would bring back, against what is stored now. */
+function VersionChange({ version, current }: { version: ProjectVersion; current: ProjectPreview | null | undefined }): React.JSX.Element | null {
+  const { t, formatNumber } = useTranslation();
+  const changes = versionChanges(version, current);
+  if (changes.kind === 'unknown') return null;
+  if (changes.kind === 'same') return <p className="version-change">{t('versions.sameAsCurrent')}</p>;
+  const parts = changes.parts.map(({ key, variables }) => t(key, variables && typeof variables.count === 'number' ? { ...variables, count: formatNumber(variables.count) } : variables));
+  return <p className="version-change">{t('versions.againstCurrent', { changes: parts.join(t('versions.partSeparator')) })}</p>;
 }
 
 /**
@@ -66,6 +77,7 @@ export function ProjectVersions({ project, active, dirty, offline }: { project: 
                 <div className="report-row-text">
                   <p className="report-row-title"><time dateTime={version.savedAt}>{t('versions.savedAt', { date: date(version.savedAt) })}</time></p>
                   <VersionMeta version={version} />
+                  <VersionChange version={version} current={project.preview} />
                 </div>
                 {confirming === version.id ? <div className="project-confirm" role="group" aria-labelledby={titleId}
                   onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setConfirming(null); } }}>

@@ -4,7 +4,7 @@ import type { ApiError } from '../api/apiClient';
 import type { DescriptorState } from '../descriptors/useDescriptors';
 import type { Project, ProjectSummary, ProjectVersion } from './contracts';
 import type { GeneratorRunSelection } from '../generator/history';
-import type { ProjectQuery } from './config';
+import type { ProjectQuery, ProjectShareDuration } from './config';
 import type { ConflictChoice, SyncEntry } from './syncQueue';
 import type { CreatedShare, ProjectShare } from './sharing';
 
@@ -64,7 +64,8 @@ export interface ProjectContextValue {
   restoreVersion(project: ProjectSummary, versionId: string): Promise<boolean>;
   /** The project's read-only link: its dates, a new one (replacing any other) or none. Each rejects with an ApiError. */
   share(id: string): Promise<ProjectShare | null>;
-  createShare(id: string): Promise<CreatedShare>;
+  /** Starts or replaces the link for `days` (one of PROJECT_SHARE_DURATIONS_DAYS); the listing shows until when. */
+  createShare(id: string, days?: ProjectShareDuration): Promise<CreatedShare>;
   removeShare(id: string): Promise<void>;
   /** The project open here was saved or deleted in another tab or device since this tab read it; null otherwise. */
   remoteChange: 'changed' | 'removed' | null;

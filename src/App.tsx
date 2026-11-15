@@ -13,7 +13,7 @@ import { LabProvider } from './features/design-lab/LabProvider';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { PreferencesProvider } from './preferences/PreferencesProvider';
 import { NotFoundPage } from './shared/NotFoundPage';
-import { PAGE_TITLES, REDIRECTS, ROUTES } from './shared/navigation';
+import { KEEP_FOCUS_ATTRIBUTE, PAGE_TITLES, REDIRECTS, ROUTES } from './shared/navigation';
 import { useTranslation } from './i18n';
 import { PublicFrame } from './shell/PublicFrame';
 import { WorkspaceFrame } from './shell/WorkspaceFrame';
@@ -25,6 +25,7 @@ const DesignLabPage = lazy(async () => ({ default: (await import('./features/des
 const ProfilePage = lazy(async () => ({ default: (await import('./features/profile/ProfilePage')).ProfilePage }));
 const ProjectsPage = lazy(async () => ({ default: (await import('./features/projects/ProjectsPage')).ProjectsPage }));
 const LibraryPage = lazy(async () => ({ default: (await import('./features/library/LibraryPage')).LibraryPage }));
+const ExplorePage = lazy(async () => ({ default: (await import('./features/explore/ExplorePage')).ExplorePage }));
 const GeneratorPage = lazy(async () => ({ default: (await import('./features/generator/GeneratorPage')).GeneratorPage }));
 const GuidePage = lazy(async () => ({ default: (await import('./features/guide/GuidePage')).GuidePage }));
 const PrivacyPage = lazy(async () => ({ default: (await import('./features/privacy/PrivacyPage')).PrivacyPage }));
@@ -63,6 +64,8 @@ function ApplicationRoutes(): React.JSX.Element {
     }
     if (!changedPath) return;
     window.scrollTo(0, 0);
+    // Parents run their effects after their children, so this would undo a focus the region just set.
+    if (document.activeElement?.closest(`[${KEEP_FOCUS_ATTRIBUTE}]`)) return;
     document.getElementById('app-content')?.focus({ preventScroll: true });
   }, [location.pathname, location.hash]);
 
@@ -88,6 +91,7 @@ function ApplicationRoutes(): React.JSX.Element {
         <Route path={ROUTES.generate} element={<GeneratorPage />} />
         <Route path={ROUTES.laboratory} element={<DesignLabPage />} />
         <Route path={ROUTES.library} element={<LibraryPage />} />
+        <Route path={ROUTES.explore} element={<ExplorePage />} />
         <Route path={ROUTES.projects} element={<ProjectsPage />} />
         <Route path={ROUTES.profile} element={<ProfilePage />} />
       </Route>

@@ -103,11 +103,15 @@ export function summaryDocument(summary: SummaryMessage | undefined): Record<str
     id: summary?.id, name: summary?.name, status: summary ? STATUSES[summary.status] : undefined,
     createdAt: isoFromTimestamp(summary?.createTime), updatedAt: isoFromTimestamp(summary?.updateTime),
     ...(preview ? { preview: previewDocument(preview) } : {}),
+    ...(summary?.shareExpireTime ? { shareExpiresAt: isoFromTimestamp(summary.shareExpireTime) } : {}),
   };
 }
 
 export function versionDocument(version: VersionMessage): Record<string, unknown> {
-  return { id: version.id, savedAt: isoFromTimestamp(version.saveTime), preview: version.preview ? previewDocument(version.preview) : null };
+  return {
+    id: version.id, savedAt: isoFromTimestamp(version.saveTime), preview: version.preview ? previewDocument(version.preview) : null,
+    ...(version.sameSequence === undefined ? {} : { sameSequence: version.sameSequence }),
+  };
 }
 
 export function projectDocument(project: ProjectMessage | undefined): unknown {
