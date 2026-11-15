@@ -75,6 +75,8 @@ const reading = (page: Page) => page.locator('.explore-current');
 const stopButton = (page: Page, kind: string, place: string) => page.locator('.explore-stop').filter({ hasText: kind }).filter({ hasText: place });
 
 test('a protein opens with its predicted model and a tour that explains each stop', async ({ page }) => {
+  // Software WebGL in CI draws every camera move and side chain slowly; assertions keep their normal limits.
+  test.setTimeout(90_000);
   await serveEntries(page, [lysozyme]);
   const models = await serveModels(page, [lysozyme]);
   await page.goto(ROUTES.explore);
