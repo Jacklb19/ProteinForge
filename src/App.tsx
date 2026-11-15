@@ -25,6 +25,7 @@ const DesignLabPage = lazy(async () => ({ default: (await import('./features/des
 const ProfilePage = lazy(async () => ({ default: (await import('./features/profile/ProfilePage')).ProfilePage }));
 const ProjectsPage = lazy(async () => ({ default: (await import('./features/projects/ProjectsPage')).ProjectsPage }));
 const LibraryPage = lazy(async () => ({ default: (await import('./features/library/LibraryPage')).LibraryPage }));
+const ExplorePage = lazy(async () => ({ default: (await import('./features/explore/ExplorePage')).ExplorePage }));
 const GeneratorPage = lazy(async () => ({ default: (await import('./features/generator/GeneratorPage')).GeneratorPage }));
 const GuidePage = lazy(async () => ({ default: (await import('./features/guide/GuidePage')).GuidePage }));
 const PrivacyPage = lazy(async () => ({ default: (await import('./features/privacy/PrivacyPage')).PrivacyPage }));
@@ -90,6 +91,7 @@ function ApplicationRoutes(): React.JSX.Element {
         <Route path={ROUTES.generate} element={<GeneratorPage />} />
         <Route path={ROUTES.laboratory} element={<DesignLabPage />} />
         <Route path={ROUTES.library} element={<LibraryPage />} />
+        <Route path={ROUTES.explore} element={<ExplorePage />} />
         <Route path={ROUTES.projects} element={<ProjectsPage />} />
         <Route path={ROUTES.profile} element={<ProfilePage />} />
       </Route>

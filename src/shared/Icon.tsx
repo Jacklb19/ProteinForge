@@ -11,6 +11,7 @@ const paths = {
   design: 'm15 3 6 6M4 20l3-7L17 3l4 4L11 17l-7 3ZM7 13l4 4',
   laboratory: 'M8 3h8M10 3v7L4 20h16l-6-10V3M8 15h8',
   library: 'M4 4h6l2 2 2-2h6v16h-6l-2 2-2-2H4V4Zm8 2v16',
+  explore: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4 6-2.5 5.5L8 16l2.5-5.5L16 8Z',
   projects: 'M3 6h7l2 3h9v11H3V6Z',
   help: 'M12 17v.1M9 8a3 3 0 1 1 4 3c-1 .5-1 1-1 2M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z',
   settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2',
