@@ -6,13 +6,15 @@ import { LOCALE_LABEL_KEYS, LOCALE_SHORT_LABEL_KEYS, THEME_TOGGLE_ICONS, THEME_T
 import { toggledTheme } from '../preferences/theme';
 import { Icon } from '../shared/Icon';
 
-/** ES / EN: one short button per language, the full name being its accessible name. */
+/** ES / EN: one short button per language; the full name follows the visible code, so the code stays in the accessible name. */
 export function LanguageSwitch(): React.JSX.Element {
   const { t } = useTranslation();
   const { chosenLocale, setLocale } = usePreferences();
   return <div className="text-switch" role="group" aria-label={t('shell.languageLabel')}>
     {LOCALES.map(locale => <button key={locale} type="button" lang={locale} aria-pressed={locale === chosenLocale}
-      aria-label={t(LOCALE_LABEL_KEYS[locale])} onClick={() => { setLocale(locale); }}>{t(LOCALE_SHORT_LABEL_KEYS[locale])}</button>)}
+      onClick={() => { setLocale(locale); }}>
+      {t(LOCALE_SHORT_LABEL_KEYS[locale])}{' '}<span className="visually-hidden">{t(LOCALE_LABEL_KEYS[locale])}</span>
+    </button>)}
   </div>;
 }
 
