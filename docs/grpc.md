@@ -111,14 +111,14 @@ Aprobadas e instaladas con versión fija el 15 oct 2026.
 
 | Dónde | Paquete | Versión | Estado | Para qué |
 |---|---|---|---|---|
-| API | `connectrpc` | 0.12.1 | Beta | Servidor ASGI de Connect, gRPC y gRPC-Web dentro de FastAPI |
+| API | `connectrpc` | 0.13.0 | Beta | Servidor ASGI de Connect, gRPC y gRPC-Web dentro de FastAPI |
 | API | `protobuf-py` (+ `protobuf-py-ext`) | 0.6.0 | Alfa | Mensajes protobuf en Python |
-| API | `pyqwest` | 0.12.0 | Beta | Cliente HTTP de `connectrpc` |
-| API, desarrollo | `protoc-gen-py`, `protoc-gen-connectrpc`, `hypercorn` | 0.6.0, 0.12.1, 0.18.0 | — | Generación de código y servidor HTTP/2 local para probar gRPC nativo |
+| API | `pyqwest` | 0.14.0 | Beta | Cliente HTTP de `connectrpc` |
+| API, desarrollo | `protoc-gen-py`, `protoc-gen-connectrpc`, `hypercorn` | 0.6.0, 0.13.0, 0.18.0 | — | Generación de código y servidor HTTP/2 local para probar gRPC nativo |
 | Ejecutor | `grpcio` | 1.84.0 | Estable | Servidor gRPC nativo para el laboratorio (sin instalar) |
-| Web | `@connectrpc/connect`, `@connectrpc/connect-web` | 2.2.0 | Estable | Cliente gRPC-Web en el navegador |
-| Web | `@bufbuild/protobuf` | 2.16.0 | Estable | Mensajes en TypeScript |
-| Web, desarrollo | `@bufbuild/buf`, `@bufbuild/protoc-gen-es` | 1.73.0, 2.16.0 | Estable | Lint, cambios incompatibles y generación de código |
+| Web | `@connectrpc/connect`, `@connectrpc/connect-web` | 2.3.0 | Estable | Cliente gRPC-Web en el navegador |
+| Web | `@bufbuild/protobuf` | 2.17.0 | Estable | Mensajes en TypeScript |
+| Web, desarrollo | `@bufbuild/buf`, `@bufbuild/protoc-gen-es` | 1.75.0, 2.17.0 | Estable | Lint, cambios incompatibles y generación de código |
 
 **Riesgo principal:** el servidor Python de Connect es beta y depende de un runtime protobuf alfa. Las pruebas de contrato del backend cubren cada servicio para detectar regresiones al actualizar.
 

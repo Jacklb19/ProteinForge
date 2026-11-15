@@ -103,7 +103,8 @@ export function themeButton(scope: Page | Locator, text: Record<'shell.themeToDa
 /** A button of the visible ES / EN group in a scope; the group is named in the language shown. */
 export function languageButton(scope: Page | Locator, name: string): Locator {
   const groups = [spanish['shell.languageLabel'], english['shell.languageLabel']].map(escapeText).join('|');
-  return scope.getByRole('group', { name: new RegExp(`^(${groups})$`) }).filter({ visible: true }).getByRole('button', { name, exact: true });
+  // A language button reads its visible code first, then the full name: "ES Español".
+  return scope.getByRole('group', { name: new RegExp(`^(${groups})$`) }).filter({ visible: true }).getByRole('button', { name: new RegExp(`^\\S+ ${escapeText(name)}$`) });
 }
 
 /**
