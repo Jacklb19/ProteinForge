@@ -23,6 +23,8 @@ interface Props {
   url: string;
   label: string;
   focus: StructureFocus | null;
+  /** What the model shows now, written over it; the reading beside the model says the same for assistive technology. */
+  caption?: string | null;
   onPick: (position: number | null) => void;
 }
 
@@ -58,7 +60,7 @@ function chemistryColor(revision: number) {
 }
 
 /** A predicted model coloured by residue chemistry, with one stop of the tour marked and in view. */
-export default function PredictedStructure({ url, label, focus, onPick }: Props): React.JSX.Element {
+export default function PredictedStructure({ url, label, focus, caption = null, onPick }: Props): React.JSX.Element {
   const { t } = useTranslation();
   const themeRevision = useThemeRevision();
   const container = useRef<HTMLDivElement>(null);
@@ -204,7 +206,9 @@ export default function PredictedStructure({ url, label, focus, onPick }: Props)
       if (!ready) return;
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); rotateCamera(plugin(), event.key === 'ArrowLeft' ? -1 : 1); }
       if (event.key === '+' || event.key === '-') { event.preventDefault(); zoomCamera(plugin(), event.key === '+'); }
-    }}><canvas ref={canvas} aria-hidden="true" /></div></div>
+    }}><canvas ref={canvas} aria-hidden="true" /></div>
+      {ready && caption && <p key={caption} className="structure-caption" aria-hidden="true">{caption}</p>}
+    </div>
     <p className="status-message" role="status" data-state={state === 'error' ? 'error' : undefined}>{t(state === 'loading' ? 'library.viewerLoading' : ready ? 'library.viewerReady' : 'explore.viewerError')}</p>
     <div className="actions">
       <button className="button button-secondary" type="button" disabled={!ready} onClick={() => { rotateCamera(plugin(), -1); }}>{t('library.rotateLeft')}</button>

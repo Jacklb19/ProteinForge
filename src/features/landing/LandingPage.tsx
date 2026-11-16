@@ -168,7 +168,6 @@ export function LandingPage(): React.JSX.Element {
           <h1 id="hero-title" className="display">{t('public.heroTitle')}</h1>
           <p className="lead">{t('public.heroLead')}</p>
           <AccountActions className="hero-actions" />
-          {status !== 'loading' && <p className="hero-note">{t(signedIn ? 'public.heroNoteSignedIn' : 'public.heroNote')}</p>}
         </div>
         {annotations && <StructureStage variant="hero" annotations={annotations} selected={selected} onSelect={setSelected} />}
         {annotations && <div className="public-strand">

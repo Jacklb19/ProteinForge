@@ -56,7 +56,6 @@ for (const width of [360, 1280]) {
     const actions = page.locator('.hero-actions');
     await expect(actions.getByRole('link', { name: spanish['auth.signUpAction'], exact: true })).toHaveAttribute('href', ROUTES.signUp);
     await expect(actions.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveAttribute('href', ROUTES.signIn);
-    await expect(page.locator('.hero-note')).toHaveText(spanish['public.heroNote']);
 
     // The measured structure is drawn, named and offers its three colorings.
     const stage = page.locator('figure.stage.stage-hero');

@@ -43,7 +43,7 @@ export function SidebarContent({ variant, compact = false, onToggle, onClose, on
       <Link to={ROUTES.home} className="brand" aria-label={t('shell.home')} onClick={onClose}><BrandMark /><span className="brand-name">{t('app.name')}</span></Link>
       {variant === 'rail'
         ? <button className="button button-icon sidebar-toggle" type="button" aria-label={t(compact ? 'shell.expandSidebar' : 'shell.collapseSidebar')} onClick={onToggle}>
-          <Icon name={compact ? 'expand' : 'collapse'} />
+          <Icon name={compact ? 'panelOpen' : 'panelClose'} />
         </button>
         : <button className="button button-icon" type="button" aria-label={t('shell.closeMenu')} onClick={onClose} data-autofocus><Icon name="close" /></button>}
     </div>
@@ -56,14 +56,13 @@ export function SidebarContent({ variant, compact = false, onToggle, onClose, on
         <p className="sidebar-group-label" aria-hidden={compact || undefined}>{t(group.labelKey)}</p>
         <ul>
           {group.items.map(item => <li key={item.path}>
-            <NavLink className="sidebar-link" to={item.path} end={item.end} onClick={onClose}><Icon name={item.icon} />{label(t(item.labelKey))}</NavLink>
+            <NavLink className="sidebar-link" to={item.path} end={item.end} onClick={onClose} viewTransition><Icon name={item.icon} />{label(t(item.labelKey))}</NavLink>
           </li>)}
         </ul>
       </div>)}
     </nav>
     <div className="sidebar-foot">
       {variant === 'sheet' && onPalette && <button className="sidebar-link" type="button" aria-haspopup="dialog" onClick={onPalette}><Icon name="search" />{label(t('palette.open'))}</button>}
-      <NavLink className="sidebar-link" to={ROUTES.guide} onClick={onClose}><Icon name="help" />{label(t('nav.guide'))}</NavLink>
       <SyncStatus compact={compact} onNavigate={onClose} />
       <AccountLink compact={compact} onNavigate={onClose} />
     </div>

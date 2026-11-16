@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from '../../i18n';
 import type { TranslationKey } from '../../i18n';
 import { ROUTES } from '../../shared/navigation';
+import { Icon } from '../../shared/Icon';
 import { PageHeading } from '../../shared/PageHeading';
 import { ApiError } from '../api/apiClient';
 import type { ApiErrorCode } from '../api/apiClient';
@@ -20,9 +21,11 @@ import { createLibraryApi } from '../library/libraryApi';
 import type { EntrySummary, UniProtEntry } from '../library/libraryApi';
 import type { ModelProblem } from './alphafold';
 import {
-  ALPHAFOLD_ENTRY_URL, CONFIDENCE_BANDS, EXPLORE_DEFAULT_ACCESSION, EXPLORE_PARAM, FOCUS_STICKS_MAX_RESIDUES,
-  STOP_GROUP_LABEL_KEYS, STOP_GROUP_OF, STOP_KIND_LABEL_KEYS, STOP_KIND_MEANING_KEYS,
+  ALPHAFOLD_ENTRY_URL, CONFIDENCE_BANDS, EXPLORE_DEFAULT_ACCESSION, EXPLORE_PARAM, FOCUS_STICKS_MAX_RESIDUES, FUNCTION_PREVIEW_CHARACTERS,
+  STOP_GROUP_LABEL_KEYS, STOP_GROUP_OF, STOP_GROUP_PREVIEW, STOP_KIND_LABEL_KEYS, STOP_KIND_MEANING_KEYS,
 } from './config';
+import type { StopGroup } from './config';
+import { translateAnnotation, withoutCitations } from './annotationTerms';
 import { groupStops, stopPositions, stopSize, stopsAt, stopsFrom } from './stops';
 import type { Stop } from './stops';
 import { useProtein } from './useProtein';
@@ -66,6 +69,10 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
     // The stop's explanation is what changed; reading continues from its title.
     requestAnimationFrame(() => { heading.current?.focus({ preventScroll: false }); });
   }
+  // What the model shows, written over it: the stop of the tour, or the residue picked on the model.
+  const caption = stop
+    ? t('explore.caption', { index: formatNumber(stopIndex + 1), total: formatNumber(ordered.length), kind: t(STOP_KIND_LABEL_KEYS[stop.kind]), place: placeOf(stop, t, formatNumber) })
+    : current.picked !== null && entry ? t('explore.residue', { name: residueName(entry, current.picked), position: formatNumber(current.picked) }) : null;
   const focus = useMemo<StructureFocus | null>(() => stop
     ? { key: stop.id, positions: stopPositions(stop), sticks: stopSize(stop) <= FOCUS_STICKS_MAX_RESIDUES }
     : current.picked !== null ? { key: `residue-${String(current.picked)}`, positions: [current.picked], sticks: true } : null,
@@ -74,7 +81,6 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
   return (
     <main className="page explore-page">
       <PageHeading titleKey="explore.title" introduction="explore.introduction" />
-      <ProteinChooser current={accession} onOpen={open} />
 
       {protein.entry.status === 'loading' && <p className="status-message" role="status">{t('explore.loading')}</p>}
       {protein.entry.status === 'error' && (
@@ -90,12 +96,13 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
             <p className="field-meta">{entry.accession} · {t(entry.reviewed ? 'library.reviewed' : 'library.unreviewed')}</p>
             <h2 id="explore-protein-name">{entry.name}</h2>
             <p>{t('explore.summary', { organism: entry.organism, count: formatNumber(entry.sequence.length) })}</p>
+            <a className="inline-link" href="#explore-choose-title">{t('explore.chooseOther')}</a>
           </header>
 
           <div className="explore-layout">
             <div className="explore-stage">
               {ordered.length > 0 && (
-                <StopReading stop={stop} index={stopIndex} total={ordered.length} entry={entry} headingRef={heading}
+                <StopReading key={stop?.id ?? 'whole'} stop={stop} index={stopIndex} total={ordered.length} entry={entry} headingRef={heading}
                   onPrevious={() => { visit(ordered[(stopIndex - 1 + ordered.length) % ordered.length] ?? null); }}
                   onNext={() => { visit(ordered[(stopIndex + 1) % ordered.length] ?? null); }}
                   onWhole={() => { visit(null); }} />
@@ -109,7 +116,7 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
               )}
               {protein.model.status === 'ready' && <>
                 <Suspense fallback={<p className="status-message" role="status">{t('library.viewerLoading')}</p>}>
-                  <PredictedStructure key={protein.model.model.url} url={protein.model.model.url} label={t('explore.modelLabel', { name: entry.name })} focus={focus}
+                  <PredictedStructure key={protein.model.model.url} url={protein.model.model.url} label={t('explore.modelLabel', { name: entry.name })} focus={focus} caption={caption}
                     onPick={(position) => { setSelection({ accession, stop: null, picked: position !== null && position <= entry.sequence.length ? position : null }); }} />
                 </Suspense>
                 <p className="field-help">{t('explore.colorNote')}</p>
@@ -129,7 +136,7 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
               <section aria-labelledby="explore-function-title">
                 <h3 id="explore-function-title">{t('explore.functionTitle')}</h3>
                 {entry.function
-                  ? <div className="entry-annotation"><p className="field-help">{t('library.functionNote')}</p><p>{entry.function}</p></div>
+                  ? <FunctionText key={entry.accession} text={entry.function} />
                   : <p className="field-help">{t('explore.noFunction')}</p>}
               </section>
 
@@ -137,22 +144,7 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
                 <h3 id="explore-tour-title">{t('explore.tourTitle')}</h3>
                 {ordered.length === 0 ? <p className="field-help">{t('explore.tourEmpty')}</p>
                   : <p className="field-help">{t(ordered.length === 1 ? 'explore.tourCountOne' : 'explore.tourCount', { count: formatNumber(ordered.length) })}{entry.featuresTruncated && ` ${t('explore.tourTruncated')}`}</p>}
-                {groups.map(group => (
-                  <div key={group.group} className="explore-group">
-                    <h4>{t(STOP_GROUP_LABEL_KEYS[group.group])}</h4>
-                    <ul className="explore-stops">
-                      {group.stops.map(item => (
-                        <li key={item.id}>
-                          <button type="button" className="explore-stop" aria-pressed={item.id === stop?.id} onClick={() => { visit(item); }}>
-                            <span className="explore-stop-kind">{t(STOP_KIND_LABEL_KEYS[item.kind])}</span>
-                            <span className="explore-stop-place">{placeOf(item, t, formatNumber)}</span>
-                            {item.description && <span className="explore-stop-note">{item.description}</span>}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                {groups.map(group => <StopGroupList key={`${accession}-${group.group}`} group={group.group} stops={group.stops} current={stop} onVisit={visit} />)}
               </section>
             </div>
           </div>
@@ -160,6 +152,9 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
           <ProteinActions entry={entry} hasModel={protein.model.status === 'ready'} />
         </section>
       )}
+
+      {/* The protein on screen comes first; choosing another one closes the page. */}
+      <ProteinChooser current={accession} onOpen={open} />
     </main>
   );
 }
@@ -177,6 +172,54 @@ function residueName(entry: UniProtEntry, position: number): string {
   return RESIDUE_NAMES[letter] ?? letter;
 }
 
+/** UniProt's description of what the protein does, without literature references; a long one opens folded. */
+function FunctionText({ text }: { text: string }): React.JSX.Element {
+  const { t } = useTranslation();
+  const clean = withoutCitations(text);
+  const long = clean.length > FUNCTION_PREVIEW_CHARACTERS;
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="entry-annotation explore-function" data-folded={long && !open}>
+      <p className="field-help">{t('library.functionNote')}</p>
+      <p id="explore-function-text">{clean}</p>
+      {long && <button type="button" className="button button-quiet" aria-expanded={open} aria-controls="explore-function-text" onClick={() => { setOpen(value => !value); }}>
+        {t(open ? 'explore.readLess' : 'explore.readMore')}
+      </button>}
+    </div>
+  );
+}
+
+/** One group of stops; a long group shows its first stops and opens on request, or when the tour reaches a hidden one. */
+function StopGroupList({ group, stops, current, onVisit }: { group: StopGroup; stops: readonly Stop[]; current: Stop | null; onVisit: (stop: Stop) => void }): React.JSX.Element {
+  const { t, formatNumber, locale } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const currentIndex = current ? stops.indexOf(current) : -1;
+  const open = expanded || currentIndex >= STOP_GROUP_PREVIEW;
+  const shown = open ? stops : stops.slice(0, STOP_GROUP_PREVIEW);
+  const listId = `explore-stops-${group}`;
+  return (
+    <div className="explore-group">
+      <h4>{t(STOP_GROUP_LABEL_KEYS[group])}</h4>
+      <ul className="explore-stops" id={listId}>
+        {shown.map(item => (
+          <li key={item.id}>
+            <button type="button" className="explore-stop" aria-pressed={item.id === current?.id} onClick={() => { onVisit(item); }}>
+              <span className="explore-stop-kind">{t(STOP_KIND_LABEL_KEYS[item.kind])}</span>
+              <span className="explore-stop-place">{placeOf(item, t, formatNumber)}</span>
+              {item.description && <span className="explore-stop-note">{translateAnnotation(item.description, locale)}</span>}
+            </button>
+          </li>
+        ))}
+      </ul>
+      {stops.length > STOP_GROUP_PREVIEW && currentIndex < STOP_GROUP_PREVIEW && (
+        <button type="button" className="button button-quiet" aria-expanded={open} aria-controls={listId} onClick={() => { setExpanded(value => !value); }}>
+          {open ? t('explore.showFewer') : t('explore.showAll', { count: formatNumber(stops.length) })}
+        </button>
+      )}
+    </div>
+  );
+}
+
 interface StopReadingProps {
   stop: Stop | null; index: number; total: number; entry: UniProtEntry;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
@@ -185,28 +228,28 @@ interface StopReadingProps {
 
 /** The stop on screen: where it is, what that kind of place means and what UniProt says about this one. */
 function StopReading({ stop, index, total, entry, headingRef, onPrevious, onNext, onWhole }: StopReadingProps): React.JSX.Element {
-  const { t, formatNumber } = useTranslation();
+  const { t, formatNumber, locale } = useTranslation();
   const residues = stop && stopSize(stop) <= FOCUS_STICKS_MAX_RESIDUES
     ? stopPositions(stop).map(position => t('explore.residue', { name: residueName(entry, position), position: formatNumber(position) })).join(' · ')
     : stop ? t('explore.spanSize', { count: formatNumber(stopSize(stop)), begin: formatNumber(stop.begin), end: formatNumber(stop.end) }) : '';
   return (
-    <article className="entry-detail explore-current" aria-labelledby="explore-current-title">
+    <article className="entry-detail explore-current" data-state={stop ? 'stop' : 'whole'} aria-labelledby="explore-current-title">
       {stop ? <>
         <p className="field-meta">{t('explore.tourProgress', { index: formatNumber(index + 1), total: formatNumber(total) })}</p>
         <h4 id="explore-current-title" ref={headingRef} tabIndex={-1}>{t(STOP_KIND_LABEL_KEYS[stop.kind])}</h4>
         <p className="explore-residues">{residues}</p>
         <p>{t(STOP_KIND_MEANING_KEYS[stop.kind])}</p>
-        {stop.description && <div className="entry-annotation"><p className="field-help">{t('explore.sourceNote')}</p><p>{stop.description}</p></div>}
+        {stop.description && <div className="entry-annotation"><p className="field-help">{t('explore.sourceNote')}</p><p>{translateAnnotation(stop.description, locale)}</p></div>}
       </> : <>
         <h4 id="explore-current-title" ref={headingRef} tabIndex={-1}>{t('explore.wholeTitle')}</h4>
-        <p>{t('explore.wholeHelp')}</p>
+        <p>{t('explore.wholeHelp', { count: formatNumber(total) })}</p>
       </>}
       <div className="actions">
         {stop ? <>
           <button type="button" className="button button-secondary" onClick={onPrevious}>{t('explore.tourPrevious')}</button>
           <button type="button" className="button button-primary" onClick={onNext}>{t('explore.tourNext')}</button>
           <button type="button" className="button button-quiet" onClick={onWhole}>{t('explore.tourWhole')}</button>
-        </> : <button type="button" className="button button-primary" onClick={onNext}>{t('explore.tourStart')}</button>}
+        </> : <button type="button" className="button button-primary button-large" onClick={onNext}>{t('explore.tourStart')}<Icon name="arrow" /></button>}
       </div>
     </article>
   );

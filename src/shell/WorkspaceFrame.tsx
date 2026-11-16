@@ -13,6 +13,7 @@ import { TourPanel } from './TourPanel';
 import { TourContext, setTourStop, useTourStop } from './tour';
 import { PALETTE_KEY } from './paletteEntries';
 import { useSyncShortLabel } from '../features/projects/syncSummary';
+import { withViewTransition } from '../shared/motion';
 
 /** The width choice is a visual preference; storage may be unavailable, and then it lasts for the visit. */
 function readCompact(): boolean {
@@ -65,7 +66,7 @@ export function WorkspaceFrame(): React.JSX.Element {
     <div className="workspace" data-compact={compact}>
       <a className="skip-link" href="#app-content">{t('shell.skip')}</a>
       <aside className="workspace-sidebar" aria-label={t('shell.sidebar')} onPointerOver={placeTooltip} onFocus={placeTooltip}>
-        <SidebarContent variant="rail" compact={compact} onToggle={() => { setCompact(value => !value); }} onPalette={() => { setPaletteOpen(true); }} />
+        <SidebarContent variant="rail" compact={compact} onToggle={() => { withViewTransition('sidebar', () => { setCompact(value => !value); }); }} onPalette={() => { setPaletteOpen(true); }} />
       </aside>
       <div className="workspace-body">
         <header className="workspace-bar">

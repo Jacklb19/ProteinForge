@@ -58,6 +58,12 @@ export const STOP_KIND_MEANING_KEYS = {
 
 /** Stops of at most this many residues also draw their side chains; longer ones are marked on the ribbon only. */
 export const FOCUS_STICKS_MAX_RESIDUES = 12;
+/** Stops listed per group before «Show all»: a long entry stays scannable, and the tour still visits every stop. */
+export const STOP_GROUP_PREVIEW = 6;
+/** Function texts longer than this open folded, with a control to read the rest. */
+export const FUNCTION_PREVIEW_CHARACTERS = 360;
+/** Literature references inside UniProt's free text, such as «(PubMed:12345, PubMed:67890)». */
+export const PUBMED_CITATION = /\s*\((?:PubMed:\d+(?:,\s*)?)+\)/g;
 /** Camera travel to a stop; none with reduced motion. */
 export const FOCUS_CAMERA_MS = 450;
 /** Tokens the viewer reads for what is not residue chemistry: the mark of the stop on screen and unclassified residues. */
