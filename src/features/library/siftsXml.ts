@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { MAX_MAPPING_RESIDUES, MAX_SIFTS_XML_CHARACTERS, residueMappingSchema } from './residueMapping';
 import type { ResidueMappingDocument, ResidueMappingRow } from './residueMapping';
+import { PDBE_RESIDUE_LISTING_URL, SIFTS_NAMESPACE, SIFTS_XML_URL } from './config';
 
-const namespace = 'http://www.ebi.ac.uk/pdbe/docs/sifts/eFamily.xsd';
+const namespace = SIFTS_NAMESPACE;
 const moleculeSchema = z.object({ entity_id: z.number().int().positive(), chains: z.unknown() });
 const chainSchema = z.object({ chain_id: z.string().min(1).max(128), struct_asym_id: z.string().min(1).max(128), residues: z.unknown() });
 const listingResidueSchema = z.object({
@@ -97,8 +98,8 @@ export function mappingFromSiftsXml(xml: string, listingInput: unknown, pdbId: s
     }
   }
   return residueMappingSchema.parse({ version: 1, pdbId, rows, provenance: {
-    provider: 'PDBe/SIFTS', xmlUrl: `https://ftp.ebi.ac.uk/pub/databases/msd/sifts/xml/${pdbId.toLowerCase()}.xml.gz`,
-    residueListingUrl: `https://www.ebi.ac.uk/pdbe/api/pdb/entry/residue_listing/${pdbId.toLowerCase()}`,
+    provider: 'PDBe/SIFTS', xmlUrl: SIFTS_XML_URL.replace('{id}', pdbId.toLowerCase()),
+    residueListingUrl: PDBE_RESIDUE_LISTING_URL.replace('{id}', pdbId.toLowerCase()),
     retrievedAt, releaseDate: attribute(entry, 'date'),
   } });
 }

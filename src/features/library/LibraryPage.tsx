@@ -13,7 +13,7 @@ import type { SequenceSource } from '../editor/source';
 import { REFERENCE_CATALOG } from './catalog';
 import { createLibraryApi } from './libraryApi';
 import type { EntrySummary, PdbReference, UniProtEntry } from './libraryApi';
-import { UNIPROT_DEFAULT_QUERY, UNIPROT_QUERY_MAX_LENGTH, UNIPROT_URL } from './config';
+import { INSULIN_ACCESSION, INSULIN_CHAIN, INSULIN_STRUCTURE, UNIPROT_DEFAULT_QUERY, UNIPROT_QUERY_MAX_LENGTH, UNIPROT_URL } from './config';
 import { annotationsForAccession } from '../editor/annotations';
 import { StructureStage } from '../structure/StructureStage';
 import { MappedStructure } from './MappedStructure';
@@ -25,10 +25,6 @@ import { DomainsPanel } from '../domains/DomainsPanel';
 import { OPEN_PROJECT_STATE } from '../editor/config';
 import { EXPLORE_PARAM } from '../explore/config';
 
-const INSULIN_ACCESSION = 'P01308';
-const INSULIN_STRUCTURE: PdbReference = { id: '1TRZ', method: 'X-ray', resolution: '1.60 Å', chains: 'A/C=90-110, B/D=25-54' };
-/** The example's first copy of the A chain, so it opens on one residue instead of asking to choose between copies. */
-const INSULIN_CHAIN = 'A';
 const INSULIN_REFERENCE = (() => {
   const reference = REFERENCE_CATALOG.find(item => item.accession === INSULIN_ACCESSION);
   if (!reference) throw new Error('Missing bundled reference');
