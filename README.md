@@ -64,7 +64,6 @@ El generador local y el [laboratorio didáctico](docs/laboratory.md) están impl
 - [Pantallas](docs/pantallas.md)
 - [Diseño](docs/diseno-visual.md) y [fuentes](docs/font-provenance.md)
 - [Estado y plan de desarrollo](docs/plan-desarrollo.md): capacidades actuales, orden de entregables y configuración que debe aportar el responsable del proyecto
-- [Relevo de desarrollo](docs/prompt-siguiente-entrega.md): estado publicado, decisiones vigentes y copias de trabajo
 - [Rendimiento y accesibilidad](docs/performance-2026-10-27.md) y [calidad](docs/quality-s7.md): mediciones, límites y propuestas abiertas
 - [Archivo histórico](docs/archive/README.md)
 - [Laboratorio de diseño y alojamiento](docs/design-lab-roadmap.md): alcance acordado, modelos, primera prueba, hardware y precios consultados
