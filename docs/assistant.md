@@ -1,57 +1,40 @@
 # Lectura de los resultados
 
-Publicada el 23 oct 2026, con la dirección A revisada y aprobada por el propietario: una sección al pie de Analizar y del Laboratorio. La entrega posterior del 26 oct también está publicada y su CI terminó correctamente. [Decisión visual](assistant-ui-proposal.md) · [contrato backend](../../backend/docs/assistant.md) · [relevo vigente](prompt-siguiente-entrega.md). La corrección de errores descrita abajo es posterior y permanece local.
-
-## Comprobación autenticada y mejoras locales — 26 oct, noche
-
-Tras la actualización de `GROQ_API_KEY` y el redespliegue realizados por el propietario, dos solicitudes deliberadas en producción respondieron con su sesión: Analizar, insulina P01308 de 110 residuos (22:29 COT), y Laboratorio, variante 1 pública de 1UBQ (22:30 COT). Ambas muestran texto, cifras enviadas y procedencia `openai/gpt-oss-120b`/Groq. No se leyeron tokens ni se enviaron secuencias, guardaron proyectos o ejecutaron modelos estructurales. El fallo anterior ya no se reproduce en estos recorridos; sin su respuesta histórica no se demuestra retrospectivamente su causa. No pedir recrear una clave cuya presencia en Production ya se comprobó.
-
-La lectura real del Laboratorio afirmó que 42 de 76 era «menos de la mitad». La comprobación de cifras existente no detecta ese error de prosa. Una prueba local real con instrucciones reforzadas aún derivó otra proporción incorrecta. Se añadió por ello una comprobación conservadora de expresiones de cantidad en es/en (mitad, mayoría/minoría y equivalentes): si ese texto no viene explícitamente en un valor enviado, se rechaza con el código existente `assistant-unverified-figure`. No es una validación semántica completa y puede descartar una redacción correcta no suministrada. El ensayo real final local fue descartado por el verificador; no afirmar que esta versión garantice lecturas válidas o éxito del proveedor. [Límites y evidencia backend](../../backend/docs/assistant.md#comprobación-real-y-proporciones-verbales--26-oct).
-
-Corregido además el plazo del cliente del asistente: 40 s frente a los 10 s generales, para cubrir identidad (hasta 5 s), Groq (hasta 30 s) y margen de transporte. Regresión reproducida antes del arreglo: respuestas simuladas a 12/34 s se cancelaban. Ahora se aceptan; a 40 s se corta una solicitud detenida y la cancelación deliberada sigue siendo inmediata, sin reintento automático. Las demás rutas conservan 10 s. Cambios locales, sin publicación, nuevo contrato, migración o interfaz.
-
-Verificación de estas mejoras: 450 unitarias/79 archivos, tipos, lint final y build correctos; 29 pruebas afectadas y 9/9 E2E del asistente correctas, con sesiones/proveedor simulados. Backend: 19/19 del asistente/diagnóstico. No nueva certificación de PWA, SQL o CI remoto. El primer intento ampliado falló por caché temporal del entorno restringido y el primer E2E por acceso al servidor local; las repeticiones autorizadas pasaron. Corregido aviso lint del helper de cancelación antes del cierre. Avisos previos de Vite/fuentes/chunks y Starlette/httpx conservados.
-
-## Diagnóstico local del 26 oct 2026
-
-La lectura de cifras públicas de insulina en producción mostró «No se pudo obtener la lectura». La evidencia conservada no incluye el estado RPC ni su mensaje de error: no permite atribuir la causa a la clave, al modelo o a Groq.
-
-Se reprodujo una omisión del cliente: `assistant-not-configured` llega como `FAILED_PRECONDITION` (9), pero faltaba en el catálogo de errores y acababa en `unknown`, que muestra exactamente ese texto genérico. La corrección lo clasifica como `unavailable` y reutiliza el mensaje ya existente en español e inglés. No modifica el contrato, el proveedor, el presupuesto, los plazos ni el verificador de cifras. Es una causa compatible con el síntoma, **no la causa demostrada del incidente**.
-
-La regresión recorre el cliente gRPC-Web real con respuestas simuladas: falta de configuración, proveedor inaccesible o fallido, respuesta inválida o incompleta, cifras rechazadas, cuota y sesión. Conserva la referencia de solicitud y no expone el detalle del servidor. El backend comprueba por Connect y gRPC-Web que la configuración ausente devuelve su código estable sin consultar al proveedor. El recorrido de navegador comprueba el mensaje de indisponibilidad en ambos idiomas, sin mostrar fuentes ni bloquear la acción. Esta evidencia histórica es anterior a las lecturas reales descritas arriba.
-
-Para cerrar el incidente hace falta el código RPC y el mensaje estable de la respuesta fallida, junto con su `X-Request-Id` si está disponible. No compartir `Authorization`, cookies, claves, un HAR completo ni datos privados. `FAILED_PRECONDITION`/`assistant-not-configured` acredita configuración ausente en ese proceso; `UNAVAILABLE` debe distinguirse por su mensaje (`assistant-provider-error`, `assistant-unreachable`, `assistant-invalid-response`, `assistant-incomplete` o `assistant-unverified-figure`). La captura visual por sí sola no distingue esos casos. Esta continuación no repite la solicitud real ni consume cuota remota.
-
-Continuación del diagnóstico del 26 oct: se abrió `/analyze` publicado y el navegador no tenía sesión. El propietario iniciará sesión al llegar a casa. No se solicitó otra lectura ni se consumió cuota. Preparada una [herramienta local sin red](../../backend/docs/assistant.md#diagnóstico-local-sin-llamadas-a-groq--26-oct) para comprobar presencia de configuración local o reconocer el cuerpo guardado de un error REST/Connect/gRPC-Web sin imprimir texto privado. No comprueba la configuración remota ni soluciona por sí sola el fallo. La respuesta RPC real sigue siendo el siguiente dato necesario.
+Una sección al pie de Analizar y del Laboratorio redacta, a petición, una explicación en prosa de los resultados que la pantalla ya calculó. Contrato y límites del servicio en la [documentación del backend](https://github.com/Jacklb19/Protein_Back/blob/main/docs/assistant.md).
 
 ## Uso y datos enviados
 
-Con sesión y una API configurada, «Leer estas propiedades» o «Leer estos resultados» solicita una explicación en el idioma activo. Sin sesión ofrece iniciar sesión y regresar a la pantalla. La solicitud es deliberada, sin chat ni historial.
+Con sesión y una API configurada, «Pedir una lectura» («Leer estas propiedades» o «Leer estos resultados») solicita una explicación en el idioma activo. Sin sesión ofrece iniciar sesión y regresar a la pantalla. La solicitud es deliberada, sin chat ni historial.
 
-`AssistantService/Interpret` recibe solo datos etiqueta/valor/unidad: en Analizar, longitud, descriptores, composición y ventana del perfil; en Laboratorio, muestra, referencia, longitud, pLDDT medio, RMSD Cα, pTM, identidad posicional y cantidad de posiciones protegidas. Se usan las etiquetas y el formato numérico de la pantalla. **El cliente no tiene un campo para enviar la secuencia.** La clave de Groq permanece en el backend.
+`AssistantService/Interpret` recibe solo datos etiqueta/valor/unidad:
 
-Un borrador de laboratorio con la secuencia modificada solo envía su estado, longitud, muestra, referencia y cantidad de protecciones: las cifras de su predicción anterior quedan fuera. El texto recibido se muestra como prosa plana, con las cifras enviadas al lado y procedencia de modelo, proveedor y fecha. No se interpreta HTML ni Markdown.
+- en Analizar: longitud, descriptores, composición y ventana del perfil;
+- en el Laboratorio: muestra, referencia, longitud, pLDDT medio, RMSD Cα, pTM, identidad posicional y cantidad de posiciones protegidas.
+
+Se usan las etiquetas y el formato numérico de la pantalla. **El cliente no tiene ningún campo para enviar la secuencia.** La clave de Groq permanece en el backend (proveedor Groq, modelo `openai/gpt-oss-120b`). Un borrador de laboratorio con la secuencia modificada envía solo su estado, longitud, muestra, referencia y cantidad de protecciones: las cifras de su predicción anterior quedan fuera.
+
+El texto recibido se muestra como prosa plana, con las cifras enviadas al lado y la procedencia (modelo, proveedor y fecha). No se interpreta HTML ni Markdown. La prosa tiene 62 caracteres de ancho y un interlineado de 1,75 mediante tokens; las cifras van a la derecha en escritorio y debajo en móvil.
 
 ## Vigencia y errores
 
-La lectura pertenece a los datos y al idioma de la solicitud; cambiar cualquiera de ellos retira el texto anterior. Analizar solo ofrece la acción cuando sus descriptores están actualizados, y cargar otro conjunto del laboratorio invalida la lectura aunque reutilice identificadores de variantes. Las solicitudes se cancelan al desmontar el bloque o pedir otra lectura; una respuesta cancelada que llegue tarde no reemplaza la nueva. El presupuesto agotado, la sesión inválida, los fallos de red/proveedor y las cifras rechazadas por la API muestran mensajes bilingües y permiten reintentar. Sin configuración de identidad/API no se muestra la sección.
+- La lectura pertenece a los datos y al idioma de la solicitud; cambiar cualquiera de ellos retira el texto anterior. Analizar ofrece la acción solo cuando sus descriptores están actualizados, y cargar otro conjunto del laboratorio invalida la lectura aunque reutilice identificadores de variantes.
+- Las solicitudes se cancelan al desmontar el bloque o al pedir otra lectura; una respuesta cancelada que llega tarde no reemplaza a la nueva. No hay reintento automático.
+- El plazo del cliente es de 40 s, frente a los 10 s generales: cubre la identidad (hasta 5 s), Groq (hasta 30 s) y el margen de transporte. Las demás rutas conservan 10 s.
+- El presupuesto agotado, la sesión inválida, los fallos de red o del proveedor y las cifras rechazadas por la API muestran mensajes bilingües y permiten reintentar. Sin configuración de identidad ni de API no se muestra la sección.
+- Los errores estables de la API se clasifican en el cliente: `FAILED_PRECONDITION` con `assistant-not-configured` es «indisponible»; `UNAVAILABLE` se distingue por su mensaje (`assistant-provider-error`, `assistant-unreachable`, `assistant-invalid-response`, `assistant-incomplete` o `assistant-unverified-figure`). El cliente conserva la referencia de la solicitud (`X-Request-Id`) y no expone el detalle del servidor.
 
-No calcula propiedades, no genera candidatos ni estructuras y no demuestra función, estabilidad o actividad experimental. No interpreta todavía Alinear ni Diseñar, no persiste la lectura en Proyectos ni la exporta a los informes. No ofrece una alternativa local cuando falla Groq.
+## Comprobación de las cifras
 
-## Verificación y publicación
+La API comprueba que las cifras citadas en la prosa estén entre las enviadas. Además hay una comprobación conservadora de expresiones de cantidad en español e inglés (mitad, mayoría, minoría y equivalentes): si esa expresión no viene explícita en un valor enviado, el texto se rechaza con el código `assistant-unverified-figure`. No es una validación semántica completa y puede descartar una redacción correcta que no esté entre los valores suministrados; no garantiza lecturas válidas.
 
-Corrección local del 26 oct: tipos, lint y build correctos; **444 unitarias en 78 archivos** y **9/9 E2E del asistente** en Chromium, con sesión/proveedor simulados. Incluye indisponibilidad en español/inglés y comprobaciones AA a 360/1280 en ambos temas. Backend: **10/10 pruebas del asistente**, incluida configuración ausente por Connect/gRPC-Web y rechazo de cifras inventadas. Regresión del cliente observada antes del arreglo (1 fallo de 8), corregida después; el primer E2E nuevo buscaba el selector de idioma en el pie de una sesión autenticada, se corrigió para usar Perfil y la batería final pasó completa. Persisten los avisos previos de Vite/fuentes/chunks; no se cambió PWA, Workers ni caché y no se repitió su certificación.
+## Alcance
 
-Verificación del 23 oct: tipos, lint y build correctos; **357 unitarias en 66 archivos**, cobertura 84,50 % sentencias / 75,14 % ramas / 81,91 % funciones / 87,67 % líneas. **33/33 E2E sin omisiones**: `assistant.spec.ts`, `laboratory.spec.ts`, `editor-design.spec.ts`, `projects.spec.ts` y `reports.spec.ts`, con ambos ZIP reales de Colab. Incluye 8 casos del asistente, AA a 360/1280 en los dos temas y regresión de reemplazo del conjunto. PWA correcta con 47 recursos: fuentes, Workers/WASM, laboratorio, cuaderno y exportación local sin conexión.
+No calcula propiedades, no genera candidatos ni estructuras y no demuestra función, estabilidad ni actividad experimental. No interpreta todavía Comparar ni Diseñar, no guarda la lectura en Proyectos ni la exporta a los informes y no ofrece una alternativa local cuando falla Groq.
 
-Los transportes, textos de respuesta y sesiones de esas E2E son simulados; no acreditan integración autenticada con el backend publicado ni corrección científica de una lectura real de Groq. Las cuatro capturas `artifacts/assistant-reading-{360,1280}-{light,dark}.png` se revisaron visualmente; son locales y no se versionan. Código RPC regenerado desde `../backend/proto` sin diferencias. Persisten los avisos previos de Vite sobre cargador futuro y chunks grandes.
+## Pruebas
 
-La publicación del asistente y de SIFTS ya terminó: no repetirla. El pin actual de `frontend/buf.gen.yaml` es `a3edaf1d7a43ada2b2bbf9113ff9ccef7f123a57`, backend publicado con ambos servicios. No hacen falta migraciones nuevas.
+Unitarias del cliente RPC real con respuestas simuladas (configuración ausente, proveedor inaccesible o fallido, respuesta inválida o incompleta, cifras rechazadas, cuota y sesión) y E2E de la sección en ambos idiomas con comprobaciones AA a 360 y 1280 px en los dos temas, con sesión y proveedor simulados. Estas pruebas no acreditan la corrección científica de una lectura real de Groq. En el backend, las pruebas de Connect y gRPC-Web comprueban que la configuración ausente devuelve su código estable sin consultar al proveedor.
 
-**Para una futura entrega autorizada que cambie el contrato:**
+## Cambios de contrato
 
-1. Publicar `dev` del backend y fusionar/publicar su `main`; comprobar CI y despliegue. `GROQ_API_KEY` debe estar configurada por el propietario en Vercel: el `.env` local no la publica.
-2. Fijar `frontend/buf.gen.yaml` al commit backend recién publicado que contiene `AssistantService`; ejecutar `npx buf generate`, revisar y confirmar el cambio.
-3. Publicar `dev` del frontend y fusionar/publicar su `main`; verificar CI, despliegue y las dos pantallas.
-
-La corrección local de clasificación no cambia protobuf ni requiere regeneración. Publicarla necesita autorización propia; el permiso de la entrega anterior ya se ejecutó.
+Cuando un cambio modifica el contrato (`AssistantService`): publicar el backend, fijar `buf.gen.yaml` al commit publicado, ejecutar `npx buf generate`, revisar y confirmar el resultado y publicar el frontend. `GROQ_API_KEY` se configura en el proyecto de Vercel del backend; el `.env` local no la despliega.

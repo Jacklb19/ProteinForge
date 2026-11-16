@@ -1,40 +1,32 @@
-# Definición vigente de ProteinForge
+# Requisitos de ProteinForge
 
-Estado del 28 oct 2026: publicados frontend `main` `84f9da5` y backend `main` `18d9444`, con CI y Vercel correctos. Están publicados el rediseño «Mesa clara», la presentación pública separada del laboratorio, la selección SIFTS, el asistente, Proyectos, el laboratorio y el historial del generador, este último oculto hasta activar `VITE_GENERATOR_HISTORY` en Vercel. En `dev` del frontend está integrada además la pasada de rendimiento y accesibilidad (`0b22b4a`), sin publicar. Por decisión del propietario de esta fecha, el modelado se queda en el cuaderno manual de Colab, la inferencia desde la app queda aplazada, la forma de novo fuera del alcance y el catálogo de dominios, verificado y con su pestaña en Biblioteca, quedó integrado en `dev` el 29 oct (`a3acf37`), sin publicar. La verificación se limita a lo necesario: Safari en dispositivo real, lector de pantalla e INP de campo son límites documentados, no pendientes. El [plan](plan-desarrollo.md), las [decisiones](decisiones.md) y el [relevo](prompt-siguiente-entrega.md) recogen evidencia y límites; las capturas fechadas inferiores conservan la evolución anterior.
-
-Estado del 26 oct 2026: laboratorio, guardado en Proyectos y RF-11/Groq publicados; [recorrido del laboratorio registrado](laboratory-activation.md), lectura autenticada del asistente en producción por comprobar. Selección SIFTS Biblioteca/Analizar y suministro autenticado integrados y verificados localmente, pendientes de publicación. La prueba manual ZeroGPU produjo un rediseño fragmentario; siguen abiertas forma de novo, inferencia estructural desde la app y persistencia de predicciones. El [plan actualizado](plan-desarrollo.md) recoge evidencia y límites; las capturas de estado fechadas inferiores conservan la evolución anterior.
-
-Actualización de implementación del 21 oct 2026: Proyectos, migraciones, publicación y confirmación de correo ya resueltos según las verificaciones posteriores; inglés implementado. El [laboratorio A](laboratory.md) añade tres resultados reales de Colab, importación, selección secuencia/3D, edición/restricciones y guardar/reabrir archivo local. El [recorrido condicionado manual](design-lab-constraints.md) también está ejecutado y comprobado. El [guardado completo en Proyectos](laboratory-projects.md) está implementado y comprobado localmente. Quedan su activación remota, predicción nueva desde la app y forma de novo. La tabla del 12 oct de abajo conserva la captura anterior; el [plan actualizado](plan-desarrollo.md) determina lo restante.
-
-Actualizada el 12 de octubre de 2026. Sustituye la [definición original](archive/definicion-original.md), conservada por trazabilidad. [Decisiones](decisiones.md), [pantallas](pantallas.md) y [plan](plan-desarrollo.md) concretan implementación y límites. Evidencia local no equivale a despliegue ni garantía externa.
+Este documento reúne el problema, el alcance, los requisitos funcionales y de calidad y los contratos científicos de la aplicación. Sustituye a la [definición académica original](archive/definicion-original.md), que se conserva como anexo. Las [decisiones](decisiones.md), las [pantallas](pantallas.md) y el resto de documentos de `docs/` concretan cada parte.
 
 ## Problema y objetivo
 
-Explorar secuencias que satisfagan condiciones específicas exige buscar en un espacio combinatorio grande. ProteinForge permitirá generar candidatos bajo condiciones fisicoquímicas, analizarlos, compararlos y consultar estructuras experimentales o predichas en un recorrido académico reproducible.
+Explorar secuencias que satisfagan condiciones específicas exige buscar en un espacio combinatorio grande. ProteinForge permite analizar secuencias de proteínas, compararlas, generar candidatos bajo condiciones fisicoquímicas y consultar estructuras experimentales o predichas en un recorrido académico reproducible.
 
-El producto conserva el editor, importación FASTA, descriptores, alineamiento, catálogo, UniProt, visor 3D, cuentas, proyectos, interpretación e informes. Se añaden generación de candidatos y predicción estructural externa. Próxima prioridad: laboratorio didáctico para crear/modificar candidatos y explorar/comparar sus modelos 3D, con parámetros avanzados secundarios. Basta demostrar dos o tres diseños computacionales útiles; validación experimental posterior por otros. [Alcance, primera prueba y alojamiento](design-lab-roadmap.md). Demo académica con costo cero y sin tarjeta.
+El producto reúne editor e importación FASTA, descriptores, alineamiento, catálogo de referencias, UniProt, visor 3D, cuentas, proyectos, interpretación de resultados e informes, además de un laboratorio didáctico para modificar candidatos y comparar sus modelos 3D.
 
-Un candidato que cumple intervalos de descriptores no queda validado como proteína funcional o estable. Una predicción 3D tampoco demuestra actividad experimental ni novedad en la naturaleza. La búsqueda guiada sigue evaluando alternativas: su mejora debe medirse frente a una referencia, sin afirmar que elimina la complejidad combinatoria.
+Un candidato que cumple intervalos de descriptores no queda validado como proteína funcional o estable. Una predicción 3D tampoco demuestra actividad experimental ni novedad en la naturaleza. La búsqueda guiada evalúa alternativas: su mejora debe medirse frente a una referencia, sin afirmar que elimina la complejidad combinatoria.
 
-## Alcance y estado
+## Alcance
 
-| Capacidad | Estado actual |
+| Capacidad | Descripción |
 |---|---|
-| Editor, FASTA, validación ampliada | Implementados y publicados; catálogo inicial de tres referencias completas. Catálogo de 48 dominios verificado y pestaña «Dominios» con ensamblado integrados en `dev` (`a3acf37`), sin publicar |
-| Descriptores, hidropatía y propensiones clásicas | Implementados en Workers y publicados |
-| Alineamiento global/local | Implementado en Rust/WASM y Workers, publicado |
-| Preferencias, temas y recursos locales sin conexión | Implementados y publicados, con inglés completo. La sincronización diferida al recuperar red sigue pendiente |
-| Backend y base de datos | Health/identidad/CRUD/UniProt/SIFTS/asistente implementados y publicados; seis pruebas RLS PostgreSQL reales y migraciones aplicadas por el propietario. Recorrido con JWT real y aislamiento por ID con segunda cuenta pendientes |
-| UniProt, catálogo, visor 3D y selección sincronizada | Implementados y publicados, incluida la selección SIFTS bidireccional comprobada en producción con P01308/1TRZ; cobertura anotada. Mol* experimental, sin predicción |
-| Cuentas, persistencia, asistente y PDF/CSV | Cuenta, proyectos, laboratorio guardado, asistente e informes PDF/JSON/CSV implementados y publicados. Entrega SMTP, flujo Google completo, TOTP y la comprobación de la prosa del asistente siguen pendientes |
-| Generación y comparación de candidatos | RF17 implementado y publicado, con límites/configuración y evidencia en [candidatos](candidates.md). El historial de búsquedas en Proyectos está implementado y publicado, oculto hasta activar `VITE_GENERATOR_HISTORY` |
-| Predicción externa de candidatos | Aplazada por decisión del 28 oct: sin ejecutor gratuito cuyos términos permitan este uso. El modelado se hace con el cuaderno manual de Colab y sus resultados se importan |
+| Editor, FASTA y validación | Entrada manual, pegado, FASTA y ensamblado de fragmentos del catálogo; catálogo de referencias completas y de 48 dominios con procedencia |
+| Descriptores, hidropatía y propensiones | Masa, pI, inestabilidad, índice alifático, GRAVY, perfil por ventana y propensiones clásicas, calculados en Workers |
+| Alineamiento | Global y local con Gotoh en Rust/WASM y Workers |
+| Preferencias y uso sin conexión | Temas claro/oscuro, español e inglés, PWA con recursos locales y cola de guardado diferido |
+| Backend y base de datos | Identidad, proyectos, UniProt, SIFTS, asistente, informes y predicción con RLS en PostgreSQL |
+| UniProt, catálogo y visor 3D | Búsqueda y detalle de UniProt, estructuras PDB con Mol* y selección sincronizada secuencia/estructura mediante SIFTS |
+| Cuentas, proyectos, asistente e informes | Cuenta, proyectos, laboratorio guardado, lectura de resultados e informes PDF/JSON/CSV |
+| Generación y comparación de candidatos | Búsqueda reproducible con referencia aleatoria; historial en proyectos detrás de una bandera |
+| Predicción estructural | Desde el laboratorio, con consentimiento por solicitud y servidor público de ESM Atlas, detrás de una bandera; el cuaderno de Colab es la vía de respaldo |
 
-No se incluyen entrenamiento de modelos, cómputo estructural pesado en Vercel, simulación molecular, validación clínica, alineamiento múltiple, búsqueda BLAST completa ni colaboración simultánea. La generación se hará mediante un algoritmo específico, separado del asistente conversacional.
+Quedan fuera: entrenamiento de modelos, cómputo estructural pesado en Vercel, simulación molecular, validación clínica, alineamiento múltiple, búsqueda BLAST completa, colaboración simultánea y diseño de formas nuevas (de novo). La generación usa un algoritmo específico, separado del asistente conversacional.
 
 ## Requisitos funcionales
-
-Se conservan RF-01 a RF-16 para mantener trazabilidad; RF-17 y RF-18 identifican la ampliación aprobada. Sus detalles se definirán antes de implementar, sin inventar límites o contratos.
 
 | ID | Requisito | Prioridad |
 |---|---|---|
@@ -51,93 +43,73 @@ Se conservan RF-01 a RF-16 para mantener trazabilidad; RF-17 y RF-18 identifican
 | RF-11 | Interpretación automática de resultados ya calculados | Media |
 | RF-12 | Autenticación y asociación de proyectos a cuentas | Alta |
 | RF-13 | Crear, guardar, listar, abrir, renombrar y eliminar proyectos | Alta |
-| RF-14 | Exportar informe PDF y datos CSV | Media |
+| RF-14 | Exportar informe PDF y datos CSV, y guardar informes en la cuenta | Media |
 | RF-15 | Cálculo local sin conexión y sincronización al recuperar red | Media |
 | RF-16 | Parámetros, fuentes y trazabilidad reproducibles | Alta |
 | RF-17 | Generar y comparar candidatos sujetos a condiciones definidas por el usuario | Alta |
 | RF-18 | Solicitar predicción externa de un candidato seleccionado y visualizar su resultado 3D | Alta |
 
-RF-17 conserva parámetros/semilla/versiones en JSON, cancelación y condiciones/diversidad medidas. Implementación revisable autorizada: longitud fija 5–300, masa/GRAVY, 100–5.000 evaluaciones por brazo, recocido simulado y referencia aleatoria. [Método, límites y cinco semillas](candidates.md). No garantiza óptimo, función ni estabilidad. Historial completo de búsquedas en proyectos pendiente.
+**RF-14.** El informe se genera en el dispositivo. Con `VITE_REPORT_STORAGE=enabled` también se guarda en la cuenta. Detalle en [informes](reports.md).
 
-RF-15 (propuesta A aprobada el 2 nov 2026): el cálculo ya funcionaba sin conexión; ahora los guardados en Proyectos que no pueden enviarse esperan en la pestaña y se guardan solos al volver la red, con estado junto a la cuenta y en cada fila, reintentos y conflictos resueltos en la fila. Publicado en `dev` de ambos repositorios el 2 nov, con la migración de idempotencia aplicada por el propietario; falta pasar a `main` y activar `VITE_PROJECT_CREATE_IDEMPOTENCY` en producción. Lo pendiente no sobrevive a cerrar la pestaña. [Decisión](decisiones.md).
+**RF-15.** El cálculo funciona sin conexión. Los guardados en Proyectos que no pueden enviarse esperan en la pestaña y se envían solos al volver la red, con estado junto a la cuenta y en cada fila, reintentos y conflictos resueltos en la fila. Lo pendiente no sobrevive a cerrar la pestaña. Detalle en [decisiones](decisiones.md) y [proyectos](projects.md).
 
-RF-14 guarda además informes en la cuenta (propuesta A aprobada el 2 nov 2026): publicado en `dev` el 2 nov con la migración de Storage aplicada por el propietario y el pin actualizado, detrás de `VITE_REPORT_STORAGE`; falta pasar a `main` y comprobar Storage, JWT y dos cuentas reales. [Detalle](reports.md).
+**RF-17.** Conserva parámetros, semilla y versiones en JSON, con cancelación y condiciones y diversidad medidas: longitud fija 5-300, masa y GRAVY, 100-5.000 evaluaciones por brazo, recocido simulado y referencia aleatoria. Método, límites y cinco semillas en [candidatos](candidates.md). No garantiza óptimo, función ni estabilidad.
 
-RF-18 enviará la secuencia únicamente tras una acción y consentimiento explícitos. El resultado debe validarse y etiquetarse como predicción, con proveedor y confianza cuando exista. Guardar estructuras previas permite una demostración de respaldo, siempre identificadas como resultados guardados. Un fallo externo debe ser visible, no sustituirse por coordenadas ficticias.
+**RF-18.** La secuencia se envía únicamente tras una acción y un consentimiento explícitos. El resultado se valida y se etiqueta como predicción, con proveedor y confianza cuando exista. Un fallo externo es visible y no se sustituye por coordenadas ficticias. Contrato y límites en [predicción](prediccion.md).
 
-## Criterios y requisitos de calidad
+## Requisitos de calidad
 
-Las historias originales HU-01 a HU-10 permanecen en el archivo histórico; sus decisiones corregidas se aplican aquí: alfabeto ampliado, catálogo estático, PDF local y backend separado. Nuevos recorridos: definir condiciones y comparar candidatos; seleccionar uno y visualizar una predicción.
-
-| ID | Criterio vigente |
+| ID | Criterio |
 |---|---|
-| RNF-01 | Cómputo pesado fuera del hilo principal; objetivo tareas menores de 50 ms e INP p75 menor de 200 ms. Auditado el 27 oct y cumplido solo en parte: interacciones sintéticas con CPU ×4 en p75 de 48 ms, pero persisten tareas de más de 50 ms al cargar. El INP de campo exigiría telemetría con consentimiento y queda fuera del alcance |
-| RNF-02 | Dos secuencias de 2.000 residuos en menos de 5 s en equipo medio de cuatro núcleos. Medición local disponible, certificación de equipo pendiente |
-| RNF-03 | Objetivo LCP menor de 2,5 s en 4G simulada. Cumplido en medición local del 27 oct con `vite preview`, 4G lenta y CPU ×4: 2.150 ms en Inicio y 2.449 ms en Analizar, este último con 43 ms de margen en p75. No acredita producción ni dispositivos físicos |
-| RNF-04 | Objetivo API: 100 peticiones/minuto durante 5 minutos; medir al existir backend, no aplicar carga al proveedor de predicción |
-| RNF-05 | Objetivo de disponibilidad de aplicación 99 % mensual, sin garantizar disponibilidad de APIs públicas; degradación explícita |
+| RNF-01 | Cómputo pesado fuera del hilo principal; objetivo de tareas menores de 50 ms e INP p75 menor de 200 ms. El INP de campo exigiría telemetría con consentimiento y queda fuera del alcance |
+| RNF-02 | Dos secuencias de 2.000 residuos alineadas en menos de 5 s en un equipo medio de cuatro núcleos |
+| RNF-03 | Objetivo de LCP menor de 2,5 s en 4G simulada. Metodología y límites en [calidad y rendimiento](calidad-y-rendimiento.md) |
+| RNF-04 | Objetivo de la API: 100 peticiones por minuto durante 5 minutos |
+| RNF-05 | Disponibilidad de la aplicación del 99 % mensual, sin garantizar la de las APIs públicas; degradación explícita |
 | RNF-06 | TLS, secretos de servicios exclusivamente en servidor y autorización por recurso |
-| RNF-07 | Procesamiento local; guardado y envíos externos deliberados. Predicción envía secuencia con consentimiento |
-| RNF-08 | Accesibilidad WCAG 2.1 AA; contraste, foco y teclado desde el diseño |
-| RNF-09 | Compatibilidad objetivo en últimas dos versiones de Chrome, Firefox, Edge y Safari. Alcance real verificado: Chromium 156, Firefox 155 y WebKit 26.6 en Windows, con la batería sin conexión completa en Chromium y WebKit. Safari en dispositivo real y lectores de pantalla quedan como límite documentado por decisión del 28 oct, no como pendiente |
-| RNF-10 | Cobertura mínima 70 % en cálculo y análisis estático sin errores. V8 no mide cobertura interna de Rust |
-| RNF-11 | Errores del backend con identificador de correlación sin exponer secretos ni secuencias |
-| RNF-12 | Costo cero, sin tarjeta ni recursos de pago; confirmar límites oficiales al implementar |
+| RNF-07 | Procesamiento local; guardado y envíos externos deliberados |
+| RNF-08 | Accesibilidad WCAG 2.1 AA: contraste, foco y teclado desde el diseño |
+| RNF-09 | Compatibilidad con las dos últimas versiones de Chrome, Firefox, Edge y Safari. Se verifica en Chromium, Firefox y WebKit; Safari en dispositivo real y lectores de pantalla son un límite conocido |
+| RNF-10 | Cobertura mínima del 70 % en cálculo y análisis estático sin errores. V8 no mide cobertura interna de Rust |
+| RNF-11 | Errores del backend con identificador de correlación, sin exponer secretos ni secuencias |
+| RNF-12 | Costo cero: servicios con plan gratuito y sin recursos de pago |
 
 ## Organización y arquitectura
 
 ```text
-ProteinForge/              # carpeta local sin Git
-├── frontend/              # React/Vite; Git y despliegue propios
-└── backend/               # base FastAPI; Git y despliegue propios
+ProteinForge/
+├── frontend/   # React/Vite, repositorio y despliegue propios
+└── backend/    # FastAPI, repositorio y despliegue propios
 ```
 
-- Frontend: repositorio `Jacklb19/ProteinForge`, React/TypeScript/Vite por características. Descriptores, alineamiento, búsqueda e informes corren en Workers; WASM se mantiene aquí.
-- Backend: repositorio `Jacklb19/Protein_Back`, FastAPI implementado, Python 3.14 objetivo (3.13 local). Custodia secretos, valida identidad, autoriza proyectos y coordina UniProt. Migraciones/pruebas RLS en este repositorio.
-- Supabase: Auth, PostgreSQL y Storage. La migración inicial define `profiles`, `projects`, `analyses`, `alignments`, `external_cache`; no describe todavía persistencia de candidatos/predicciones.
-- Despliegues independientes en Vercel: URL frontend y URL API. La carpeta contenedora no se importa a Vercel. `main` es producción y `dev` desarrollo; su conexión efectiva al proveedor la configura el usuario.
-- API propia con CORS para orígenes configurados y validación JWT. Frontend conoce URL API mediante `VITE_API_BASE_URL`. Contratos REST/OpenAPI se mantienen en el backend al implementarlos.
-- UniProt, PDBe/SIFTS, interpretación y predicción se coordinan desde la API. BinaryCIF público se descarga directamente de RCSB; catálogo es JSON estático. Las excepciones a la intermediación quedan explícitas.
-- Mol* se carga bajo demanda. Estructuras experimentales, referencias y predicciones se distinguen en el visor; el mapeo secuencia/estructura no se supone por igualdad de posiciones.
+- **Frontend** ([Jacklb19/ProteinForge](https://github.com/Jacklb19/ProteinForge)): React y TypeScript con Vite, organizado por características. Descriptores, alineamiento, búsqueda e informes corren en Workers; el núcleo de alineamiento es WASM.
+- **Backend** ([Jacklb19/Protein_Back](https://github.com/Jacklb19/Protein_Back)): FastAPI con Python 3.14. Custodia los secretos, valida la identidad, autoriza proyectos y coordina UniProt, SIFTS, el asistente y la predicción. Las migraciones y las pruebas de RLS viven en ese repositorio.
+- **Supabase**: Auth, PostgreSQL con RLS y Storage.
+- **Despliegue**: dos proyectos de Vercel independientes. `main` es producción y `dev` desarrollo. Ver [despliegue](despliegue.md).
+- **Comunicación**: el navegador habla con la API por gRPC-Web ([gRPC](grpc.md)); la API valida el JWT de Supabase y lo reenvía a PostgREST, de modo que RLS decide el acceso. El frontend conoce la API mediante `VITE_API_BASE_URL`.
+- UniProt, PDBe/SIFTS, la interpretación y la predicción se coordinan desde la API. El BinaryCIF público se descarga directamente de RCSB y el catálogo es JSON estático.
+- Mol* se carga bajo demanda. El visor distingue estructuras experimentales, referencias y predicciones, y el mapeo secuencia/estructura nunca se supone por igualdad de posiciones.
 
-## Contratos científicos y concurrencia existentes
+## Contratos científicos y de concurrencia
 
-- FASTA UTF-8 por flujo en Worker, máximo 5.000.000 bytes; virtualización de entradas.
-- Validación incremental con antirrebote 45 ms. Se aceptan veinte residuos estándar más U/O/B/Z/X con aviso; se retira asterisco terminal. Los descriptores excluyen residuos no estándar y anuncian cantidad.
-- Masa promedio más agua, pK de Bjellqvist, inestabilidad Guruprasad, índice alifático Ikai y GRAVY Kyte–Doolittle. Referencias publicadas y tolerancias en fixtures/pruebas.
-- Hidropatía: ventanas completas centradas 9/19; sin valores extremos. Chou–Fasman son propensiones clásicas, no estructura predicha.
-- Gotoh con BLOSUM45/62/80; BLOSUM62 predeterminada, apertura 10 y extensión 0,5. Coste de hueco `10 + 0,5 × (n − 1)`, extremos globales gratuitos. U se puntúa como C y O como K con aviso; B/Z/X directamente.
-- Alineamiento por bloques de 256, máximo 5.000 residuos por secuencia. Instancia WASM privada por Worker y traza compartida por regiones disjuntas; alternativa en Worker único si falta aislamiento. Progreso y cancelación entre antidiagonales.
-- COOP/COEP en Vite y Vercel; canvas en Worker, paleta resuelta desde tokens. No bloquear el hilo principal con el cálculo ni recargar la PWA durante edición.
-- `rust/alignment/pkg/` generado se versiona y se reconstruye/compara en CI; `target/` no se versiona.
+- FASTA UTF-8 por flujo en Worker, máximo 5.000.000 bytes, con virtualización de entradas.
+- Validación incremental con antirrebote de 45 ms. Se aceptan los veinte residuos estándar más U, O, B, Z y X con aviso, y se retira el asterisco terminal. Los descriptores excluyen residuos no estándar y anuncian cuántos.
+- Masa promedio más agua, pK de Bjellqvist, inestabilidad de Guruprasad, índice alifático de Ikai y GRAVY de Kyte-Doolittle. Referencias publicadas y tolerancias en fixtures y pruebas.
+- Hidropatía con ventanas completas centradas de 9 y 19, sin valores extremos. Chou-Fasman son propensiones clásicas, no estructura predicha.
+- Gotoh con BLOSUM45/62/80; BLOSUM62 por defecto, apertura 10 y extensión 0,5. Coste de hueco `10 + 0,5 × (n − 1)`, con extremos globales gratuitos. U se puntúa como C y O como K con aviso; B, Z y X, directamente.
+- Alineamiento por bloques de 256, máximo 5.000 residuos por secuencia. Instancia WASM privada por Worker y traza compartida por regiones disjuntas, con alternativa en un único Worker si falta aislamiento. Progreso y cancelación entre antidiagonales.
+- COOP/COEP en Vite y Vercel; canvas en Worker con la paleta resuelta desde los tokens. El cálculo no bloquea el hilo principal ni recarga la PWA durante la edición.
+- `rust/alignment/pkg/` se genera, se versiona y se reconstruye y compara en CI; `target/` no se versiona.
 
-## Datos, privacidad y servicios previstos
+## Datos y privacidad
 
-Supabase RLS separa propietarios y bloquea acceso de usuarios a `external_cache`. El UUIDv7 PL/pgSQL inicial es provisional; la API usará `uuid.uuid7()` de Python 3.14 para entidades que crea. `profiles.id` conserva el UUID de Supabase Auth. No cambiar migraciones remotas durante esta limpieza.
+- RLS de Supabase separa a los propietarios y bloquea el acceso de los usuarios a `external_cache`. `profiles.id` conserva el UUID de Supabase Auth; las entidades que crea la API usan `uuid.uuid7()` de Python 3.14.
+- Las escrituras usan la fecha de actualización conocida (PUT/DELETE) y responden 409 ante un conflicto.
+- Cuenta, recuperación y Google funcionan por redirección. El segundo factor TOTP tiene su [contrato](auth-totp-contract.md).
+- El asistente usa Groq con `openai/gpt-oss-120b`, consentimiento por solicitud, contexto delimitado, caché y límites. No recibe la secuencia completa. La predicción sí envía la secuencia al proveedor, con consentimiento por solicitud.
+- El PDF se genera en el cliente, se sube mediante URL firmada y la API registra el informe; también se exporta CSV.
+- Las secuencias no se guardan en el almacenamiento del navegador.
 
-Persistencia con fecha conocida en PUT/DELETE y 409, transacciones/RLS locales comprobados; activación remota pendiente. Cuenta/recuperación/Google por redirección; entrega SMTP/flujo Google completo sin verificar, TOTP/MFA pendientes.
+## Verificación
 
-Asistente previsto con Groq y `openai/gpt-oss-120b`, consentimiento, contexto delimitado, caché/límites y plantilla ante cuota agotada. No enviar secuencia completa al asistente. Retención cero debe comprobarse en la cuenta; la prueba de predicción sí envía la secuencia al proveedor elegido. PDF se genera en cliente, se sube mediante URL firmada y la API registra el informe; también se exporta CSV.
-
-ESM Atlas/ESMFold queda como alternativa histórica, no proveedor obligatorio. Una prueba con ubiquitina devolvió HTTP 200 y un PDB de 50.181 bytes con 601 registros ATOM; no acredita disponibilidad futura, calidad biológica, caché ni visor integrado. El acuerdo posterior prioriza ensayar forma → secuencia → predicción con Foundry o RFdiffusion/MPNN/ColabFold en entorno separado, midiendo recursos antes de ampliar la interfaz. No probar carga sobre proveedores compartidos. Límites, condiciones, consentimiento y almacenamiento se concretarán con la opción comprobada.
-
-Referencias de proveedor: [API de ESM Atlas](https://esmatlas.com/about), [ESMFold](https://github.com/facebookresearch/esm), [FastAPI en Vercel](https://vercel.com/docs/frameworks/backend/fastapi). Los límites se consultan cuando condicionen implementación; no se copian como garantías permanentes.
-
-## Plan vigente por entregables
-
-El cronograma antiguo se conserva como historial, no como bloqueo por conversación. Se trabaja en `dev` en ambos repositorios.
-
-1. Organización, documentos, responsabilidades y verificación de la base existente: esta intervención.
-2. API/proyectos/UniProt implementados con versiones fijas y RLS PostgreSQL real; activar migraciones/publicación y comprobar JWT real/runtime objetivo.
-3. Nueva dirección visual aprobada y recorrido integrado de catálogo/UniProt/visor experimental; conservar los mecanismos de accesibilidad y cálculo existentes.
-4. RF17 implementado con comparación reproducible; ampliar solo con evidencia de propiedades/estrategias admitidas.
-5. RF-18: aplazado el 28 oct y reabierto el 30 oct. La predicción desde el laboratorio usa el servidor público de ESM Atlas con consentimiento por solicitud ([entrega](prediction-delivery-2026-10-30.md), [contrato](prediction-contract-2026-10-30.md)); se comprobó con sesión real el 1 nov. El cuaderno manual de Colab sigue como respaldo. Desde el 2 nov (maqueta A aprobada, publicada en `dev`) la pestaña Predicción muestra el RMSD Cα de esa predicción frente a la referencia, calculado en el Worker con el mismo método que Colab; [método](laboratory.md).
-6. Interpretación, selección sincronizada, inglés y rendimiento ya están implementados y publicados, y el historial de generación también, pendiente de activarlo en Vercel. Quedan la sincronización diferida, publicar el catálogo de dominios con ensamblado, ya integrado en `dev`, y los pendientes de identidad: SMTP, flujo Google completo y TOTP.
-
-La petición del 11 de octubre autoriza continuar el desarrollo completo con dirección visual v3 aprobada. El [plan actualizado](plan-desarrollo.md) ordena la web pública/app, conexión de identidad, proyectos, datos/visor, informes, generación y predicción. No se impone una fecha ni un sprint; las rutas/payloads nuevos y el esquema de candidatos se concretan al abordar cada entregable.
-
-## Verificación proporcional y terminado
-
-Pruebas afectadas durante desarrollo; lint, tipos y build al cerrar código. Ejecutar batería completa cuando cambien contratos compartidos o se prepare una integración importante. E2E para recorridos afectados y PWA para recursos/Workers/caché. Documentación sola: coherencia, enlaces y diff.
-
-Para la entrega: requisitos de la tabla implementados con evidencia o pendientes explícitamente acordados, dos repositorios y URLs operativas, demostración reproducible y resultados 3D identificados correctamente. Las comprobaciones externas no realizadas se declaran; ni Chrome local ni una respuesta de API certifican todos los navegadores, hardware o disponibilidad.
+Durante el desarrollo se ejecutan las pruebas afectadas; al cerrar el código, lint, tipos y build. La batería completa se ejecuta cuando cambian contratos compartidos. Los E2E cubren los recorridos afectados y la PWA, los recursos, los Workers y la caché. Una comprobación local no certifica todos los navegadores, el hardware ni la disponibilidad de servicios externos.

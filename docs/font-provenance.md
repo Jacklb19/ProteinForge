@@ -22,7 +22,7 @@ Los archivos de Atkinson se copiaron sin modificar del paquete npm (`files/atkin
 - **Atkinson Hyperlegible Next.** Lo publicó el Braille Institute para maximizar la distinción entre caracteres (I/l/1, O/0). En esta aplicación importa porque I, L y O son códigos de aminoácido que aparecen en textos, tablas y lecturas. El subconjunto latin cubre el español y tiene la característica `tnum`: los valores usan `font-variant-numeric: tabular-nums` para alinear cifras.
 - **IBM Plex Mono.** Se conserva solo para residuos en columna: editor, lector y bloques de alineamiento. Su geometría ya estaba verificada con el editor superpuesto.
 
-### Subconjunto publicado de Plex Mono (28 oct 2026)
+### Subconjunto publicado de Plex Mono
 
 El archivo pasa de 49.248 a 14.708 bytes, 34.540 menos, sin generar aquí ningún subconjunto. La licencia OFL de Plex reserva «Plex» como nombre para versiones modificadas, así que el archivo se copia **sin modificar** del paquete publicado `@fontsource/ibm-plex-mono` 5.3.0, igual que ya se hace con Atkinson y Bricolage; solo se cambia su nombre de archivo.
 
@@ -38,7 +38,7 @@ El archivo pasa de 49.248 a 14.708 bytes, 34.540 menos, sin generar aquí ningú
 - **Atkinson sobre Arial.** `size-adjust` del 98,9 %, calculado con fontTools a partir de los avances de texto corrido en español. Las métricas verticales salen de las tablas OS/2: ascendente 984 y descendente 316 sobre 1000.
 - **Plex Mono.** Mantiene los respaldos Consolas y Courier New medidos anteriormente, que conservan el ajuste de líneas durante el intercambio.
 
-Se precargan Bricolage 600 y Atkinson 400, las fuentes del primer texto visible. Plex Mono 400 ya no se precarga (27 oct 2026): sus 49 KB de entonces competían con el JavaScript inicial y retrasaban el LCP unos 210 ms con 4G lenta; se descarga al aparecer la primera cifra o secuencia, mientras su respaldo de métricas ajustadas evita desplazamientos (CLS medido ≈ 0). Todas las fuentes usan `font-display: swap` y `font-synthesis: none`, y los cuatro WOFF2 están en la precaché de Workbox.
+Se precargan Bricolage 600 y Atkinson 400, las fuentes del primer texto visible. Plex Mono 400 no se precarga: sus 49 KB (antes del subconjunto) competían con el JavaScript inicial y retrasaban el LCP unos 210 ms con 4G lenta; se descarga al aparecer la primera cifra o secuencia, mientras su respaldo de métricas ajustadas evita desplazamientos (CLS medido ≈ 0). Todas las fuentes usan `font-display: swap` y `font-synthesis: none`, y los cuatro WOFF2 están en la precaché de Workbox.
 
 Pruebas que cubren las fuentes:
 
@@ -49,4 +49,4 @@ Pruebas que cubren las fuentes:
   - que los tokens tipográficos usen sus familias.
 - El E2E del editor comprueba que las cifras de la interfaz sean tabulares en 400 y 600, y que el Worker mida igual que el documento.
 - `check:pwa` verifica la caché, la respuesta binaria y la carga de cada fuente sin conexión, así como la fuente del Worker.
-- **Bricolage Grotesque.** Titulares y marca del diseño Figma aprobado, peso 600 y ejes predeterminados de anchura 100/óptica 14. Copiada sin modificar desde el paquete fijado de Fontsource, con su licencia `OFL-bricolage-grotesque.txt`. Función `display` en el manifiesto; no sustituye la fuente del editor ni del Worker de la gráfica.
+- **Bricolage Grotesque.** Titulares y marca del diseño Figma, peso 600 y ejes predeterminados de anchura 100/óptica 14. Copiada sin modificar desde el paquete fijado de Fontsource, con su licencia `OFL-bricolage-grotesque.txt`. Función `display` en el manifiesto; no sustituye la fuente del editor ni del Worker de la gráfica.

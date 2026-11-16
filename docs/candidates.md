@@ -1,22 +1,30 @@
-# RF17: búsqueda local de candidatos
+# Búsqueda de candidatos (RF-17)
 
-Implementado en `/generate` por la autorización autónoma del 12 oct 2026. Recorrido: fijar longitud/rangos/presupuesto/semilla → dos métodos en Worker → métricas y candidatos → análisis de uno o alineamiento de los mejores → exportación JSON. Reemplazar un borrador requiere confirmación. Editar condiciones marca el resultado anterior y desactiva uso/exportación. Cancelar termina el Worker y conserva solo la ejecución completa anterior. Cambiar rutas conserva la búsqueda en memoria; recargar la descarta.
+Implementada en `/generate`. Recorrido: fijar longitud, rangos, presupuesto y semilla → dos métodos en un Worker → métricas y candidatos → análisis de uno o alineamiento de los mejores → exportación JSON. Reemplazar un borrador requiere confirmación; editar las condiciones marca el resultado anterior y desactiva su uso y exportación; cancelar termina el Worker y conserva solo la ejecución completa anterior. Cambiar de ruta conserva la búsqueda en memoria y recargar la descarta.
 
-## Decisión revisable y límites
+## Condiciones y límites
 
-Se limita a veinte aminoácidos estándar, longitud exacta 5–300, masa media en Da y GRAVY Kyte–Doolittle. Al menos un rango activo, inclusivo y finito, mínimo ≤ máximo. GRAVY físico −4,5 a 4,5; masa positiva hasta 100.000 Da. Presupuesto configurable 100–5.000 **evaluaciones por método**; semilla uint32 no nula. Defaults: 40 residuos, 1.000 evaluaciones, semilla 42, GRAVY [−0,5;0,5]; masa [3.000;6.000] desactivada. Rangos imposibles producen cero coincidencias, no una garantía de solución. Límite operativo Worker 60 s; configurable en `features/generator/config.ts`.
+- Veinte aminoácidos estándar, longitud exacta de 5 a 300, masa media en Da y GRAVY de Kyte-Doolittle.
+- Al menos un rango activo, inclusivo y finito, con mínimo ≤ máximo. GRAVY físico de −4,5 a 4,5; masa positiva hasta 100.000 Da.
+- Presupuesto configurable de 100 a 5.000 **evaluaciones por método** y semilla uint32 no nula.
+- Valores por defecto: 40 residuos, 1.000 evaluaciones, semilla 42, GRAVY [−0,5; 0,5] y masa [3.000; 6.000] desactivada.
+- Un rango imposible produce cero coincidencias, no una garantía de solución. Límite operativo del Worker: 60 s. Todo se configura en `features/generator/config.ts`.
 
-Método `proteinforge-candidates-v1`: recocido simulado con una mutación de residuo garantizada por evaluación; temperatura exponencial 1→0,01. Acepta mejoras/empates, o deterioros con probabilidad exp(−Δ/T). La referencia muestrea una secuencia completa por evaluación, del mismo alfabeto. Ambos usan xorshift32 (13,17,5); semilla de referencia `(seed XOR 0x9e3779b9) >>> 0`, fallback 1. Orden ASCII determinista para empates. RNG no criptográfico. Los mismos parámetros y versión reproducen resultados, salvo variaciones numéricas de plataforma en límites de coma flotante.
+## Método
 
-Penalización = suma de distancia fuera de cada intervalo activo / max(amplitud, escala mínima). Escalas mínimas 0,01 GRAVY y 1 Da; cero significa cumplir todos los rangos. Se reutiliza `calculateDescriptors`; no se introduce otro cálculo de masa/hidropatía. Archivo acotado de hasta cinco secuencias por brazo: penalización primero y distancia de Hamming normalizada ≥0,1 entre retenidos. No es archivo exhaustivo ni garantiza óptimo global. Esta distancia mide diversidad de secuencia, no de función.
+`proteinforge-candidates-v1` es un recocido simulado con una mutación de residuo garantizada por evaluación y temperatura exponencial de 1 a 0,01. Acepta mejoras y empates, o deterioros con probabilidad `exp(−Δ/T)`. La referencia aleatoria muestrea una secuencia completa por evaluación del mismo alfabeto.
 
-Las evaluaciones en rango incluyen repetidas y no se denominan candidatos únicos. Se informa presupuesto realizado, mejor penalización, candidatos distintos y distancia mínima observada. JSON schemaVersion 1 incluye condiciones, versión, semilla, descriptores sin redondear, ambos brazos y referencias; se descarga localmente. El proyecto puede guardar el candidato seleccionado y sus análisis; no guarda la ejecución completa del generador. Persistir historial completo queda pendiente.
+- Ambos usan xorshift32 (13, 17, 5); la semilla de la referencia es `(seed XOR 0x9e3779b9) >>> 0`, con 1 como alternativa. El desempate usa el orden ASCII, de modo que es determinista. El generador no es criptográfico. Los mismos parámetros y versión reproducen los resultados, salvo variaciones numéricas de plataforma en límites de coma flotante.
+- Penalización: suma de la distancia fuera de cada intervalo activo dividida por `max(amplitud, escala mínima)`, con escalas mínimas de 0,01 de GRAVY y 1 Da; cero significa cumplir todos los rangos. Se reutiliza `calculateDescriptors`; no hay otro cálculo de masa ni de hidropatía.
+- Archivo acotado de hasta cinco secuencias por brazo: primero por penalización y con una distancia de Hamming normalizada ≥ 0,1 entre las retenidas. No es un archivo exhaustivo ni garantiza el óptimo global. La distancia mide diversidad de secuencia, no de función.
+- Las evaluaciones en rango incluyen repetidas y no se llaman candidatos únicos. Se informan el presupuesto realizado, la mejor penalización, los candidatos distintos y la distancia mínima observada.
+- El JSON (`schemaVersion: 1`) incluye condiciones, versión, semilla, descriptores sin redondear, ambos brazos y referencias, y se descarga localmente. Un proyecto puede guardar el candidato seleccionado y sus análisis; el historial de búsquedas se guarda con `VITE_GENERATOR_HISTORY` (ver [decisiones](decisiones.md)).
 
-## Comparación comprobada
+## Comparación medida
 
-Experimento reproducible en `benchmark.test.ts`: 30 residuos, GRAVY [1,9;2,1], masa desactivada, 500 evaluaciones por brazo, semillas indicadas. Conteos observados:
+Experimento reproducible en `benchmark.test.ts`: 30 residuos, GRAVY [1,9; 2,1], masa desactivada y 500 evaluaciones por brazo.
 
-| Semilla | Evaluaciones en rango guiadas | Aleatorias | Mejor penalización guiada | Aleatoria | Distancia mínima guiada / aleatoria |
+| Semilla | Evaluaciones en rango (guiada) | Evaluaciones en rango (aleatoria) | Mejor penalización (guiada) | Mejor penalización (aleatoria) | Distancia mínima guiada / aleatoria |
 |---|---:|---:|---:|---:|---|
 | 1 | 97 | 0 | 0 | 5,55 | 10 % / 86,67 % |
 | 7 | 112 | 0 | 0 | 3,7167 | 10 % / 83,33 % |
@@ -24,16 +32,10 @@ Experimento reproducible en `benchmark.test.ts`: 30 residuos, GRAVY [1,9;2,1], m
 | 100 | 141 | 0 | 0 | 2,9167 | 13,33 % / 86,67 % |
 | 2026 | 129 | 0 | 0 | 3,65 | 10 % / 86,67 % |
 
-Es un caso de hidropatía acotado, sin conclusión universal ni equivalencia biológica. La referencia tiene más diversidad retenida. No se afirma rendimiento superior para otros rangos, estabilidad, plegamiento, función, novedad ni síntesis. Pruebas recalculan cada candidato, verifican semilla/igual presupuesto/diversidad, rangos exactos, cero coincidencias imposibles y cancelación. Chromium prueba transferencia al análisis/alineamiento, parámetros desactualizados, teclado, AA/44 px y ambos temas a 360/1280.
+Es un caso de hidropatía acotado, sin conclusión universal ni equivalencia biológica: la referencia retiene más diversidad. No se afirma un rendimiento superior para otros rangos ni estabilidad, plegamiento, función, novedad o síntesis. Las pruebas recalculan cada candidato y verifican semilla, igual presupuesto, diversidad, rangos exactos, cero coincidencias imposibles y cancelación; en Chromium se prueba la transferencia al análisis y al alineamiento, los parámetros desactualizados, el teclado, AA, los 44 px y ambos temas a 360 y 1280 px.
 
-Fundamentos: [Kirkpatrick, Gelatt y Vecchi, recocido simulado (1983)](https://research.ibm.com/publications/optimization-by-simulated-annealing); [Marsaglia, xorshift (2003)](https://www.jstatsoft.org/article/view/v008i14); [ExPASy ProtParam](https://web.expasy.org/protparam/). La variante, límites y penalización son decisiones de implementación revisables de ProteinForge; esas publicaciones no validan proteínas generadas.
+## Relación con otras funciones
 
-## RF18 e interpretación: siguiente bloque, aún pendiente
+La predicción estructural es una función distinta que se pide desde el [laboratorio](laboratory.md) ([predicción](prediccion.md)). El [asistente](assistant.md) solo interpreta datos ya calculados; no modifica el generador ni lo sustituye.
 
-El acuerdo posterior del 12 oct prioriza el [laboratorio didáctico](design-lab-roadmap.md): un caso pequeño forma → secuencia → predicción con Foundry o RFdiffusion/MPNN/ColabFold, recursos/tiempo medidos y archivos asociados. Dos o tres diseños para demo, cómputo interactivo/local; ESM Atlas/ESMFold queda como alternativa histórica. Consulta sin ejecución de modelos ni proveedor habilitado.
-
-Propuesta anterior revisable: endpoint autenticado POST `/v1/predictions`, hasta 300 residuos por solicitud deliberada y consentimiento que nombre proveedor/envío. Ruta/límite/ejecutor/almacenamiento se concretarán tras la prueba; no son contrato implementado. Sin lote/reintento automático. La respuesta histórica de ubiquitina no basta para habilitar un servicio.
-
-Validar PDB retornado (tamaño, ATOM, coordenadas finitas, cadena/residuos y asociación exacta), procedencia/modelo/fecha/hash; confianza solo si el proveedor la documenta. Caché privada con RLS, SHA-256 de secuencia+proveedor+versión y retención explícita, sobre tabla prevista sin service_role. Integrar el mismo visor con etiqueta Predicha y error/reintento deliberado. Añadir fixtures públicos trazables de respaldo; nunca presentarlos como nueva predicción. Falta concretar contrato/cache y verificar el servicio: no hay envío ni endpoint activo.
-
-Asistente separado: interpretará el snapshot ya calculado; requiere proveedor/modelo/límites y política de retención verificables, consentimiento para enviar contexto y tests que impidan inventar valores. No modifica el generador ni sustituye predicción. No se habilitó un proveedor sin comprobar esas condiciones.
+Fundamentos: [Kirkpatrick, Gelatt y Vecchi, recocido simulado (1983)](https://research.ibm.com/publications/optimization-by-simulated-annealing); [Marsaglia, xorshift (2003)](https://www.jstatsoft.org/article/view/v008i14); [ExPASy ProtParam](https://web.expasy.org/protparam/). La variante, los límites y la penalización son decisiones de implementación de ProteinForge; esas publicaciones no validan proteínas generadas.

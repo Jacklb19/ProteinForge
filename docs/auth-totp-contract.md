@@ -1,6 +1,6 @@
 # Segundo factor TOTP — contrato de Supabase Auth
 
-Comprobado el **29 oct 2026** para la capa de cliente de `src/features/auth/`, que habla con la API REST de Supabase Auth (GoTrue) sin SDK. Nada de esto se ha probado contra un proyecto remoto: las respuestas citadas salen del código fuente y de la especificación oficiales, y las pruebas unitarias las simulan. Lo que no se pudo confirmar está marcado como **sin confirmar**.
+Contrato de la capa de cliente de `src/features/auth/`, que habla con la API REST de Supabase Auth (GoTrue) sin SDK. Las respuestas citadas salen del código fuente y de la especificación oficiales, y las pruebas unitarias las simulan; no se han observado contra un proyecto remoto. Lo que no se pudo confirmar está marcado como **sin confirmar**.
 
 ## Fuentes
 
@@ -11,7 +11,7 @@ Comprobado el **29 oct 2026** para la capa de cliente de `src/features/auth/`, q
 | [Referencia JS de MFA](https://supabase.com/docs/reference/javascript/auth-mfa-api) | «Recovery codes are not supported», hasta 10 factores |
 | [Referencia JS de códigos de recuperación](https://supabase.com/docs/reference/javascript/auth-mfa-recovery-codes-generate) | Exige `auth.experimental.recoveryCodes: true` |
 | Código de [supabase/auth `v2.197.0`](https://github.com/supabase/auth/tree/v2.197.0) (9 sep 2026, última versión estable al consultar; después solo hay candidatas `rc2.198.0-rc.*`) | `internal/api/mfa.go`, `api.go`, `token.go`, `apilimiter/apilimiter.go`, `internal/conf/configuration.go`, `internal/models/{factor,sessions}.go`, `apierrors/errorcode.go` |
-| [`openapi.yaml` de `master`](https://github.com/supabase/auth/blob/master/openapi.yaml) | Esquemas de respuesta (`TOTPPhoneChallengeResponse`, `AccessTokenResponseSchema`, `MFAFactorSchema`) y rutas de códigos de recuperación, documentadas el 21 sep 2026 |
+| [`openapi.yaml` de `master`](https://github.com/supabase/auth/blob/master/openapi.yaml) | Esquemas de respuesta (`TOTPPhoneChallengeResponse`, `AccessTokenResponseSchema`, `MFAFactorSchema`) y rutas de códigos de recuperación, documentadas en `master`, posteriores a la versión estable citada |
 | `supabase-js`, `packages/core/auth-js/src/GoTrueClient.ts` (`master`) | Cómo lo usa el SDK oficial: prefijo del QR, lista de factores desde `GET /user`, cálculo de `currentLevel`/`nextLevel` |
 
 ## Rutas
@@ -87,13 +87,13 @@ Superar el límite de frecuencia devuelve 429 con `over_request_rate_limit`, que
 La documentación pública se contradice y no hay una vía estable:
 
 - La referencia de MFA de supabase-js dice textualmente que **no hay códigos de recuperación** y que la alternativa es inscribir más de un factor.
-- El código de `v2.197.0` ya tiene las rutas (`GET/POST/DELETE /factors/recovery-codes`, `/verify`, `/regenerate`), pero su configuración las deja **desactivadas por defecto** (`GOTRUE_MFA_RECOVERY_CODES_ENROLL_ENABLED=false`, `…_VERIFY_ENABLED=false`). La especificación las documentó en `master` el 21 sep 2026, después de esa versión estable.
+- El código de `v2.197.0` ya tiene las rutas (`GET/POST/DELETE /factors/recovery-codes`, `/verify`, `/regenerate`), pero su configuración las deja **desactivadas por defecto** (`GOTRUE_MFA_RECOVERY_CODES_ENROLL_ENABLED=false`, `…_VERIFY_ENABLED=false`). La especificación las documenta en `master`, después de esa versión estable.
 - supabase-js las ofrece como **experimentales**, detrás de `auth.experimental.recoveryCodes: true`.
 - Según esa especificación, generar exige aal2 y otro factor verificado, devuelve los códigos una sola vez (10 de 16 caracteres por defecto), y el canje bloquea al usuario tras 5 fallos seguidos durante 15 minutos.
 
-**Sin confirmar**: si el panel de Supabase alojado permite activarlas en el plan gratuito y qué versión de Auth ejecuta el proyecto del propietario. Activarlas sería un cambio de configuración en Supabase, que esta entrega no tiene autorizado.
+**Sin confirmar**: si el panel de Supabase alojado permite activarlas en el plan gratuito y qué versión de Auth ejecuta el proyecto alojado. Activarlas sería un cambio de configuración en Supabase.
 
-Decisión técnica de esta capa: **no se implementan los códigos de recuperación**. La vía estable y documentada para no quedarse fuera es una segunda aplicación de autenticación inscrita como factor aparte; la capa de cliente lo permite porque admite varios factores con nombres distintos. La [propuesta de interfaz](auth-totp-ui-proposal-2026-10-29.md) presenta las dos opciones para que decida el propietario.
+Decisión técnica de esta capa: **no se implementan los códigos de recuperación**. La vía estable y documentada para no quedarse fuera es una segunda aplicación de autenticación inscrita como factor aparte; la capa de cliente lo permite porque admite varios factores con nombres distintos.
 
 ## Qué hace la capa de cliente
 

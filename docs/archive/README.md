@@ -1,5 +1,9 @@
-# Documentación histórica
+# Anexo: definición académica original y evidencias de sprint
 
-Esta carpeta conserva la definición académica original, las evidencias S3/S4 y las versiones archivadas del relevo de desarrollo, como [relevo-2026-10-27.md](relevo-2026-10-27.md). No es fuente de instrucciones vigentes. Las referencias a sprints, ramas, servicios, ubicación de migraciones o funcionalidad pendiente describen su momento original.
+Esta carpeta conserva el material del planteamiento original del proyecto:
 
-Consultar [definición vigente](../definicion-proyecto.md), [decisiones](../decisiones.md) y [mapa de pantallas](../pantallas.md) antes de implementar. Se preservan referencias científicas, mediciones y diagramas originales por trazabilidad.
+- [definicion-original.md](definicion-original.md): definición académica inicial (historias de usuario, arquitectura y estrategia de pruebas).
+- [sprint-3-verificacion.md](sprint-3-verificacion.md) y [sprint-4-verificacion.md](sprint-4-verificacion.md): evidencias de verificación de los sprints 3 y 4.
+- `img/`: diagramas de la definición original.
+
+Describen el planteamiento inicial; las referencias a sprints, servicios o funcionalidad pendiente corresponden a su momento original. La descripción vigente del producto está en la [definición de requisitos](../definicion-proyecto.md), las [decisiones](../decisiones.md) y el [mapa de pantallas](../pantallas.md). Algunas decisiones cambiaron desde entonces; por ejemplo, el proveedor del asistente previsto originalmente (la API de Gemini) fue sustituido por Groq.
