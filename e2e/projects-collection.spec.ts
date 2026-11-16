@@ -130,7 +130,7 @@ test('copying preserves the current draft and pointer, and a comparison-only pro
 });
 
 test('a mixed project restores its saved comparison parameters and result, and opens its analysis separately', async ({ page }) => {
-  // Mirrors the owner's saved project verified on 22 Oct: human/bovine with Global/BLOSUM80 plus an analysis sequence.
+  // Mirrors a saved project: human/bovine with Global/BLOSUM80 plus an analysis sequence.
   const first = sequence('P01308'); const second = sequence('P01317'); const analysed = sequence('P00698');
   const result = await alignSequences(first, second, { matrix: 'BLOSUM80', mode: 'global' });
   expect([result.identities, result.columns, result.score]).toEqual([88, 110, 733]);
