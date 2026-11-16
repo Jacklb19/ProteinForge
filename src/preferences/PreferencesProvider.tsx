@@ -8,7 +8,6 @@ import { isCatalogLoaded, loadCatalog } from '../i18n/catalogs';
 import { DEFAULT_LOCALE } from '../i18n/config';
 import type { Locale } from '../i18n/config';
 import { BROWSER_COLOR_TOKEN, DARK_SCHEME_QUERY } from './config';
-import { withViewTransition } from '../shared/motion';
 
 /** Makes local appearance and language preferences available to routes. */
 export function PreferencesProvider({ children }: { children: ReactNode }): React.JSX.Element {
@@ -21,9 +20,6 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
   const [requestedLocale, setRequestedLocale] = useState<Locale | null>(null);
   const latestRequest = useRef<Locale | null>(null);
 
-  // The chosen theme is state at once, so its control answers immediately; the page's colours then change
-  // inside a view transition, which crossfades them. The first theme of the visit applies without one.
-  const appliedTheme = useRef<string | null>(null);
   useEffect(() => {
     document.documentElement.lang = preferences.locale;
     const refreshBrowserColor = () => {
@@ -36,9 +32,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
       else document.documentElement.dataset.theme = preferences.theme;
       refreshBrowserColor();
     };
-    if (appliedTheme.current === null || appliedTheme.current === preferences.theme) apply();
-    else withViewTransition('theme', apply);
-    appliedTheme.current = preferences.theme;
+    apply();
     const systemTheme = window.matchMedia(DARK_SCHEME_QUERY);
     systemTheme.addEventListener('change', refreshBrowserColor);
     return () => { systemTheme.removeEventListener('change', refreshBrowserColor); };

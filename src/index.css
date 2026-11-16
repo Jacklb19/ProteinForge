@@ -713,9 +713,6 @@ html[data-transition='sidebar']::view-transition-old(workspace), html[data-trans
 }
 html[data-transition='sidebar']::view-transition-old(workspace) { animation: leave var(--duration-enter) var(--ease-enter) both; }
 html[data-transition='sidebar']::view-transition-new(workspace) { animation: fade var(--duration-enter) var(--ease-enter) both; }
-/* A theme change crossfades the whole page at once. */
-html[data-transition='theme']::view-transition-new(workspace) { animation: fade var(--duration-enter) var(--ease-enter) both; }
-html[data-transition='theme']::view-transition-old(workspace) { animation: leave var(--duration-enter) var(--ease-enter) both; }
 
 /* Wide screens: figures beside their text. */
 @media (min-width: 64rem) {

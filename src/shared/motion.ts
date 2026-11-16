@@ -5,7 +5,7 @@ import { REDUCED_MOTION_QUERY } from '../features/structure/config';
 export const TRANSITION_ATTRIBUTE = 'data-transition';
 
 /** What a view transition animates; the style sheet picks the animation by this name. */
-export type TransitionKind = 'sidebar' | 'theme';
+export type TransitionKind = 'sidebar';
 
 /**
  * Runs a visual change as a view transition where the browser supports it: the browser animates snapshots of
@@ -13,7 +13,8 @@ export type TransitionKind = 'sidebar' | 'theme';
  * change simply happens.
  */
 export function withViewTransition(kind: TransitionKind, update: () => void): void {
-  if (typeof document.startViewTransition !== 'function' || window.matchMedia(REDUCED_MOTION_QUERY).matches) { update(); return; }
+  // A hidden page renders no frames, so a transition there could hold the change back; it simply happens.
+  if (typeof document.startViewTransition !== 'function' || document.visibilityState !== 'visible' || window.matchMedia(REDUCED_MOTION_QUERY).matches) { update(); return; }
   const root = document.documentElement;
   root.setAttribute(TRANSITION_ATTRIBUTE, kind);
   const transition = document.startViewTransition(() => { flushSync(update); });

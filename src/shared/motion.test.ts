@@ -25,8 +25,8 @@ describe('view transitions', () => {
     const finished = new Promise<void>((resolve) => { finish = resolve; });
     const start = vi.fn((callback: () => void) => { callback(); return { finished }; });
     Object.defineProperty(document, 'startViewTransition', { value: start, configurable: true });
-    const update = vi.fn(() => { expect(document.documentElement).toHaveAttribute(TRANSITION_ATTRIBUTE, 'theme'); });
-    withViewTransition('theme', update);
+    const update = vi.fn(() => { expect(document.documentElement).toHaveAttribute(TRANSITION_ATTRIBUTE, 'sidebar'); });
+    withViewTransition('sidebar', update);
     expect(start).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledTimes(1);
     finish();
