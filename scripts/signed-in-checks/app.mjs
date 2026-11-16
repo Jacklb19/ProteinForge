@@ -16,7 +16,7 @@ export async function loadApp() {
   });
   const runner = createServerModuleRunner(server.environments.ssr, { hmr: false });
   try {
-    const modules = await runner.import('/scripts/owner-checks/app-modules.mjs');
+    const modules = await runner.import('/scripts/signed-in-checks/app-modules.mjs');
     return { modules, close: async () => { await runner.close(); await server.close(); } };
   } catch (error) {
     await runner.close(); await server.close();
