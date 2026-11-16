@@ -29,6 +29,33 @@ interface Props {
 interface Loaded { plugin: PluginContext; structure: StateObjectSelector; data: Structure }
 type Runtime = typeof import('../library/molstarRuntime');
 type Focusing = typeof import('./structureFocus');
+type ChemistryPalette = import('./structureFocus').ChemistryPalette;
+type Color = import('molstar/lib/mol-util/color').Color;
+
+interface Tones { palette: ChemistryPalette; mark: Color; background: Color }
+
+/** Colours of the current theme, read from the design tokens around the viewer. */
+function readTones(target: HTMLElement, runtime: Runtime): Tones {
+  const style = getComputedStyle(target);
+  const tone = (token: string) => runtime.Color.fromHexStyle(style.getPropertyValue(token).trim());
+  const byResidue = new Map(Object.entries(RESIDUE_NAMES).flatMap(([letter, name]) => {
+    const chemistry = residueClass(letter);
+    return chemistry ? [[name.toUpperCase(), tone(RESIDUE_CLASS_TOKENS[chemistry])] as const] : [];
+  }));
+  return { palette: { byResidue, unclassified: tone(UNCLASSIFIED_RESIDUE_TOKEN) }, mark: tone(FOCUS_MARK_TOKEN), background: tone('--bg-subtle') };
+}
+
+function canvasColors({ mark, background }: Tones) {
+  return {
+    renderer: { backgroundColor: background, selectColor: mark, highlightColor: mark },
+    marking: { selectEdgeColor: mark, highlightEdgeColor: mark },
+  };
+}
+
+/** The application's chemistry theme; the name is registered at runtime, outside Mol*'s built-in list. */
+function chemistryColor(revision: number) {
+  return { color: CHEMISTRY_THEME_NAME as never, colorParams: { revision } as never };
+}
 
 /** A predicted model coloured by residue chemistry, with one stop of the tour marked and in view. */
 export default function PredictedStructure({ url, label, focus, onPick }: Props): React.JSX.Element {
@@ -39,6 +66,8 @@ export default function PredictedStructure({ url, label, focus, onPick }: Props)
   const loaded = useRef<Loaded | null>(null);
   const modules = useRef<{ runtime: Runtime; focusing: Focusing } | null>(null);
   const sticks = useRef<string | null>(null);
+  const palette = useRef<ChemistryPalette | null>(null);
+  const paletteRevision = useRef(0);
   const work = useRef<Promise<void>>(Promise.resolve());
   const wanted = useRef(focus);
   const pick = useRef(onPick);
@@ -75,26 +104,17 @@ export default function PredictedStructure({ url, label, focus, onPick }: Props)
         const bytes = await response.arrayBuffer();
         if (!isCurrent()) return;
         if (!bytes.byteLength || bytes.byteLength > MAX_STRUCTURE_BYTES) throw new Error('Invalid model size');
-        const { PluginContext, DefaultPluginSpec, Color } = runtime;
+        const { PluginContext, DefaultPluginSpec } = runtime;
         instance = new PluginContext(DefaultPluginSpec());
         await instance.init();
         if (!isCurrent()) return;
         if (!await instance.initViewerAsync(surface, target)) throw new Error('WebGL unavailable');
         if (!isCurrent()) return;
-        const style = getComputedStyle(target);
-        const tone = (token: string) => Color.fromHexStyle(style.getPropertyValue(token).trim());
-        const mark = tone(FOCUS_MARK_TOKEN);
-        instance.canvas3d?.setProps({
-          renderer: { backgroundColor: tone('--bg-subtle'), selectColor: mark, highlightColor: mark },
-          marking: { selectEdgeColor: mark, highlightEdgeColor: mark },
-          camera: { helper: { axes: { name: 'off', params: {} } } },
-        });
-        // Read when the model is drawn; a theme change repaints the background, not the residues.
-        const byResidue = new Map(Object.entries(RESIDUE_NAMES).flatMap(([letter, name]) => {
-          const chemistry = residueClass(letter);
-          return chemistry ? [[name.toUpperCase(), tone(RESIDUE_CLASS_TOKENS[chemistry])] as const] : [];
-        }));
-        instance.representation.structure.themes.colorThemeRegistry.add(focusing.chemistryTheme(byResidue, tone(UNCLASSIFIED_RESIDUE_TOKEN)));
+        const tones = readTones(target, runtime);
+        palette.current = tones.palette;
+        instance.canvas3d?.setProps({ ...canvasColors(tones), camera: { helper: { axes: { name: 'off', params: {} } } } });
+        // The theme reads the latest palette whenever it is built; a theme change rebuilds it with a new revision.
+        instance.representation.structure.themes.colorThemeRegistry.add(focusing.chemistryTheme(() => palette.current ?? tones.palette));
         const data = await instance.builders.data.rawData({ data: new Uint8Array(bytes), label: url });
         if (!isCurrent()) return;
         const trajectory = await instance.builders.structure.parseTrajectory(data, 'mmcif');
@@ -106,7 +126,7 @@ export default function PredictedStructure({ url, label, focus, onPick }: Props)
         const polymer = await instance.builders.structure.tryCreateComponentStatic(structure, 'polymer');
         if (!isCurrent()) return;
         if (!polymer || !structure.obj) throw new Error('No polymer coordinates');
-        await instance.builders.structure.representation.addRepresentation(polymer, { type: 'cartoon', color: CHEMISTRY_THEME_NAME as never });
+        await instance.builders.structure.representation.addRepresentation(polymer, { type: 'cartoon', ...chemistryColor(paletteRevision.current) });
         if (!isCurrent()) return;
         const subscription = instance.behaviors.interaction.click.subscribe(event => {
           if (isCurrent()) pick.current(focusing.positionFromLoci(event.current.loci));
@@ -158,19 +178,23 @@ export default function PredictedStructure({ url, label, focus, onPick }: Props)
       const component = await plugin.builders.structure.tryCreateComponentFromExpression(structure, expression, `stop-${focus.key}`);
       if (!component) return;
       sticks.current = component.ref;
-      await plugin.builders.structure.representation.addRepresentation(component, { type: 'ball-and-stick', color: CHEMISTRY_THEME_NAME as never });
+      await plugin.builders.structure.representation.addRepresentation(component, { type: 'ball-and-stick', ...chemistryColor(paletteRevision.current) });
     }).catch(() => { /* The ribbon mark already shows the stop; its side chains are an addition. */ });
   }, [focus, state]);
 
+  // Repaints the background, the mark and every residue in the colours of the theme now on screen.
   useEffect(() => {
     const plugin = loaded.current?.plugin; const target = container.current; const runtime = modules.current?.runtime;
     if (!plugin || !target || !runtime) return;
-    const style = getComputedStyle(target);
-    const mark = runtime.Color.fromHexStyle(style.getPropertyValue(FOCUS_MARK_TOKEN).trim());
-    plugin.canvas3d?.setProps({
-      renderer: { backgroundColor: runtime.Color.fromHexStyle(style.getPropertyValue('--bg-subtle').trim()), selectColor: mark, highlightColor: mark },
-      marking: { selectEdgeColor: mark, highlightEdgeColor: mark },
-    });
+    const tones = readTones(target, runtime);
+    plugin.canvas3d?.setProps(canvasColors(tones));
+    palette.current = tones.palette;
+    const revision = ++paletteRevision.current;
+    work.current = work.current.then(async () => {
+      if (loaded.current?.plugin !== plugin) return;
+      const components = plugin.managers.structure.hierarchy.current.structures.flatMap(structure => structure.components);
+      await plugin.managers.structure.component.updateRepresentationsTheme(components, chemistryColor(revision));
+    }).catch(() => { /* The previous colours stay; the model is still readable. */ });
   }, [themeRevision]);
 
   const plugin = (): PluginContext | null => loaded.current?.plugin ?? null;
