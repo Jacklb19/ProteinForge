@@ -1355,7 +1355,6 @@ export const spanish = {
   'explore.title': 'Explorar una proteína',
   'explore.introduction': 'Recorre una proteína en tres dimensiones. Cada parada te lleva a una parte de la cadena y explica qué es y para qué sirve, según su ficha de UniProt.',
   'explore.chooseTitle': 'Elige una proteína',
-  'explore.chooseOther': 'Elegir otra proteína',
   'explore.suggested': 'Para empezar',
   'explore.open': 'Explorar',
   'explore.openEntry': 'Explorar {{name}}',

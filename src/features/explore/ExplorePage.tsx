@@ -81,6 +81,7 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
   return (
     <main className="page explore-page">
       <PageHeading titleKey="explore.title" introduction="explore.introduction" />
+      <ProteinChooser current={accession} onOpen={open} />
 
       {protein.entry.status === 'loading' && <p className="status-message" role="status">{t('explore.loading')}</p>}
       {protein.entry.status === 'error' && (
@@ -96,10 +97,10 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
             <p className="field-meta">{entry.accession} · {t(entry.reviewed ? 'library.reviewed' : 'library.unreviewed')}</p>
             <h2 id="explore-protein-name">{entry.name}</h2>
             <p>{t('explore.summary', { organism: entry.organism, count: formatNumber(entry.sequence.length) })}</p>
-            <a className="inline-link" href="#explore-choose-title">{t('explore.chooseOther')}</a>
           </header>
 
-          <div className="explore-layout">
+          {/* Without a model there is nothing to keep beside the reading, so the layout gives the text the width. */}
+          <div className="explore-layout" data-model={protein.model.status}>
             <div className="explore-stage">
               {ordered.length > 0 && (
                 <StopReading key={stop?.id ?? 'whole'} stop={stop} index={stopIndex} total={ordered.length} entry={entry} headingRef={heading}
@@ -152,9 +153,6 @@ export function ExplorePage({ loaders }: { loaders?: Loaders }): React.JSX.Eleme
           <ProteinActions entry={entry} hasModel={protein.model.status === 'ready'} />
         </section>
       )}
-
-      {/* The protein on screen comes first; choosing another one closes the page. */}
-      <ProteinChooser current={accession} onOpen={open} />
     </main>
   );
 }

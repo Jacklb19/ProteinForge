@@ -50,5 +50,15 @@
 /* A long function text shows its first lines until it is opened. */
 .explore-function[data-folded='true'] p:not(.field-help) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lines-preview); line-clamp: var(--lines-preview); overflow: hidden; }
 .explore-group > .button-quiet, .explore-function .button-quiet { min-height: var(--size-touch); }
-#explore-choose-title { scroll-margin-block-start: var(--space-lg); }
-.explore-identity .inline-link { justify-self: start; }
+
+/* No model to show: the invitation (with the notice under it) and «What it does» share the first row, and the tour
+   takes the whole width below in two balanced columns, so no column is left half empty. */
+@media (min-width: 64rem) {
+  .explore-layout[data-model='absent'] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .explore-layout[data-model='absent'] .explore-stage { position: static; grid-column: 1; grid-row: 1; }
+  .explore-layout[data-model='absent'] .explore-reading { display: contents; }
+  .explore-layout[data-model='absent'] .explore-reading > section:first-child { grid-column: 2; grid-row: 1; }
+  .explore-layout[data-model='absent'] .explore-tour { grid-column: 1 / -1; display: block; column-count: 2; column-gap: var(--space-xl); }
+  .explore-layout[data-model='absent'] .explore-tour > :is(h3, p) { column-span: all; margin-block-end: var(--space-sm); }
+  .explore-layout[data-model='absent'] .explore-group { break-inside: avoid; margin-block-end: var(--space-md); }
+}

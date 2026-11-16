@@ -1357,7 +1357,6 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'explore.title': 'Explore a protein',
   'explore.introduction': 'Walk through a protein in three dimensions. Each stop takes you to a part of the chain and explains what it is and what it is for, as its UniProt entry describes it.',
   'explore.chooseTitle': 'Choose a protein',
-  'explore.chooseOther': 'Choose another protein',
   'explore.suggested': 'To start with',
   'explore.open': 'Explore',
   'explore.openEntry': 'Explore {{name}}',
