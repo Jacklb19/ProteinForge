@@ -10,15 +10,15 @@ import { SequenceDraftProvider } from '../editor/SequenceDraftProvider';
 import { useSequenceDraft } from '../editor/sequenceDraft';
 import type { UniProtEntry } from '../library/libraryApi';
 import { ModelError } from './alphafold';
-import { ALPHAFOLD_FILES_URL, EXPLORE_PARAM } from './config';
+import { ALPHAFOLD_FILES_URL, EXPLORE_PARAM, STOP_GROUP_PREVIEW } from './config';
 import { ExplorePage } from './ExplorePage';
 import type { StructureFocus } from './PredictedStructure';
 
 const viewer = vi.hoisted(() => ({ pick: null as ((position: number | null) => void) | null }));
 vi.mock('./PredictedStructure', () => ({
-  default: ({ focus, onPick }: { focus: StructureFocus | null; onPick: (position: number | null) => void }) => {
+  default: ({ focus, caption, onPick }: { focus: StructureFocus | null; caption?: string | null; onPick: (position: number | null) => void }) => {
     viewer.pick = onPick;
-    return <output data-testid="model">{focus ? `${focus.positions.join(',')}|${focus.sticks ? 'sticks' : 'ribbon'}` : 'whole'}</output>;
+    return <><output data-testid="model">{focus ? `${focus.positions.join(',')}|${focus.sticks ? 'sticks' : 'ribbon'}` : 'whole'}</output><output data-testid="caption">{caption}</output></>;
   },
 }));
 
@@ -61,20 +61,21 @@ it('walks the stops in tour order, saying where each one is and what it means', 
     .toEqual([spanish['explore.kindActiveSite'], spanish['explore.kindDomain'], spanish['explore.kindDisulfide'], spanish['explore.kindVariant']]);
 
   await user.click(screen.getByRole('button', { name: spanish['explore.tourStart'] }));
-  const reading = screen.getByRole('article');
-  await waitFor(() => { expect(within(reading).getByRole('heading', { name: spanish['explore.kindActiveSite'] })).toHaveFocus(); });
-  expect(within(reading).getByText(text('explore.residue', { name: 'Glu', position: '7' }))).toBeVisible();
-  expect(within(reading).getByText(spanish['explore.meansActiveSite'])).toBeVisible();
+  // Each stop's reading is a new element, so it is looked up again after every step.
+  const reading = (): HTMLElement => screen.getByRole('article');
+  await waitFor(() => { expect(within(reading()).getByRole('heading', { name: spanish['explore.kindActiveSite'] })).toHaveFocus(); });
+  expect(within(reading()).getByText(text('explore.residue', { name: 'Glu', position: '7' }))).toBeVisible();
+  expect(within(reading()).getByText(spanish['explore.meansActiveSite'])).toBeVisible();
   expect(screen.getByTestId('model')).toHaveTextContent('7|sticks');
 
-  await user.click(within(reading).getByRole('button', { name: spanish['explore.tourNext'] }));
-  expect(within(reading).getByText(text('explore.spanSize', { count: '28', begin: '3', end: '30' }))).toBeVisible();
-  expect(within(reading).getByText('C-type lysozyme')).toBeVisible();
+  await user.click(within(reading()).getByRole('button', { name: spanish['explore.tourNext'] }));
+  expect(within(reading()).getByText(text('explore.spanSize', { count: '28', begin: '3', end: '30' }))).toBeVisible();
+  expect(within(reading()).getByText('C-type lysozyme')).toBeVisible();
   // A whole domain is marked on the ribbon; its side chains are not drawn.
   expect(screen.getByTestId('model')).toHaveTextContent('|ribbon');
-  await user.click(within(reading).getByRole('button', { name: spanish['explore.tourNext'] }));
+  await user.click(within(reading()).getByRole('button', { name: spanish['explore.tourNext'] }));
   expect(screen.getByTestId('model')).toHaveTextContent('6,30|sticks');
-  await user.click(within(reading).getByRole('button', { name: spanish['explore.tourWhole'] }));
+  await user.click(within(reading()).getByRole('button', { name: spanish['explore.tourWhole'] }));
   expect(screen.getByTestId('model')).toHaveTextContent('whole');
 });
 
@@ -132,4 +133,33 @@ it('reports an entry that cannot be opened, retries it, and takes the sequence t
   expect(await screen.findByRole('heading', { level: 2, name: entry.name })).toBeVisible();
   await user.click(screen.getByRole('button', { name: spanish['explore.analyze'] }));
   expect(await screen.findByTestId('draft')).toHaveTextContent(`${entry.sequence}|P00698`);
+});
+
+it('folds a long function text without its references, shows the first stops of a long group and names the stop over the model', async () => {
+  const user = userEvent.setup();
+  const sentence = 'Mediates the transport of chloride ions across the cell membrane (PubMed:10792060, PubMed:11524016). ';
+  const modified = Array.from({ length: STOP_GROUP_PREVIEW + 2 }, (_, index) => ({ kind: 'modified-residue', description: 'Phosphoserine; by PKA', begin: index + 1, end: index + 1, paired: false }));
+  const long = { ...entry, function: sentence.repeat(6), features: modified };
+  renderPage({ entry: () => Promise.resolve(long), model: () => Promise.resolve(model) });
+  expect(await screen.findByRole('heading', { level: 2, name: entry.name })).toBeVisible();
+
+  // The references are gone and the text opens on request.
+  const more = screen.getByRole('button', { name: spanish['explore.readMore'] });
+  expect(more).toHaveAttribute('aria-expanded', 'false');
+  expect(document.getElementById('explore-function-text')?.textContent).not.toContain('PubMed');
+  await user.click(more);
+  expect(screen.getByRole('button', { name: spanish['explore.readLess'] })).toHaveAttribute('aria-expanded', 'true');
+
+  // A long group lists its first stops, translated where UniProt's wording is known, and opens on request.
+  const stops = () => document.querySelectorAll('#explore-stops-chemistry .explore-stop');
+  expect(stops()).toHaveLength(STOP_GROUP_PREVIEW);
+  expect(stops()[0]).toHaveTextContent('Fosfoserina; por PKA');
+  await user.click(screen.getByRole('button', { name: text('explore.showAll', { count: String(modified.length) }) }));
+  expect(stops()).toHaveLength(modified.length);
+
+  // Before the tour the invitation says how many stops there are; then the model is captioned with the stop.
+  expect(screen.getByText(text('explore.wholeHelp', { count: String(modified.length) }))).toBeVisible();
+  expect(screen.getByTestId('caption')).toBeEmptyDOMElement();
+  await user.click(screen.getByRole('button', { name: spanish['explore.tourStart'] }));
+  expect(screen.getByTestId('caption')).toHaveTextContent(text('explore.caption', { index: '1', total: String(modified.length), kind: spanish['explore.kindModifiedResidue'], place: text('explore.single', { begin: '1' }) }));
 });

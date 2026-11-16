@@ -47,7 +47,8 @@ export function ConfirmEmailPage(): React.JSX.Element {
   const handed = readState(location.state);
   const requested = requestedDestination(location.state);
   const destination = destinationAfterSignIn(location.state);
-  const destinationName = t(destinationTitle(destination) ?? 'nav.analyze');
+  // Without a requested page the account opens the laboratory as a whole, not one of its tools.
+  const destinationTitleKey = requested ? destinationTitle(destination) : null;
   const [email, setEmail] = useState(handed.email);
   const [code, setCode] = useState('');
   const [emailError, setEmailError] = useState<TranslationKey | undefined>();
@@ -104,7 +105,7 @@ export function ConfirmEmailPage(): React.JSX.Element {
       <AuthFrame title={t('auth.confirmedTitle')}>
         <p className="status-message auth-success" data-state="success" role="status">{t('auth.confirmedText', { email: auth.session?.user.email ?? email })}</p>
         <div className="auth-actions">
-          <Link className="button button-primary button-large button-wide" to={destination} replace>{t('auth.continueTo', { page: destinationName })}</Link>
+          <Link className="button button-primary button-large button-wide" to={destination} replace>{destinationTitleKey ? t('auth.continueTo', { page: t(destinationTitleKey) }) : t('auth.continueToLaboratory')}</Link>
         </div>
       </AuthFrame>
     );

@@ -29,7 +29,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }): React.JSX.
     if (!entry) return;
     onClose();
     if (entry.kind === 'project' && projects) void projects.refresh(false, { query: entry.label, order: projects.listing.order });
-    void navigate(entry.path);
+    void navigate(entry.path, { viewTransition: true });
   };
   const option = (entry: PaletteEntry, index: number): React.JSX.Element => (
     <li key={entry.id} id={`${PALETTE_ID}-${entry.id}`} role="option" aria-selected={index === current} className="palette-option"

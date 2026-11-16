@@ -53,7 +53,7 @@ export const PAGE_TITLES: Readonly<Record<string, TranslationKey>> = {
 };
 
 /** Laboratory destinations, in display order within their sidebar group. */
-export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; icon: IconName; group: 'research' | 'design' | 'organize'; end: boolean }[] = [
+export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey; icon: IconName; group: 'research' | 'design' | 'organize' | 'help'; end: boolean }[] = [
   { path: ROUTES.analyze, labelKey: 'nav.analyze', icon: 'analyze', group: 'research', end: false },
   { path: ROUTES.alignment, labelKey: 'nav.alignment', icon: 'compare', group: 'research', end: false },
   { path: ROUTES.library, labelKey: 'nav.library', icon: 'library', group: 'research', end: false },
@@ -61,6 +61,7 @@ export const NAVIGATION_ITEMS: readonly { path: string; labelKey: TranslationKey
   { path: ROUTES.generate, labelKey: 'nav.generate', icon: 'design', group: 'design', end: true },
   { path: ROUTES.laboratory, labelKey: 'workbench.laboratory', icon: 'laboratory', group: 'design', end: false },
   { path: ROUTES.projects, labelKey: 'nav.projects', icon: 'projects', group: 'organize', end: false },
+  { path: ROUTES.guide, labelKey: 'nav.guide', icon: 'help', group: 'help', end: false },
 ];
 
 /** Sidebar groups in display order. */
@@ -68,6 +69,7 @@ export const NAVIGATION_GROUPS: readonly { id: (typeof NAVIGATION_ITEMS)[number]
   { id: 'research', labelKey: 'nav.groupResearch' },
   { id: 'design', labelKey: 'nav.groupDesign' },
   { id: 'organize', labelKey: 'nav.groupOrganize' },
+  { id: 'help', labelKey: 'nav.groupHelp' },
 ];
 
 /** Sections of the public page, as anchors in its header; the guide follows them as a page of its own. */

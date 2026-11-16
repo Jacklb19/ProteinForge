@@ -36,3 +36,19 @@
   .explore-layout { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
   .explore-stage { position: sticky; inset-block-start: var(--space-lg); }
 }
+
+/* Before the tour: an invitation that says what the tour covers, with its button at hand. */
+.explore-current[data-state='whole'] { padding: var(--space-md); border-radius: var(--radius-surface); background: var(--bg-accent-soft); }
+.explore-current[data-state='whole'] .button-primary { gap: var(--space-xs); }
+.explore-current[data-state='whole'] .button-primary .icon { transition: transform var(--duration-enter) var(--ease-enter); }
+.explore-current[data-state='whole'] .button-primary:hover .icon { transform: translateX(var(--space-2xs)); }
+/* Each stop's reading arrives with a short rise; it is a new element per stop. */
+.explore-current { animation: rise-in var(--duration-enter) var(--ease-enter) both; }
+.explore-picked, .explore-trial { animation: rise-in var(--duration-enter) var(--ease-enter) both; }
+.explore-stop { transition: background-color var(--duration-feedback) var(--ease-feedback), border-color var(--duration-feedback) var(--ease-feedback); }
+.explore-stops li { animation: fade var(--duration-enter) var(--ease-enter) both; }
+/* A long function text shows its first lines until it is opened. */
+.explore-function[data-folded='true'] p:not(.field-help) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lines-preview); line-clamp: var(--lines-preview); overflow: hidden; }
+.explore-group > .button-quiet, .explore-function .button-quiet { min-height: var(--size-touch); }
+#explore-choose-title { scroll-margin-block-start: var(--space-lg); }
+.explore-identity .inline-link { justify-self: start; }

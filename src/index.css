@@ -95,7 +95,7 @@ ul, ol { padding-inline-start: var(--space-lg); }
 
 /* Phone menu: a panel over the page. */
 .menu-sheet::backdrop { background: var(--bg-scrim); animation: fade var(--duration-feedback) var(--ease-feedback) both; }
-.menu-sheet { margin: var(--space-none); width: var(--width-full); max-width: var(--width-full); color: var(--text-primary); border: none; position: fixed; inset: var(--space-none) var(--space-none) auto; z-index: var(--layer-sheet); display: grid; gap: var(--space-md); max-height: 100dvh; overflow-y: auto; padding: var(--space-xs) var(--space-md) var(--space-lg); border-block-end: var(--border-width) solid var(--border-subtle); border-radius: var(--space-none) var(--space-none) var(--radius-sheet) var(--radius-sheet); background: var(--bg-raised); animation: fade var(--duration-feedback) var(--ease-feedback) both; }
+.menu-sheet { margin: var(--space-none); width: var(--width-full); max-width: var(--width-full); color: var(--text-primary); border: none; position: fixed; inset: var(--space-none) var(--space-none) auto; z-index: var(--layer-sheet); display: grid; gap: var(--space-md); max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-xs) var(--space-md) var(--space-lg); border-block-end: var(--border-width) solid var(--border-subtle); border-radius: var(--space-none) var(--space-none) var(--radius-sheet) var(--radius-sheet); background: var(--bg-raised); animation: fade var(--duration-feedback) var(--ease-feedback) both; }
 .menu-sheet-head { display: flex; align-items: center; justify-content: space-between; min-height: var(--height-bar); }
 .menu-sheet:not([open]) { display: none; }
 .menu-sheet nav { display: grid; }
@@ -180,6 +180,18 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .password-control { position: relative; }
 .password-control .text-input { padding-inline-end: calc(var(--size-touch) + var(--space-xs)); }
 .password-control .button-icon { position: absolute; inset-block: var(--space-none); inset-inline-end: var(--space-3xs); margin-block: auto; height: var(--size-touch); color: var(--text-secondary); }
+/* Requirements of a new password: four segments fill as rules are met, and each met rule turns green. */
+.password-rules { display: grid; gap: var(--space-xs); }
+.password-strength { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3xs); }
+.password-strength span { height: var(--space-3xs); border-radius: var(--radius-pill); background: var(--border-subtle); transition: background-color var(--duration-enter) var(--ease-enter); }
+.password-strength[data-strength="1"] span[data-filled="true"], .password-strength[data-strength="2"] span[data-filled="true"] { background: var(--status-error); }
+.password-strength[data-strength="3"] span[data-filled="true"] { background: var(--accent-brand); }
+.password-strength[data-strength="4"] span[data-filled="true"] { background: var(--status-success); }
+.password-rules ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--width-full), var(--width-password-rule)), 1fr)); gap: var(--space-3xs) var(--space-sm); margin: var(--space-none); padding: var(--space-none); list-style: none; color: var(--text-secondary); font-size: var(--font-size-small); }
+.password-rules li { display: flex; align-items: center; gap: var(--space-2xs); min-width: var(--space-none); transition: color var(--duration-feedback) var(--ease-feedback); }
+.password-rules li[data-met="true"] { color: var(--status-success); }
+.password-rules li[data-met="true"] .icon { animation: rule-met var(--duration-enter) var(--ease-enter); }
+@keyframes rule-met { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .status-message { font-size: var(--font-size-small); color: var(--text-secondary); }
 .status-message:empty { display: none; }
@@ -289,7 +301,6 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 /* Landing -------------------------------------------------------------- */
 .hero-actions { display: flex; gap: var(--space-sm); width: var(--width-full); margin-block-start: var(--space-xs); }
 .hero-actions .button { flex: 1 1 0; }
-.hero-note { color: var(--text-secondary); font-size: var(--font-size-small); }
 .strand-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm) var(--space-lg); }
 .bridge-key { display: inline-flex; align-items: center; gap: var(--space-xs); color: var(--text-secondary); font-size: var(--font-size-small); }
 .bridge-key::before { content: ''; width: var(--space-md); height: var(--space-xs); border: var(--border-width-indicator) solid var(--residue-cysteine); border-block-end: none; border-radius: var(--space-xs) var(--space-xs) var(--space-none) var(--space-none); }
@@ -608,6 +619,8 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 .structure-frame { position: relative; }
 .structure-canvas { position: relative; width: var(--width-full); height: var(--height-structure-viewer); border-radius: var(--radius-surface); overflow: hidden; background: var(--bg-subtle); }
 .structure-canvas canvas { position: absolute; inset: var(--space-none); width: var(--width-full); height: var(--width-full); touch-action: none; }
+/* What the model shows, written over its top corner; it changes with each stop and never takes pointer events. */
+.structure-caption { position: absolute; inset-block-start: var(--space-sm); inset-inline-start: var(--space-sm); max-width: calc(var(--width-full) - 2 * var(--space-sm)); margin: var(--space-none); padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius-pill); background: var(--bg-veil); backdrop-filter: blur(var(--blur-veil)); color: var(--text-primary); font-size: var(--font-size-small); font-weight: var(--font-weight-strong); box-shadow: var(--shadow-raised); pointer-events: none; animation: rise-in var(--duration-enter) var(--ease-enter) both; }
 .structure-canvas[data-ready='false'] { position: absolute; inset: var(--space-none); height: auto; visibility: hidden; }
 .sequence-provenance { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-md); }
 
@@ -657,6 +670,52 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
   from { opacity: 0; }
   to { opacity: 1; }
 }
+/* Only opacity and transform move, which the browser composites without laying the page out again. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(var(--distance-step)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(calc(-1 * var(--distance-step))) scale(var(--scale-press)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes leave {
+  to { opacity: 0; }
+}
+
+/* Controls answer the pointer: colours ease, and a pressed button settles slightly. */
+.button { transition: background-color var(--duration-feedback) var(--ease-feedback), border-color var(--duration-feedback) var(--ease-feedback), color var(--duration-feedback) var(--ease-feedback), transform var(--duration-feedback) var(--ease-feedback); }
+.button:active:not(:disabled) { transform: scale(var(--scale-press)); }
+.text-input { transition: border-color var(--duration-feedback) var(--ease-feedback), box-shadow var(--duration-feedback) var(--ease-feedback); }
+/* Content of a closed disclosure is skipped by the browser; a transition there would never end, so none starts. */
+details:not([open]) :is(.button, .text-input) { transition: none; }
+
+/* Dialogs (Go to…, saving, confirmations) drop in; their backdrop fades. */
+.project-dialog[open] { animation: dialog-in var(--duration-enter) var(--ease-enter) both; }
+.project-dialog[open]::backdrop { animation: fade var(--duration-feedback) var(--ease-feedback) both; }
+/* Messages that appear in place, and the panels opened inside a disclosure. */
+.notice, .field-error, .project-confirm, .password-rules { animation: rise-in var(--duration-enter) var(--ease-enter) both; }
+details[open] > :not(summary) { animation: rise-in var(--duration-enter) var(--ease-enter) both; }
+.tour-panel { animation: rise-in var(--duration-enter) var(--ease-enter) both; }
+
+/* View transitions: when a tool opens or the sidebar folds, the browser animates snapshots of the old and the
+   new page, so nothing is laid out per frame. The sidebar keeps still while the tool area changes. */
+.workspace-sidebar { view-transition-name: sidebar; }
+.workspace-body { view-transition-name: workspace; }
+::view-transition-group(*) { animation-duration: var(--duration-enter); animation-timing-function: var(--ease-enter); }
+::view-transition-old(workspace) { animation: leave var(--duration-leave) var(--ease-feedback) both; }
+::view-transition-new(workspace) { animation: rise-in var(--duration-enter) var(--ease-enter) both; }
+/* Folding the sidebar: both snapshots keep their natural size and are clipped while the column resizes. */
+::view-transition-group(sidebar) { overflow: clip; }
+html[data-transition='sidebar']::view-transition-old(sidebar), html[data-transition='sidebar']::view-transition-new(sidebar),
+html[data-transition='sidebar']::view-transition-old(workspace), html[data-transition='sidebar']::view-transition-new(workspace) {
+  width: var(--width-full); height: var(--width-full); object-fit: none; object-position: left top;
+}
+html[data-transition='sidebar']::view-transition-old(workspace) { animation: leave var(--duration-enter) var(--ease-enter) both; }
+html[data-transition='sidebar']::view-transition-new(workspace) { animation: fade var(--duration-enter) var(--ease-enter) both; }
+/* A theme change crossfades the whole page at once. */
+html[data-transition='theme']::view-transition-new(workspace) { animation: fade var(--duration-enter) var(--ease-enter) both; }
+html[data-transition='theme']::view-transition-old(workspace) { animation: leave var(--duration-enter) var(--ease-enter) both; }
 
 /* Wide screens: figures beside their text. */
 @media (min-width: 64rem) {
@@ -723,6 +782,10 @@ textarea { font-family: var(--font-sequence); font-size: var(--font-size-sequenc
 
 @media (prefers-reduced-motion: reduce) {
   .page, .auth-page, .tool-panel, .menu-sheet, .menu-sheet::backdrop { animation: none; }
+  .project-dialog[open], .project-dialog[open]::backdrop, .notice, .field-error, .project-confirm, .password-rules,
+  details[open] > :not(summary), .tour-panel, .structure-caption, .password-rules li[data-met="true"] .icon { animation: none; }
+  .button:active:not(:disabled), .sidebar-link:active { transform: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
 /* Laboratory A: a structure and its residue inspector, then the sequence and variants. */

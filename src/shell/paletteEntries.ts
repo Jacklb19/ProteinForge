@@ -18,7 +18,6 @@ export const PALETTE_MAX_PROJECTS = 8;
 /** Every destination of the laboratory, in sidebar order, then the two that sit at its foot. */
 export const PALETTE_DESTINATIONS: readonly { path: string; labelKey: TranslationKey }[] = [
   ...NAVIGATION_ITEMS.map(({ path, labelKey }) => ({ path, labelKey })),
-  { path: ROUTES.guide, labelKey: 'nav.guide' },
   { path: ROUTES.profile, labelKey: 'nav.profile' },
 ];
 

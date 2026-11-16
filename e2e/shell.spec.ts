@@ -5,7 +5,7 @@ import {
   alignmentVerdict, assertFits, examplePairTitle, identityEnabled, languageButton, message, navigationLink, openExportMenu,
   openPublicSite, openSequenceEditor, openSiteMenu, setTheme, signInWithEmptyAccount, siteMenu, TEST_ACCOUNT, themeButton,
 } from './helpers';
-import { BAR_VEIL_SCROLL_PX, NAVIGATION_ITEMS, PUBLIC_FOOTER_LINKS, ROUTES, SIDEBAR_STORAGE_KEY } from '../src/shared/navigation';
+import { BAR_VEIL_SCROLL_PX, NAVIGATION_GROUPS, NAVIGATION_ITEMS, PUBLIC_FOOTER_LINKS, ROUTES, SIDEBAR_STORAGE_KEY } from '../src/shared/navigation';
 import { PREFERENCES_STORAGE_KEY } from '../src/preferences/config';
 import { SESSION_STORAGE_KEY } from '../src/features/auth/config';
 import { spanish } from '../src/i18n/es';
@@ -209,7 +209,7 @@ test('the sidebar groups the tools, collapses to named icons and remembers only 
   const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
   await expect(sidebar.getByRole('navigation', { name: spanish['nav.main'] }).getByRole('link')).toHaveText(destinations);
   await expect(navigationLink(page, spanish['nav.analyze'])).toHaveAttribute('aria-current', 'page');
-  await expect(sidebar.locator('.sidebar-group-label')).toHaveText([spanish['nav.groupResearch'], spanish['nav.groupDesign'], spanish['nav.groupOrganize']]);
+  await expect(sidebar.locator('.sidebar-group-label')).toHaveText(NAVIGATION_GROUPS.map(group => spanish[group.labelKey]));
   await expect(sidebar.getByRole('link', { name: spanish['shell.home'] })).toHaveAttribute('href', ROUTES.home);
   // The sidebar stays in place while the tool scrolls; its own list scrolls when the height is short.
   await page.evaluate(() => { window.scrollTo(0, 600); });
@@ -289,7 +289,7 @@ test('a signed-in visitor opens the account page straight from the sidebar and f
   await signInWithEmptyAccount(page);
   await page.goto(ROUTES.analyze);
   const sidebar = page.getByRole('complementary', { name: spanish['shell.sidebar'] });
-  await expect(sidebar.locator('.sidebar-group-label')).toHaveText([spanish['nav.groupResearch'], spanish['nav.groupDesign'], spanish['nav.groupOrganize']]);
+  await expect(sidebar.locator('.sidebar-group-label')).toHaveText(NAVIGATION_GROUPS.map(group => spanish[group.labelKey]));
   await expect(navigationLink(page, spanish['nav.projects'])).toHaveAttribute('href', ROUTES.projects);
   await expect(sidebar.getByRole('link', { name: spanish['shell.signIn'], exact: true })).toHaveCount(0);
   // With a session the foot holds the guide and the account; language and theme are on the account page.
