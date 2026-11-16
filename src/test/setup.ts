@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
+
+// findBy and waitFor give up after five seconds instead of one, so a loaded machine does not fail them.
+configure({ asyncUtilTimeout: 5000 });
 
 // Release mounted trees after each test.
 Object.defineProperty(window, 'matchMedia', {

@@ -123,12 +123,12 @@ describe('identity screens', () => {
     const alerts = screen.getAllByRole('alert').map((element) => element.textContent);
     expect(alerts).toEqual([expect.stringMatching(/al menos 8 caracteres/), spanish['auth.errorPasswordMismatch']]);
     expect(vi.mocked(api.signUp)).not.toHaveBeenCalled();
-    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'long-enough-password' } });
-    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'long-enough-password' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'Long-enough-pass1' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'Long-enough-pass1' } });
     fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
     expect(await screen.findByRole('heading', { level: 1, name: spanish['auth.confirmTitle'] })).toBeInTheDocument();
     expect(screen.getByText(/new@example\.org/)).toBeInTheDocument();
-    expect(vi.mocked(api.signUp)).toHaveBeenCalledWith('new@example.org', 'long-enough-password');
+    expect(vi.mocked(api.signUp)).toHaveBeenCalledWith('new@example.org', 'Long-enough-pass1');
     // The address is in the page state, never in the address bar.
     expect(window.location.href).not.toContain('new@example.org');
     // The service has just sent the email, so another code waits.
@@ -142,8 +142,8 @@ describe('identity screens', () => {
     expect(await screen.findByRole('note')).toHaveTextContent(spanish['auth.returnNote'].replace('{{page}}', spanish['nav.library']));
     fireEvent.click(screen.getByRole('link', { name: spanish['auth.signUpAction'] }));
     fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
-    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'long-enough-password' } });
-    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'long-enough-password' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'Long-enough-pass1' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'Long-enough-pass1' } });
     fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
     const code = await screen.findByLabelText(spanish['auth.codeLabel'].replace('{{count}}', '6'));
     expect(code).toHaveAttribute('inputmode', 'numeric');
@@ -162,12 +162,45 @@ describe('identity screens', () => {
     expect(await screen.findByText(spanish['nav.library'])).toBeInTheDocument();
   });
 
+  it('lists what a new password still needs while it is typed, and refuses one that misses a rule', () => {
+    const api = mockApi();
+    renderAt(ROUTES.signUp, api, null);
+    const password = screen.getByLabelText(spanish['auth.password']);
+    // The rules open when the field is first used.
+    expect(document.querySelector('.password-rules')).toBeNull();
+    fireEvent.focus(password);
+    const rules = () => [...document.querySelectorAll('.password-rules li')].map(rule => rule.getAttribute('data-met'));
+    expect(rules()).toEqual(['false', 'false', 'false', 'false']);
+    fireEvent.change(password, { target: { value: 'longer-than-eight' } });
+    expect(rules()).toEqual(['true', 'false', 'false', 'true']);
+    expect(document.querySelector('.password-rules li')).toHaveTextContent(spanish['auth.ruleMet']);
+    fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'longer-than-eight' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
+    expect(screen.getByRole('alert')).toHaveTextContent(spanish['auth.errorPasswordRules']);
+    expect(vi.mocked(api.signUp)).not.toHaveBeenCalled();
+    fireEvent.change(password, { target: { value: 'Longer-than-8' } });
+    expect(rules()).toEqual(['true', 'true', 'true', 'true']);
+  });
+
+  it('offers to continue to the laboratory after confirming when no page was asked for', async () => {
+    const api = mockApi();
+    renderAt(ROUTES.signUp, api, null);
+    fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'Long-enough-pass1' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'Long-enough-pass1' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
+    fireEvent.change(await screen.findByLabelText(spanish['auth.codeLabel'].replace('{{count}}', '6')), { target: { value: '481270' } });
+    fireEvent.click(screen.getByRole('button', { name: spanish['auth.verifyAction'] }));
+    expect(await screen.findByRole('link', { name: spanish['auth.continueToLaboratory'] })).toBeInTheDocument();
+  });
+
   it('reports a wrong or expired code on the field and keeps the visitor on the page', async () => {
     const api = mockApi({ verifyEmailCode: vi.fn().mockRejectedValue(new AuthError('otp_expired', 'Token has expired or is invalid', 403)) });
     renderAt(ROUTES.signUp, api, null);
     fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
-    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'long-enough-password' } });
-    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'long-enough-password' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: 'Long-enough-pass1' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'Long-enough-pass1' } });
     fireEvent.click(screen.getByRole('button', { name: spanish['auth.signUpAction'] }));
     const code = await screen.findByLabelText(spanish['auth.codeLabel'].replace('{{count}}', '6'));
     fireEvent.change(code, { target: { value: '000000' } });
@@ -221,7 +254,8 @@ describe('identity screens', () => {
   it('refuses a password longer than the stored 72 bytes', () => {
     const api = mockApi();
     renderAt(ROUTES.signUp, api, null);
-    const long = 'ñ'.repeat(37);
+    // It meets every character rule, so the length is what is refused.
+    const long = `Aa1!${'ñ'.repeat(35)}`;
     fireEvent.change(screen.getByLabelText(spanish['auth.email']), { target: { value: 'new@example.org' } });
     fireEvent.change(screen.getByLabelText(spanish['auth.password']), { target: { value: long } });
     fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: long } });
@@ -247,11 +281,11 @@ describe('identity screens', () => {
     renderAt(ROUTES.recover, api, null);
     expect(screen.getByRole('heading', { level: 1, name: spanish['auth.resetTitle'] })).toBeInTheDocument();
     expect(window.location.hash).toBe('');
-    fireEvent.change(screen.getByLabelText(spanish['auth.newPassword']), { target: { value: 'another-password' } });
-    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'another-password' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.newPassword']), { target: { value: 'Another-pass2' } });
+    fireEvent.change(screen.getByLabelText(spanish['auth.confirmPassword']), { target: { value: 'Another-pass2' } });
     act(() => { fireEvent.click(screen.getByRole('button', { name: spanish['auth.resetAction'] })); });
     await waitFor(() => { expect(screen.getByText(spanish['nav.analyze'])).toBeInTheDocument(); });
-    expect(vi.mocked(api.updatePassword)).toHaveBeenCalledWith(access, 'another-password');
+    expect(vi.mocked(api.updatePassword)).toHaveBeenCalledWith(access, 'Another-pass2');
   });
 
   it('refreshes a stored session that is about to expire', async () => {

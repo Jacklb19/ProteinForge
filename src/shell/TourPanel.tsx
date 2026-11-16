@@ -16,7 +16,7 @@ export function TourPanel({ stop, onStop, onEnd }: { stop: number; onStop: (stop
   // Each stop opens its tool and takes the focus, so the change is announced and the keyboard stays here.
   useEffect(() => {
     if (!current) return;
-    void navigate(current.path);
+    void navigate(current.path, { viewTransition: true });
     title.current?.focus();
   }, [current, navigate]);
   if (!current) return null;

@@ -174,9 +174,19 @@
   --space-public-section: clamp(3.5rem, 2rem + 4vw, 5.5rem);
   --duration-reveal: 560ms;
   --distance-reveal: 1.125rem;
+  /* Travel of small entrances (a dialog, a page, a caption) and the scale of a pressed control. */
+  --distance-step: 0.5rem;
+  --scale-press: 0.97;
+  /* Lines of a long text shown before it is opened. */
+  --lines-preview: 5;
+  /* Narrowest column of a password rule: two columns on a form, one on a phone. */
+  --width-password-rule: 11rem;
+  --duration-leave: 140ms;
   --width-workspace-main: 82.5rem;
   --width-content: 76rem;
   --width-copy: 65ch;
+  /* Narrowest column of a Guide term: three columns on a wide screen, one on a phone. */
+  --width-guide-term: 18rem;
   --width-lead: 34ch;
   --width-reading: 47.5rem;
   --width-form: 26rem;
@@ -354,5 +364,8 @@
     --duration-enter: var(--duration-none);
     --duration-reveal: var(--duration-none);
     --distance-reveal: 0;
+    --distance-step: 0;
+    --scale-press: 1;
+    --duration-leave: var(--duration-none);
   }
 }

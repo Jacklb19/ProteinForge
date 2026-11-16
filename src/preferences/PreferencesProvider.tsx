@@ -22,17 +22,17 @@ export function PreferencesProvider({ children }: { children: ReactNode }): Reac
 
   useEffect(() => {
     document.documentElement.lang = preferences.locale;
-    if (preferences.theme === 'system') {
-      delete document.documentElement.dataset.theme;
-    } else {
-      document.documentElement.dataset.theme = preferences.theme;
-    }
     const refreshBrowserColor = () => {
       const color = getComputedStyle(document.documentElement).getPropertyValue(BROWSER_COLOR_TOKEN).trim();
       const metadata = document.querySelector('meta[name="theme-color"]');
       if (color && metadata) metadata.setAttribute('content', color);
     };
-    refreshBrowserColor();
+    const apply = (): void => {
+      if (preferences.theme === 'system') delete document.documentElement.dataset.theme;
+      else document.documentElement.dataset.theme = preferences.theme;
+      refreshBrowserColor();
+    };
+    apply();
     const systemTheme = window.matchMedia(DARK_SCHEME_QUERY);
     systemTheme.addEventListener('change', refreshBrowserColor);
     return () => { systemTheme.removeEventListener('change', refreshBrowserColor); };

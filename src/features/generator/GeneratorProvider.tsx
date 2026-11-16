@@ -8,7 +8,7 @@ import { GENERATOR_CONFIG } from './config';
 
 /**
  * Validating the form is written in zod and only matters once someone searches, so it arrives with
- * that first search instead of with the page. See `docs/performance-2026-10-27.md`.
+ * that first search instead of with the page. See `docs/calidad-y-rendimiento.md`.
  */
 let loadingForm: Promise<typeof import('./searchForm')> | null = null;
 const searchForm = (): Promise<typeof import('./searchForm')> => (loadingForm ??= import('./searchForm'));

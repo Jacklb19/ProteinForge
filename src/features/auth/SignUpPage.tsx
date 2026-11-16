@@ -6,7 +6,6 @@ import { ROUTES } from '../../shared/navigation';
 import { destinationAfterSignIn, requestedDestination } from './destination';
 import { AuthFrame } from './AuthFrame';
 import { useAuth } from './authContext';
-import { PASSWORD_MIN_LENGTH } from './config';
 import { authErrorKey } from './errors';
 import { PasswordField, TextField } from './fields';
 import { OAuthButtons } from './OAuthButtons';
@@ -16,7 +15,7 @@ import type { FieldErrors } from './validation';
 type Field = 'email' | 'password' | 'confirm';
 
 export function SignUpPage(): React.JSX.Element {
-  const { t, formatNumber } = useTranslation();
+  const { t } = useTranslation();
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,7 +54,7 @@ export function SignUpPage(): React.JSX.Element {
     >
       <form className="auth-form" noValidate onSubmit={submit}>
         <TextField id="sign-up-email" type="email" label={t('auth.email')} value={email} onChange={setEmail} autoComplete="email" errorKey={errors.email} disabled={disabled} />
-        <PasswordField id="sign-up-password" label={t('auth.password')} value={password} onChange={setPassword} autoComplete="new-password" errorKey={errors.password} help={t('auth.passwordHelp', { count: formatNumber(PASSWORD_MIN_LENGTH) })} disabled={disabled} />
+        <PasswordField id="sign-up-password" label={t('auth.password')} value={password} onChange={setPassword} autoComplete="new-password" errorKey={errors.password} requirements disabled={disabled} />
         <PasswordField id="sign-up-confirm" label={t('auth.confirmPassword')} value={confirm} onChange={setConfirm} autoComplete="new-password" errorKey={errors.confirm} disabled={disabled} />
         <p className="status-message" data-state={serverError ? 'error' : 'idle'} role="status" aria-live="polite">{serverError ? t(serverError) : ''}</p>
         <div className="auth-actions">

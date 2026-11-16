@@ -1,6 +1,6 @@
 /**
  * (b) Reference quota and refused tokens, run personally by the owner:
- *   node scripts/owner-checks/gateway.mjs [--api <origin>] [--skip-expired]
+ *   node scripts/signed-in-checks/gateway.mjs [--api <origin>] [--skip-expired]
  * Signs in at a hidden prompt; the token stays in memory. Prints only the result table.
  */
 import { runCheck } from './session.mjs';

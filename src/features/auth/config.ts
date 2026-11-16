@@ -75,6 +75,18 @@ export const SESSION_RETRY_DELAYS_MS = [5_000, 15_000, 60_000] as const;
 
 /** Form rules shown to the visitor and enforced before any request. */
 export const PASSWORD_MIN_LENGTH = 8;
+/**
+ * What a new password must contain, shown live while typing. The character classes are the ones Supabase Auth
+ * checks (ASCII letters, digits and its symbol set); all four together meet its strictest setting, so a password
+ * that passes here is not refused for its characters. The service may still refuse one found in known leaks.
+ */
+export const PASSWORD_SYMBOLS = '!@#$%^&*()_+-=[]{};\':"|<>?,./`~';
+export const PASSWORD_RULES = [
+  { id: 'length', labelKey: 'auth.ruleLength', test: (value: string): boolean => value.length >= PASSWORD_MIN_LENGTH },
+  { id: 'cases', labelKey: 'auth.ruleCases', test: (value: string): boolean => /[a-z]/.test(value) && /[A-Z]/.test(value) },
+  { id: 'digit', labelKey: 'auth.ruleDigit', test: (value: string): boolean => /[0-9]/.test(value) },
+  { id: 'symbol', labelKey: 'auth.ruleSymbol', test: (value: string): boolean => Array.from(PASSWORD_SYMBOLS).some((symbol) => value.includes(symbol)) },
+] as const satisfies readonly { id: string; labelKey: TranslationKey; test: (value: string) => boolean }[];
 /** Supabase hashes passwords with bcrypt, which ignores everything after the first 72 bytes of UTF-8. */
 export const PASSWORD_MAX_BYTES = 72;
 export const EMAIL_MAX_LENGTH = 254;

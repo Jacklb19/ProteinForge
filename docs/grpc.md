@@ -1,6 +1,6 @@
 # gRPC en ProteinForge
 
-Evaluación e implementación del 15 de octubre de 2026, por el nuevo requisito del curso: el proyecto debe usar gRPC. Contratos en el backend (`proto/`). Decisiones tomadas: la API completa por gRPC, gRPC-Web en el navegador, REST se conserva en el backend y gRPC nativo para el futuro ejecutor del laboratorio.
+El proyecto usa gRPC como transporte principal entre el navegador y la API. Los contratos viven en el backend (`proto/`). Decisiones: la API completa se expone por gRPC, el navegador usa gRPC-Web, REST se conserva en el backend como compatibilidad y gRPC nativo queda previsto para un futuro ejecutor del laboratorio.
 
 ## Qué es gRPC
 
@@ -23,7 +23,7 @@ Los servidores de Connect hablan a la vez Connect, gRPC y gRPC-Web con el mismo 
 
 ## Qué cambia para ProteinForge
 
-Hoy hay tres piezas:
+El sistema tiene tres piezas:
 - la web en Vercel;
 - la API FastAPI en Vercel, con REST, JSON y errores RFC 9457;
 - Supabase para identidad y datos.
@@ -40,9 +40,9 @@ Todo el cálculo científico (descriptores, perfil, alineamiento en WebAssembly,
 - Supabase Auth y las descargas de RCSB son servicios de terceros con su propia API; se siguen usando tal cual.
 
 **La restricción de Vercel.** Las funciones de Python en Vercel ejecutan aplicaciones ASGI petición a petición, y la documentación oficial no menciona HTTP/2 con *trailers* ni servidores gRPC de larga vida. Por eso:
-- **No cuento con gRPC nativo en Vercel.**
-- **Connect y gRPC-Web sí deberían funcionar en Vercel:** son peticiones HTTP normales, y Vercel admite respuestas en *streaming* en Python dentro de la duración máxima (300 s por defecto en el plan gratuito con Fluid compute).
-- **Comprobado en local:** Uvicorn sirve Connect y gRPC-Web; Hypercorn (HTTP/2) sirve además gRPC nativo. Falta comprobarlo en una vista previa de Vercel.
+- **No se usa gRPC nativo en Vercel.**
+- **Connect y gRPC-Web funcionan en Vercel:** son peticiones HTTP normales, y Vercel admite respuestas en *streaming* en Python dentro de la duración máxima (300 s por defecto en el plan gratuito con Fluid compute). El navegador usa gRPC-Web contra la API desplegada.
+- **En local:** Uvicorn sirve Connect y gRPC-Web; Hypercorn (HTTP/2) sirve además gRPC nativo.
 
 ## Arquitectura
 
@@ -52,7 +52,7 @@ Navegador (React)                     Vercel: API FastAPI                      M
    gRPC-Web (POST, protobuf binario)    /proteinforge.<paquete>.<Servicio>/<Método>  ──►  ejecutor de diseño
                                         gRPC-Web, Connect y gRPC nativo          gRPC nativo, HTTP/2,
                                         mismas funciones de dominio y reglas     streaming de progreso
-                                        (Supabase con el token del usuario)      (pendiente)
+                                        (Supabase con el token del usuario)      (previsto)
 ```
 
 - Los `.proto` viven en el backend, que es dueño de los contratos.
@@ -85,11 +85,11 @@ Archivos en `backend/proto/proteinforge/`. Pasan `buf lint` con las reglas STAND
 - **Mismos campos y límites que los modelos Pydantic y los esquemas zod actuales.** El *workspace* replica `schemaVersion 1`: procedencia, descriptores y alineamiento con sus enumeraciones (matriz, modo, huecos terminales). Los límites (100.000 residuos, 5.000 por secuencia alineada, nombres de 1–120 caracteres) están anotados en los comentarios y los sigue aplicando el servidor.
 - **Fechas como `google.protobuf.Timestamp`.**
   - La concurrencia optimista pasa de `expectedUpdatedAt` a `expected_update_time`.
-  - Un conflicto devuelve `ABORTED`, que Connect traduce a 409, el mismo estado que hoy.
+  - Un conflicto devuelve `ABORTED`, que Connect traduce a 409, el mismo estado que en REST.
 - **Paginación con `page_token` opaco en lugar de `offset`,** según la guía de diseño de APIs de Google. Internamente puede seguir siendo un desplazamiento.
 - **Errores:** los `type` de RFC 9457 pasan a códigos de gRPC.
 
-  | RFC 9457 hoy | Código gRPC |
+  | REST (RFC 9457) | Código gRPC |
   |---|---|
   | `project-not-found` | `NOT_FOUND` |
   | `project-conflict` | `ABORTED` |
@@ -98,16 +98,16 @@ Archivos en `backend/proto/proteinforge/`. Pasan `buf lint` con las reglas STAND
   | esquema no preparado | `FAILED_PRECONDITION` |
   | servicio externo caído | `UNAVAILABLE` |
 
-  El identificador de correlación viaja en la cabecera `X-Request-Id` como hoy.
+  El identificador de correlación viaja en la cabecera `X-Request-Id`, igual que en REST.
 - **Lecturas con `idempotency_level = NO_SIDE_EFFECTS`,** para que Connect pueda usarlas por `GET` y cachearlas si interesa.
 - **`DesignService` va en `v1alpha1`:** no promete compatibilidad hasta que la primera prueba real del laboratorio diga qué producen las herramientas.
   - Exige consentimiento explícito porque la secuencia sale del navegador.
   - La confianza por residuo (pLDDT) se documenta como confianza del predictor, no como función.
-- **Validación:** sigue en Pydantic y en zod al principio. Añadir `protovalidate` para declararla en el propio `.proto` es una mejora opcional; requiere aprobar la dependencia.
+- **Validación:** sigue en Pydantic y en zod al principio. Añadir `protovalidate` para declararla en el propio `.proto` es una mejora opcional que añadiría una dependencia.
 
 ## Dependencias
 
-Aprobadas e instaladas con versión fija el 15 oct 2026.
+Todas con versión fija.
 
 | Dónde | Paquete | Versión | Estado | Para qué |
 |---|---|---|---|---|
@@ -137,10 +137,10 @@ No hace falta el Buf Schema Registry ni ningún servicio de pago.
 
 ## Estado por fases
 
-1. **Prueba técnica** — hecha en local con los tres protocolos. Pendiente: vista previa de Vercel.
-2. **Dominios existentes** — hecho. `AccountService`, `ProjectService` y `ReferenceService` servidos junto a REST; el frontend usa solo gRPC-Web.
-3. **Laboratorio de diseño** — pendiente. Ejecutor con `grpcio` y `DesignService` en la máquina con GPU; la API lo llama por gRPC nativo y reexpone `WatchDesign` al navegador con *streaming* del servidor. Depende de la prueba real del laboratorio.
-4. **REST** — se conserva en el backend como compatibilidad, por indicación del profesor.
+1. **Transportes** — Connect, gRPC y gRPC-Web probados en local; en Vercel se sirve gRPC-Web.
+2. **Servicios implementados** — `AccountService`, `ProjectService`, `ReferenceService`, `AssistantService`, `FoldingService` y `ReportService`, servidos junto a REST; el frontend usa solo gRPC-Web.
+3. **Laboratorio de diseño** — previsto, no implementado. `DesignService` (`v1alpha1`) está definido en `proto/` pero no se sirve: un ejecutor con `grpcio` en una máquina con GPU sería llamado por gRPC nativo desde la API, que reexpondría `WatchDesign` al navegador con *streaming* del servidor.
+4. **REST** — se conserva en el backend como compatibilidad.
 
 ## Fuentes
 
@@ -150,4 +150,3 @@ No hace falta el Buf Schema Registry ni ningún servicio de pago.
 - [gRPC-Web en ASP.NET Core](https://learn.microsoft.com/aspnet/core/grpc/grpcweb): límites de *streaming* en navegador y papel de Envoy.
 - [gRPC-Web por dentro (Kreya)](https://kreya.app/blog/grpc-web-deep-dive/).
 - [FastAPI en Vercel](https://vercel.com/docs/frameworks/backend/fastapi), [funciones con streaming](https://vercel.com/docs/functions/streaming-functions) y [límites de duración](https://vercel.com/docs/functions/limitations).
-- Versiones comprobadas en PyPI y npm el 15 oct 2026.

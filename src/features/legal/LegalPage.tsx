@@ -24,10 +24,6 @@ export function LegalPage({ titleKey, introduction, sections }: Props): React.JS
       <PageHeading titleKey={titleKey} introduction={introduction} />
       <p className="legal-updated"><time dateTime={LEGAL_UPDATED_DATE}>{t('legal.updated')}</time></p>
       <div className="legal-layout">
-      <nav className="legal-index" aria-label={t('workbench.legalIndex')}>
-        {sections.map(section => <a key={section.titleKey} href={`#${section.titleKey}`}>{t(section.titleKey)}</a>)}
-        <a href="#legal-contact">{t('legal.contactTitle')}</a>
-      </nav>
       <div className="legal-sections">
         {sections.map((section) => (
           <section key={section.titleKey} className="legal-section" aria-labelledby={section.titleKey}>
