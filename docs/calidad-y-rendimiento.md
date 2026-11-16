@@ -35,7 +35,7 @@ CI ejecuta todas ellas, además de `npm audit --omit=dev` y la comprobación de 
 | RNF-01: interacciones sintéticas con CPU ×4 | p75 de unos 48 ms; persisten tareas de más de 50 ms durante la carga inicial |
 | RNF-03: LCP de Inicio (4G lenta, CPU ×4) | **Cumple**: p75 entre 2.226 y 2.264 ms en cinco tandas; 220 de 220 cargas por debajo de 2,5 s |
 | RNF-03: LCP de Analizar | **No cumple**: p75 entre 2.526 y 2.556 ms; entre el 11 y el 28 % de las cargas queda por debajo del objetivo. El ruido del equipo es de unos 21 ms, así que la diferencia no es ruido: faltan entre 25 y 60 ms |
-| Precaché de la PWA | Unas 57 entradas y ≈ 2,4 MiB (con el motor de Mol* incluido desde que entra en la precaché) |
+| Precaché de la PWA | Unos 6 MiB, con el motor de Mol* incluido para que una pestaña abierta durante un despliegue siga cargando el 3D |
 | Grafo inicial | 17 archivos y 150.328 bytes comprimidos |
 
 Ninguna medición se presenta como cumplimiento de producción. Una pantalla a 144 Hz influye en las medidas que dependen de la tasa de fotogramas; no se midió a 60 Hz.
