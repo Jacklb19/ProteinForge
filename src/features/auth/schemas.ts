@@ -6,7 +6,7 @@ import { z } from 'zod';
  * These live apart from `session.ts` and `authApi.ts` so that reading a stored session, which the
  * application does before its first render, does not pull zod into the initial download. zod costs
  * 84.297 bytes there, 24.093 compressed, and 63 ms of processor at four times slowdown to build
- * schemas nothing has used yet; see `docs/performance-2026-10-27.md`. The client loads this file
+ * schemas nothing has used yet; see `docs/calidad-y-rendimiento.md`. The client loads this file
  * when it first talks to the service, which is always after the first paint.
  *
  * It stays the source of truth for the stored shape: `storedSession` in `session.ts` reads it

@@ -12,7 +12,7 @@ import type { Project, WorkspaceSnapshot } from './contracts';
  * captured or stored: saving, opening and exporting a report, never a first paint. `ProjectProvider`
  * reads `workspaceVersion` and `workspaceInputKey` while rendering, so those two stay here and stay
  * free of zod, which keeps 24.093 compressed bytes out of the initial download. See `./contracts.ts`
- * and `docs/performance-2026-10-27.md`.
+ * and `docs/calidad-y-rendimiento.md`.
  */
 let loading: Promise<typeof import('./contracts')> | null = null;
 const contracts = (): Promise<typeof import('./contracts')> => (loading ??= import('./contracts'));

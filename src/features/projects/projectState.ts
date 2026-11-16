@@ -57,7 +57,7 @@ export type Relist = (service: ProjectApi, signal: AbortSignal) => Promise<void>
 /**
  * The generator history is written in zod and is only read when a search result is stored or
  * removed, never while rendering, so it arrives with that action. Together with the project
- * contracts this keeps zod out of the initial download; see `docs/performance-2026-10-27.md`.
+ * contracts this keeps zod out of the initial download; see `docs/calidad-y-rendimiento.md`.
  */
 let loadingHistory: Promise<typeof import('../generator/history')> | null = null;
 export const historyModule = (): Promise<typeof import('../generator/history')> => (loadingHistory ??= import('../generator/history'));
