@@ -53,11 +53,11 @@ describe('language switch', () => {
     const group = screen.getByRole('group', { name: spanish['shell.languageLabel'] });
     const [es, en] = within(group).getAllByRole('button');
     if (!es || !en) throw new Error('Missing language buttons.');
-    expect(es).toHaveAccessibleName(spanish['settings.spanish']);
+    expect(es).toHaveAccessibleName(`${spanish['settings.spanishShort']} ${spanish['settings.spanish']}`);
     expect(es).toHaveTextContent(spanish['settings.spanishShort']);
     expect(es).toHaveAttribute('lang', 'es');
     expect(es).toHaveAttribute('aria-pressed', 'true');
-    expect(en).toHaveAccessibleName(spanish['settings.english']);
+    expect(en).toHaveAccessibleName(`${spanish['settings.englishShort']} ${spanish['settings.english']}`);
     expect(en).toHaveTextContent(spanish['settings.englishShort']);
     expect(en).toHaveAttribute('lang', 'en');
     expect(en).toHaveAttribute('aria-pressed', 'false');

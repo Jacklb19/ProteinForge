@@ -82,7 +82,7 @@ for (const width of [360, WIDE]) {
         await audit(page, 'public site');
         if (width === WIDE) {
           const bar = page.locator('.site-bar');
-          await expect(bar.getByRole('group', { name: text['shell.languageLabel'] }).getByRole('button', { name: text[locale === 'es' ? 'settings.spanish' : 'settings.english'], exact: true })).toHaveAttribute('aria-pressed', 'true');
+          await expect(bar.getByRole('group', { name: text['shell.languageLabel'] }).getByRole('button', { name: locale === 'es' ? `${text['settings.spanishShort']} ${text['settings.spanish']}` : `${text['settings.englishShort']} ${text['settings.english']}`, exact: true })).toHaveAttribute('aria-pressed', 'true');
           await expect(themeButton(bar, text)).toHaveAccessibleName(text[theme === 'light' ? 'shell.themeToDark' : 'shell.themeToLight']);
           await themeButton(bar, text).focus();
           await audit(page, 'public bar controls');
