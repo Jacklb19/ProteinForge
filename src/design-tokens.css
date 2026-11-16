@@ -185,6 +185,8 @@
   --width-workspace-main: 82.5rem;
   --width-content: 76rem;
   --width-copy: 65ch;
+  /* Narrowest column of a Guide term: three columns on a wide screen, one on a phone. */
+  --width-guide-term: 18rem;
   --width-lead: 34ch;
   --width-reading: 47.5rem;
   --width-form: 26rem;

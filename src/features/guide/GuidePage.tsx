@@ -30,9 +30,6 @@ export function GuidePage(): React.JSX.Element {
         {tour && <button type="button" className="button button-secondary" onClick={tour.start}>{t('tour.start')}</button>}
       </PageHeading>
       <div className="legal-layout">
-        <nav className="legal-index" aria-label={t('workbench.legalIndex')}>
-          {Object.values(GUIDE_SECTIONS).map(entry => <a key={entry.id} href={`#${entry.id}`}>{t(entry.titleKey)}</a>)}
-        </nav>
         <div className="guide-sections">
           <GuideSection section={GUIDE_SECTIONS.properties}>
             <p>{t('workbench.analysisScope')}</p>

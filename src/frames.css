@@ -83,11 +83,13 @@
 .page-purpose { max-width: var(--width-copy); margin-block: var(--space-2xs); color: var(--text-secondary); }
 
 /* Guide: methods grouped by question, each with a way back to its tool. */
-.guide-sections { display: grid; gap: var(--space-2xl); max-width: var(--width-copy); }
+.guide-sections { display: grid; gap: var(--space-2xl); }
 .guide-section { display: grid; gap: var(--space-sm); justify-items: start; scroll-margin-block-start: var(--space-lg); }
 .guide-section:focus { outline: none; }
 .guide-section > p, .guide-section li { color: var(--text-secondary); }
-.guide-terms { display: grid; gap: var(--space-md); width: var(--width-full); }
+/* Explanations keep a readable measure; the terms below fill the width in columns. */
+.guide-section > p, .guide-section > ul { max-width: var(--width-copy); }
+.guide-terms { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--width-full), var(--width-guide-term)), 1fr)); gap: var(--space-md) var(--space-xl); width: var(--width-full); }
 .guide-terms div { display: grid; gap: var(--space-2xs); padding-block-start: var(--space-sm); border-block-start: var(--border-width) solid var(--border-subtle); }
 .guide-terms dt { font-weight: var(--font-weight-strong); }
 .guide-terms dd { color: var(--text-secondary); }

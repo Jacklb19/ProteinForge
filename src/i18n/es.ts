@@ -58,7 +58,6 @@ export const spanish = {
   'workbench.libraryViews': 'Fuentes de referencias',
   'workbench.libraryEntry': 'Ficha de la proteína',
   'workbench.projectDetails': 'Ver datos guardados',
-  'workbench.legalIndex': 'En esta página',
   'workbench.homeLead': 'De una secuencia a una lectura clara de sus propiedades.',
   'workbench.homeAnalyze': 'Empieza con una secuencia',
   'workbench.homeAnalyzeHelp': 'Pega aminoácidos, importa FASTA o explora un ejemplo.',

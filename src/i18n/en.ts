@@ -60,7 +60,6 @@ export const english: { [Key in keyof typeof spanish]: string } = {
   'workbench.libraryViews': 'Reference sources',
   'workbench.libraryEntry': 'Protein entry',
   'workbench.projectDetails': 'View saved data',
-  'workbench.legalIndex': 'On this page',
   'workbench.homeLead': 'From a sequence to a clear understanding of its properties.',
   'workbench.homeAnalyze': 'Start with a sequence',
   'workbench.homeAnalyzeHelp': 'Paste amino acids, import FASTA or explore an example.',
