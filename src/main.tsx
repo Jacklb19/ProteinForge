@@ -8,12 +8,15 @@ import './frames.css';
 import App from './App';
 import { loadCatalog } from './i18n/catalogs';
 import { loadPreferences } from './preferences/preferences';
+import { recoverFromStaleCode } from './shell/staleCode';
 
 const container = document.getElementById('root');
 
 if (!container) {
   throw new Error('The document root element (#root) is missing.');
 }
+
+recoverFromStaleCode();
 
 const render = (): void => {
   createRoot(container).render(

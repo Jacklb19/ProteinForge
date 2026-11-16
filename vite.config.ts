@@ -102,9 +102,9 @@ export default defineConfig({
       icons: [{ src: '/app-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
     },
     workbox: {
+      // Every code file of a release, the viewer engine included, so a page left open keeps working after the
+      // next release replaces those files. Structures themselves stay online and demand-loaded.
       globPatterns: ['**/*.{js,css,html,svg,wasm,woff2,ipynb}'],
-      // Experimental structures stay online and demand-loaded; do not precache the large viewer engine.
-      globIgnores: ['**/molstarRuntime-*.js'],
       navigateFallback: 'index.html',
       cleanupOutdatedCaches: true,
     },

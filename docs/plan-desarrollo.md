@@ -83,7 +83,7 @@ Actualizado el 12 oct 2026 tras acordar el laboratorio didáctico. Entrega compr
 | Estructura | Mol*/BinaryCIF real 1TRZ, cámara/errores/pausa y cobertura anotada | Sin SIFTS/selección sincronizada ni predicción; necesita red/WebGL |
 | Informes | Worker PDF/JSON/perfil/alineamiento CSV, métodos/hash/valores crudos; PDF renderizado | Sin PDF etiquetado ni subida/registro |
 | RF17 | Worker reproducible, longitud/masa/GRAVY, referencia igual presupuesto, diversidad y transferencia/JSON | Heurística académica; ejecuciones en memoria, sin garantía biológica/óptimo |
-| PWA | Recursos/WASM/generador/PDF offline comprobados; Mol* excluido del precache | Proyectos/UniProt/coordenadas requieren red; no sincronización diferida |
+| PWA | Recursos/WASM/generador/PDF offline comprobados; el motor de Mol* también está en el precaché (las coordenadas siguen pidiéndose en línea) | Proyectos/UniProt/coordenadas requieren red; no sincronización diferida |
 | Cuenta | REST Auth/recuperación/refresco/Google por redirección existentes; lectura autorizada 12 oct 18:20 UTC: Google/correo/registro habilitados, confirmación requerida | SMTP y acceso Google/JWT completo sin verificar; cinco tablas públicas siguen 404/PGRST205, sin migrar |
 | RF18/asistente | Propuesta concreta con consentimiento/validación/cache en [candidatos](candidates.md) | Proveedor/límites/retención/contrato pendientes; sin envío privado habilitado |
 
