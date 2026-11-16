@@ -149,16 +149,20 @@ try {
   const laboratory = await laboratoryDownload;
   if (await laboratory.failure()) throw new Error('Offline laboratory workspace export failed.');
   process.stdout.write('Offline laboratory Worker, example, editing and workspace export verified.\n');
-  // Inspect actual precache entries; the large online viewer must stay demand-loaded.
+  // Inspect actual precache entries: the viewer engine belongs to its release, so a page left open across
+  // the next release still loads it, here with the server stopped.
   const viewerCached = await page.evaluate(async () => {
     for (const name of await caches.keys()) {
       const cache = await caches.open(name);
-      if ((await cache.keys()).some((request) => request.url.includes('molstarRuntime-'))) return true;
+      const engine = (await cache.keys()).find((request) => request.url.includes('molstarRuntime-'));
+      if (!engine) continue;
+      const response = await fetch(engine.url);
+      return response.ok && !!response.headers.get('content-type')?.includes('javascript');
     }
     return false;
   });
-  if (viewerCached) throw new Error('The online Mol* engine was unexpectedly precached.');
-  process.stdout.write('Offline candidate Worker and PDF export verified; Mol* engine excluded from precache.\n');
+  if (!viewerCached) throw new Error('The Mol* engine is missing from the precache.');
+  process.stdout.write('Offline candidate Worker and PDF export verified; Mol* engine served from the precache.\n');
 } finally {
   try {
     await browser?.close();
