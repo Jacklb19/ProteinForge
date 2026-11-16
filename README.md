@@ -1,71 +1,158 @@
 # ProteinForge — frontend
 
-**Entrega autorizada para producción, 1 nov 2026:** el propietario confirma la migración de predicciones y las dos banderas. Backend publicado primero, con CI correcto en dev/main; frontend fija su contrato remoto y genera siete archivos idénticos. [Estado de publicación y límites](docs/prompt-siguiente-entrega.md#publicación-autorizada--1-nov-2026). Las notas de «sin publicar» inferiores describen la preparación anterior; las pruebas locales no sustituyen el recorrido autenticado desde la web pública.
+ProteinForge es un banco de trabajo web para analizar, comparar y diseñar secuencias de proteínas. Está pensado para estudiantes e investigadores que necesitan calcular propiedades de una secuencia, alinearla con otra, consultar su anotación y su estructura 3D y guardar el trabajo en una cuenta, sin instalar nada.
 
-Banco académico con editor/FASTA, descriptores/perfiles, Gotoh Rust/WASM, referencias UniProt, selección sincronizada secuencia/estructura, visor experimental Mol*, informes locales PDF/JSON/CSV, búsqueda reproducible de candidatos y laboratorio didáctico. Publicados también cuentas, Proyectos, asistente de interpretación, historial del generador y catálogo de dominios. El control del historial se observó en producción; guardar con sesión sigue pendiente. Frontend publicado `main` `00157a1`; RNF-03 se cumple en Inicio y no se acredita en Analizar. El modelado publicado usa el cuaderno manual Colab. [Estado y evidencia](docs/prompt-siguiente-entrega.md).
+- Aplicación: <https://protein-forge.vercel.app>
+- API: <https://protein-back.vercel.app> (repositorio [Jacklb19/Protein_Back](https://github.com/Jacklb19/Protein_Back))
 
-**Local, 1 nov 2026:** [predicción desde el laboratorio](docs/prediction-delivery-2026-10-30.md), con consentimiento, ESM Atlas mediante la API, visor/descarga original y persistencia v4. [Comprobada con sesión real](docs/readiness-2026-11-01.md): 76 residuos y PDB descargado idéntico al del laboratorio portable. Código local en `dev` `5364848`, sin publicar y desactivado por defecto. El pin del contrato ya está preparado; falta aplicar la migración remota, publicar backend antes de frontend y activar las banderas con autorización. No instala GPU propia ni demuestra validez biológica. [Pasos del propietario](docs/owner-next-steps-2026-11-01.md); ensayo local: `npm run dev:prediction` (puertos 5330/5331, sin cambiar `.env`).
+Este repositorio contiene la interfaz web: React, Workers y un núcleo de alineamiento en Rust compilado a WebAssembly.
 
-## Repositorios y carpetas
+## Funcionalidades
 
-```text
-ProteinForge/       # carpeta local, sin Git
-├── frontend/       # este repositorio
-└── backend/        # repositorio independiente
+| Herramienta | Qué hace |
+|---|---|
+| **Analizar** | Editor y FASTA con validación incremental; masa, pI, inestabilidad, índice alifático y GRAVY; perfil de hidropatía y propensiones; estructura con selección sincronizada |
+| **Comparar** | Alineamiento global y local con el algoritmo de Gotoh (BLOSUM45/62/80, huecos afines) en Rust/WASM |
+| **Biblioteca** | Catálogo de referencias, consulta de UniProt, 48 dominios ensamblables y visor 3D con Mol* |
+| **Explorar** | Recorrido guiado por una proteína con su modelo de AlphaFold |
+| **Diseñar secuencias** | Búsqueda reproducible de candidatos bajo condiciones de masa e hidropatía |
+| **Laboratorio 3D** | Rediseños de una proteína con posiciones protegidas, comparación y, opcionalmente, predicción de estructura |
+| **Proyectos** | Guardado en la cuenta, búsqueda, versiones, enlaces de solo lectura y guardado diferido sin conexión |
+| **Informes y asistente** | PDF, JSON y CSV generados en el navegador; lectura en prosa de resultados ya calculados |
+
+La interfaz está en español e inglés. Ni los descriptores ni las predicciones demuestran función biológica ni novedad experimental.
+
+## Stack
+
+| Área | Tecnología |
+|---|---|
+| Interfaz | React 19, TypeScript 6 (modo estricto), Vite 8, React Router 7 |
+| Estructuras 3D | Mol* 5 |
+| Comunicación con la API | Connect-Web 2 (gRPC-Web) y Protobuf-ES 2; validación con Zod 4 |
+| Informes | jsPDF 4 |
+| Cálculo | Web Workers y Rust 1.91 (wasm-bindgen) en `rust/alignment` |
+| Aplicación sin conexión | `vite-plugin-pwa` |
+| Pruebas | Vitest 5, Testing Library, Playwright 1.63 y axe-core |
+| Entorno | Node.js 24 (`.nvmrc`) |
+
+## Arquitectura
+
+```mermaid
+flowchart LR
+  subgraph Navegador
+    UI[React] --> W[Workers]
+    W --> WASM[WASM de alineamiento]
+    UI --> PWA[PWA y caché local]
+  end
+  UI -- "gRPC-Web" --> API[API FastAPI]
+  UI -- "Auth REST" --> SB[(Supabase Auth)]
+  UI -- "BinaryCIF" --> RCSB[RCSB]
+  UI -- "modelos" --> AF[AlphaFold DB]
+  API -- "JWT y RLS" --> PG[(PostgreSQL)]
+  API --> EXT[UniProt, PDBe/SIFTS, Groq, ESM Atlas]
 ```
 
-Frontend: [Jacklb19/ProteinForge](https://github.com/Jacklb19/ProteinForge). Backend: [Jacklb19/Protein_Back](https://github.com/Jacklb19/Protein_Back). Cada uno tiene su propio `.git`, `main`, `dev` y despliegue Vercel. Abrir esta carpeta como proyecto; ejecutar comandos desde aquí. Moverla completa conserva historial y remoto.
+- El cálculo pesado (descriptores, alineamiento, búsqueda de candidatos, informes) corre en Workers dentro del navegador; las secuencias no se guardan en el almacenamiento del navegador.
+- Los clientes gRPC-Web se generan desde los contratos `proto/` del backend (`src/gen/`, código generado que se versiona; `buf.gen.yaml` fija el commit del backend).
+- El navegador envía a la API el token de sesión de Supabase; la API lo reenvía a PostgreSQL y las políticas RLS deciden qué filas se ven.
+- La página usa COOP/COEP para los Workers paralelos y una CSP sin `unsafe-eval` (`vercel.json`).
 
-## Desarrollo local
+## Estructura de carpetas
 
-Node fijado en [.nvmrc](.nvmrc); dependencias con versiones exactas en package/lockfile. No es necesario reconstruir Rust para iniciar: el paquete WASM generado está versionado.
+```text
+src/
+├── features/     # una carpeta por característica (analizar, alineamiento, biblioteca, proyectos…)
+├── gen/          # clientes gRPC-Web generados desde el backend
+├── i18n/         # catálogos es y en
+├── shell/        # marcos público y de laboratorio, barra lateral, paleta de comandos
+├── shared/       # componentes y utilidades comunes, rutas
+├── theme/ preferences/ test/
+rust/alignment/   # núcleo de alineamiento y paquete WASM versionado (pkg/)
+e2e/              # pruebas de extremo a extremo con Playwright
+scripts/          # medición, comprobación de PWA y WASM, utilidades de E2E
+experiments/      # fuentes del cuaderno de rediseño con Colab
+notebooks/        # cuaderno generado de Colab
+public/           # fuentes locales y recursos de marca
+docs/             # documentación técnica
+```
+
+## Puesta en marcha
+
+Requisitos: Node.js 24 y npm. No hace falta Rust: el paquete WASM está versionado.
 
 ```bash
 npm ci
+cp .env.example .env   # opcional; ver la tabla siguiente
 npm run dev
 ```
 
-Servidor Vite en `http://localhost:5173` con COOP/COEP. Rutas en `src/shared/navigation.ts`: Inicio/Analizar/Alinear/Diseñar/Biblioteca/Perfil, identidad y páginas legales. `.env.example` enumera variables públicas; Auth requiere URL/clave pública y proyectos/UniProt requieren VITE_API_BASE_URL. Sin secretos del servidor en cliente. [Pantallas](docs/pantallas.md), [proyectos](docs/projects.md), [referencias](docs/references.md), [informes](docs/reports.md), [candidatos](docs/candidates.md).
+Vite sirve la aplicación en <http://localhost:5173>. Sin variables, la aplicación arranca pero las funciones con cuenta lo indican.
 
-## Verificación
+### Variables de entorno
 
-```bash
-npm run lint
-npm run typecheck
-npm run test
-npm run build
-```
+Todas son públicas (llegan al navegador): nunca deben contener claves secretas, `service_role` ni contraseñas. Se fijan al construir, así que cambiarlas exige volver a desplegar.
 
-Pruebas específicas durante desarrollo: `npm run test -- src/features/alignment/wasm.test.ts`. Antes de cambios amplios, `npm run test:coverage`. E2E del recorrido afectado: `npm run test:e2e -- e2e/alignment.spec.ts`; requiere Chromium o Chrome local. `npm run check:pwa` verifica el build sin conexión; `PWA_CHECK_PORT` permite usar otro puerto si 4173 está ocupado.
+| Variable | Obligatoria | Efecto |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Para cuentas | URL del proyecto de Supabase |
+| `VITE_SUPABASE_ANON_KEY` | Para cuentas | Clave pública (`sb_publishable_…` o `anon`) |
+| `VITE_API_BASE_URL` | Para proyectos, UniProt y asistente | Origen de la API; sin ella no se hace ninguna petición a la API |
+| `VITE_GENERATOR_HISTORY` | No | `enabled` activa guardar búsquedas del generador en Proyectos |
+| `VITE_REPORT_STORAGE` | No | `enabled` activa guardar informes en la cuenta |
+| `VITE_STRUCTURE_PREDICTION` | No | `enabled` activa la predicción desde el laboratorio |
+| `VITE_PROJECT_CREATE_IDEMPOTENCY` | No | `enabled` reintenta creaciones de proyecto de resultado incierto |
+| `VITE_PROJECT_LIVE` | No | `enabled` actualiza la lista de proyectos por el canal en vivo de la API |
 
-Rust se fija en `rust-toolchain.toml`; wasm-pack 0.15.0 y wasm-bindgen 0.2.129. Para cambios del núcleo:
+Las banderas opcionales deben activarse solo contra una API que ya incluya la función. Ver [`.env.example`](.env.example) y [decisiones](docs/decisiones.md).
 
-```bash
-npm run build:wasm
-npm run check:wasm
-```
+## Scripts
 
-`build:wasm` reasigna la ruta de Cargo a `/cargo`, porque el binario guarda rutas de origen. El paquete que se versiona se construye en Linux, como en CI: `npm run build:wasm:linux` (Docker con `node:24`, Rust 1.91.1 y wasm-pack 0.15.0; quita el `.gitignore` generado). Una construcción en Windows funciona pero escribe rutas con `\` y no coincide byte a byte. CI reconstruye y compara. `target/` no se versiona.
+| Script | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo de Vite |
+| `npm run dev:prediction` | Servidor local con la predicción activada (puertos propios, sin tocar `.env`) |
+| `npm run build` | Comprobación de tipos y build de producción |
+| `npm run preview` | Sirve el build de producción |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc -b --noEmit` |
+| `npm test` | Pruebas unitarias (Vitest) |
+| `npm run test:coverage` | Pruebas unitarias con cobertura (mínimo del 70 %) |
+| `npm run test:e2e` | Pruebas E2E con Playwright; admite `E2E_PORT`, `E2E_WORKERS` y `E2E_BROWSER` |
+| `npm run check:pwa` | Comprueba el build sin conexión (`PWA_CHECK_PORT` cambia el puerto) |
+| `npm run build:wasm` | Reconstruye el paquete WASM |
+| `npm run build:wasm:linux` | Reconstruye el paquete WASM en Linux con Docker, como en CI |
+| `npm run check:wasm` | Verifica que el paquete WASM versionado coincide con la reconstrucción |
 
-`scripts/generate_alignment_references.py` regenera fixtures con Biopython fijado en `requirements-reference.txt`; es una herramienta científica del frontend, no el backend. `node scripts/benchmark-alignment.mjs` compara ambos núcleos y escribe resultados locales en `artifacts/`.
+## Pruebas y calidad
 
-## Arquitectura y límites
+- Unitarias con Vitest y Testing Library, con cobertura mínima del 70 % (V8 no mide el código interno de Rust).
+- E2E con Playwright en Chromium (también Firefox y WebKit con `E2E_BROWSER`), con auditorías de accesibilidad con axe, a 360 y 1280 px y en ambos temas. Ejemplo: `npm run test:e2e -- e2e/alignment.spec.ts`.
+- CI (`.github/workflows`) ejecuta auditoría de dependencias, comprobación del código generado, tipos, lint, pruebas con cobertura, build, E2E críticos y, en el flujo de WebAssembly, formato y pruebas de Rust y reconstrucción reproducible del paquete WASM.
+- Metodología y límites de las mediciones de rendimiento en [calidad y rendimiento](docs/calidad-y-rendimiento.md).
 
-El cálculo pesado ocurre en Workers; el alineamiento usa WASM con máximo de 5.000 residuos por secuencia. FASTA admite 5.000.000 bytes. PWA precachea recursos locales. La cobertura V8 no mide internamente Rust. La interfaz es bilingüe español/inglés. La compatibilidad verificada abarca Chromium 156, Firefox 155 y WebKit 26.6 en Windows, con la batería sin conexión completa en Chromium y WebKit; Safari en dispositivo real, lectores de pantalla y las mediciones de rendimiento de campo quedan como límites documentados.
+### WebAssembly
 
-El backend es propietario de migraciones Supabase y su prueba de RLS. Este frontend se puede clonar, probar y construir sin el backend. `VITE_API_BASE_URL` habilita los proyectos y la consulta de UniProt; sin ella no se hace ninguna petición a la API. La web habla con la API por gRPC-Web (clientes generados en `src/gen/` desde los contratos del backend; ver [gRPC](docs/grpc.md)); el backend conserva además sus rutas REST. La sesión se envía solo al servidor configurado, sin redirecciones ni cookies. Para publicación, añadir únicamente el origen concreto de la API a `connect-src` de la CSP; no se amplían orígenes antes de conocer la URL. Configurar CORS en el backend con el origen exacto del frontend.
+El toolchain de Rust está fijado en `rust-toolchain.toml` (1.91.1) con wasm-pack 0.15.0. El paquete que se versiona se construye en Linux (`npm run build:wasm:linux`), como en CI; una construcción en Windows funciona pero escribe rutas con `\` y no coincide byte a byte. `scripts/generate_alignment_references.py` regenera las referencias de prueba con Biopython (`requirements-reference.txt`).
 
-El generador local y el [laboratorio didáctico](docs/laboratory.md) están implementados. Este permite explorar resultados guardados, editar/proteger posiciones y conservar variantes; una edición invalida la estructura asociada hasta nueva predicción. Por decisión del 28 de octubre, el cálculo estructural desde la app queda aplazado hasta que exista un ejecutor gratuito cuyos términos lo permitan, y el diseño de forma nueva queda fuera del alcance de la asignatura; ambas propuestas se conservan. El asistente solo interpreta. Descriptores y predicciones no demuestran función biológica ni novedad experimental.
+## Despliegue
 
-## Documentación y despliegue
+Dos proyectos de Vercel independientes, uno por repositorio, que publican desde `main`. El frontend usa el preset Vite (`npm run build`, salida `dist`). `vercel.json` define la reescritura de la SPA y las cabeceras de seguridad; si la API cambia de dirección, su origen exacto se añade a `connect-src`. Cuando un cambio afecta al contrato entre repositorios, el orden es migración, API y frontend. Detalles en [despliegue](docs/despliegue.md).
 
-- [Definición vigente](docs/definicion-proyecto.md)
-- [Decisiones](docs/decisiones.md)
-- [Pantallas](docs/pantallas.md)
-- [Diseño](docs/diseno-visual.md) y [fuentes](docs/font-provenance.md)
-- [Estado y plan de desarrollo](docs/plan-desarrollo.md): capacidades actuales, orden de entregables y configuración que debe aportar el responsable del proyecto
-- [Rendimiento y accesibilidad](docs/performance-2026-10-27.md) y [calidad](docs/quality-s7.md): mediciones, límites y propuestas abiertas
-- [Archivo histórico](docs/archive/README.md)
-- [Laboratorio de diseño y alojamiento](docs/design-lab-roadmap.md): alcance acordado, modelos, primera prueba, hardware y precios consultados
+## Repositorio relacionado
 
-Vercel importa únicamente este repositorio con preset Vite; el backend usa otro proyecto. Producción desde `main`: [frontend](https://protein-forge.vercel.app/) y [backend](https://protein-back.vercel.app/), con CI y despliegue correctos en la publicación del 27 de octubre (frontend `84f9da5`, backend `18d9444`). Lo que hay en `dev` por encima de `main` no está publicado. El usuario controla publicación, variables de entorno y cambios remotos; la organización local no cambia el despliegue existente.
+La [API](https://github.com/Jacklb19/Protein_Back) (FastAPI, Python 3.14, Connect RPC y Supabase) es dueña de los contratos `proto/` y de las migraciones y las pruebas de RLS de PostgreSQL. Este frontend se puede clonar, probar y construir sin ella.
+
+## Documentación
+
+- [Requisitos](docs/definicion-proyecto.md) y [decisiones](docs/decisiones.md)
+- [Pantallas](docs/pantallas.md), [diseño visual](docs/diseno-visual.md) y [fuentes](docs/font-provenance.md)
+- [gRPC](docs/grpc.md) y [despliegue](docs/despliegue.md)
+- [Proyectos](docs/projects.md), [biblioteca y estructuras](docs/references.md), [informes](docs/reports.md), [candidatos](docs/candidates.md) y [asistente](docs/assistant.md)
+- [Laboratorio](docs/laboratory.md), [laboratorio de diseño](docs/laboratorio-diseno.md) y [predicción](docs/prediccion.md)
+- [Segundo factor TOTP](docs/auth-totp-contract.md) y [Google OAuth](docs/google-oauth-publicacion.md)
+- [Calidad y rendimiento](docs/calidad-y-rendimiento.md)
+- [Anexo: definición original y evidencias de sprint](docs/archive/README.md)
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE).
